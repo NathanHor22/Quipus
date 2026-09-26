@@ -39,10 +39,7 @@ typedef enum {
 } local_state_t;
 
 typedef enum {
-<<<<<<< HEAD
   UI_SPLASH,
-=======
->>>>>>> ebcffecb93bce6efea780fb5e74ebfbd399bbe94
   UI_HOME,
   UI_WIFI_LIST,
   UI_WIFI_PASSWORD,
@@ -92,11 +89,7 @@ static bool s_sd_archive_required;
 static unsigned s_recording_duration_seconds;
 static volatile bool s_controls_ready;
 #if LANTERN_HAS_TOUCHSCREEN
-<<<<<<< HEAD
 static ui_view_t s_ui_view = UI_SPLASH;
-=======
-static ui_view_t s_ui_view = UI_HOME;
->>>>>>> ebcffecb93bce6efea780fb5e74ebfbd399bbe94
 static lantern_wifi_network_t s_wifi_networks[LANTERN_WIFI_SCAN_LIMIT];
 static size_t s_wifi_network_count;
 static size_t s_wifi_selected;
@@ -128,10 +121,7 @@ static bool ready_for_cloud_action(void);
 static void handle_short_press(void);
 static void open_wifi_screen(void);
 #if LANTERN_HAS_TOUCHSCREEN
-<<<<<<< HEAD
 static void show_main_menu(void);
-=======
->>>>>>> ebcffecb93bce6efea780fb5e74ebfbd399bbe94
 static void open_report_screen(void);
 static void handle_touch_release(uint16_t x, uint16_t y);
 #endif
@@ -299,13 +289,8 @@ static void show_ready(void) {
   s_state_entered_at = xTaskGetTickCount();
 #if LANTERN_HAS_TOUCHSCREEN
   if (network.paired) {
-<<<<<<< HEAD
     s_ui_view = UI_SPLASH;
     lantern_display_show_splash();
-=======
-    s_ui_view = UI_HOME;
-    lantern_display_show_home(s_summary_retry_pending ? "SUMMARY WAITING TO SYNC" : "TAP A BUTTON");
->>>>>>> ebcffecb93bce6efea780fb5e74ebfbd399bbe94
     if (s_wake_available && network.wifi_connected) lantern_wake_set_enabled(true);
     return;
   }
@@ -801,7 +786,6 @@ static bool ready_for_cloud_action(void) {
 }
 
 #if LANTERN_HAS_TOUCHSCREEN
-<<<<<<< HEAD
 static void show_main_menu(void) {
   s_ui_view = UI_HOME;
   s_display_asleep = false;
@@ -809,8 +793,6 @@ static void show_main_menu(void) {
   lantern_display_show_home(s_summary_retry_pending ? "SUMMARY WAITING TO SYNC" : "");
 }
 
-=======
->>>>>>> ebcffecb93bce6efea780fb5e74ebfbd399bbe94
 static void render_wifi_list(void) {
   const char *rows[LANTERN_WIFI_SCAN_LIMIT];
   static char labels[LANTERN_WIFI_SCAN_LIMIT][LANTERN_DISPLAY_MENU_TEXT];
@@ -920,7 +902,6 @@ static void handle_touch_release(uint16_t x, uint16_t y) {
     handle_short_press();
     return;
   }
-<<<<<<< HEAD
   if (s_ui_view == UI_SPLASH) {
     show_main_menu();
     return;
@@ -934,28 +915,13 @@ static void handle_touch_release(uint16_t x, uint16_t y) {
       open_wifi_screen();
     } else if (y >= 270) {
       show_ready();
-=======
-  if (s_ui_view == UI_HOME) {
-    if (y >= 82 && y < 132) {
-      if (ready_for_cloud_action()) start_spoken_consent(true);
-    } else if (y >= 140 && y < 194) {
-      open_report_screen();
-    } else if (y >= 198 && y < 258) {
-      open_wifi_screen();
->>>>>>> ebcffecb93bce6efea780fb5e74ebfbd399bbe94
     }
     return;
   }
   if (s_ui_view == UI_WIFI_LIST) {
-<<<<<<< HEAD
     if (y >= 270) { show_main_menu(); return; }
     if (y < 68) return;
     size_t index = (size_t)((y - 68) / 38);
-=======
-    if (y >= 285) { show_ready(); return; }
-    if (y < 70) return;
-    size_t index = (size_t)((y - 70) / 42);
->>>>>>> ebcffecb93bce6efea780fb5e74ebfbd399bbe94
     if (index >= s_wifi_network_count) { open_wifi_screen(); return; }
     s_wifi_selected = index;
     memset(s_wifi_password, 0, sizeof(s_wifi_password));
@@ -1006,15 +972,9 @@ static void handle_touch_release(uint16_t x, uint16_t y) {
     return;
   }
   if (s_ui_view == UI_REPORT_LIST) {
-<<<<<<< HEAD
     if (y >= 270) { show_main_menu(); return; }
     if (y < 68) return;
     size_t index = (size_t)((y - 68) / 38);
-=======
-    if (y >= 285) { show_ready(); return; }
-    if (y < 70) return;
-    size_t index = (size_t)((y - 70) / 42);
->>>>>>> ebcffecb93bce6efea780fb5e74ebfbd399bbe94
     if (index >= s_report_item_count) return;
     char detail[96];
     snprintf(detail, sizeof(detail), "%.58s ACTION: %.26s",
@@ -1024,15 +984,10 @@ static void handle_touch_release(uint16_t x, uint16_t y) {
     return;
   }
   if (s_ui_view == UI_REPORT_DETAIL) {
-<<<<<<< HEAD
     if (y >= 270) {
       if (s_report_item_count) open_report_screen();
       else show_main_menu();
     }
-=======
-    if (s_report_item_count) open_report_screen();
-    else show_ready();
->>>>>>> ebcffecb93bce6efea780fb5e74ebfbd399bbe94
   }
 }
 #else
@@ -1348,12 +1303,8 @@ static void telemetry_task(void *argument) {
     }
 
 #if LANTERN_HAS_TOUCHSCREEN
-<<<<<<< HEAD
     if (!s_display_asleep && s_state == LOCAL_READY &&
         (s_ui_view == UI_HOME || s_ui_view == UI_SPLASH) &&
-=======
-    if (!s_display_asleep && s_state == LOCAL_READY && s_ui_view == UI_HOME &&
->>>>>>> ebcffecb93bce6efea780fb5e74ebfbd399bbe94
         (xTaskGetTickCount() - s_last_interaction_at) >= pdMS_TO_TICKS(60000)) {
       lantern_display_set_awake(false);
       s_display_asleep = true;

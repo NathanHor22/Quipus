@@ -41,10 +41,7 @@ esp_err_t lantern_display_init(void);
 // Non-blocking, task-context only; copies detail and coalesces pending updates.
 void lantern_display_show(lantern_screen_t screen, const char *detail);
 // Touch-first views use fixed-size copies so rendering never retains caller memory.
-<<<<<<< HEAD
 void lantern_display_show_splash(void);
-=======
->>>>>>> ebcffecb93bce6efea780fb5e74ebfbd399bbe94
 void lantern_display_show_home(const char *footer);
 void lantern_display_show_menu(const char *title, const char *const *items,
                                size_t item_count, const char *footer);

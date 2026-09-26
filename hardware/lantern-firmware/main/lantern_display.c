@@ -33,11 +33,7 @@ static SemaphoreHandle_t s_transfer_done;
 static QueueHandle_t s_updates;
 
 typedef struct {
-<<<<<<< HEAD
   enum { DISPLAY_STATE, DISPLAY_SPLASH, DISPLAY_HOME, DISPLAY_MENU, DISPLAY_KEYBOARD, DISPLAY_DETAIL } view;
-=======
-  enum { DISPLAY_STATE, DISPLAY_HOME, DISPLAY_MENU, DISPLAY_KEYBOARD, DISPLAY_DETAIL } view;
->>>>>>> ebcffecb93bce6efea780fb5e74ebfbd399bbe94
   lantern_screen_t screen;
   char detail[96];
   char title[48];
@@ -429,7 +425,6 @@ void lantern_display_show_home(const char *footer) {
   if (s_updates) xQueueOverwrite(s_updates, &update);
 }
 
-<<<<<<< HEAD
 void lantern_display_show_splash(void) {
   gpio_set_level(LANTERN_DISPLAY_BACKLIGHT_GPIO, 1);
   display_update_t update;
@@ -443,8 +438,6 @@ void lantern_display_show_splash(void) {
   if (s_updates) xQueueOverwrite(s_updates, &update);
 }
 
-=======
->>>>>>> ebcffecb93bce6efea780fb5e74ebfbd399bbe94
 void lantern_display_show_menu(const char *title, const char *const *items,
                                size_t item_count, const char *footer) {
   gpio_set_level(LANTERN_DISPLAY_BACKLIGHT_GPIO, 1);
@@ -507,7 +500,11 @@ void lantern_display_set_charge_eta(int minutes) {
     return;
   }
   s_requested.charge_eta_minutes = minutes;
-  if (s_requested.view == DISPLAY_HOME) ++s_requested.revision;
+  // The estimate is drawn outside the status bar on both idle views. Force a
+  // full redraw so unplugging USB clears the previous text immediately.
+  if (s_requested.view == DISPLAY_HOME || s_requested.view == DISPLAY_SPLASH) {
+    ++s_requested.revision;
+  }
   update = s_requested;
   taskEXIT_CRITICAL(&s_update_lock);
   if (s_updates) xQueueOverwrite(s_updates, &update);
@@ -570,15 +567,9 @@ static void draw_status_bar(
       index < bars ? signal_color : dim);
   }
   const char *connection = "OFFLINE";
-<<<<<<< HEAD
   if (connectivity == LANTERN_CONNECTIVITY_RECONNECTING) connection = "LINKING";
   else if (connectivity == LANTERN_CONNECTIVITY_SETUP) connection = "SETUP";
   else if (connectivity == LANTERN_CONNECTIVITY_WIFI_ONLY) connection = "WIFI";
-=======
-  if (connectivity == LANTERN_CONNECTIVITY_RECONNECTING) connection = "RECONNECT";
-  else if (connectivity == LANTERN_CONNECTIVITY_SETUP) connection = "SETUP";
-  else if (connectivity == LANTERN_CONNECTIVITY_WIFI_ONLY) connection = "NO CLOUD";
->>>>>>> ebcffecb93bce6efea780fb5e74ebfbd399bbe94
   else if (connectivity == LANTERN_CONNECTIVITY_WEAK) connection = "WEAK";
   else if (connectivity == LANTERN_CONNECTIVITY_ONLINE) connection = paired ? "ONLINE" : "WIFI";
   draw_text(28, 9, connection, 1, wifi_connected ? signal_color : red);
@@ -713,7 +704,6 @@ static void render_screen(const display_update_t *update) {
       update->connectivity, update->wifi_rssi,
       update->paired, background, foreground, green, amber, red);
 
-<<<<<<< HEAD
     if (update->view == DISPLAY_SPLASH) {
       centered_text(45, "QUIPUS", 2, foreground);
       quipus_mark(LANTERN_DISPLAY_WIDTH / 2, 79, green);
@@ -755,33 +745,6 @@ static void render_screen(const display_update_t *update) {
       }
       outline_rect(72, 276, 96, 32, 1, foreground);
       centered_text(288, "BACK", 1, foreground);
-=======
-    if (update->view == DISPLAY_HOME) {
-      centered_text(37, "QUIPUS", 2, foreground);
-      const char *labels[] = {"START SESSION", "STATUS REPORT", "WIFI SETUP"};
-      for (int index = 0; index < 3; ++index) {
-        int y = 82 + index * 60;
-        outline_rect(13, y, LANTERN_DISPLAY_WIDTH - 26, 46, 2, index == 0 ? green : foreground);
-        centered_text(y + 16, labels[index], 1, index == 0 ? green : foreground);
-      }
-      char footer[80];
-      if (update->power_state == LANTERN_POWER_CHARGING && update->charge_eta_minutes >= 0) {
-        if (update->charge_eta_minutes == 0) snprintf(footer, sizeof(footer), "CHARGED");
-        else if (update->charge_eta_minutes >= 60) snprintf(footer, sizeof(footer), "FULL IN ~%dH %02dM",
-          update->charge_eta_minutes / 60, update->charge_eta_minutes % 60);
-        else snprintf(footer, sizeof(footer), "FULL IN ~%d MIN", update->charge_eta_minutes);
-      } else snprintf(footer, sizeof(footer), "%s", detail);
-      centered_text(279, footer, 1, update->power_state == LANTERN_POWER_CHARGING ? amber : foreground);
-      centered_text(300, "SAY COMPUTER THEN A COMMAND", 1, green);
-    } else if (update->view == DISPLAY_MENU) {
-      centered_text(38, update->title, 2, foreground);
-      for (size_t index = 0; index < update->item_count; ++index) {
-        int y = 70 + (int)index * 42;
-        outline_rect(9, y, LANTERN_DISPLAY_WIDTH - 18, 34, 1, index == 0 ? green : foreground);
-        draw_text(16, y + 13, update->items[index], 1, index == 0 ? green : foreground);
-      }
-      centered_text(294, detail, 1, amber);
->>>>>>> ebcffecb93bce6efea780fb5e74ebfbd399bbe94
     } else if (update->view == DISPLAY_KEYBOARD) {
       centered_text(36, "WIFI PASSWORD", 1, foreground);
       wrapped_text(8, 51, LANTERN_DISPLAY_WIDTH - 16, update->title, 1, green);
@@ -807,7 +770,6 @@ static void render_screen(const display_update_t *update) {
     } else if (update->view == DISPLAY_DETAIL) {
       centered_text(38, update->title, 1, green);
       wrapped_text(10, 61, LANTERN_DISPLAY_WIDTH - 20, detail, 16, foreground);
-<<<<<<< HEAD
       outline_rect(72, 276, 96, 32, 1, foreground);
       centered_text(288, "BACK", 1, foreground);
     } else {
@@ -823,20 +785,6 @@ static void render_screen(const display_update_t *update) {
       centered_text(status_y, status, 2, accent);
       if (detail && detail[0]) centered_text(detail_y, detail, 1, foreground);
     }
-=======
-      centered_text(299, update->input, 1, amber);
-    } else if (screen == LANTERN_SCREEN_READY || screen == LANTERN_SCREEN_BOOTING) {
-      quipus_mark(LANTERN_DISPLAY_WIDTH / 2, ring_y - 44, accent);
-    } else if (screen == LANTERN_SCREEN_RECORDING) {
-      ring(LANTERN_DISPLAY_WIDTH / 2, ring_y, 17, 17, red);
-    } else {
-      // No decorative animation while listening, uploading, or reporting.
-      rect(LANTERN_DISPLAY_WIDTH / 2 - 22, ring_y, 44, 2, accent);
-    }
-    centered_text(36, title, 2, foreground);
-    centered_text(status_y, status, 2, accent);
-    if (detail && detail[0]) centered_text(detail_y, detail, 1, foreground);
->>>>>>> ebcffecb93bce6efea780fb5e74ebfbd399bbe94
     complete = flush_rows(0, LANTERN_DISPLAY_HEIGHT);
   }
   previous_screen = complete ? (int)screen : -1;
