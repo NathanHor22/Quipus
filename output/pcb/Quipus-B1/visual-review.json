@@ -1,0 +1,8 @@
+{
+  "pdf_sha256": "409b1063c3ff83a7a5f0ed456232213046aa8a667b4b0b46fce3fcd1267de545",
+  "pages_rendered": 36,
+  "resolution_dpi": 90,
+  "review": "All 36 final pages inspected in contact sheets, with full-resolution inspection of audio voltage/timing, analog circuit, ADC pin-net sheet and purchase table. No clipping, overlapping elements or missing glyphs observed.",
+  "method": "Bundled Poppler + PIL + view_image",
+  "page_format": "A3 landscape; vector diagrams and text"
+}

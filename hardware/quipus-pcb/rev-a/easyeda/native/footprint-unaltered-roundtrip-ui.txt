@@ -1,0 +1,415 @@
+- link:
+  - /url: "#"
+- generic "File":
+  - generic: File (F)
+- generic "Edit":
+  - generic: Edit (E)
+- generic "View":
+  - generic: View (V)
+- generic "Place":
+  - generic: Place (P)
+- generic "Route":
+  - generic: Route (U)
+- generic "More"
+- generic: V3.2.149
+- generic: Personal
+- generic: EN
+- generic "Notifications"
+- generic "Homepage":
+  - img "Avatar"
+  - generic: nathanhor2001
+- text: 
+- generic "Open Project(Ctrl+O)"
+- generic "Save(Ctrl+Shift+S)"
+- generic "Save All(Ctrl+S)"
+- generic "Undo(Ctrl+Z)"
+- generic "Redo(Ctrl+Y)"
+- generic "Common":
+  - generic: Common
+- generic "Arrays"
+- generic "Find(Ctrl+F)"
+- generic "2D Preview"
+- generic "3D Preview"
+- generic "Fit Area Selection View"
+- generic "Unit":
+  - generic: mil
+- generic "Grid Style"
+- generic "Via"
+- generic "Pad(Alt+P)"
+- generic "Line Pads"
+- generic "Rectangle Pads"
+- generic "Shaped Pad"
+- generic "Fill Region"
+- generic "Slot Region"
+- generic "Prohibited Region"
+- generic "Polyline(Alt+L)"
+- generic "Text"
+- generic "Length(Alt+N)"
+- generic "Canvas Origin"
+- generic "More"
+- 'generic "Auto Hide : Open"'
+- generic "All Projects":
+  - generic: A
+  - generic: l
+  - generic: l
+  - generic: P
+  - generic: r
+  - generic: o
+  - generic: j
+  - generic: e
+  - generic: c
+  - generic: t
+  - generic: s
+- generic "Project Design":
+  - generic: P
+  - generic: r
+  - generic: o
+  - generic: j
+  - generic: e
+  - generic: c
+  - generic: t
+  - generic: D
+  - generic: e
+  - generic: s
+  - generic: i
+  - generic: g
+  - generic: "n"
+- generic "Lib Design":
+  - generic: L
+  - generic: i
+  - generic: b
+  - generic: D
+  - generic: e
+  - generic: s
+  - generic: i
+  - generic: g
+  - generic: "n"
+- generic "Common Library":
+  - generic: C
+  - generic: o
+  - generic: m
+  - generic: m
+  - generic: o
+  - generic: "n"
+  - generic: L
+  - generic: i
+  - generic: b
+  - generic: r
+  - generic: a
+  - generic: r
+  - generic: "y"
+- text: 
+- generic "Property":
+  - generic: Property
+- generic "Pad":
+  - generic: Pad
+- generic "Wizard":
+  - generic: Wizard
+- generic "Devices":
+  - generic: Devices
+- checkbox "Footprint"
+- generic "Footprint":
+  - generic: Footprint
+- checkbox
+- textbox "Quipus:Infineon_IM69D128SV01_PG-TLGA-5-2_2.65x3.50mm_NPTH0.60"
+- generic "Category":
+  - generic: Category
+- textbox
+- generic: ···
+- generic "Describe":
+  - generic: Describe
+- textbox
+- generic "More Properties":
+  - generic: More Properties
+- checkbox "Name"
+- generic "Name":
+  - generic: Name
+- checkbox
+- textbox "Quipus:Infineon_IM69D128SV01_PG-TLGA-5-2_2.65x3.50mm_NPTH0.60"
+- checkbox "Designator"
+- generic "Designator":
+  - generic: Designator
+- checkbox "✔" [checked]
+- generic: ✔
+- textbox "U?"
+- checkbox "3D Model"
+- generic "3D Model":
+  - generic: 3D Model
+- checkbox
+- textbox "<3D Model>"
+- generic: ···
+- generic: Add Property
+- generic "Start Page":
+  - generic: Start Page
+- generic "Quipus-A1":
+  - generic: Quipus-A1
+  - text: 
+- generic "01 USB-C and charger.Quipus-A1":
+  - generic: 01 USB-C and charger.Quipus-A1
+  - text: 
+- generic "08 Buttons and service.Quipus-A1":
+  - generic: 08 Buttons and service.Quipus-A1
+  - text: 
+- generic "09 Microphones and speaker.Quipus-A1":
+  - generic: 09 Microphones and speaker.Quipus-A1
+  - text: 
+- generic "07 Controller support.Quipus-A1":
+  - generic: 07 Controller support.Quipus-A1
+  - text: 
+- generic "06 Processor display and SD.Quipus-A1":
+  - generic: 06 Processor display and SD.Quipus-A1
+  - text: 
+- generic "05 Battery fuel gauge.Quipus-A1":
+  - generic: 05 Battery fuel gauge.Quipus-A1
+  - text: 
+- generic "04 Main 3V3 regulator.Quipus-A1":
+  - generic: 04 Main 3V3 regulator.Quipus-A1
+  - text: 
+- generic "03 Power switch and always-on.Quipus-A1":
+  - generic: 03 Power switch and always-on.Quipus-A1
+  - text: 
+- generic "02 USB current and suspend.Quipus-A1":
+  - generic: 02 USB current and suspend.Quipus-A1
+  - text: 
+- generic "Quipus-A1":
+  - generic: Quipus-A1
+  - text: 
+- generic "Quipus:Infineon_IM69D128SV01_PG-TLGA-5-2_2.65x3.50mm_NPTH0.60":
+  - generic: "*"
+  - generic: Quipus:Infineon_IM69D128SV01_PG-TLGA-5-2_2.65x3.50mm_NPTH0.60
+  - text: 
+- iframe [id="frame_c5c3dbc7f1f36107@522f339b1e454ea3a6b4b8e11788511f"]
+- generic: Top
+- generic: In1.Cu
+- generic: In2.Cu
+- generic: Bottom
+- generic: Top Silkscreen
+- generic: Bottom Silkscreen
+- generic: Top Solder Mask
+- generic: Bottom Solder Mask
+- generic: Top Paste Mask
+- generic: Bottom Paste Mask
+- generic: Top Assembly
+- generic: Bottom Assembly
+- generic: Board Outline
+- generic: Multi
+- generic: Document
+- generic: Mechanical
+- generic: Drill Drawing
+- generic: Ratline
+- generic: Dwgs.User
+- generic: Cmts.User
+- generic: Eco1.User
+- generic: B.CrtYd
+- generic: F.CrtYd
+- generic: F.Adhes
+- generic: "X:"
+- generic: "130"
+- generic: "Y:"
+- generic: "25"
+- generic: "dX:"
+- generic: "250"
+- generic: "dY:"
+- generic: "65"
+- 'generic "Scaling Ratio: 2338%"':
+  - textbox: 2338%
+- 'generic "Grid Size: 5.0mil"':
+  - textbox: "5.0"
+- generic "mil":
+  - generic: mil
+- generic "Grid Style"
+- 'generic "Auto Hide : Close"'
+- generic "Layer":
+  - generic: L
+  - generic: a
+  - generic: "y"
+  - generic: e
+  - generic: r
+- generic "Filter":
+  - generic: F
+  - generic: i
+  - generic: l
+  - generic: t
+  - generic: e
+  - generic: r
+- generic "Property":
+  - generic: P
+  - generic: r
+  - generic: o
+  - generic: p
+  - generic: e
+  - generic: r
+  - generic: t
+  - generic: "y"
+- text: ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔
+- combobox:
+  - option "Common(Default)" [selected]
+  - option "Top Assembly View"
+  - option "Bottom Assembly View"
+  - option "Only Top Side"
+  - option "Only Bottom Side"
+  - option "Save As Config..."
+  - option "Set as default config"
+  - option "Rename Config..." [disabled]
+  - option "Save Config" [disabled]
+  - option "Delete Config" [disabled]
+- generic: Reset
+- list:
+  - listitem: All
+  - listitem: Copper
+  - listitem: Non-Copper
+- generic: All
+- generic: Top Side
+- generic: 1 Top Layer
+- generic: 3 Top Silkscreen Layer
+- generic: 5 Top Solder Mask Layer
+- generic: 7 Top Paste Mask Layer
+- generic: 9 Top Assembly Layer
+- generic: Bottom Side
+- generic: 2 Bottom Layer
+- generic: 4 Bottom Silkscreen Layer
+- generic: 6 Bottom Solder Mask Layer
+- generic: 8 Bottom Paste Mask Layer
+- generic: 10 Bottom Assembly Layer
+- generic: Inner Side
+- generic: 15 In1.Cu
+- generic: 16 In2.Cu
+- generic: Other
+- generic: 11 Board Outline Layer
+- generic: 12 Multi-Layer
+- generic: 13 Document Layer
+- generic: 14 Mechanical Layer
+- generic: 56 Drill Drawing Layer
+- generic: 57 Ratline Layer
+- generic: 71 Dwgs.User
+- generic: 72 Cmts.User
+- generic: 73 Eco1.User
+- generic: 75 B.CrtYd
+- generic: 76 F.CrtYd
+- generic: 86 F.Adhes
+- generic: Component
+- generic: 48 Component Shape Layer
+- generic: 49 Component Marking Layer
+- generic: 50 Pin Soldering Layer
+- generic: 51 Pin Floating Layer
+- text: ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔
+- 'generic "Auto Hide : Close"'
+- generic "Library":
+  - generic: Library
+- generic "Log":
+  - generic: Log
+- generic "Find Result":
+  - generic: Find Result
+- text:  
+- button "Export"
+- button "Clear"
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: All
+- generic: (11)
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: Fatal Error
+- generic: (0)
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: Error
+- generic: (3)
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: Warn
+- generic: (1)
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: Info
+- generic: (7)
+- paragraph:
+  - generic: 2026-10-01 16:46:39
+  - generic: "[Info] :"
+  - text: Auto backup project Quipus A1 – Hardware Rev A successfully!
+- paragraph:
+  - generic: 2026-10-01 16:53:39
+  - generic: "[Error] :"
+  - text: Invalid format.
+- paragraph:
+  - generic: 2026-10-01 16:56:38
+  - generic: "[Warn] :"
+  - text: "Found the duplicated Pad Number in this footprint: {"
+  - generic: "5"
+  - text: "}"
+- paragraph:
+  - generic: 2026-10-01 17:00:44
+  - generic: "[Error] :"
+  - text: Invalid format.
+- paragraph:
+  - generic: 2026-10-01 17:05:44
+  - generic: "[Error] :"
+  - text: Invalid format.
+- text: ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔
+- text: 
+- generic: Floating Tool
+- generic "Collapse"
+- generic "close"
+- generic "VCC"
+- generic "+5V"
+- generic "GND"
+- generic "PGND"
+- generic "AGND"
+- generic "IN"
+- generic "OUT"
+- generic "BI"
+- generic "IN"
+- generic "OUT"
+- generic "BI"
+- generic "Net Label"
+- generic "Short Flag"
+- generic "No Connect Flag"
+- generic "Differential Pairs Flag"
+- generic "Test Point"
+- generic: Floating Tool
+- generic "Collapse"
+- generic "close"
+- generic "Normal View"
+- generic "Outline View"
+- generic "Gerber View"
+- generic "Top Side"
+- generic "Bottom Side"
+- generic "Left Side"
+- generic "Right Side"
+- generic "Front Side"
+- generic "Back Side"
+- generic "Explode"
+- generic "Fit All in Window"
+- generic "Import Changes"
+- generic "Refresh"
+- generic: Table Setting
+- generic "close"
+- generic "Add Row Above"
+- generic "Add Row Below"
+- generic "Add Column Left"
+- generic "Add Column Right"
+- generic "Delete Row"
+- generic "Delete Column"
+- generic "Merge Cell"
+- generic "Split Cell"
+- generic "Border"
+- generic "Full Border"
+- generic "Outer Border"
+- generic "Inner Border"
+- generic "No Border"
+- generic "Left Border"
+- generic "Right Border"
+- generic "Top Border"
+- generic "Bottom Border"
+- generic "Border Color"
+- textbox
+- generic: "#A00000"
+- generic "Restore Default"
+- generic "Align Top"
+- generic "Align Top"
+- generic "Align Vertical Centers"
+- generic "Align Bottom"
+- generic "Align Left"
+- generic "Align Left"
+- generic "Align Horizontal Centers"
+- generic "Align Right"

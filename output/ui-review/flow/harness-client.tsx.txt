@@ -1,0 +1,25 @@
+"use client";
+
+import { useState } from "react";
+import { WorkspaceSetup } from "@/components/workspace/WorkspaceSetup";
+import { LanternDevicePanel } from "@/components/workspace/LanternDevicePanel";
+
+export function FlowReviewHarness() {
+  const [account, setAccount] = useState("flow-owner@example.test");
+  const [paired, setPaired] = useState(false);
+  const [recorded, setRecorded] = useState(false);
+  const [calendar, setCalendar] = useState<boolean | undefined>(false);
+  return <main style={{ maxWidth: 1180, margin: "30px auto", padding: "20px" }}>
+    <section aria-label="Local test fixture controls" style={{ marginBottom: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
+      <button onClick={() => setAccount(value => value === "flow-owner@example.test" ? "flow-client@example.test" : "flow-owner@example.test")}>Switch test account</button>
+      <button onClick={() => setPaired(value => !value)}>Toggle paired fixture</button>
+      <button onClick={() => setRecorded(value => !value)}>Toggle recording fixture</button>
+      <button onClick={() => setCalendar(undefined)}>Unknown calendar fixture</button>
+      <button onClick={() => setCalendar(false)}>Disconnected calendar fixture</button>
+      <button onClick={() => setCalendar(true)}>Connected calendar fixture</button>
+      <span>{account}</span>
+    </section>
+    <WorkspaceSetup account={{ email: account, displayName: "Local flow fixture" }} calendarConnected={calendar} devicePaired={paired} hasRecording={recorded} onPair={() => document.getElementById("review-device")?.scrollIntoView()} onFirstRecording={() => document.getElementById("review-device")?.scrollIntoView()} />
+    <div id="review-device"><LanternDevicePanel mode="live" integrations={{ agora: true, openai: true }} conversationCount={recorded ? 1 : 0} accountEmail={account} hasRecording={recorded} /></div>
+  </main>;
+}

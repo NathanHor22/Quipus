@@ -1,667 +1,91 @@
-.deviceLoading {
-  display: grid;
-  min-height: 340px;
-  place-content: center;
-  justify-items: center;
-  gap: 10px;
-  color: var(--q-muted);
-}
-
-.deviceLoading svg {
-  animation: spin 1s linear infinite;
-}
-
-.deviceLoading p {
-  margin: 0;
-}
-
-.kicker {
-  color: var(--q-accent);
-  font-size: 11px;
-  font-weight: 750;
-  letter-spacing: 0.14em;
-}
-
-.pairingLayout {
-  display: grid;
-  grid-template-columns: minmax(310px, 0.78fr) minmax(430px, 1.22fr);
-  overflow: hidden;
-  border: 1px solid var(--q-line);
-  border-radius: 14px;
-  background: var(--q-surface);
-  box-shadow: 0 14px 42px #173d2b0a;
-}
-
-.pairingIntro {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 54px 46px;
-  background:
-    radial-gradient(circle at 20% 5%, #2b815333 0, transparent 32%),
-    linear-gradient(155deg, #0a281a, #07160f);
-  color: var(--q-text);
-}
-
-.pairingIntro .kicker {
-  color: var(--q-accent);
-}
-
-.pairingIcon {
-  display: grid;
-  width: 54px;
-  height: 54px;
-  margin-bottom: 25px;
-  place-items: center;
-  border: 1px solid var(--q-line);
-  border-radius: 50%;
-  background: var(--q-pale);
-  color: var(--q-accent);
-  box-shadow: 0 0 36px #41e3811a;
-}
-
-.pairingIcon svg {
-  width: 24px;
-  height: 24px;
-}
-
-.pairingIntro h2 {
-  max-width: 390px;
-  margin: 10px 0 13px;
-  font: 400 clamp(29px, 3vw, 42px)/1.08 Georgia, serif;
-  letter-spacing: -0.04em;
-}
-
-.pairingIntro > p {
-  max-width: 440px;
-  margin: 0 0 28px;
-  color: var(--q-accent);
-  font-size: 14px;
-  line-height: 1.75;
-}
-
-.pairingPrimary,
-.wifiAction {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 42px;
-  padding: 10px 15px;
-  border: 1px solid var(--q-line);
-  border-radius: 7px;
-  background: var(--q-pale);
-  color: var(--q-accent);
-  font-size: 13px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.pairingPrimary:hover {
-  border-color: var(--q-line);
-  background: var(--q-pale);
-}
-
-.pairingPrimary svg,
-.wifiAction svg {
-  width: 15px;
-  height: 15px;
-}
-
-.activePairingCode {
-  display: grid;
-  width: min(100%, 330px);
-  gap: 6px;
-  padding: 18px 20px;
-  border: 1px solid var(--q-line);
-  border-radius: 9px;
-  background: var(--q-pale);
-}
-
-.activePairingCode span {
-  color: var(--q-accent);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.13em;
-}
-
-.activePairingCode strong {
-  color: var(--q-accent);
-  font-size: 29px;
-  letter-spacing: 0.13em;
-}
-
-.activePairingCode small {
-  color: var(--q-accent);
-  font-size: 11px;
-}
-
-.deviceError {
-  width: 100%;
-  margin: 16px 0 0;
-  padding: 11px 13px;
-  border: 1px solid var(--q-line);
-  border-radius: 7px;
-  background: var(--q-surface);
-  color: var(--danger);
-  font-size: 12px;
-}
-
-.deviceNotice {
-  width: 100%;
-  margin: 16px 0 0;
-  padding: 11px 13px;
-  border: 1px solid var(--q-line);
-  border-radius: 7px;
-  background: var(--q-pale);
-  color: var(--q-accent);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.setupSteps {
-  padding: 42px 46px 34px;
-}
-
-.setupSteps > header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid var(--q-line);
-}
-
-.setupSteps > header > span:last-child {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--q-muted);
-  font-size: 12px;
-}
-
-.setupSteps > header svg {
-  width: 15px;
-}
-
-.setupSteps ol {
-  display: grid;
-  gap: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.setupSteps li {
-  display: grid;
-  grid-template-columns: 35px minmax(0, 1fr);
-  gap: 15px;
-  padding: 19px 0;
-  border-bottom: 1px solid var(--q-line);
-}
-
-.setupSteps li > span {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--q-pale);
-  color: var(--q-accent);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.setupSteps li strong {
-  color: var(--q-accent);
-  font-size: 13px;
-}
-
-.setupSteps li p {
-  margin: 4px 0 0;
-  color: var(--q-muted);
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.setupSteps li a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 9px;
-  color: var(--q-accent);
-  font-size: 12px;
-  font-weight: 650;
-  text-decoration: none;
-}
-
-.setupSteps li a svg {
-  width: 13px;
-}
-
-.setupSteps > footer {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding-top: 21px;
-  color: var(--q-muted);
-  font-size: 12px;
-}
-
-.setupSteps > footer svg {
-  width: 15px;
-  color: var(--q-accent);
-}
-
-.healthLayout {
-  display: grid;
-  gap: 20px;
-}
-
-.healthHero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 25px 27px;
-  border: 1px solid var(--q-line);
-  border-radius: 12px;
-  background:
-    radial-gradient(circle at 3% 5%, var(--q-pale) 0, transparent 25%),
-    var(--q-surface);
-}
-
-.deviceIdentity {
-  display: flex;
-  align-items: center;
-  gap: 17px;
-  min-width: 0;
-}
-
-.connectedRing {
-  display: grid;
-  width: 52px;
-  height: 52px;
-  flex-shrink: 0;
-  place-items: center;
-  border-radius: 50%;
-  background: #153f2b;
-  color: var(--q-accent);
-  box-shadow: 0 0 0 6px #e4f3e9;
-}
-
-.connectedRing svg {
-  width: 22px;
-}
-
-.deviceIdentity h2 {
-  margin: 4px 0 2px;
-  font: 400 28px Georgia, serif;
-  letter-spacing: -0.03em;
-}
-
-.deviceIdentity p {
-  margin: 0;
-  color: var(--q-muted);
-  font-size: 12px;
-}
-
-.onlineBadge,
-.attentionBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 11px;
-  border-radius: 99px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: capitalize;
-}
-
-.onlineBadge {
-  background: var(--q-pale);
-  color: var(--q-accent);
-}
-
-.attentionBadge {
-  background: var(--q-surface);
-  color: #deac83;
-}
-
-.onlineBadge svg,
-.attentionBadge svg {
-  width: 15px;
-}
-
-.healthStats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 13px;
-}
-
-.healthStats article {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-  padding: 18px;
-  border: 1px solid var(--q-line);
-  border-radius: 10px;
-  background: var(--q-surface);
-}
-
-.healthStats article > svg {
-  width: 20px;
-  height: 20px;
-  color: var(--q-accent);
-}
-
-.healthStats article > span {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-
-.healthStats strong {
-  overflow: hidden;
-  color: var(--q-accent);
-  font-size: 16px;
-  font-weight: 650;
-  text-overflow: ellipsis;
-  text-transform: capitalize;
-  white-space: nowrap;
-}
-
-.healthStats small {
-  color: var(--q-muted);
-  font-size: 11px;
-}
-
-.healthGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.75fr);
-  gap: 20px;
-  align-items: stretch;
-}
-
-.deviceDetails,
-.connectionCard {
-  border: 1px solid var(--q-line);
-  border-radius: 11px;
-  background: var(--q-surface);
-}
-
-.deviceDetails {
-  padding: 23px 25px;
-}
-
-.deviceDetails > header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-  padding-bottom: 17px;
-  border-bottom: 1px solid var(--q-line);
-}
-
-.deviceDetails h3,
-.connectionCard h3 {
-  margin: 4px 0 0;
-  color: var(--q-accent);
-  font: 400 20px Georgia, serif;
-}
-
-.deviceDetails header button {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 10px;
-  border: 1px solid var(--q-line);
-  border-radius: 6px;
-  background: var(--q-surface);
-  color: var(--q-muted);
-  font-size: 12px;
-}
-
-.deviceDetails header button svg {
-  width: 14px;
-}
-
-.deviceDetails dl {
-  margin: 0;
-}
-
-.deviceDetails dl > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 30px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--q-line);
-  font-size: 12px;
-}
-
-.deviceDetails dt {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--q-muted);
-}
-
-.deviceDetails dt svg {
-  width: 14px;
-}
-
-.deviceDetails dd {
-  margin: 0;
-  color: var(--q-accent);
-  font-weight: 600;
-  text-align: right;
-}
-
-.lastError {
-  display: flex;
-  gap: 10px;
-  margin-top: 18px;
-  padding: 13px;
-  border-radius: 7px;
-  background: var(--q-surface);
-  color: #deac83;
-}
-
-.lastError > svg {
-  width: 17px;
-  flex-shrink: 0;
-}
-
-.lastError span {
-  display: grid;
-  gap: 3px;
-}
-
-.lastError strong {
-  font-size: 12px;
-}
-
-.lastError p {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.55;
-}
-
-.connectionCard {
-  padding: 24px;
-}
-
-.connectionCard ul {
-  margin: 20px 0;
-  padding: 0;
-  border-top: 1px solid var(--q-line);
-  list-style: none;
-}
-
-.connectionCard li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 13px 0;
-  border-bottom: 1px solid var(--q-line);
-  color: var(--q-muted);
-  font-size: 12px;
-}
-
-.connectionCard li span {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.connectionCard li strong {
-  color: var(--q-accent);
-  font-size: 11px;
-}
-
-.goodDot,
-.neutralServiceDot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-}
-
-.goodDot {
-  background: #25a65e;
-  box-shadow: 0 0 0 3px #e1f3e7;
-}
-
-.neutralServiceDot {
-  background: var(--q-pale);
-}
-
-.wifiAction {
-  width: 100%;
-  border-color: var(--q-line);
-  background: #1c7249;
-  color: var(--q-text);
-}
-
-.wifiAction svg:last-child {
-  margin-left: auto;
-}
-
-.connectionCard > p {
-  margin: 11px 0 0;
-  color: var(--q-muted);
-  font-size: 11px;
-  line-height: 1.55;
-}
-
-.deviceDangerZone {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 20px 23px;
-  border: 1px solid var(--q-line);
-  border-radius: 10px;
-  background: var(--q-surface);
-}
-
-.deviceDangerZone strong {
-  color: var(--q-text);
-  font-size: 13px;
-}
-
-.deviceDangerZone p {
-  margin: 4px 0 0;
-  color: var(--q-muted);
-  font-size: 12px;
-}
-
-.deviceDangerZone button {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 37px;
-  padding: 8px 12px;
-  border: 1px solid var(--q-line);
-  border-radius: 6px;
-  background: var(--q-surface);
-  color: var(--danger);
-  font-size: 12px;
-  font-weight: 650;
-}
-
-.deviceDangerZone button svg {
-  width: 14px;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-@media (max-width: 980px) {
-  .pairingLayout,
-  .healthGrid {
-    grid-template-columns: 1fr;
-  }
-  .pairingIntro {
-    padding-block: 42px;
-  }
-  .healthStats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 560px) {
-  .pairingLayout {
-    border-radius: 10px;
-  }
-  .pairingIntro,
-  .setupSteps {
-    padding: 30px 22px;
-  }
-  .pairingIntro h2 {
-    font-size: 30px;
-  }
-  .healthHero {
-    align-items: flex-start;
-    flex-direction: column;
-    padding: 21px;
-  }
-  .healthStats {
-    gap: 9px;
-  }
-  .healthStats article {
-    align-items: flex-start;
-    padding: 14px;
-  }
-  .healthStats article > svg {
-    display: none;
-  }
-  .deviceDetails,
-  .connectionCard {
-    padding: 19px;
-  }
-  .deviceDetails dl > div {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .deviceDetails dd {
-    padding-left: 22px;
-    text-align: left;
-  }
-  .deviceDangerZone {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .deviceDangerZone button {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .deviceLoading svg { animation: none; }
-}
+.deviceLoading { display: grid; min-height: 260px; place-content: center; color: var(--q-muted-strong); }
+.deviceLoading p { margin: 0; }
+.kicker { color: var(--q-muted-strong); font-size: 11px; font-weight: 750; letter-spacing: .13em; }
+.pairingLayout { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(270px, .75fr) minmax(0, 1.25fr); overflow: hidden; border: 1px solid var(--q-line-strong); border-radius: 3px; background: var(--q-glass); box-shadow: var(--q-shadow); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+.pairingIntro { display: flex; flex-direction: column; align-items: flex-start; padding: 34px; border-right: 1px solid var(--q-line); background: color-mix(in srgb, var(--q-surface-raised) 64%, transparent); }
+.pairingIntro h2, .sampleSetup h2 { margin: 12px 0 15px; font-size: clamp(28px, 3vw, 38px); line-height: 1.1; letter-spacing: -.04em; }
+.pairingIntro p, .sampleSetup p { margin: 0 0 24px; color: var(--q-muted-strong); font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.pairingIntro .networkNote { margin: 24px 0 0; font-size: 12px; }
+.pairingPrimary, .secondaryAction, .wifiAction, .dangerAction { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 11px 15px; border: 1px solid var(--q-line-strong); border-radius: 2px; font: inherit; font-size: 12px; font-weight: 700; line-height: 1.35; text-align: center; text-decoration: none; cursor: pointer; transition: background-color .16s, border-color .16s, box-shadow .16s, transform .12s; }
+.pairingPrimary, .wifiAction { background: var(--q-button-bg); border-color: var(--q-button-bg); border-bottom: 2px solid var(--q-red); color: var(--q-button-text); }
+.secondaryAction { background: color-mix(in srgb, var(--q-surface-raised) 56%, transparent); color: var(--q-text); }
+.dangerAction { background: var(--q-danger); border-color: var(--q-danger); color: var(--q-on-accent); }
+.pairingPrimary:hover, .wifiAction:hover { box-shadow: inset 0 -2px var(--q-red); }
+.secondaryAction:hover { border-color: var(--q-text); background: var(--q-surface-raised); }
+.dangerAction:hover { filter: brightness(.92); }
+.pairingPrimary:active:not(:disabled), .secondaryAction:active:not(:disabled), .wifiAction:active:not(:disabled), .dangerAction:active:not(:disabled) { transform: translateY(1px); }
+.pairingPrimary:focus-visible, .secondaryAction:focus-visible, .wifiAction:focus-visible, .dangerAction:focus-visible, .stepNavigation button:focus-visible, .help summary:focus-visible, .deviceDangerZone button:focus-visible { outline: 2px solid var(--q-red); outline-offset: 3px; }
+.pairingPrimary:disabled, .secondaryAction:disabled, .dangerAction:disabled, .deviceDangerZone button:disabled { opacity: .55; cursor: wait; }
+.activePairingCode { display: grid; align-self: stretch; gap: 9px; margin-bottom: 12px; padding: 19px; border: 1px solid var(--q-line-strong); border-top: 2px solid var(--q-red); border-radius: 2px; background: color-mix(in srgb, var(--q-surface) 90%, transparent); }
+.activePairingCode span { font-size: 10px; font-weight: 750; letter-spacing: .12em; color: var(--q-muted-strong); }
+.activePairingCode strong { font-size: clamp(20px, 2.6vw, 27px); letter-spacing: .09em; overflow-wrap: anywhere; }
+.activePairingCode small { color: var(--q-muted-strong); font-size: 12px; line-height: 1.5; }
+.setupSteps { padding: 28px; min-width: 0; }
+.stepNavigation { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; margin: 0 0 28px; padding: 0; list-style: none; }
+.stepNavigation button { display: flex; align-items: flex-start; gap: 6px; width: 100%; min-height: 55px; padding: 10px 8px; border: 1px solid var(--q-line-strong); border-top-width: 2px; border-radius: 2px; background: color-mix(in srgb, var(--q-surface-raised) 60%, transparent); color: var(--q-text); font: inherit; font-size: 11px; line-height: 1.5; text-align: left; cursor: pointer; }
+.stepNavigation button[aria-current="step"] { border-top-color: var(--q-red); background: color-mix(in srgb, var(--q-surface) 82%, transparent); font-weight: 750; }
+.stepNavigation button:disabled { color: var(--q-muted-strong); cursor: default; }
+.stepNavigation button span { font-size: 10px; font-weight: 750; }
+.stepPanel { min-height: 320px; }
+.stepPanel h3 { margin: 12px 0 16px; font-size: 25px; line-height: 1.2; letter-spacing: -.035em; }
+.stepPanel > p { margin: 0 0 16px; color: var(--q-muted-strong); font-size: 13px; line-height: 1.7; }
+.stepPanel > p strong { color: var(--q-text); }
+.stepPanel > .pairingPrimary, .stepPanel > .secondaryAction { margin: 4px 8px 10px 0; }
+.help { margin-top: 20px; border-top: 1px solid var(--q-line); }
+.help summary { padding: 13px 0; color: var(--q-text); font-size: 12px; font-weight: 650; cursor: pointer; }
+.help p { margin: 0 0 15px; color: var(--q-muted-strong); font-size: 12px; line-height: 1.65; }
+.deviceError, .deviceNotice { margin: 14px 0 0; padding: 13px 15px; border: 1px solid var(--q-line); font-size: 12px; line-height: 1.6; }
+.deviceError { background: var(--q-danger-soft); color: var(--q-danger); }
+.deviceError p { margin: 0 0 10px; }
+.deviceNotice { background: var(--q-surface-raised); color: var(--q-muted-strong); }
+.sampleSetup { position: relative; max-width: 720px; padding: 36px; border: 1px solid var(--q-line-strong); border-radius: 3px; background: var(--q-glass); box-shadow: var(--q-shadow); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+.healthLayout { display: grid; gap: 20px; }
+.healthHero { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 25px; border: 1px solid var(--q-line-strong); border-left: 3px solid var(--q-red); border-radius: 3px; background: var(--q-glass); box-shadow: var(--q-shadow); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+.deviceIdentity { min-width: 0; }
+.deviceIdentity h2 { margin: 6px 0; font-size: 28px; letter-spacing: -.035em; }
+.deviceIdentity p { margin: 0; color: var(--q-muted-strong); font-size: 12px; overflow-wrap: anywhere; }
+.onlineBadge, .attentionBadge { flex-shrink: 0; padding: 8px 11px; font-size: 11px; font-weight: 750; }
+.onlineBadge { background: var(--q-success-soft); color: var(--q-success); }
+.attentionBadge { background: var(--q-warning-soft); color: var(--q-warning); }
+.healthLayout > .deviceNotice, .healthLayout > .deviceError { margin-top: 0; }
+.healthStats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: hidden; border: 1px solid var(--q-line-strong); border-radius: 3px; background: var(--q-glass); box-shadow: var(--q-shadow); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.healthStats article { min-width: 0; padding: 20px; border-right: 1px solid var(--q-line); }
+.healthStats article:last-child { border-right: 0; }
+.healthStats article > span { display: grid; gap: 5px; }
+.healthStats strong { overflow: hidden; font-size: 18px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; text-transform: capitalize; }
+.healthStats small { color: var(--q-muted-strong); font-size: 11px; line-height: 1.5; }
+.firstTest { padding: 24px; border: 1px solid var(--q-line-strong); border-radius: 3px; background: var(--q-glass); box-shadow: var(--q-shadow); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.firstTest h3 { margin: 7px 0 16px; font-size: 21px; letter-spacing: -.025em; }
+.firstTest ol { display: grid; gap: 7px; margin: 0; padding-left: 20px; color: var(--q-muted-strong); font-size: 12px; line-height: 1.7; }
+.firstTest strong { color: var(--q-text); }
+.healthGrid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .8fr); gap: 20px; }
+.deviceDetails, .connectionCard { padding: 24px; border: 1px solid var(--q-line-strong); border-radius: 3px; background: var(--q-glass); box-shadow: var(--q-shadow); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+.deviceDetails > header { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding-bottom: 17px; border-bottom: 1px solid var(--q-line); }
+.deviceDetails h3, .connectionCard h3 { margin: 6px 0 0; font-size: 21px; letter-spacing: -.025em; }
+.deviceDetails dl { margin: 0; }
+.deviceDetails dl > div { display: flex; justify-content: space-between; gap: 22px; padding: 14px 0; border-bottom: 1px solid var(--q-line); font-size: 12px; }
+.deviceDetails dt { color: var(--q-muted-strong); }
+.deviceDetails dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+.deviceDetails .help dl { margin-bottom: 8px; }
+.lastError { margin-top: 18px; padding: 13px; background: var(--q-warning-soft); color: var(--q-warning); font-size: 12px; }
+.lastError p { margin: 4px 0 0; line-height: 1.6; overflow-wrap: anywhere; }
+.connectionCard > p { margin: 15px 0; color: var(--q-muted-strong); font-size: 12px; line-height: 1.65; }
+.wifiAction { width: 100%; }
+.connectionCard ul { margin: 20px 0 0; padding: 0; border-top: 1px solid var(--q-line); list-style: none; }
+.connectionCard li { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--q-line); font-size: 11px; line-height: 1.6; color: var(--q-muted-strong); }
+.connectionCard li strong { flex-shrink: 0; color: var(--q-text); }
+.deviceDangerZone { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px; border: 1px solid var(--q-line-strong); border-radius: 3px; background: var(--q-glass); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.deviceDangerZone strong { font-size: 13px; }
+.deviceDangerZone p { margin: 6px 0 0; color: var(--q-muted-strong); font-size: 12px; line-height: 1.6; }
+.deviceDangerZone button { flex-shrink: 0; min-height: 42px; padding: 10px 14px; border: 1px solid var(--q-danger); border-radius: 2px; background: color-mix(in srgb, var(--q-surface) 62%, transparent); color: var(--q-danger); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.revokeDialog { width: min(520px, calc(100% - 36px)); max-height: calc(100dvh - 40px); padding: 28px; border: 1px solid var(--q-line-strong); border-top: 3px solid var(--q-red); border-radius: 3px; background: var(--q-glass-strong); color: var(--q-text); box-shadow: var(--q-shadow-modal); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
+.revokeDialog::backdrop { background: var(--q-overlay); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.revokeDialog h2 { margin: 0 0 14px; font-size: 24px; letter-spacing: -.035em; }
+.revokeDialog p { color: var(--q-muted-strong); font-size: 13px; line-height: 1.65; }
+.dialogActions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+@media (max-width: 1000px) { .pairingLayout { grid-template-columns: 1fr; } .pairingIntro { border-right: 0; border-bottom: 1px solid var(--q-line); } .pairingIntro h2 { max-width: 500px; } .activePairingCode { max-width: 330px; } .healthGrid { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .pairingIntro, .setupSteps, .sampleSetup, .healthHero, .firstTest, .deviceDetails, .connectionCard { padding: 21px; } .stepNavigation { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 22px; } .stepPanel h3 { font-size: 23px; } .stepPanel { min-height: 0; } .healthHero { flex-direction: column; align-items: flex-start; gap: 15px; } .healthStats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .healthStats article:nth-child(2) { border-right: 0; } .healthStats article:nth-child(-n+2) { border-bottom: 1px solid var(--q-line); } .healthStats article { padding: 16px; } .healthStats strong { font-size: 16px; } .deviceDetails > header { flex-direction: column; align-items: flex-start; } .deviceDetails dl > div { flex-direction: column; gap: 6px; } .deviceDetails dd { text-align: left; } .deviceDangerZone { flex-direction: column; align-items: flex-start; } .revokeDialog { padding: 22px; } .dialogActions { flex-wrap: wrap; } .dialogActions > * { flex: 1; } }
+
+.pairingLayout::before, .sampleSetup::before { position: absolute; top: -1px; left: -1px; width: 96px; height: 3px; background: var(--q-red); content: ""; }
+.healthHero::after { position: absolute; top: -1px; right: 24px; width: 42px; height: 3px; transform: skewX(-35deg); background: var(--q-red-deep); content: ""; }
+@media (prefers-reduced-motion: reduce) { .pairingPrimary, .secondaryAction, .wifiAction, .dangerAction { transition: none; } }

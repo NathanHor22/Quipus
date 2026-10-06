@@ -1,0 +1,30 @@
+{
+  "recorded_on": "2026-10-01",
+  "source_file": "microphone-footprint-final.esource",
+  "source_sha256": "45ea8bf5dd2c93b501bb10f20fc2f2704adb103a7e5c5ec3c488ded3f2b14c64",
+  "native_gui_apply": "accepted",
+  "native_library_save": "saved",
+  "native_pcb_instance_refresh": "completed for U20 and U21",
+  "microphone_geometry_clearance": "PASS: the two original microphone copper-ring/NPTH clearance errors are resolved",
+  "new_instance_quarter_ground_assignments": {
+    "status": "complete_and_saved",
+    "assigned": 6,
+    "total_new_instance_pads": 6,
+    "remaining": [],
+    "audit_file": "microphone-ground-binding-audit.json"
+  },
+  "native_final_drc_count": {
+    "total": 452,
+    "connection_errors_unrouted": 451,
+    "schematic_metadata_mismatch": 1,
+    "clearance_findings": 0,
+    "evidence_file": "pcb-drc-final-ui.txt"
+  },
+  "native_net_count_including_empty": 93,
+  "canonical_net_count": 92,
+  "ratline_network_count": 92,
+  "routing": "incomplete",
+  "stencil_gerber_review": "pending",
+  "manufacturing_release": false,
+  "evidence": "Parent confirmed canonical native footprint Apply accepted, library saved, both microphone instances refreshed, all six new ground-quarter instance pads assigned GND and saved. Final native DRC UI records452 total:451 connection errors and1 schematic metadata mismatch, with no clearance category/findings."
+}

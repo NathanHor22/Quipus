@@ -1,0 +1,66 @@
+{
+  "status": "engineering arithmetic, not measurements",
+  "date": "2026-10-02",
+  "capture": {
+    "sample_rate_hz": 16000,
+    "channels": 4,
+    "bits_per_slot": 32,
+    "bclk_hz": 2048000,
+    "raw_dma_bytes_per_second": 256000,
+    "pcm16_bytes_per_second": 128000,
+    "pcm16_mb_per_minute": 7.68,
+    "pcm16_gb_per_6h": 2.7648,
+    "note": "WAV32 container doubles storage vs PCM16. Preserve original independent channels; mono review mix is an additional derivative. At16kHz the audio bandwidth is limited below8kHz."
+  },
+  "bias": {
+    "source_v": 3.014,
+    "resistor_ohm": 2200,
+    "nominal_capsule_current_mA": 0.5,
+    "estimated_capsule_terminal_v": 1.9139999999999997,
+    "normal_resistor_dissipation_mW": 0.5499999999999999,
+    "short_current_mA": 1.3699999999999999,
+    "two_short_current_mA": 2.7399999999999998,
+    "short_resistor_dissipation_mW": 4.12918,
+    "micbias_limit_mA": 20,
+    "note": "PUI3V test source is supplied through2.2kohm; terminal voltage is not3V during normal current draw. 500uA is published nominal at3Vsource, not a guaranteed current atall bias/settings."
+  },
+  "input": {
+    "adc_impedance_ohm": 20000,
+    "coupling_nominal_uF": 1,
+    "return_branch_highpass_hz": 7.957747154594767,
+    "signal_branch_estimate_highpass_hz": 7.136992963762124,
+    "rf_bypass_pF": 100,
+    "note": "First-order estimate neglects cable/parasitics, capsuledynamicimpedance andinputcapDCbias. Coupling/impedancevaluesrequirebenchresponse test."
+  },
+  "power": {
+    "capture_planning_mA": {
+      "adc": 30,
+      "two_internal_mics": 2,
+      "clock_buffer": 2,
+      "two_external_bias": 3,
+      "total": 37
+    },
+    "capture_planning_mW": 122.1,
+    "adc_reference_typical_mA": 19.7,
+    "adc_reference_conditions": "TI4analogchannels16kHz AVDD3.3V PLLonBCLK256xFS DREoff; not measured mixedmode at128xFS",
+    "max_ferrite_DCR_ohm": 0.045,
+    "ferrite_drop_mV_at30mA": 1.3499999999999999,
+    "note": "Allowance not maximumrating or measuredboarddraw. Speakertransient branchadditional; doesnotreplacefullbatterybudget."
+  },
+  "pdm": {
+    "clock_hz": 3072000,
+    "half_cycle_ns": 162.76041666666666,
+    "mic_max_data_valid_ns": 100,
+    "adc_min_setup_ns": 30,
+    "unallocated_margin_ns": 32.76041666666666,
+    "mic_max_clock_edge_ns": 13,
+    "adc_clock_edge_max_ns": 18,
+    "note": "Unallocated33ns nominalmarginmustabsorbbufferpropdelay,seriesRC,tracerouting,dutyerrorandskew. This is not a closed timing analysis. At45%dutyshort-half-cycle146.48ns leaves16.48ns BEFOREbuffer/dataRC. Oscilloscope verification mandatory; consider1.536MHz PDM bringup for extra margin."
+  },
+  "latency": {
+    "one_metre_cable_propagation_assumed_velocity_m_per_s": 200000000,
+    "one_metre_propagation_ns": 5,
+    "one_metre_acoustic_path_ms": 2.9154518950437316,
+    "assumptions": "Propagationvelocityengineeringestimate,notselectedcabledatasheet. Acousticreference343m/snearroomtemperature. ADCfilter/DMA/cloudnotincluded; analogandPDMdecimationgroupdelaysmustcalibrate."
+  }
+}

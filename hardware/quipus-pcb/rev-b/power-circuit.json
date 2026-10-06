@@ -1,0 +1,1865 @@
+{
+  "title": "Quipus Rev B baseline power circuitry",
+  "status": "Engineering design draft; no fabrication release",
+  "date": "2026-10-02",
+  "sources": {
+    "charger": "https://www.ti.com/lit/ds/symlink/bq24074.pdf",
+    "cc": "https://www.ti.com/lit/ds/symlink/tusb320lai.pdf",
+    "ldo": "https://www.ti.com/lit/ds/symlink/tlv755p.pdf",
+    "inv": "https://www.ti.com/document-viewer/SN74LVC1G04/datasheet/GUID-047EF317-EC05-483E-B17F-7CDF4F4C03DB",
+    "and": "https://www.ti.com/lit/ds/symlink/sn74lvc1g08.pdf",
+    "or": "https://www.ti.com/lit/ds/symlink/sn74lvc1g32.pdf",
+    "latch": "https://www.analog.com/media/en/technical-documentation/data-sheets/295112fb.pdf",
+    "switch": "https://www.ti.com/lit/ds/symlink/tps22918.pdf",
+    "buckboost": "https://www.ti.com/lit/ds/symlink/tps63802.pdf",
+    "gauge": "https://www.ti.com/lit/ds/symlink/bq27441-g1.pdf",
+    "jst": "https://www.jst-mfg.com/product/pdf/eng/ePH.pdf",
+    "cc_esd": "https://www.ti.com/lit/ds/symlink/tpd2eusb30.pdf",
+    "vbus_esd": "https://www.ti.com/lit/ds/symlink/tpd1e10b06.pdf",
+    "usb_connector": "https://gct.co/files/drawings/usb4105.pdf",
+    "fuse": "https://www.littelfuse.com/assetdocs/fuse-467-datasheet?assetguid=4a59f034-1cca-460e-a5ba-e1e66247c76d"
+  },
+  "nets": {
+    "BAT_PACK_P": "Protected pack positive, upstream of current shunt",
+    "BAT_P": "After current shunt; charger BAT and RTC backup",
+    "SYS_RAW": "Power-path output; near battery voltage on battery, 4.4 V nominal on USB",
+    "SYS_SW": "Switched main supply for amplifier and buck-boost converter",
+    "3V3": "Main regulated rail, 3.3077 V nominal",
+    "3V3_AON": "Always-on control rail; 3.3 V nominal, follows SYS_RAW below LDO dropout"
+  },
+  "parts": [
+    {
+      "ref": "J1",
+      "value": "GCT USB4105-GF-A",
+      "group": "01_usb_charge",
+      "package": "GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes",
+      "source": "https://gct.co/files/drawings/usb4105.pdf",
+      "notes": "Sixteen mating contacts map to twelve solder tails: A1/B12, A4/B9, B4/A9, B1/A12 share pads. Four shield stakes connect to ground. Pad names below explicitly combine shared contacts; verify the imported CAD footprint uses the same mapping. No external CC Rd resistors.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "A1_B12",
+          "name": "GND",
+          "net": "GND"
+        },
+        {
+          "number": "A4_B9",
+          "name": "VBUS",
+          "net": "VBUS_5V"
+        },
+        {
+          "number": "B8",
+          "name": "SBU2",
+          "net": null
+        },
+        {
+          "number": "A5",
+          "name": "CC1",
+          "net": "USB_CC1"
+        },
+        {
+          "number": "B7",
+          "name": "D-2",
+          "net": "USB_DM"
+        },
+        {
+          "number": "A6",
+          "name": "D+1",
+          "net": "USB_DP"
+        },
+        {
+          "number": "A7",
+          "name": "D-1",
+          "net": "USB_DM"
+        },
+        {
+          "number": "B6",
+          "name": "D+2",
+          "net": "USB_DP"
+        },
+        {
+          "number": "A8",
+          "name": "SBU1",
+          "net": null
+        },
+        {
+          "number": "B5",
+          "name": "CC2",
+          "net": "USB_CC2"
+        },
+        {
+          "number": "B4_A9",
+          "name": "VBUS",
+          "net": "VBUS_5V"
+        },
+        {
+          "number": "B1_A12",
+          "name": "GND",
+          "net": "GND"
+        },
+        {
+          "number": "SH1",
+          "name": "SHIELD",
+          "net": "GND"
+        },
+        {
+          "number": "SH2",
+          "name": "SHIELD",
+          "net": "GND"
+        },
+        {
+          "number": "SH3",
+          "name": "SHIELD",
+          "net": "GND"
+        },
+        {
+          "number": "SH4",
+          "name": "SHIELD",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "F1",
+      "value": "Littelfuse 0467002.NRHF 2 A",
+      "group": "01_usb_charge",
+      "package": "0603 fuse",
+      "source": "https://www.littelfuse.com/assetdocs/fuse-467-datasheet?assetguid=4a59f034-1cca-460e-a5ba-e1e66247c76d",
+      "notes": "Candidate fast-acting input fuse; verify current and temperature derating, inrush, and fault coordination on the PCB. The charger, not this fuse, controls USB current entitlement.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "VBUS_5V"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "USB_PROTECTED"
+        }
+      ]
+    },
+    {
+      "ref": "U2",
+      "value": "BQ24074RGTR",
+      "group": "01_usb_charge",
+      "package": "VQFN16 RGT0016 + exposed pad",
+      "source": "https://www.ti.com/lit/ds/symlink/bq24074.pdf",
+      "notes": "Standard 4.2 V Li-ion chemistry. Temperature sensing must match the actual cell. ITERM intentionally unconnected for default termination.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "TS",
+          "net": "BAT_NTC"
+        },
+        {
+          "number": "2",
+          "name": "BAT",
+          "net": "BAT_P"
+        },
+        {
+          "number": "3",
+          "name": "BAT",
+          "net": "BAT_P"
+        },
+        {
+          "number": "4",
+          "name": "CE_N",
+          "net": "GND"
+        },
+        {
+          "number": "5",
+          "name": "EN2",
+          "net": "CHG_EN2"
+        },
+        {
+          "number": "6",
+          "name": "EN1",
+          "net": "CHG_EN1"
+        },
+        {
+          "number": "7",
+          "name": "PGOOD_N",
+          "net": "USB_PGOOD_N"
+        },
+        {
+          "number": "8",
+          "name": "VSS",
+          "net": "GND"
+        },
+        {
+          "number": "9",
+          "name": "CHG_N",
+          "net": "CHARGING_N"
+        },
+        {
+          "number": "10",
+          "name": "OUT",
+          "net": "SYS_RAW"
+        },
+        {
+          "number": "11",
+          "name": "OUT",
+          "net": "SYS_RAW"
+        },
+        {
+          "number": "12",
+          "name": "ILIM",
+          "net": "CHG_ILIM"
+        },
+        {
+          "number": "13",
+          "name": "IN",
+          "net": "USB_PROTECTED"
+        },
+        {
+          "number": "14",
+          "name": "TMR",
+          "net": "CHG_TMR"
+        },
+        {
+          "number": "15",
+          "name": "ITERM",
+          "net": null
+        },
+        {
+          "number": "16",
+          "name": "ISET",
+          "net": "CHG_ISET"
+        },
+        {
+          "number": "17",
+          "name": "EP",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "R1",
+      "value": "1.24k 1%",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "CHG_ILIM"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "R2",
+      "value": "2.00k 1%",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "CHG_ISET"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "R3",
+      "value": "68.0k 1%",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "CHG_TMR"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "R4",
+      "value": "100k",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "CHARGING_N"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3"
+        }
+      ]
+    },
+    {
+      "ref": "R5",
+      "value": "100k",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "USB_PGOOD_N"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3"
+        }
+      ]
+    },
+    {
+      "ref": "C1",
+      "value": "4.7uF 16V X7R",
+      "group": "01_usb_charge",
+      "package": "0805",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "USB_PROTECTED"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "C2",
+      "value": "10uF 10V X7R",
+      "group": "01_usb_charge",
+      "package": "0805",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BAT_P"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "C3",
+      "value": "22uF 10V X7R",
+      "group": "01_usb_charge",
+      "package": "0805",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_RAW"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "J2",
+      "value": "JST S2B-PH-SM4-TB(LF)(SN) battery",
+      "group": "01_usb_charge",
+      "package": "JST PH 2mm 2-position right angle SMT",
+      "source": "https://www.jst-mfg.com/product/pdf/eng/ePH.pdf",
+      "notes": "Board-defined pin 1 is positive. Verify pack polarity physically. Protected 1S 2000 mAh pack, standard 4.2 V charge, at least 2 A discharge capability. Swap with device off and USB unplugged.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "PACK+",
+          "net": "BAT_PACK_P"
+        },
+        {
+          "number": "2",
+          "name": "PACK-",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "J3",
+      "value": "3-pin keyed NTC connector - JST SH family candidate",
+      "group": "01_usb_charge",
+      "package": "1mm SH 3pin exact drawing pending",
+      "source": "https://www.ti.com/lit/ds/symlink/bq24074.pdf",
+      "notes": "Three positions prevent swapping with the two-position speaker connector. A 10 kOhm 103AT-2 thermistor must be thermally attached to the cell. Do not populate a fixed bypass resistor.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "NTC",
+          "net": "BAT_NTC"
+        },
+        {
+          "number": "2",
+          "name": "NTC_RETURN",
+          "net": "GND"
+        },
+        {
+          "number": "3",
+          "name": "KEY_NC",
+          "net": null
+        }
+      ]
+    },
+    {
+      "ref": "U3",
+      "value": "TUSB320LAIRWBR",
+      "group": "01_usb_charge",
+      "package": "X2QFN12 RWB 1.6x1.6mm",
+      "source": "https://www.ti.com/lit/ds/symlink/tusb320lai.pdf",
+      "notes": "Sink only; ADDR floating selects GPIO mode. OUT1 high means default current; low means 1.5 A or 3 A advertised. No external CC pull-down resistors.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "CC1",
+          "net": "USB_CC1"
+        },
+        {
+          "number": "2",
+          "name": "CC2",
+          "net": "USB_CC2"
+        },
+        {
+          "number": "3",
+          "name": "PORT",
+          "net": "GND"
+        },
+        {
+          "number": "4",
+          "name": "VBUS_DET",
+          "net": "USB_VBUS_DET"
+        },
+        {
+          "number": "5",
+          "name": "ADDR",
+          "net": null
+        },
+        {
+          "number": "6",
+          "name": "OUT3",
+          "net": null
+        },
+        {
+          "number": "7",
+          "name": "OUT1",
+          "net": "CC_DEFAULT_NHIGH"
+        },
+        {
+          "number": "8",
+          "name": "OUT2",
+          "net": null
+        },
+        {
+          "number": "9",
+          "name": "ID",
+          "net": null
+        },
+        {
+          "number": "10",
+          "name": "GND",
+          "net": "GND"
+        },
+        {
+          "number": "11",
+          "name": "EN_N",
+          "net": "GND"
+        },
+        {
+          "number": "12",
+          "name": "VDD",
+          "net": "3V3_AON"
+        }
+      ]
+    },
+    {
+      "ref": "R6",
+      "value": "887k 1%",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "VBUS_5V"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "USB_VBUS_DET"
+        }
+      ]
+    },
+    {
+      "ref": "R7",
+      "value": "10k",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "CC_DEFAULT_NHIGH"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3_AON"
+        }
+      ]
+    },
+    {
+      "ref": "C4",
+      "value": "100nF 10V",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_AON"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "U4",
+      "value": "TLV75533PDBVR",
+      "group": "01_usb_charge",
+      "package": "SOT23-5 DBV",
+      "source": "https://www.ti.com/lit/ds/symlink/tlv755p.pdf",
+      "notes": "Always-on control LDO, nominal 3.3 V on USB. At low battery it follows SYS_RAW minus dropout. Device off does not mean zero battery current.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "IN",
+          "net": "SYS_RAW"
+        },
+        {
+          "number": "2",
+          "name": "GND",
+          "net": "GND"
+        },
+        {
+          "number": "3",
+          "name": "EN",
+          "net": "SYS_RAW"
+        },
+        {
+          "number": "4",
+          "name": "NC",
+          "net": null
+        },
+        {
+          "number": "5",
+          "name": "OUT",
+          "net": "3V3_AON"
+        }
+      ]
+    },
+    {
+      "ref": "C5",
+      "value": "1uF 10V X7R",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_RAW"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "C6",
+      "value": "1uF 10V X7R",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_AON"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "U5",
+      "value": "SN74LVC1G04DBVR",
+      "group": "01_usb_charge",
+      "package": "SOT23-5 DBV",
+      "source": "https://www.ti.com/document-viewer/SN74LVC1G04/datasheet/GUID-047EF317-EC05-483E-B17F-7CDF4F4C03DB",
+      "notes": "Y=!OUT1",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "NC",
+          "net": null
+        },
+        {
+          "number": "2",
+          "name": "A",
+          "net": "CC_DEFAULT_NHIGH"
+        },
+        {
+          "number": "3",
+          "name": "GND",
+          "net": "GND"
+        },
+        {
+          "number": "4",
+          "name": "Y",
+          "net": "USB_HIGH_CURRENT_OK"
+        },
+        {
+          "number": "5",
+          "name": "VCC",
+          "net": "3V3_AON"
+        }
+      ]
+    },
+    {
+      "ref": "U6",
+      "value": "SN74LVC1G08DBVR",
+      "group": "01_usb_charge",
+      "package": "SOT23-5 DBV",
+      "source": "https://www.ti.com/lit/ds/symlink/sn74lvc1g08.pdf",
+      "notes": "Y=USB_ENUM_500 AND OUT1",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "USB_ENUM_500"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "CC_DEFAULT_NHIGH"
+        },
+        {
+          "number": "3",
+          "name": "GND",
+          "net": "GND"
+        },
+        {
+          "number": "4",
+          "name": "Y",
+          "net": "USB_DEFAULT_500"
+        },
+        {
+          "number": "5",
+          "name": "VCC",
+          "net": "3V3_AON"
+        }
+      ]
+    },
+    {
+      "ref": "U7",
+      "value": "SN74LVC1G32DBVR",
+      "group": "01_usb_charge",
+      "package": "SOT23-5 DBV",
+      "source": "https://www.ti.com/lit/ds/symlink/sn74lvc1g32.pdf",
+      "notes": "EN1=SUSPEND OR (ENUM500 AND OUT1)",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "USB_SUSPEND"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "USB_DEFAULT_500"
+        },
+        {
+          "number": "3",
+          "name": "GND",
+          "net": "GND"
+        },
+        {
+          "number": "4",
+          "name": "Y",
+          "net": "CHG_EN1"
+        },
+        {
+          "number": "5",
+          "name": "VCC",
+          "net": "3V3_AON"
+        }
+      ]
+    },
+    {
+      "ref": "U8",
+      "value": "SN74LVC1G32DBVR",
+      "group": "01_usb_charge",
+      "package": "SOT23-5 DBV",
+      "source": "https://www.ti.com/lit/ds/symlink/sn74lvc1g32.pdf",
+      "notes": "EN2=SUSPEND OR NOT OUT1",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "USB_SUSPEND"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "USB_HIGH_CURRENT_OK"
+        },
+        {
+          "number": "3",
+          "name": "GND",
+          "net": "GND"
+        },
+        {
+          "number": "4",
+          "name": "Y",
+          "net": "CHG_EN2"
+        },
+        {
+          "number": "5",
+          "name": "VCC",
+          "net": "3V3_AON"
+        }
+      ]
+    },
+    {
+      "ref": "R8",
+      "value": "100k",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "USB_ENUM_500"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "R9",
+      "value": "100k",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "USB_SUSPEND"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "R10",
+      "value": "100k",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "CHG_EN1"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "R11",
+      "value": "100k",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "CHG_EN2"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "C7",
+      "value": "100nF 10V",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_AON"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "C8",
+      "value": "100nF 10V",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_AON"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "C9",
+      "value": "100nF 10V",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_AON"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "C10",
+      "value": "100nF 10V",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_AON"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "U9",
+      "value": "LTC2951ITS8-1#TRPBF",
+      "group": "02_power_control",
+      "package": "TSOT23-8 TS8",
+      "source": "https://www.analog.com/media/en/technical-documentation/data-sheets/295112fb.pdf",
+      "notes": "Use the -1 variant with active-high enable. Pull KILL up to switched 3V3 so startup does not depend on firmware responding within 512 ms.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "VIN",
+          "net": "SYS_RAW"
+        },
+        {
+          "number": "2",
+          "name": "PB_N",
+          "net": "PWR_BUTTON_N"
+        },
+        {
+          "number": "3",
+          "name": "KILLT",
+          "net": "PWR_KILLT"
+        },
+        {
+          "number": "4",
+          "name": "GND",
+          "net": "GND"
+        },
+        {
+          "number": "5",
+          "name": "INT_N",
+          "net": "PWR_INT_N"
+        },
+        {
+          "number": "6",
+          "name": "EN",
+          "net": "SYS_ENABLE"
+        },
+        {
+          "number": "7",
+          "name": "OFFT",
+          "net": "PWR_OFFT"
+        },
+        {
+          "number": "8",
+          "name": "KILL",
+          "net": "POWER_HOLD"
+        }
+      ]
+    },
+    {
+      "ref": "SW1",
+      "value": "POWER momentary normally-open",
+      "group": "02_power_control",
+      "package": "physical switch footprint pending",
+      "source": "",
+      "notes": "On press: at least 128 ms. Off request: nominal 674 ms hold. Forced off approximately 6.54 s after the shutdown interrupt.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "PWR_BUTTON_N"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "C11",
+      "value": "100nF 10V",
+      "group": "02_power_control",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_RAW"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "C12",
+      "value": "100nF 10V",
+      "group": "02_power_control",
+      "package": "0603",
+      "source": "",
+      "notes": "Nominal total off-button debounce approximately 674 ms.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "PWR_OFFT"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "C13",
+      "value": "1uF 10V lowleakage X7R",
+      "group": "02_power_control",
+      "package": "0805",
+      "source": "",
+      "notes": "Nominal 6.54 s shutdown grace period after interrupt; verify capacitance tolerance and timing on the bench.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "PWR_KILLT"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "R12",
+      "value": "100k",
+      "group": "02_power_control",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_ENABLE"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SYS_RAW"
+        }
+      ]
+    },
+    {
+      "ref": "R13",
+      "value": "10k",
+      "group": "02_power_control",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "PWR_INT_N"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3"
+        }
+      ]
+    },
+    {
+      "ref": "R14",
+      "value": "100k",
+      "group": "02_power_control",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "POWER_HOLD"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3"
+        }
+      ]
+    },
+    {
+      "ref": "U10",
+      "value": "TPS22918DBVR",
+      "group": "02_power_control",
+      "package": "SOT23-6 DBV",
+      "source": "https://www.ti.com/lit/ds/symlink/tps22918.pdf",
+      "notes": "Rated 2 A main load switch. Target normal system peak below 1.5 A at this node. Both amplifier and buck-boost supply are downstream. Do not inject external power into SYS_SW.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "VIN",
+          "net": "SYS_RAW"
+        },
+        {
+          "number": "2",
+          "name": "GND",
+          "net": "GND"
+        },
+        {
+          "number": "3",
+          "name": "ON",
+          "net": "SYS_ENABLE"
+        },
+        {
+          "number": "4",
+          "name": "CT",
+          "net": "SYS_RAMP_CT"
+        },
+        {
+          "number": "5",
+          "name": "QOD",
+          "net": "SYS_QOD"
+        },
+        {
+          "number": "6",
+          "name": "VOUT",
+          "net": "SYS_SW"
+        }
+      ]
+    },
+    {
+      "ref": "C14",
+      "value": "1uF 10V X7R",
+      "group": "02_power_control",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_RAW"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "C15",
+      "value": "10nF 25V X7R",
+      "group": "02_power_control",
+      "package": "0603",
+      "source": "",
+      "notes": "Slew approximately 5.53 ms/V; rise approximately 24 ms at 4.4 V. Verify loaded startup.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_RAMP_CT"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "R15",
+      "value": "100ohm",
+      "group": "02_power_control",
+      "package": "0603",
+      "source": "",
+      "notes": "Limits output discharge current. QOD must not connect to an independently powered rail.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_QOD"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SYS_SW"
+        }
+      ]
+    },
+    {
+      "ref": "U11",
+      "value": "TPS63802DLAR",
+      "group": "03_regulator",
+      "package": "VSON-HR/HotRod DLA0010A 10-pin 2x3mm",
+      "source": "https://www.ti.com/lit/ds/symlink/tps63802.pdf",
+      "notes": "MODE low selects power saving. The board cannot draw 2 A from 3V3 plus speaker power simultaneously through a 2 A battery connector.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "EN",
+          "net": "SYS_SW"
+        },
+        {
+          "number": "2",
+          "name": "MODE",
+          "net": "GND"
+        },
+        {
+          "number": "3",
+          "name": "AGND",
+          "net": "GND"
+        },
+        {
+          "number": "4",
+          "name": "FB",
+          "net": "3V3_FB"
+        },
+        {
+          "number": "5",
+          "name": "PG",
+          "net": "3V3_PG"
+        },
+        {
+          "number": "6",
+          "name": "VOUT",
+          "net": "3V3"
+        },
+        {
+          "number": "7",
+          "name": "L2",
+          "net": "BUCK_L2"
+        },
+        {
+          "number": "8",
+          "name": "GND",
+          "net": "GND"
+        },
+        {
+          "number": "9",
+          "name": "L1",
+          "net": "BUCK_L1"
+        },
+        {
+          "number": "10",
+          "name": "VIN",
+          "net": "SYS_SW"
+        }
+      ]
+    },
+    {
+      "ref": "L1",
+      "value": "0.47uH Coilcraft XFL4015-471ME",
+      "group": "03_regulator",
+      "package": "Coilcraft XFL4015",
+      "source": "",
+      "notes": "Datasheet candidate: 5.4 A saturation current and 7.6 mOhm DCR. Verify exact supplier land pattern and available revision.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BUCK_L1"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "BUCK_L2"
+        }
+      ]
+    },
+    {
+      "ref": "R16",
+      "value": "511k 1%",
+      "group": "03_regulator",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3_FB"
+        }
+      ]
+    },
+    {
+      "ref": "R17",
+      "value": "91.0k 1%",
+      "group": "03_regulator",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_FB"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "R18",
+      "value": "100k",
+      "group": "03_regulator",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_PG"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3"
+        }
+      ]
+    },
+    {
+      "ref": "C16",
+      "value": "10uF 10V X7R",
+      "group": "03_regulator",
+      "package": "0805",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_SW"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "C17",
+      "value": "22uF 10V X7R",
+      "group": "03_regulator",
+      "package": "0805",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "C18",
+      "value": "22uF 10V X7R",
+      "group": "03_regulator",
+      "package": "0805",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "C19",
+      "value": "100nF 10V",
+      "group": "03_regulator",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "U12",
+      "value": "BQ27441DRZR-G1A",
+      "group": "04_gauge",
+      "package": "VSON12 DRZ0012A 2.5x4 mm + exposed pad",
+      "source": "https://www.ti.com/lit/ds/symlink/bq27441-g1.pdf",
+      "notes": "I2C address 0x55. This gauge does not replace cell protection. All charger and external battery loads connect downstream of R19. VDD must not supply other circuits.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "SDA",
+          "net": "I2C_SDA"
+        },
+        {
+          "number": "2",
+          "name": "SCL",
+          "net": "I2C_SCL"
+        },
+        {
+          "number": "3",
+          "name": "VSS",
+          "net": "GND"
+        },
+        {
+          "number": "4",
+          "name": "NC",
+          "net": null
+        },
+        {
+          "number": "5",
+          "name": "VDD",
+          "net": "GAUGE_1V8"
+        },
+        {
+          "number": "6",
+          "name": "BAT",
+          "net": "BAT_PACK_P"
+        },
+        {
+          "number": "7",
+          "name": "SRN",
+          "net": "BAT_P"
+        },
+        {
+          "number": "8",
+          "name": "SRP",
+          "net": "BAT_PACK_P"
+        },
+        {
+          "number": "9",
+          "name": "NC",
+          "net": null
+        },
+        {
+          "number": "10",
+          "name": "BIN",
+          "net": "GAUGE_BIN"
+        },
+        {
+          "number": "11",
+          "name": "NC",
+          "net": null
+        },
+        {
+          "number": "12",
+          "name": "GPOUT",
+          "net": "GAUGE_INT_N"
+        },
+        {
+          "number": "13",
+          "name": "EP",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "R19",
+      "value": "0.010ohm 1% lowTCR 0.25W",
+      "group": "04_gauge",
+      "package": "0805 sense resistor",
+      "source": "",
+      "notes": "Kelvin sense from both resistor pads. At 2 A: 20 mV drop and 40 mW dissipation.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BAT_PACK_P"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "BAT_P"
+        }
+      ]
+    },
+    {
+      "ref": "R20",
+      "value": "10k",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "Defined for cold battery replacement; not automatic hot-swap insertion detection.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "GAUGE_BIN"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "R21",
+      "value": "10k",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2C_SDA"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3"
+        }
+      ]
+    },
+    {
+      "ref": "R22",
+      "value": "10k",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2C_SCL"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3"
+        }
+      ]
+    },
+    {
+      "ref": "R23",
+      "value": "1M",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2C_SDA"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "R24",
+      "value": "1M",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2C_SCL"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "R25",
+      "value": "10k",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "GAUGE_INT_N"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3"
+        }
+      ]
+    },
+    {
+      "ref": "R26",
+      "value": "1M",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "Prevents a floating input with main power off. Local test net unless an MCU GPIO is assigned.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "GAUGE_INT_N"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "C20",
+      "value": "1uF 10V X7R",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BAT_PACK_P"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "C21",
+      "value": "470nF 6.3V X7R",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "GAUGE_1V8"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "U13",
+      "value": "TPD2EUSB30DRTR",
+      "group": "01_usb_charge",
+      "package": "SOT-9X3 DRT 3-pin 1x0.8mm body",
+      "source": "https://www.ti.com/lit/ds/symlink/tpd2eusb30.pdf",
+      "notes": "CC1/CC2 protection, close to USB connector. Verify transient clamping with layout.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "IO1",
+          "net": "USB_CC1"
+        },
+        {
+          "number": "2",
+          "name": "IO2",
+          "net": "USB_CC2"
+        },
+        {
+          "number": "3",
+          "name": "GND",
+          "net": "GND"
+        }
+      ]
+    },
+    {
+      "ref": "D1",
+      "value": "TPD1E10B06DYAR",
+      "group": "01_usb_charge",
+      "package": "DYA SOD-523",
+      "source": "https://www.ti.com/lit/ds/symlink/tpd1e10b06.pdf",
+      "notes": "VBUS ESD clamp. Does not provide sustained overvoltage protection. Verify chosen package and protection coordination.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "IO",
+          "net": "USB_PROTECTED"
+        },
+        {
+          "number": "2",
+          "name": "RETURN",
+          "net": "GND"
+        }
+      ]
+    }
+  ],
+  "calculations": {
+    "charge_current_nominal_A": 0.445,
+    "charge_current_max_A": 0.49242424242424243,
+    "input_current_high_nominal_A": 1.2983870967741935,
+    "input_current_high_max_A": 1.401107852720756,
+    "voltage_nominal_V": 3.3076923076923075,
+    "voltage_min_V": 3.2195734958111197,
+    "voltage_max_V": 3.398057498057498,
+    "off_press_typ_ms": 674.0256410256411,
+    "poweroff_timeout_typ_ms": 6539.25641025641,
+    "fastcharge_safety_typ_h": 9.066666666666666,
+    "fastcharge_safety_min_h": 6.732,
+    "fastcharge_safety_max_h": 11.446666666666667
+  },
+  "release_blockers": [
+    "Actual battery model, NTC resistance/temperature curve and charger-window compatibility remain unapproved; do not charge an arbitrary pack.",
+    "Confirm imported USB footprint mapping, exact NTC and switch drawings, pack polarity, and fuse coordination before layout release.",
+    "Verify protection clamping, inrush, current limiting and thermal performance on the routed board.",
+    "PCB routing and hardware tests have not been performed.",
+    "Gauge profile, USB enumeration/suspend and orderly shutdown firmware require implementation.",
+    "Native USB data off-state isolation is specified on the controller sheet."
+  ]
+}

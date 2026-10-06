@@ -1,0 +1,935 @@
+- link:
+  - /url: "#"
+- generic "File":
+  - generic: File (F)
+- generic "Edit":
+  - generic: Edit (E)
+- generic "View":
+  - generic: View (V)
+- generic "Place":
+  - generic: Place (P)
+- generic "Design":
+  - generic: Design (D)
+- generic "Route":
+  - generic: Route (U)
+- generic "Layout":
+  - generic: Layout (O)
+- generic "Tools":
+  - generic: Tools (T)
+- generic "More"
+- generic: V3.2.149
+- generic: Personal
+- generic: EN
+- generic "Notifications"
+- generic "Homepage":
+  - img "Avatar"
+  - generic: nathanhor2001
+- text: 
+- generic "Board"
+- generic "Open Project(Ctrl+O)"
+- generic "Save(Ctrl+Shift+S)"
+- generic "Save All(Ctrl+S)"
+- generic "Backup"
+- generic "Undo(Ctrl+Z)"
+- generic "Redo(Ctrl+Y)"
+- generic "Common(Default)":
+  - generic: Common(Default)
+- generic "Arrays"
+- generic "Find(Ctrl+F)"
+- generic "2D Preview"
+- generic "3D Preview"
+- generic "Fit Area Selection View"
+- generic "Flip Board"
+- generic "Switch Brightness":
+  - generic: Normal Brightness
+- generic "Unit":
+  - generic: mil
+- generic "Grid Style"
+- generic "Pad(Alt+P)"
+- generic "Via"
+- generic "Board Outline"
+- generic "Copper Area"
+- generic "Fill Region"
+- generic "Slot Region"
+- generic "Prohibited Region"
+- generic "Polyline(Alt+L)"
+- generic "Text"
+- generic "Length(Alt+N)"
+- generic "Import Changes from Schematic(Alt+I)"
+- generic "Check DRC"
+- generic "More"
+- 'generic "Auto Hide : Close"'
+- generic "All Projects":
+  - generic: A
+  - generic: l
+  - generic: l
+  - generic: P
+  - generic: r
+  - generic: o
+  - generic: j
+  - generic: e
+  - generic: c
+  - generic: t
+  - generic: s
+- generic "Project Design":
+  - generic: P
+  - generic: r
+  - generic: o
+  - generic: j
+  - generic: e
+  - generic: c
+  - generic: t
+  - generic: D
+  - generic: e
+  - generic: s
+  - generic: i
+  - generic: g
+  - generic: "n"
+- generic "Common Library":
+  - generic: C
+  - generic: o
+  - generic: m
+  - generic: m
+  - generic: o
+  - generic: "n"
+  - generic: L
+  - generic: i
+  - generic: b
+  - generic: r
+  - generic: a
+  - generic: r
+  - generic: "y"
+- text: 
+- generic "Page":
+  - generic: Page
+- generic "Net":
+  - generic: Net
+- generic "Component":
+  - generic: Component
+- generic "Object":
+  - generic: Object
+- generic "Automatically Highlight Selection"
+- textbox
+- generic: Net
+- generic: Component
+- list:
+  - generic: Nets (114)
+  - generic: Net Classes (0)
+  - generic: Ratlines (113)
+  - generic: Differential Pair (0)
+  - generic: Equal Length Group (0)
+  - generic: Pads Pair Group (0)
+- text: ✔
+- generic "Start Page":
+  - generic: Start Page
+- generic "Quipus-B1":
+  - generic: Quipus-B1
+  - text: 
+- generic "Quipus-B1.Quipus-B1":
+  - generic: Quipus-B1.Quipus-B1
+  - text: 
+- generic "Quipus:Quipus_Infineon_IM69D128S_QuarterGround":
+  - generic: Quipus:Quipus_Infineon_IM69D128S_QuarterGround
+  - text: 
+- generic "Quipus:Quipus_TI_RTW0024A_TLV320ADC5140":
+  - generic: Quipus:Quipus_TI_RTW0024A_TLV320ADC5140
+  - text: 
+- generic "Quipus:Quipus_TI_RGT0016C_BQ24074":
+  - generic: Quipus:Quipus_TI_RGT0016C_BQ24074
+  - text: 
+- generic "Quipus:Quipus_TI_DLA0010A_TPS63802":
+  - generic: Quipus:Quipus_TI_DLA0010A_TPS63802
+  - text: 
+- generic "Quipus:Quipus_TI_DRZ0012A_BQ27441":
+  - generic: Quipus:Quipus_TI_DRZ0012A_BQ27441
+  - text: 
+- generic "Quipus:ESP32-S3-WROOM-1":
+  - generic: Quipus:ESP32-S3-WROOM-1
+  - text: 
+- generic "Quipus:MAX98357AETE_T1633-4_3x3mm_P0.5_EP1.23_90-0031C":
+  - generic: Quipus:MAX98357AETE_T1633-4_3x3mm_P0.5_EP1.23_90-0031C
+  - text: 
+- iframe [id="frame_52caa9452ee66dee@0960404b6cb74e4c9e220d0e9c82a5cd"]
+- generic: Top
+- generic: In1.Cu
+- generic: In2.Cu
+- generic: Bottom
+- generic: Top Silkscreen
+- generic: Bottom Silkscreen
+- generic: Top Solder Mask
+- generic: Bottom Solder Mask
+- generic: Top Paste Mask
+- generic: Bottom Paste Mask
+- generic: Top Assembly
+- generic: Bottom Assembly
+- generic: Board Outline
+- generic: Multi
+- generic: Document
+- generic: Mechanical
+- generic: 3D Shell Outline
+- generic: 3D Shell Top
+- generic: 3D Shell Bottom
+- generic: Drill Drawing
+- generic: Ratline
+- generic: Dwgs.User
+- generic: Cmts.User
+- generic: Eco1.User
+- generic: B.CrtYd
+- generic: F.CrtYd
+- generic: F.Adhes
+- generic: "X:"
+- generic: "-175"
+- generic: "Y:"
+- generic: "135"
+- generic: "dX:"
+- generic: "-175"
+- generic: "dY:"
+- generic: "135"
+- 'generic "Scaling Ratio: 127%"':
+  - textbox: 127%
+- 'generic "Grid Size: 5.0mil"':
+  - textbox: "5.0"
+- generic "mil":
+  - generic: mil
+- generic "Grid Style"
+- 'generic "Auto Hide : Close"'
+- generic "Layer":
+  - generic: L
+  - generic: a
+  - generic: "y"
+  - generic: e
+  - generic: r
+- generic "Filter":
+  - generic: F
+  - generic: i
+  - generic: l
+  - generic: t
+  - generic: e
+  - generic: r
+- generic "Property":
+  - generic: P
+  - generic: r
+  - generic: o
+  - generic: p
+  - generic: e
+  - generic: r
+  - generic: t
+  - generic: "y"
+- text: ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔
+- combobox:
+  - option "Common(Default)" [selected]
+  - option "Top Assembly View"
+  - option "Bottom Assembly View"
+  - option "Only Top Side"
+  - option "Only Bottom Side"
+  - option "Save As Config..."
+  - option "Set as default config"
+  - option "Rename Config..." [disabled]
+  - option "Save Config" [disabled]
+  - option "Delete Config" [disabled]
+- generic: Reset
+- list:
+  - listitem: All
+  - listitem: Copper
+  - listitem: Non-Copper
+- generic: All
+- generic: Top Side
+- generic: 1 Top Layer
+- generic: 3 Top Silkscreen Layer
+- generic: 5 Top Solder Mask Layer
+- generic: 7 Top Paste Mask Layer
+- generic: 9 Top Assembly Layer
+- generic: Bottom Side
+- generic: 2 Bottom Layer
+- generic: 4 Bottom Silkscreen Layer
+- generic: 6 Bottom Solder Mask Layer
+- generic: 8 Bottom Paste Mask Layer
+- generic: 10 Bottom Assembly Layer
+- generic: Inner Side
+- generic: 15 In1.Cu
+- generic: 16 In2.Cu
+- generic: Other
+- generic: 11 Board Outline Layer
+- generic: 12 Multi-Layer
+- generic: 13 Document Layer
+- generic: 14 Mechanical Layer
+- generic: 56 Drill Drawing Layer
+- generic: 57 Ratline Layer
+- generic: 71 Dwgs.User
+- generic: 72 Cmts.User
+- generic: 73 Eco1.User
+- generic: 75 B.CrtYd
+- generic: 76 F.CrtYd
+- generic: 86 F.Adhes
+- generic: Component
+- generic: 48 Component Shape Layer
+- generic: 49 Component Marking Layer
+- generic: 50 Pin Soldering Layer
+- generic: 51 Pin Floating Layer
+- generic: 3D Shell
+- generic: 53 Outline Layer
+- generic: 54 Top Layer
+- generic: 55 Bottom Layer
+- text: ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔
+- 'generic "Auto Hide : Close"'
+- generic "Library":
+  - generic: Library
+- generic "Log":
+  - generic: Log
+- generic "Device Standardization":
+  - generic: Device Standardization
+- generic "DRC":
+  - generic: DRC
+- generic "Find Result":
+  - generic: Find Result
+- text:  
+- text: ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔
+- button "Check DRC"
+- button "Clear Errors"
+- list:
+  - generic: All (543)
+  - generic: Connection Error (543)
+  - generic: GND (154)
+  - generic: VBUS_5V (4)
+  - generic: USB_CC1 (3)
+  - generic: USB_DP (4)
+  - generic: USB_DM (4)
+  - generic: USB_CC2 (3)
+  - generic: USB_PROTECTED (4)
+  - generic: BAT_NTC (2)
+  - generic: BAT_P (6)
+  - generic: CHG_EN2 (3)
+  - generic: CHG_EN1 (3)
+  - generic: USB_PGOOD_N (3)
+  - generic: CHARGING_N (3)
+  - generic: SYS_RAW (11)
+  - generic: CHG_ILIM (2)
+  - generic: CHG_TMR (2)
+  - generic: CHG_ISET (2)
+  - generic: 3V3_SYS (47)
+  - generic: BAT_PACK_P (5)
+  - generic: USB_VBUS_DET (2)
+  - generic: CC_DEFAULT_NHIGH (4)
+  - generic: 3V3_AON (13)
+  - generic: USB_HIGH_CURRENT_OK (2)
+  - generic: USB_ENUM_500 (3)
+  - generic: USB_DEFAULT_500 (2)
+  - generic: USB_SUSPEND (4)
+  - generic: PWR_BUTTON_N (2)
+  - generic: PWR_KILLT (2)
+  - generic: PWR_INT_N (3)
+  - generic: SYS_ENABLE (3)
+  - generic: PWR_OFFT (2)
+  - generic: POWER_HOLD (3)
+- table:
+  - rowgroup:
+    - row "No. Display Error Type Error Object Rule Name Object 1 Object 2 Layer Explanation":
+      - columnheader "No.":
+        - generic: No.
+      - columnheader "Display":
+        - generic: Display
+      - columnheader "Error Type":
+        - generic: Error Type
+        - generic "Ascending Order"
+        - generic "Descending Order"
+      - columnheader "Error Object":
+        - generic: Error Object
+        - generic "Ascending Order"
+        - generic "Descending Order"
+      - columnheader "Rule Name":
+        - generic: Rule Name
+        - generic "Ascending Order"
+        - generic "Descending Order"
+      - columnheader "Object 1":
+        - generic: Object 1
+        - generic "Ascending Order"
+        - generic "Descending Order"
+      - columnheader "Object 2":
+        - generic: Object 2
+        - generic "Ascending Order"
+        - generic "Descending Order"
+      - columnheader "Layer":
+        - generic: Layer
+        - generic "Ascending Order"
+        - generic "Descending Order"
+      - columnheader "Explanation":
+        - generic: Explanation
+        - generic "Ascending Order"
+        - generic "Descending Order"
+- table:
+  - rowgroup:
+    - 'row "1 Connection Error SMD Pad Common SMD Pad (MIC2_AC_RETURN): R237_2 - Object 1 is disconnected from other objects of the same network"':
+      - cell "1"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MIC2_AC_RETURN): R237_2"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "2 Connection Error SMD Pad Common SMD Pad (MIC2_AC_RETURN): C239_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "2"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MIC2_AC_RETURN): C239_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "3 Connection Error SMD Pad Common SMD Pad (MIC2_AC_SIGNAL): R236_2 - Object 1 is disconnected from other objects of the same network"':
+      - cell "3"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MIC2_AC_SIGNAL): R236_2"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "4 Connection Error SMD Pad Common SMD Pad (MIC2_AC_SIGNAL): C238_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "4"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MIC2_AC_SIGNAL): C238_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "5 Connection Error SMD Pad Common SMD Pad (MIC2_JACK_TIP): R235_2 - Object 1 is disconnected from other objects of the same network"':
+      - cell "5"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MIC2_JACK_TIP): R235_2"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "6 Connection Error SMD Pad Common SMD Pad (MIC2_JACK_TIP): R236_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "6"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MIC2_JACK_TIP): R236_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "7 Connection Error SMD Pad Common SMD Pad (MIC2_JACK_TIP): D221_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "7"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MIC2_JACK_TIP): D221_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "8 Connection Error TH Pad Common TH Pad (MIC2_JACK_TIP): J9_2 - Object 1 is disconnected from other objects of the same network"':
+      - cell "8"
+      - cell
+      - cell "Connection Error"
+      - cell "TH Pad"
+      - cell "Common"
+      - 'cell "TH Pad (MIC2_JACK_TIP): J9_2"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "9 Connection Error SMD Pad Common SMD Pad (MIC1_AC_RETURN): R232_2 - Object 1 is disconnected from other objects of the same network"':
+      - cell "9"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MIC1_AC_RETURN): R232_2"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "10 Connection Error SMD Pad Common SMD Pad (MIC1_AC_RETURN): C234_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "10"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MIC1_AC_RETURN): C234_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "11 Connection Error SMD Pad Common SMD Pad (MIC1_AC_SIGNAL): R231_2 - Object 1 is disconnected from other objects of the same network"':
+      - cell "11"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MIC1_AC_SIGNAL): R231_2"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "12 Connection Error SMD Pad Common SMD Pad (MIC1_AC_SIGNAL): C233_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "12"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MIC1_AC_SIGNAL): C233_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "13 Connection Error SMD Pad Common SMD Pad (MIC1_JACK_TIP): R230_2 - Object 1 is disconnected from other objects of the same network"':
+      - cell "13"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MIC1_JACK_TIP): R230_2"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "14 Connection Error SMD Pad Common SMD Pad (MIC1_JACK_TIP): R231_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "14"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MIC1_JACK_TIP): R231_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "15 Connection Error SMD Pad Common SMD Pad (MIC1_JACK_TIP): D220_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "15"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MIC1_JACK_TIP): D220_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "16 Connection Error TH Pad Common TH Pad (MIC1_JACK_TIP): J8_2 - Object 1 is disconnected from other objects of the same network"':
+      - cell "16"
+      - cell
+      - cell "Connection Error"
+      - cell "TH Pad"
+      - cell "Common"
+      - 'cell "TH Pad (MIC1_JACK_TIP): J8_2"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "17 Connection Error SMD Pad Common SMD Pad (ADC_DREG): C224_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "17"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_DREG): C224_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "18 Connection Error SMD Pad Common SMD Pad (ADC_DREG): e23 - Object 1 is disconnected from other objects of the same network"':
+      - cell "18"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_DREG): e23"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "19 Connection Error SMD Pad Common SMD Pad (ADC_DREG): C225_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "19"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_DREG): C225_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "20 Connection Error SMD Pad Common SMD Pad (ADC_IN1P): C233_2 - Object 1 is disconnected from other objects of the same network"':
+      - cell "20"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_IN1P): C233_2"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "21 Connection Error SMD Pad Common SMD Pad (ADC_IN1P): C235_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "21"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_IN1P): C235_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "22 Connection Error SMD Pad Common SMD Pad (ADC_IN1P): e20 - Object 1 is disconnected from other objects of the same network"':
+      - cell "22"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_IN1P): e20"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "23 Connection Error SMD Pad Common SMD Pad (ADC_FSYNC_IN): e19 - Object 1 is disconnected from other objects of the same network"':
+      - cell "23"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_FSYNC_IN): e19"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "24 Connection Error SMD Pad Common SMD Pad (ADC_FSYNC_IN): R222_2 - Object 1 is disconnected from other objects of the same network"':
+      - cell "24"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_FSYNC_IN): R222_2"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "25 Connection Error SMD Pad Common SMD Pad (PDM_CLK_ADC_OUT): R224_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "25"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (PDM_CLK_ADC_OUT): R224_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "26 Connection Error SMD Pad Common SMD Pad (PDM_CLK_ADC_OUT): U24_2 - Object 1 is disconnected from other objects of the same network"':
+      - cell "26"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (PDM_CLK_ADC_OUT): U24_2"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "27 Connection Error SMD Pad Common SMD Pad (PDM_CLK_ADC_OUT): e17 - Object 1 is disconnected from other objects of the same network"':
+      - cell "27"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (PDM_CLK_ADC_OUT): e17"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "28 Connection Error SMD Pad Common SMD Pad (MICBIAS_3V014): e16 - Object 1 is disconnected from other objects of the same network"':
+      - cell "28"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MICBIAS_3V014): e16"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "29 Connection Error SMD Pad Common SMD Pad (MICBIAS_3V014): C229_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "29"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MICBIAS_3V014): C229_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "30 Connection Error SMD Pad Common SMD Pad (MICBIAS_3V014): C228_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "30"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MICBIAS_3V014): C228_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "31 Connection Error SMD Pad Common SMD Pad (MICBIAS_3V014): R230_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "31"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MICBIAS_3V014): R230_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "32 Connection Error SMD Pad Common SMD Pad (MICBIAS_3V014): R235_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "32"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (MICBIAS_3V014): R235_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "33 Connection Error SMD Pad Common SMD Pad (ADC_BCLK_IN): e15 - Object 1 is disconnected from other objects of the same network"':
+      - cell "33"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_BCLK_IN): e15"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "34 Connection Error SMD Pad Common SMD Pad (ADC_BCLK_IN): R221_2 - Object 1 is disconnected from other objects of the same network"':
+      - cell "34"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_BCLK_IN): R221_2"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "35 Connection Error SMD Pad Common SMD Pad (ADC_SDOUT_DRIVER): e11 - Object 1 is disconnected from other objects of the same network"':
+      - cell "35"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_SDOUT_DRIVER): e11"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "36 Connection Error SMD Pad Common SMD Pad (ADC_SDOUT_DRIVER): R223_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "36"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_SDOUT_DRIVER): R223_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "37 Connection Error SMD Pad Common SMD Pad (ADC_IN2M): C239_2 - Object 1 is disconnected from other objects of the same network"':
+      - cell "37"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_IN2M): C239_2"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "38 Connection Error SMD Pad Common SMD Pad (ADC_IN2M): C241_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "38"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_IN2M): C241_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "39 Connection Error SMD Pad Common SMD Pad (ADC_IN2M): e9 - Object 1 is disconnected from other objects of the same network"':
+      - cell "39"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_IN2M): e9"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "40 Connection Error SMD Pad Common SMD Pad (ADC_VREF): e8 - Object 1 is disconnected from other objects of the same network"':
+      - cell "40"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_VREF): e8"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "41 Connection Error SMD Pad Common SMD Pad (ADC_VREF): C226_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "41"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_VREF): C226_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "42 Connection Error SMD Pad Common SMD Pad (ADC_VREF): C227_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "42"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_VREF): C227_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "43 Connection Error SMD Pad Common SMD Pad (ADC_IN2P): C238_2 - Object 1 is disconnected from other objects of the same network"':
+      - cell "43"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_IN2P): C238_2"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "44 Connection Error SMD Pad Common SMD Pad (ADC_IN2P): C240_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "44"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_IN2P): C240_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "45 Connection Error SMD Pad Common SMD Pad (ADC_IN2P): e5 - Object 1 is disconnected from other objects of the same network"':
+      - cell "45"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_IN2P): e5"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "46 Connection Error SMD Pad Common SMD Pad (ADC_AREG): e4 - Object 1 is disconnected from other objects of the same network"':
+      - cell "46"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_AREG): e4"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "47 Connection Error SMD Pad Common SMD Pad (ADC_AREG): C223_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "47"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_AREG): C223_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "48 Connection Error SMD Pad Common SMD Pad (ADC_AREG): C222_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "48"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_AREG): C222_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "49 Connection Error SMD Pad Common SMD Pad (ADC_IN1M): C234_2 - Object 1 is disconnected from other objects of the same network"':
+      - cell "49"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_IN1M): C234_2"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+    - 'row "50 Connection Error SMD Pad Common SMD Pad (ADC_IN1M): C236_1 - Object 1 is disconnected from other objects of the same network"':
+      - cell "50"
+      - cell
+      - cell "Connection Error"
+      - cell "SMD Pad"
+      - cell "Common"
+      - 'cell "SMD Pad (ADC_IN1M): C236_1"'
+      - cell
+      - cell "-"
+      - cell "Object 1 is disconnected from other objects of the same network"
+- list:
+  - generic: "1"
+  - generic: Total 543 Items
+  - text: "|"
+  - generic: 11 pages
+  - generic "50 /page":
+    - generic: 50 /page
+- text: ✔ ✔
+- text: 
+- generic: Floating Tool
+- generic "Collapse"
+- generic "close"
+- generic "VCC"
+- generic "+5V"
+- generic "GND"
+- generic "PGND"
+- generic "AGND"
+- generic "IN"
+- generic "OUT"
+- generic "BI"
+- generic "IN"
+- generic "OUT"
+- generic "BI"
+- generic "Net Label"
+- generic "Short Flag"
+- generic "No Connect Flag"
+- generic "Differential Pairs Flag"
+- generic "Test Point"
+- generic: Floating Tool
+- generic "Collapse"
+- generic "close"
+- generic "Normal View"
+- generic "Outline View"
+- generic "Gerber View"
+- generic "Top Side"
+- generic "Bottom Side"
+- generic "Left Side"
+- generic "Right Side"
+- generic "Front Side"
+- generic "Back Side"
+- generic "Explode"
+- generic "Fit All in Window"
+- generic "Import Changes"
+- generic "Refresh"
+- generic: Table Setting
+- generic "close"
+- generic "Add Row Above"
+- generic "Add Row Below"
+- generic "Add Column Left"
+- generic "Add Column Right"
+- generic "Delete Row"
+- generic "Delete Column"
+- generic "Merge Cell"
+- generic "Split Cell"
+- generic "Border"
+- generic "Full Border"
+- generic "Outer Border"
+- generic "Inner Border"
+- generic "No Border"
+- generic "Left Border"
+- generic "Right Border"
+- generic "Top Border"
+- generic "Bottom Border"
+- generic "Border Color"
+- textbox
+- generic: "#A00000"
+- generic "Restore Default"
+- generic "Align Top"
+- generic "Align Top"
+- generic "Align Vertical Centers"
+- generic "Align Bottom"
+- generic "Align Left"
+- generic "Align Left"
+- generic "Align Horizontal Centers"
+- generic "Align Right"

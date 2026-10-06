@@ -1,0 +1,55 @@
+{
+  "checks": [
+    {
+      "name": "First CSS rule applies after removing UTF-8 BOM",
+      "pass": true,
+      "result": {
+        "background": "rgba(255, 255, 255, 0.72)",
+        "border": "1px",
+        "position": "relative",
+        "blur": "blur(18px)"
+      }
+    },
+    {
+      "name": "Revoke dialog uses strong frosted surface",
+      "pass": true,
+      "result": {
+        "background": "rgba(255, 255, 255, 0.93)",
+        "blur": "blur(24px)",
+        "border": "3px"
+      }
+    },
+    {
+      "name": "Setup and device at 390px",
+      "pass": true,
+      "result": {
+        "viewport": 390,
+        "document": 390
+      }
+    },
+    {
+      "name": "Setup and device at 320px",
+      "pass": true,
+      "result": {
+        "viewport": 320,
+        "document": 320
+      }
+    },
+    {
+      "name": "Dark revoke button uses contrasting navy text",
+      "pass": true,
+      "result": {
+        "background": "rgb(240, 164, 173)",
+        "color": "rgb(11, 34, 57)"
+      }
+    }
+  ],
+  "screenshots": [
+    "final-glass-setup-device-desktop.png",
+    "final-glass-revoke-desktop.png",
+    "final-glass-setup-device-mobile-390.png",
+    "final-glass-setup-device-mobile-320.png",
+    "final-glass-revoke-dark-mobile.png"
+  ],
+  "pageErrors": []
+}

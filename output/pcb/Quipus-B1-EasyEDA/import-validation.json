@@ -1,0 +1,30 @@
+{
+  "status": "pass",
+  "scope": "Independent carrier net, label connectivity, pin association, pad geometry, basename collision and legacy token audit",
+  "components": 180,
+  "pcb_modules": 184,
+  "schematic_symbols": 180,
+  "positive_nets": 113,
+  "unique_labels": 113,
+  "label_occurrences": 537,
+  "stats": {
+    "audited_pad_instances": 663,
+    "audited_graphic_primitives": 2065,
+    "audited_components": 180,
+    "audited_three_point_arcs": 4,
+    "coalesced_basename_groups": 3,
+    "audited_schematic_pins": 569,
+    "audited_microphone_rings": 2,
+    "audited_keepout_zones": 9
+  },
+  "errors": [],
+  "notices": [
+    "Legacy keepouts enforce tracks/vias/copper pours; component/pad placement clearance still requires native mechanical/DRC review.",
+    "The microphone uses four repeated GND pad5 polygons; every quarter is checked for GND binding, annular radii, area and NPTH clearance.",
+    "The carrier is unrouted and has no fabrication approval. This audit does not certify native EasyEDA ERC/DRC or imported geometry."
+  ],
+  "native_erc_drc": "not performed",
+  "pcb_sha256": "d19ff1b295be70aafc89c9cb795fcefa9964c902f8e7c659dd3cc42945544315",
+  "schematic_sha256": "187ce46543abe38d3028afd28935462efd5831e96646837cc77779733437a5f4",
+  "grammar_source": "https://github.com/KiCad/kicad-source-mirror/blob/5.1/pcbnew/pcb_parser.cpp"
+}

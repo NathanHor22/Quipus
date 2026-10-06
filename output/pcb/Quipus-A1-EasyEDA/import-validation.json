@@ -1,0 +1,29 @@
+{
+  "status": "pass",
+  "scope": "Independent carrier net, label connectivity, pin association, pad geometry, basename collision and legacy token audit",
+  "components": 144,
+  "pcb_modules": 148,
+  "schematic_symbols": 144,
+  "positive_nets": 92,
+  "unique_labels": 92,
+  "label_occurrences": 444,
+  "stats": {
+    "audited_pad_instances": 533,
+    "audited_graphic_primitives": 1671,
+    "audited_components": 144,
+    "audited_three_point_arcs": 4,
+    "coalesced_basename_groups": 3,
+    "audited_schematic_pins": 471,
+    "audited_microphone_rings": 2,
+    "audited_keepout_zones": 9
+  },
+  "errors": [],
+  "notices": [
+    "Legacy keepouts enforce tracks/vias/copper pours; component/pad placement clearance still requires native mechanical/DRC review.",
+    "The carrier is unrouted and has no fabrication approval. This audit does not certify native EasyEDA ERC/DRC or imported geometry."
+  ],
+  "native_erc_drc": "not performed",
+  "pcb_sha256": "df9bab0dbe517481447e073d49cd7ffe5bd9c82795e70b86793d16a9b3aab235",
+  "schematic_sha256": "00ba8e503c9aa9e9c5a079b298111de20d2cb91fd44475c8d48ab68df6b954a3",
+  "grammar_source": "https://github.com/KiCad/kicad-source-mirror/blob/5.1/pcbnew/pcb_parser.cpp"
+}

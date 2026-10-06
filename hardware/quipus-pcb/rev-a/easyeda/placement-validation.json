@@ -1,0 +1,73 @@
+{
+  "status": "Independent geometric placement audit; not native CAD DRC",
+  "board_file": "output/pcb/Quipus-A1-EasyEDA/Quipus-A1.kicad_pcb",
+  "board_sha256": "5f48361c2ff1a57b59c6621943f8e72196b9cb33372bc079969b886fc56f1d6c",
+  "components": 144,
+  "courtyard_method": "Actual stitched closed polygons; circular keepouts approximated by 48 segments; pad shapes conservatively bounded by rotated rectangles.",
+  "same_face_courtyard_overlaps": [],
+  "opposite_face_through_hole_conflicts": [],
+  "copper_edge_issues": [],
+  "mounting_head_conflicts": [],
+  "front_components_under_screen_envelope": [],
+  "missing_courtyards": [],
+  "courtyard_outside_board": [
+    {
+      "ref": "J1",
+      "bounds_mm": [
+        27.18,
+        96.565,
+        37.82,
+        105.505
+      ],
+      "intentional_mating_or_rf_allowance": true,
+      "reason": "Courtyard includes antenna air space or connector assembly margin"
+    },
+    {
+      "ref": "U1",
+      "bounds_mm": [
+        8.5,
+        -14.75,
+        56.5,
+        26.45
+      ],
+      "intentional_mating_or_rf_allowance": true,
+      "reason": "Courtyard includes antenna air space or connector assembly margin"
+    },
+    {
+      "ref": "J6",
+      "bounds_mm": [
+        47.58,
+        32.18,
+        65.28,
+        47.88
+      ],
+      "intentional_mating_or_rf_allowance": true,
+      "reason": "Courtyard includes antenna air space or connector assembly margin"
+    }
+  ],
+  "rf_keepout_layers": [
+    "B.Cu",
+    "F.Cu",
+    "In1.Cu",
+    "In2.Cu"
+  ],
+  "rf_all_four_layers_present": true,
+  "rf_component_conflicts": [],
+  "usb_pcb_edge_guide_mm": [
+    32.5,
+    105.0
+  ],
+  "usb_guide_aligned_bottom": true,
+  "sd_mouth_center_mm": [
+    64.375,
+    40.0
+  ],
+  "sd_outward_unit_vector": [
+    1.0,
+    6.123233995736766e-17
+  ],
+  "sd_faces_right": true,
+  "routing_checks_performed": false,
+  "native_drc_performed": false,
+  "proposal_dry_run": false
+}

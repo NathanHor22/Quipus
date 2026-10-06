@@ -1,0 +1,4929 @@
+{
+  "design": "Quipus A1 power footprints",
+  "status": "Engineering PCB import draft; not fabrication release",
+  "units": "mm",
+  "date": "2026-10-01",
+  "components": [
+    {
+      "ref": "J1",
+      "value": "GCT USB4105-GF-A",
+      "library_name": "Quipus:Quipus_GCT_USB4105_GF_A_SHARED_CONTACTS",
+      "footprint_file": ".tools/quipus-footprints/power/Quipus_GCT_USB4105_GF_A_SHARED_CONTACTS.kicad_mod",
+      "sha256": "1abc239f3da3aeb61941fe166ebb4d97c0bcb7a896fc957036125dca58550c9d",
+      "expected_pad_mapping": {
+        "A1_B12": "GND",
+        "A4_B9": "VBUS_5V",
+        "B8": null,
+        "A5": "USB_CC1",
+        "B7": "USB_DM",
+        "A6": "USB_DP",
+        "A7": "USB_DM",
+        "B6": "USB_DP",
+        "A8": null,
+        "B5": "USB_CC2",
+        "B4_A9": "VBUS_5V",
+        "B1_A12": "GND",
+        "SH1": "GND",
+        "SH2": "GND",
+        "SH3": "GND",
+        "SH4": "GND"
+      },
+      "physical_pad_numbers": [
+        "A1_B12",
+        "A4_B9",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "B1_A12",
+        "B4_A9",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "SH1",
+        "SH2",
+        "SH3",
+        "SH4"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "GCT USB4105-GF-A; official KiCad geometry normalized to 12 solder tails; https://gct.co/files/drawings/usb4105.pdf",
+      "pad_geometry_mm": [
+        {
+          "number": "",
+          "type": "np_thru_hole",
+          "shape": "circle",
+          "at": [
+            -2.89,
+            -2.605
+          ],
+          "size": [
+            0.65,
+            0.65
+          ],
+          "drill": [
+            "0.65"
+          ]
+        },
+        {
+          "number": "",
+          "type": "np_thru_hole",
+          "shape": "circle",
+          "at": [
+            2.89,
+            -2.605
+          ],
+          "size": [
+            0.65,
+            0.65
+          ],
+          "drill": [
+            "0.65"
+          ]
+        },
+        {
+          "number": "A1_B12",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -3.2,
+            -3.68
+          ],
+          "size": [
+            0.6,
+            1.15
+          ],
+          "drill": null
+        },
+        {
+          "number": "A4_B9",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -2.4,
+            -3.68
+          ],
+          "size": [
+            0.6,
+            1.15
+          ],
+          "drill": null
+        },
+        {
+          "number": "A5",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.25,
+            -3.68
+          ],
+          "size": [
+            0.3,
+            1.15
+          ],
+          "drill": null
+        },
+        {
+          "number": "A6",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.25,
+            -3.68
+          ],
+          "size": [
+            0.3,
+            1.15
+          ],
+          "drill": null
+        },
+        {
+          "number": "A7",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.25,
+            -3.68
+          ],
+          "size": [
+            0.3,
+            1.15
+          ],
+          "drill": null
+        },
+        {
+          "number": "A8",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.25,
+            -3.68
+          ],
+          "size": [
+            0.3,
+            1.15
+          ],
+          "drill": null
+        },
+        {
+          "number": "B4_A9",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            2.4,
+            -3.68
+          ],
+          "size": [
+            0.6,
+            1.15
+          ],
+          "drill": null
+        },
+        {
+          "number": "B1_A12",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            3.2,
+            -3.68
+          ],
+          "size": [
+            0.6,
+            1.15
+          ],
+          "drill": null
+        },
+        {
+          "number": "B5",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.75,
+            -3.68
+          ],
+          "size": [
+            0.3,
+            1.15
+          ],
+          "drill": null
+        },
+        {
+          "number": "B6",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.75,
+            -3.68
+          ],
+          "size": [
+            0.3,
+            1.15
+          ],
+          "drill": null
+        },
+        {
+          "number": "B7",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.75,
+            -3.68
+          ],
+          "size": [
+            0.3,
+            1.15
+          ],
+          "drill": null
+        },
+        {
+          "number": "B8",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.75,
+            -3.68
+          ],
+          "size": [
+            0.3,
+            1.15
+          ],
+          "drill": null
+        },
+        {
+          "number": "SH1",
+          "type": "thru_hole",
+          "shape": "oval",
+          "at": [
+            -4.32,
+            -3.105
+          ],
+          "size": [
+            1.0,
+            2.1
+          ],
+          "drill": [
+            "oval",
+            "0.6",
+            "1.7"
+          ]
+        },
+        {
+          "number": "SH2",
+          "type": "thru_hole",
+          "shape": "oval",
+          "at": [
+            -4.32,
+            1.075
+          ],
+          "size": [
+            1.0,
+            1.8
+          ],
+          "drill": [
+            "oval",
+            "0.6",
+            "1.4"
+          ]
+        },
+        {
+          "number": "SH3",
+          "type": "thru_hole",
+          "shape": "oval",
+          "at": [
+            4.32,
+            -3.105
+          ],
+          "size": [
+            1.0,
+            2.1
+          ],
+          "drill": [
+            "oval",
+            "0.6",
+            "1.7"
+          ]
+        },
+        {
+          "number": "SH4",
+          "type": "thru_hole",
+          "shape": "oval",
+          "at": [
+            4.32,
+            1.075
+          ],
+          "size": [
+            1.0,
+            1.8
+          ],
+          "drill": [
+            "oval",
+            "0.6",
+            "1.4"
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "F1",
+      "value": "Littelfuse 0467002.NRHF 2 A",
+      "library_name": "Fuse:Fuse_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/Fuse_0603_1608Metric.kicad_mod",
+      "sha256": "bbaa4c30a6628f88e6bd1ac15447438fb611fd5bcdba54314de58466b7374d58",
+      "expected_pad_mapping": {
+        "1": "VBUS_5V",
+        "2": "USB_PROTECTED"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Fuse.pretty/Fuse_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.7875,
+            0.0
+          ],
+          "size": [
+            0.875,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.7875,
+            0.0
+          ],
+          "size": [
+            0.875,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "U2",
+      "value": "BQ24074RGTR",
+      "library_name": "Quipus:Quipus_TI_RGT0016C_BQ24074",
+      "footprint_file": ".tools/quipus-footprints/power/Quipus_TI_RGT0016C_BQ24074.kicad_mod",
+      "sha256": "060116a0316bf703f6b4c0914ce10054d978b0121f3027c1714e24fc7cf9097f",
+      "expected_pad_mapping": {
+        "1": "BAT_NTC",
+        "2": "BAT_P",
+        "3": "BAT_P",
+        "4": "GND",
+        "5": "CHG_EN2",
+        "6": "CHG_EN1",
+        "7": "USB_PGOOD_N",
+        "8": "GND",
+        "9": "CHARGING_N",
+        "10": "SYS_RAW",
+        "11": "SYS_RAW",
+        "12": "CHG_ILIM",
+        "13": "USB_PROTECTED",
+        "14": "CHG_TMR",
+        "15": null,
+        "16": "CHG_ISET",
+        "17": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [
+        "EP17 requires solder coverage/stencil review and thermal via plan; displayed geometry alone is not thermal qualification."
+      ],
+      "source": "https://www.ti.com/lit/ds/symlink/bq24074.pdf p53; source-reviewed Quipus engineering land pattern, height 1.0mm",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.4,
+            -0.75
+          ],
+          "size": [
+            0.6,
+            0.24
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.4,
+            -0.25
+          ],
+          "size": [
+            0.6,
+            0.24
+          ],
+          "drill": null
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.4,
+            0.25
+          ],
+          "size": [
+            0.6,
+            0.24
+          ],
+          "drill": null
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.4,
+            0.75
+          ],
+          "size": [
+            0.6,
+            0.24
+          ],
+          "drill": null
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.75,
+            1.4
+          ],
+          "size": [
+            0.24,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "6",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.25,
+            1.4
+          ],
+          "size": [
+            0.24,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "7",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.25,
+            1.4
+          ],
+          "size": [
+            0.24,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "8",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.75,
+            1.4
+          ],
+          "size": [
+            0.24,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "9",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.4,
+            0.75
+          ],
+          "size": [
+            0.6,
+            0.24
+          ],
+          "drill": null
+        },
+        {
+          "number": "10",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.4,
+            0.25
+          ],
+          "size": [
+            0.6,
+            0.24
+          ],
+          "drill": null
+        },
+        {
+          "number": "11",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.4,
+            -0.25
+          ],
+          "size": [
+            0.6,
+            0.24
+          ],
+          "drill": null
+        },
+        {
+          "number": "12",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.4,
+            -0.75
+          ],
+          "size": [
+            0.6,
+            0.24
+          ],
+          "drill": null
+        },
+        {
+          "number": "13",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.75,
+            -1.4
+          ],
+          "size": [
+            0.24,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "14",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.25,
+            -1.4
+          ],
+          "size": [
+            0.24,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "15",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.25,
+            -1.4
+          ],
+          "size": [
+            0.24,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "16",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.75,
+            -1.4
+          ],
+          "size": [
+            0.24,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "17",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.0,
+            0.0
+          ],
+          "size": [
+            1.68,
+            1.68
+          ],
+          "drill": null
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.42,
+            -0.42
+          ],
+          "size": [
+            0.71,
+            0.71
+          ],
+          "drill": null
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.42,
+            0.42
+          ],
+          "size": [
+            0.71,
+            0.71
+          ],
+          "drill": null
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.42,
+            -0.42
+          ],
+          "size": [
+            0.71,
+            0.71
+          ],
+          "drill": null
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.42,
+            0.42
+          ],
+          "size": [
+            0.71,
+            0.71
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R1",
+      "value": "1.24k 1%",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "CHG_ILIM",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R2",
+      "value": "2.00k 1%",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "CHG_ISET",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R3",
+      "value": "68.0k 1%",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "CHG_TMR",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R4",
+      "value": "100k",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "CHARGING_N",
+        "2": "3V3"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R5",
+      "value": "100k",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "USB_PGOOD_N",
+        "2": "3V3"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C1",
+      "value": "4.7uF 16V X7R",
+      "library_name": "Capacitor_SMD:C_0805_2012Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0805_2012Metric.kicad_mod",
+      "sha256": "99fff2e6692af4126feb9f9ebdfd454834bf414b13d04be0d075dffc23cfbd02",
+      "expected_pad_mapping": {
+        "1": "USB_PROTECTED",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.95,
+            0.0
+          ],
+          "size": [
+            1.0,
+            1.45
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.95,
+            0.0
+          ],
+          "size": [
+            1.0,
+            1.45
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C2",
+      "value": "10uF 10V X7R",
+      "library_name": "Capacitor_SMD:C_0805_2012Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0805_2012Metric.kicad_mod",
+      "sha256": "99fff2e6692af4126feb9f9ebdfd454834bf414b13d04be0d075dffc23cfbd02",
+      "expected_pad_mapping": {
+        "1": "BAT_P",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.95,
+            0.0
+          ],
+          "size": [
+            1.0,
+            1.45
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.95,
+            0.0
+          ],
+          "size": [
+            1.0,
+            1.45
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C3",
+      "value": "22uF 10V X7R",
+      "library_name": "Capacitor_SMD:C_0805_2012Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0805_2012Metric.kicad_mod",
+      "sha256": "99fff2e6692af4126feb9f9ebdfd454834bf414b13d04be0d075dffc23cfbd02",
+      "expected_pad_mapping": {
+        "1": "SYS_RAW",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.95,
+            0.0
+          ],
+          "size": [
+            1.0,
+            1.45
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.95,
+            0.0
+          ],
+          "size": [
+            1.0,
+            1.45
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "J2",
+      "value": "JST S2B-PH-SM4-TB(LF)(SN) battery",
+      "library_name": "Connector_JST:JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal",
+      "footprint_file": ".tools/quipus-footprints/power/JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal.kicad_mod",
+      "sha256": "0d7dc0833316219446f7e94b0c9a28178288562956e76d0d09c34924942af135",
+      "expected_pad_mapping": {
+        "1": "BAT_PACK_P",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2",
+        "MP"
+      ],
+      "additional_mechanical_pads": [
+        "MP"
+      ],
+      "review_status": "source-reviewed-geometry",
+      "issues": [
+        "Verify actual battery cable positive mates to pad 1; connector shape does not guarantee third-party pack polarity. Protected pack MPN and charge-temperature limits remain unresolved."
+      ],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Connector_JST.pretty/JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.0,
+            -2.85
+          ],
+          "size": [
+            1.0,
+            3.5
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.0,
+            -2.85
+          ],
+          "size": [
+            1.0,
+            3.5
+          ],
+          "drill": null
+        },
+        {
+          "number": "MP",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -3.35,
+            2.9
+          ],
+          "size": [
+            1.5,
+            3.4
+          ],
+          "drill": null
+        },
+        {
+          "number": "MP",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            3.35,
+            2.9
+          ],
+          "size": [
+            1.5,
+            3.4
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "J3",
+      "value": "3-pin keyed NTC connector - JST SH family candidate",
+      "library_name": "Connector_JST:JST_SH_SM03B-SRSS-TB_1x03-1MP_P1.00mm_Horizontal",
+      "footprint_file": ".tools/quipus-footprints/power/JST_SH_SM03B-SRSS-TB_1x03-1MP_P1.00mm_Horizontal.kicad_mod",
+      "sha256": "eb8b63f665e247d1ea395672979e7b5a5c0358e9df1f240d7172d7f80fe796ef",
+      "expected_pad_mapping": {
+        "1": "BAT_NTC",
+        "2": "GND",
+        "3": null
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2",
+        "3",
+        "MP"
+      ],
+      "additional_mechanical_pads": [
+        "MP"
+      ],
+      "review_status": "source-reviewed-geometry",
+      "issues": [
+        "Propose exact SM03B-SRSS-TB(LF)(SN) side-entry JST SH 3-pin for NTC; update BOM candidate before purchase."
+      ],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Connector_JST.pretty/JST_SH_SM03B-SRSS-TB_1x03-1MP_P1.00mm_Horizontal.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.0,
+            -2.0
+          ],
+          "size": [
+            0.6,
+            1.55
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.0,
+            -2.0
+          ],
+          "size": [
+            0.6,
+            1.55
+          ],
+          "drill": null
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.0,
+            -2.0
+          ],
+          "size": [
+            0.6,
+            1.55
+          ],
+          "drill": null
+        },
+        {
+          "number": "MP",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -2.3,
+            1.875
+          ],
+          "size": [
+            1.2,
+            1.8
+          ],
+          "drill": null
+        },
+        {
+          "number": "MP",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            2.3,
+            1.875
+          ],
+          "size": [
+            1.2,
+            1.8
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "U3",
+      "value": "TUSB320LAIRWBR",
+      "library_name": "Quipus:Quipus_TI_RWB0012A_TUSB320LAI",
+      "footprint_file": ".tools/quipus-footprints/power/Quipus_TI_RWB0012A_TUSB320LAI.kicad_mod",
+      "sha256": "a028f715a9071d24f935db8a00eb226fa2b445ed6eb101a6a04cf32b28f7bbc1",
+      "expected_pad_mapping": {
+        "1": "USB_CC1",
+        "2": "USB_CC2",
+        "3": "GND",
+        "4": "USB_VBUS_DET",
+        "5": null,
+        "6": null,
+        "7": "CC_DEFAULT_NHIGH",
+        "8": null,
+        "9": null,
+        "10": "GND",
+        "11": "GND",
+        "12": "3V3_AON"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://www.ti.com/lit/ds/symlink/tusb320lai.pdf p36; source-reviewed Quipus engineering land pattern, height 0.4mm",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.65,
+            -0.2
+          ],
+          "size": [
+            0.7,
+            0.2
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.65,
+            0.2
+          ],
+          "size": [
+            0.7,
+            0.2
+          ],
+          "drill": null
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.6,
+            0.75
+          ],
+          "size": [
+            0.2,
+            0.5
+          ],
+          "drill": null
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.2,
+            0.75
+          ],
+          "size": [
+            0.2,
+            0.5
+          ],
+          "drill": null
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.2,
+            0.75
+          ],
+          "size": [
+            0.2,
+            0.5
+          ],
+          "drill": null
+        },
+        {
+          "number": "6",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.6,
+            0.75
+          ],
+          "size": [
+            0.2,
+            0.5
+          ],
+          "drill": null
+        },
+        {
+          "number": "7",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.65,
+            0.2
+          ],
+          "size": [
+            0.7,
+            0.2
+          ],
+          "drill": null
+        },
+        {
+          "number": "8",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.65,
+            -0.2
+          ],
+          "size": [
+            0.7,
+            0.2
+          ],
+          "drill": null
+        },
+        {
+          "number": "9",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.6,
+            -0.75
+          ],
+          "size": [
+            0.2,
+            0.5
+          ],
+          "drill": null
+        },
+        {
+          "number": "10",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.2,
+            -0.75
+          ],
+          "size": [
+            0.2,
+            0.5
+          ],
+          "drill": null
+        },
+        {
+          "number": "11",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.2,
+            -0.75
+          ],
+          "size": [
+            0.2,
+            0.5
+          ],
+          "drill": null
+        },
+        {
+          "number": "12",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.6,
+            -0.75
+          ],
+          "size": [
+            0.2,
+            0.5
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R6",
+      "value": "887k 1%",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "VBUS_5V",
+        "2": "USB_VBUS_DET"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R7",
+      "value": "10k",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "CC_DEFAULT_NHIGH",
+        "2": "3V3_AON"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C4",
+      "value": "100nF 10V",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4",
+      "expected_pad_mapping": {
+        "1": "3V3_AON",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "U4",
+      "value": "TLV75533PDBVR",
+      "library_name": "Package_TO_SOT_SMD:SOT-23-5",
+      "footprint_file": ".tools/quipus-footprints/power/SOT-23-5.kicad_mod",
+      "sha256": "559f4c60fd9a2f3b575b5c4efb9bcb51863ea2c8e3837c27504059c8fa704827",
+      "expected_pad_mapping": {
+        "1": "SYS_RAW",
+        "2": "GND",
+        "3": "SYS_RAW",
+        "4": null,
+        "5": "3V3_AON"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            -0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            0.0
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            -0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C5",
+      "value": "1uF 10V X7R",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4",
+      "expected_pad_mapping": {
+        "1": "SYS_RAW",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C6",
+      "value": "1uF 10V X7R",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4",
+      "expected_pad_mapping": {
+        "1": "3V3_AON",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "U5",
+      "value": "SN74LVC1G04DBVR",
+      "library_name": "Package_TO_SOT_SMD:SOT-23-5",
+      "footprint_file": ".tools/quipus-footprints/power/SOT-23-5.kicad_mod",
+      "sha256": "559f4c60fd9a2f3b575b5c4efb9bcb51863ea2c8e3837c27504059c8fa704827",
+      "expected_pad_mapping": {
+        "1": null,
+        "2": "CC_DEFAULT_NHIGH",
+        "3": "GND",
+        "4": "USB_HIGH_CURRENT_OK",
+        "5": "3V3_AON"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            -0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            0.0
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            -0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "U6",
+      "value": "SN74LVC1G08DBVR",
+      "library_name": "Package_TO_SOT_SMD:SOT-23-5",
+      "footprint_file": ".tools/quipus-footprints/power/SOT-23-5.kicad_mod",
+      "sha256": "559f4c60fd9a2f3b575b5c4efb9bcb51863ea2c8e3837c27504059c8fa704827",
+      "expected_pad_mapping": {
+        "1": "USB_ENUM_500",
+        "2": "CC_DEFAULT_NHIGH",
+        "3": "GND",
+        "4": "USB_DEFAULT_500",
+        "5": "3V3_AON"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            -0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            0.0
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            -0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "U7",
+      "value": "SN74LVC1G32DBVR",
+      "library_name": "Package_TO_SOT_SMD:SOT-23-5",
+      "footprint_file": ".tools/quipus-footprints/power/SOT-23-5.kicad_mod",
+      "sha256": "559f4c60fd9a2f3b575b5c4efb9bcb51863ea2c8e3837c27504059c8fa704827",
+      "expected_pad_mapping": {
+        "1": "USB_SUSPEND",
+        "2": "USB_DEFAULT_500",
+        "3": "GND",
+        "4": "CHG_EN1",
+        "5": "3V3_AON"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            -0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            0.0
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            -0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "U8",
+      "value": "SN74LVC1G32DBVR",
+      "library_name": "Package_TO_SOT_SMD:SOT-23-5",
+      "footprint_file": ".tools/quipus-footprints/power/SOT-23-5.kicad_mod",
+      "sha256": "559f4c60fd9a2f3b575b5c4efb9bcb51863ea2c8e3837c27504059c8fa704827",
+      "expected_pad_mapping": {
+        "1": "USB_SUSPEND",
+        "2": "USB_HIGH_CURRENT_OK",
+        "3": "GND",
+        "4": "CHG_EN2",
+        "5": "3V3_AON"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            -0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            0.0
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            -0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R8",
+      "value": "100k",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "USB_ENUM_500",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R9",
+      "value": "100k",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "USB_SUSPEND",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R10",
+      "value": "100k",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "CHG_EN1",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R11",
+      "value": "100k",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "CHG_EN2",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C7",
+      "value": "100nF 10V",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4",
+      "expected_pad_mapping": {
+        "1": "3V3_AON",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C8",
+      "value": "100nF 10V",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4",
+      "expected_pad_mapping": {
+        "1": "3V3_AON",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C9",
+      "value": "100nF 10V",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4",
+      "expected_pad_mapping": {
+        "1": "3V3_AON",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C10",
+      "value": "100nF 10V",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4",
+      "expected_pad_mapping": {
+        "1": "3V3_AON",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "U9",
+      "value": "LTC2951ITS8-1#TRPBF",
+      "library_name": "Package_TO_SOT_SMD:TSOT-23-8",
+      "footprint_file": ".tools/quipus-footprints/power/TSOT-23-8.kicad_mod",
+      "sha256": "05a2119ad9ad5ff843888326728598dd613e7692fe024385b711192c07a19658",
+      "expected_pad_mapping": {
+        "1": "SYS_RAW",
+        "2": "PWR_BUTTON_N",
+        "3": "PWR_KILLT",
+        "4": "GND",
+        "5": "PWR_INT_N",
+        "6": "SYS_ENABLE",
+        "7": "PWR_OFFT",
+        "8": "POWER_HOLD"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Package_TO_SOT_SMD.pretty/TSOT-23-8.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            -0.975
+          ],
+          "size": [
+            1.325,
+            0.5
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            -0.325
+          ],
+          "size": [
+            1.325,
+            0.5
+          ],
+          "drill": null
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            0.325
+          ],
+          "size": [
+            1.325,
+            0.5
+          ],
+          "drill": null
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            0.975
+          ],
+          "size": [
+            1.325,
+            0.5
+          ],
+          "drill": null
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            0.975
+          ],
+          "size": [
+            1.325,
+            0.5
+          ],
+          "drill": null
+        },
+        {
+          "number": "6",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            0.325
+          ],
+          "size": [
+            1.325,
+            0.5
+          ],
+          "drill": null
+        },
+        {
+          "number": "7",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            -0.325
+          ],
+          "size": [
+            1.325,
+            0.5
+          ],
+          "drill": null
+        },
+        {
+          "number": "8",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            -0.975
+          ],
+          "size": [
+            1.325,
+            0.5
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "SW1",
+      "value": "POWER momentary normally-open",
+      "library_name": "Button_Switch_SMD:SW_SPST_B3U-1000P",
+      "footprint_file": ".tools/quipus-footprints/power/SW_SPST_B3U-1000P.kicad_mod",
+      "sha256": "04961d6b891ced40d2f3a2e8970c901002c97043013409d7924b7c6a2e4983cb",
+      "expected_pad_mapping": {
+        "1": "PWR_BUTTON_N",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [
+        "Propose Omron B3U-1000P momentary power controller input; this is not a direct battery-current switch. Case actuator dimensions remain to be confirmed."
+      ],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "rect",
+          "at": [
+            -1.7,
+            0.0
+          ],
+          "size": [
+            0.9,
+            1.7
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "rect",
+          "at": [
+            1.7,
+            0.0
+          ],
+          "size": [
+            0.9,
+            1.7
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C11",
+      "value": "100nF 10V",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4",
+      "expected_pad_mapping": {
+        "1": "SYS_RAW",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C12",
+      "value": "100nF 10V",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4",
+      "expected_pad_mapping": {
+        "1": "PWR_OFFT",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C13",
+      "value": "1uF 10V lowleakage X7R",
+      "library_name": "Capacitor_SMD:C_0805_2012Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0805_2012Metric.kicad_mod",
+      "sha256": "99fff2e6692af4126feb9f9ebdfd454834bf414b13d04be0d075dffc23cfbd02",
+      "expected_pad_mapping": {
+        "1": "PWR_KILLT",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.95,
+            0.0
+          ],
+          "size": [
+            1.0,
+            1.45
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.95,
+            0.0
+          ],
+          "size": [
+            1.0,
+            1.45
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R12",
+      "value": "100k",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "SYS_ENABLE",
+        "2": "SYS_RAW"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R13",
+      "value": "10k",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "PWR_INT_N",
+        "2": "3V3"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R14",
+      "value": "100k",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "POWER_HOLD",
+        "2": "3V3"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "U10",
+      "value": "TPS22918DBVR",
+      "library_name": "Package_TO_SOT_SMD:SOT-23-6",
+      "footprint_file": ".tools/quipus-footprints/power/SOT-23-6.kicad_mod",
+      "sha256": "fa43b3b798136815af9733d3fe45e1547111765e49c0274d86c8ea7942f8e63b",
+      "expected_pad_mapping": {
+        "1": "SYS_RAW",
+        "2": "GND",
+        "3": "SYS_ENABLE",
+        "4": "SYS_RAMP_CT",
+        "5": "SYS_QOD",
+        "6": "SYS_SW"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            -0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            0.0
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.1375,
+            0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            0.0
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        },
+        {
+          "number": "6",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.1375,
+            -0.95
+          ],
+          "size": [
+            1.325,
+            0.6
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C14",
+      "value": "1uF 10V X7R",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4",
+      "expected_pad_mapping": {
+        "1": "SYS_RAW",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C15",
+      "value": "10nF 25V X7R",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4",
+      "expected_pad_mapping": {
+        "1": "SYS_RAMP_CT",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R15",
+      "value": "100ohm",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "SYS_QOD",
+        "2": "SYS_SW"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "U11",
+      "value": "TPS63802DLAR",
+      "library_name": "Quipus:Quipus_TI_DLA0010A_TPS63802",
+      "footprint_file": ".tools/quipus-footprints/power/Quipus_TI_DLA0010A_TPS63802.kicad_mod",
+      "sha256": "6d47c15447ebbdbf7e5093e58b726b4f264d857474b669ad13fad787c9077223",
+      "expected_pad_mapping": {
+        "1": "SYS_SW",
+        "2": "GND",
+        "3": "GND",
+        "4": "3V3_FB",
+        "5": "3V3_PG",
+        "6": "3V3",
+        "7": "BUCK_L2",
+        "8": "GND",
+        "9": "BUCK_L1",
+        "10": "SYS_SW"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "10",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [
+        "Power-circuit package description 1.4x2.3 is stale datasheet prose; DLA0010A drawing is body 2x3mm. Use this exact land pattern, not generic 10-pin VSON."
+      ],
+      "source": "https://www.ti.com/lit/ds/symlink/tps63802.pdf p36; source-reviewed Quipus engineering land pattern, height 1.0mm",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.9,
+            -1.0
+          ],
+          "size": [
+            0.6,
+            0.25
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.9,
+            -0.5
+          ],
+          "size": [
+            0.6,
+            0.25
+          ],
+          "drill": null
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.9,
+            0.0
+          ],
+          "size": [
+            0.6,
+            0.25
+          ],
+          "drill": null
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.9,
+            0.5
+          ],
+          "size": [
+            0.6,
+            0.25
+          ],
+          "drill": null
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.9,
+            1.0
+          ],
+          "size": [
+            0.6,
+            0.25
+          ],
+          "drill": null
+        },
+        {
+          "number": "6",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.75,
+            1.0
+          ],
+          "size": [
+            0.9,
+            0.25
+          ],
+          "drill": null
+        },
+        {
+          "number": "7",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.75,
+            0.5
+          ],
+          "size": [
+            0.9,
+            0.25
+          ],
+          "drill": null
+        },
+        {
+          "number": "8",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.55,
+            0.0
+          ],
+          "size": [
+            1.3,
+            0.25
+          ],
+          "drill": null
+        },
+        {
+          "number": "9",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.75,
+            -0.5
+          ],
+          "size": [
+            0.9,
+            0.25
+          ],
+          "drill": null
+        },
+        {
+          "number": "10",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.75,
+            -1.0
+          ],
+          "size": [
+            0.9,
+            0.25
+          ],
+          "drill": null
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.175,
+            0.0
+          ],
+          "size": [
+            0.55,
+            0.25
+          ],
+          "drill": null
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.925,
+            0.0
+          ],
+          "size": [
+            0.55,
+            0.25
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "L1",
+      "value": "0.47uH Coilcraft XFL4015-471ME",
+      "library_name": "Quipus:Quipus_Coilcraft_XFL4015",
+      "footprint_file": ".tools/quipus-footprints/power/Quipus_Coilcraft_XFL4015.kicad_mod",
+      "sha256": "7d44482fcf855d7298ef79474b554d2a5305dc79ffd4a0da6e993f4a8a5e44c9",
+      "expected_pad_mapping": {
+        "1": "BUCK_L1",
+        "2": "BUCK_L2"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [
+        "Current full orderable manufacturer code should be XFL4015-471MEC (reel suffix); circuit currently uses family code XFL4015-471ME. Coilcraft website direct download returned HTTP403; dimensions verified in web-readable manufacturer PDF."
+      ],
+      "source": "https://www.coilcraft.com/getmedia/84927b8b-f089-421b-a7f4-a0fa23afe908/xfl4015.pdf p2; source-reviewed Quipus engineering land pattern, height 1.6mm",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.21,
+            0.0
+          ],
+          "size": [
+            0.98,
+            2.37
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.21,
+            0.0
+          ],
+          "size": [
+            0.98,
+            2.37
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R16",
+      "value": "511k 1%",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "3V3",
+        "2": "3V3_FB"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R17",
+      "value": "91.0k 1%",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "3V3_FB",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R18",
+      "value": "100k",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "3V3_PG",
+        "2": "3V3"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C16",
+      "value": "10uF 10V X7R",
+      "library_name": "Capacitor_SMD:C_0805_2012Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0805_2012Metric.kicad_mod",
+      "sha256": "99fff2e6692af4126feb9f9ebdfd454834bf414b13d04be0d075dffc23cfbd02",
+      "expected_pad_mapping": {
+        "1": "SYS_SW",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.95,
+            0.0
+          ],
+          "size": [
+            1.0,
+            1.45
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.95,
+            0.0
+          ],
+          "size": [
+            1.0,
+            1.45
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C17",
+      "value": "22uF 10V X7R",
+      "library_name": "Capacitor_SMD:C_0805_2012Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0805_2012Metric.kicad_mod",
+      "sha256": "99fff2e6692af4126feb9f9ebdfd454834bf414b13d04be0d075dffc23cfbd02",
+      "expected_pad_mapping": {
+        "1": "3V3",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.95,
+            0.0
+          ],
+          "size": [
+            1.0,
+            1.45
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.95,
+            0.0
+          ],
+          "size": [
+            1.0,
+            1.45
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C18",
+      "value": "22uF 10V X7R",
+      "library_name": "Capacitor_SMD:C_0805_2012Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0805_2012Metric.kicad_mod",
+      "sha256": "99fff2e6692af4126feb9f9ebdfd454834bf414b13d04be0d075dffc23cfbd02",
+      "expected_pad_mapping": {
+        "1": "3V3",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.95,
+            0.0
+          ],
+          "size": [
+            1.0,
+            1.45
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.95,
+            0.0
+          ],
+          "size": [
+            1.0,
+            1.45
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C19",
+      "value": "100nF 10V",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4",
+      "expected_pad_mapping": {
+        "1": "3V3",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "U12",
+      "value": "BQ27441DRZR-G1A",
+      "library_name": "Quipus:Quipus_TI_DRZ0012A_BQ27441",
+      "footprint_file": ".tools/quipus-footprints/power/Quipus_TI_DRZ0012A_BQ27441.kicad_mod",
+      "sha256": "71d43a83de0d418ee281706edb6b27a0388216302a6af449c760a52af866fc1f",
+      "expected_pad_mapping": {
+        "1": "I2C_SDA",
+        "2": "I2C_SCL",
+        "3": "GND",
+        "4": null,
+        "5": "GAUGE_1V8",
+        "6": "BAT_PACK_P",
+        "7": "BAT_P",
+        "8": "BAT_PACK_P",
+        "9": null,
+        "10": "GAUGE_BIN",
+        "11": null,
+        "12": "GAUGE_INT_N",
+        "13": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://www.ti.com/lit/ds/symlink/bq27441-g1.pdf pp26-27; source-reviewed Quipus engineering land pattern, height 1.0mm",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.9,
+            -1.0
+          ],
+          "size": [
+            0.6,
+            0.2
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.9,
+            -0.6
+          ],
+          "size": [
+            0.6,
+            0.2
+          ],
+          "drill": null
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.9,
+            -0.2
+          ],
+          "size": [
+            0.6,
+            0.2
+          ],
+          "drill": null
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.9,
+            0.2
+          ],
+          "size": [
+            0.6,
+            0.2
+          ],
+          "drill": null
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.9,
+            0.6
+          ],
+          "size": [
+            0.6,
+            0.2
+          ],
+          "drill": null
+        },
+        {
+          "number": "6",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.9,
+            1.0
+          ],
+          "size": [
+            0.6,
+            0.2
+          ],
+          "drill": null
+        },
+        {
+          "number": "7",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.9,
+            1.0
+          ],
+          "size": [
+            0.6,
+            0.2
+          ],
+          "drill": null
+        },
+        {
+          "number": "8",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.9,
+            0.6
+          ],
+          "size": [
+            0.6,
+            0.2
+          ],
+          "drill": null
+        },
+        {
+          "number": "9",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.9,
+            0.2
+          ],
+          "size": [
+            0.6,
+            0.2
+          ],
+          "drill": null
+        },
+        {
+          "number": "10",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.9,
+            -0.2
+          ],
+          "size": [
+            0.6,
+            0.2
+          ],
+          "drill": null
+        },
+        {
+          "number": "11",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.9,
+            -0.6
+          ],
+          "size": [
+            0.6,
+            0.2
+          ],
+          "drill": null
+        },
+        {
+          "number": "12",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.9,
+            -1.0
+          ],
+          "size": [
+            0.6,
+            0.2
+          ],
+          "drill": null
+        },
+        {
+          "number": "13",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.125,
+            0.0
+          ],
+          "size": [
+            0.2,
+            2.9
+          ],
+          "drill": null
+        },
+        {
+          "number": "13",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.125,
+            0.0
+          ],
+          "size": [
+            0.2,
+            2.9
+          ],
+          "drill": null
+        },
+        {
+          "number": "13",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.0,
+            0.0
+          ],
+          "size": [
+            2.45,
+            1.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.64,
+            0.0
+          ],
+          "size": [
+            1.08,
+            1.75
+          ],
+          "drill": null
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.64,
+            0.0
+          ],
+          "size": [
+            1.08,
+            1.75
+          ],
+          "drill": null
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.125,
+            -1.2625
+          ],
+          "size": [
+            0.2,
+            0.375
+          ],
+          "drill": null
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -1.125,
+            1.2625
+          ],
+          "size": [
+            0.2,
+            0.375
+          ],
+          "drill": null
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.125,
+            -1.2625
+          ],
+          "size": [
+            0.2,
+            0.375
+          ],
+          "drill": null
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            1.125,
+            1.2625
+          ],
+          "size": [
+            0.2,
+            0.375
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R19",
+      "value": "0.010ohm 1% lowTCR 0.25W",
+      "library_name": "Resistor_SMD:R_0805_2012Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c",
+      "expected_pad_mapping": {
+        "1": "BAT_PACK_P",
+        "2": "BAT_P"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [
+        "Exact shunt MPN remains to be selected. Standard 0805 two-terminal land pattern supports the proposed package, but requires component datasheet confirmation and true separate Kelvin sense routing to inner terminal edges."
+      ],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0805_2012Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.9125,
+            0.0
+          ],
+          "size": [
+            1.025,
+            1.4
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.9125,
+            0.0
+          ],
+          "size": [
+            1.025,
+            1.4
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R20",
+      "value": "10k",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "GAUGE_BIN",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R21",
+      "value": "10k",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "I2C_SDA",
+        "2": "3V3"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R22",
+      "value": "10k",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "I2C_SCL",
+        "2": "3V3"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R23",
+      "value": "1M",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "I2C_SDA",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R24",
+      "value": "1M",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "I2C_SCL",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R25",
+      "value": "10k",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "GAUGE_INT_N",
+        "2": "3V3"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "R26",
+      "value": "1M",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce",
+      "expected_pad_mapping": {
+        "1": "GAUGE_INT_N",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.8,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C20",
+      "value": "1uF 10V X7R",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4",
+      "expected_pad_mapping": {
+        "1": "BAT_PACK_P",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "C21",
+      "value": "470nF 6.3V X7R",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "footprint_file": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4",
+      "expected_pad_mapping": {
+        "1": "GAUGE_1V8",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://github.com/KiCad/kicad-footprints/blob/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.775,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.95
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "U13",
+      "value": "TPD2EUSB30DRTR",
+      "library_name": "Package_TO_SOT_SMD:Texas_DRT-3",
+      "footprint_file": ".tools/quipus-footprints/controller/Texas_DRT-3.kicad_mod",
+      "sha256": "15cde3ee13da0e0426038a0a17ee16c50edc6d100b64582166b4263d4e7cae17",
+      "expected_pad_mapping": {
+        "1": "USB_CC1",
+        "2": "USB_CC2",
+        "3": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2",
+        "3"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [
+        "Unified with controller U35 using official KiCad Texas_DRT-3 source, backed by TI DRT drawing. Before manufacturing verify the purchased package revision against primary TI CAD/assembly drawings."
+      ],
+      "source": "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Package_TO_SOT_SMD.pretty/Texas_DRT-3.kicad_mod",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.35,
+            0.425
+          ],
+          "size": [
+            0.3,
+            0.3
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.35,
+            0.425
+          ],
+          "size": [
+            0.3,
+            0.3
+          ],
+          "drill": null
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.0,
+            -0.425
+          ],
+          "size": [
+            0.3,
+            0.3
+          ],
+          "drill": null
+        }
+      ]
+    },
+    {
+      "ref": "D1",
+      "value": "TPD1E10B06DYAR",
+      "library_name": "Quipus:Quipus_TI_DYA0002A_TPD1E10B06",
+      "footprint_file": ".tools/quipus-footprints/power/Quipus_TI_DYA0002A_TPD1E10B06.kicad_mod",
+      "sha256": "5e2918d75e76c754d5f86108703bdcb2730cea5cefc63583e754af50e70fd14c",
+      "expected_pad_mapping": {
+        "1": "USB_PROTECTED",
+        "2": "GND"
+      },
+      "physical_pad_numbers": [
+        "1",
+        "2"
+      ],
+      "additional_mechanical_pads": [],
+      "review_status": "source-reviewed-geometry",
+      "issues": [],
+      "source": "https://www.ti.com/lit/ds/symlink/tpd1e10b06.pdf p17; source-reviewed Quipus engineering land pattern, height 0.77mm",
+      "pad_geometry_mm": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            -0.74,
+            0.0
+          ],
+          "size": [
+            0.67,
+            0.4
+          ],
+          "drill": null
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at": [
+            0.74,
+            0.0
+          ],
+          "size": [
+            0.67,
+            0.4
+          ],
+          "drill": null
+        }
+      ]
+    }
+  ],
+  "blocking_issues": [
+    "Protected battery MPN/NTC and charge-temperature window must be finalized before battery-connected fabrication release.",
+    "PCB routing, clearance, solder mask, stencil, thermal and native ERC/DRC validation have not been performed by this footprint preparation."
+  ],
+  "revision_note": "U13 uses the same official Texas_DRT-3 geometry as controller U35; supersedes earlier engineering-derived power DRT candidate."
+}

@@ -1,0 +1,1609 @@
+{
+  "status": "pass",
+  "native_component_refs": [
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "C6",
+    "F1",
+    "J1",
+    "J2",
+    "J3",
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5",
+    "R6",
+    "R7",
+    "U2",
+    "U3",
+    "U4",
+    "U5",
+    "U6"
+  ],
+  "components": 22,
+  "wire_count": 83,
+  "pin_count": 93,
+  "net_count": 25,
+  "columns": 3,
+  "sheet": "A3",
+  "usable_bounds": [
+    55.0,
+    -1060.0,
+    1599.0,
+    -210.0
+  ],
+  "translations": [
+    {
+      "refs": [
+        "J1"
+      ],
+      "dx": -138.48567,
+      "dy": -1186.85827
+    },
+    {
+      "refs": [
+        "F1"
+      ],
+      "dx": -121.20567,
+      "dy": -1199.2283450393702
+    },
+    {
+      "refs": [
+        "U2"
+      ],
+      "dx": -121.20567,
+      "dy": -1211.598424094488
+    },
+    {
+      "refs": [
+        "R1"
+      ],
+      "dx": -135.60567,
+      "dy": -1223.9685071653544
+    },
+    {
+      "refs": [
+        "R2"
+      ],
+      "dx": -135.60567,
+      "dy": -1236.3385842519683
+    },
+    {
+      "refs": [
+        "R3"
+      ],
+      "dx": -138.48567,
+      "dy": -1248.7086653543306
+    },
+    {
+      "refs": [
+        "R4"
+      ],
+      "dx": -665.2787400000001,
+      "dy": -413.12599047244083
+    },
+    {
+      "refs": [
+        "R5"
+      ],
+      "dx": -141.06540666666683,
+      "dy": -1279.85039
+    },
+    {
+      "refs": [
+        "C1"
+      ],
+      "dx": -135.30540666666684,
+      "dy": -1292.220469055118
+    },
+    {
+      "refs": [
+        "C2"
+      ],
+      "dx": -158.3454066666668,
+      "dy": -1304.5905521259842
+    },
+    {
+      "refs": [
+        "C3"
+      ],
+      "dx": -152.5854066666668,
+      "dy": -1316.9606292125984
+    },
+    {
+      "refs": [
+        "J2"
+      ],
+      "dx": -143.94540666666683,
+      "dy": -1329.3307103149605
+    },
+    {
+      "refs": [
+        "J3"
+      ],
+      "dx": -152.5854066666668,
+      "dy": -1341.700785433071
+    },
+    {
+      "refs": [
+        "U3"
+      ],
+      "dx": -126.66540666666674,
+      "dy": -1354.070864566929
+    },
+    {
+      "refs": [
+        "R6"
+      ],
+      "dx": -673.6184766666668,
+      "dy": -512.5039377165353
+    },
+    {
+      "refs": [
+        "R7"
+      ],
+      "dx": -662.0984766666668,
+      "dy": -524.8740127559054
+    },
+    {
+      "refs": [
+        "C4"
+      ],
+      "dx": -166.68514333333337,
+      "dy": -1372.84252
+    },
+    {
+      "refs": [
+        "U4"
+      ],
+      "dx": -166.68514333333337,
+      "dy": -1385.2126030708662
+    },
+    {
+      "refs": [
+        "C5"
+      ],
+      "dx": -166.68514333333337,
+      "dy": -1397.5826801574804
+    },
+    {
+      "refs": [
+        "C6"
+      ],
+      "dx": -166.68514333333337,
+      "dy": -1409.9527612598426
+    },
+    {
+      "refs": [
+        "U5"
+      ],
+      "dx": -132.12514333333343,
+      "dy": -1422.3228363779526
+    },
+    {
+      "refs": [
+        "U6"
+      ],
+      "dx": -140.76514333333353,
+      "dy": -1434.692915511811
+    }
+  ],
+  "all_pin_nets_match_source": true,
+  "source_electrical_signature_sha256": "dea83d729ab54b0cfc017df2a8014160b0e6ad6bfdae1620dbc8cdaf27f9a5cd",
+  "component_unique_ids": {
+    "J1": "51bfc0e5166a1c40",
+    "F1": "09f31a4987c8a883",
+    "U2": "48f0ae2437312dae",
+    "R1": "353b166cc2dee846",
+    "R2": "6f63fc6711cfa315",
+    "R3": "fe89d0632cfce75f",
+    "R4": "fdc86a4b576d9e98",
+    "R5": "9cdd622c9eeecfe7",
+    "C1": "b4693cfd16d534cd",
+    "C2": "a2c5d49bc5dde298",
+    "C3": "cc82bf2c2e22e605",
+    "J2": "1fb9863844ab5169",
+    "J3": "bd3ee0abdb58119f",
+    "U3": "66797bcd97f4f6c2",
+    "R6": "e06ccd13940482ac",
+    "R7": "ba2c6d155e7fd301",
+    "C4": "3a68d3ddabf48558",
+    "U4": "bac468049775df37",
+    "C5": "ddba3c46cf8b8e66",
+    "C6": "ab4a8fe24fad9fe4",
+    "U5": "adf583383e4d69d4",
+    "U6": "124c013cfc851acc"
+  },
+  "pins": [
+    {
+      "ref": "J1",
+      "number": "A1_B12",
+      "x": 101.15999929133861,
+      "y": -1019.37795503937,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1275"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J1",
+      "number": "A4_B9",
+      "x": 101.15999929133861,
+      "y": -1009.37795503937,
+      "expected_net": "VBUS_5V",
+      "actual_page_wire_nets": [
+        "VBUS_5V"
+      ],
+      "wire_ids": [
+        "ie1277"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J1",
+      "number": "B8",
+      "x": 101.15999929133861,
+      "y": -999.37795503937,
+      "expected_net": null,
+      "actual_page_wire_nets": [],
+      "wire_ids": [],
+      "no_connect_attr_ids": [
+        "ie2163"
+      ],
+      "match": true
+    },
+    {
+      "ref": "J1",
+      "number": "A5",
+      "x": 101.15999929133861,
+      "y": -989.37795503937,
+      "expected_net": "USB_CC1",
+      "actual_page_wire_nets": [
+        "USB_CC1"
+      ],
+      "wire_ids": [
+        "ie1279"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J1",
+      "number": "B7",
+      "x": 101.15999929133861,
+      "y": -979.37795503937,
+      "expected_net": "USB_DM",
+      "actual_page_wire_nets": [
+        "USB_DM"
+      ],
+      "wire_ids": [
+        "ie1281"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J1",
+      "number": "A6",
+      "x": 101.15999929133861,
+      "y": -969.37795503937,
+      "expected_net": "USB_DP",
+      "actual_page_wire_nets": [
+        "USB_DP"
+      ],
+      "wire_ids": [
+        "ie1283"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J1",
+      "number": "A7",
+      "x": 101.15999929133861,
+      "y": -959.37795503937,
+      "expected_net": "USB_DM",
+      "actual_page_wire_nets": [
+        "USB_DM"
+      ],
+      "wire_ids": [
+        "ie1285"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J1",
+      "number": "B6",
+      "x": 101.15999929133861,
+      "y": -949.37795503937,
+      "expected_net": "USB_DP",
+      "actual_page_wire_nets": [
+        "USB_DP"
+      ],
+      "wire_ids": [
+        "ie1287"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J1",
+      "number": "A8",
+      "x": 101.15999929133861,
+      "y": -939.37795503937,
+      "expected_net": null,
+      "actual_page_wire_nets": [],
+      "wire_ids": [],
+      "no_connect_attr_ids": [
+        "ie2164"
+      ],
+      "match": true
+    },
+    {
+      "ref": "J1",
+      "number": "B5",
+      "x": 101.15999929133861,
+      "y": -929.37795503937,
+      "expected_net": "USB_CC2",
+      "actual_page_wire_nets": [
+        "USB_CC2"
+      ],
+      "wire_ids": [
+        "ie1289"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J1",
+      "number": "B4_A9",
+      "x": 101.15999929133861,
+      "y": -919.37795503937,
+      "expected_net": "VBUS_5V",
+      "actual_page_wire_nets": [
+        "VBUS_5V"
+      ],
+      "wire_ids": [
+        "ie1291"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J1",
+      "number": "B1_A12",
+      "x": 101.15999929133861,
+      "y": -909.37795503937,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1293"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J1",
+      "number": "SH1",
+      "x": 101.15999929133861,
+      "y": -899.37795503937,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1295"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J1",
+      "number": "SH2",
+      "x": 101.15999929133861,
+      "y": -889.37795503937,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1297"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J1",
+      "number": "SH3",
+      "x": 101.15999929133861,
+      "y": -879.37795503937,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1299"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J1",
+      "number": "SH4",
+      "x": 101.15999929133861,
+      "y": -869.37795503937,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1301"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "F1",
+      "number": "1",
+      "x": 118.43999929133861,
+      "y": -798.7559040944883,
+      "expected_net": "VBUS_5V",
+      "actual_page_wire_nets": [
+        "VBUS_5V"
+      ],
+      "wire_ids": [
+        "ie1303"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "F1",
+      "number": "2",
+      "x": 118.43999929133861,
+      "y": -788.7559040944883,
+      "expected_net": "USB_PROTECTED",
+      "actual_page_wire_nets": [
+        "USB_PROTECTED"
+      ],
+      "wire_ids": [
+        "ie1305"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "1",
+      "x": 118.43999929133861,
+      "y": -718.1338571653542,
+      "expected_net": "BAT_NTC",
+      "actual_page_wire_nets": [
+        "BAT_NTC"
+      ],
+      "wire_ids": [
+        "ie1307"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "2",
+      "x": 118.43999929133861,
+      "y": -708.1338571653542,
+      "expected_net": "BAT_P",
+      "actual_page_wire_nets": [
+        "BAT_P"
+      ],
+      "wire_ids": [
+        "ie1309"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "3",
+      "x": 118.43999929133861,
+      "y": -698.1338571653542,
+      "expected_net": "BAT_P",
+      "actual_page_wire_nets": [
+        "BAT_P"
+      ],
+      "wire_ids": [
+        "ie1311"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "4",
+      "x": 118.43999929133861,
+      "y": -688.1338571653542,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1313"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "5",
+      "x": 118.43999929133861,
+      "y": -678.1338571653542,
+      "expected_net": "CHG_EN2",
+      "actual_page_wire_nets": [
+        "CHG_EN2"
+      ],
+      "wire_ids": [
+        "ie1315"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "6",
+      "x": 118.43999929133861,
+      "y": -668.1338571653542,
+      "expected_net": "CHG_EN1",
+      "actual_page_wire_nets": [
+        "CHG_EN1"
+      ],
+      "wire_ids": [
+        "ie1317"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "7",
+      "x": 118.43999929133861,
+      "y": -658.1338571653542,
+      "expected_net": "USB_PGOOD_N",
+      "actual_page_wire_nets": [
+        "USB_PGOOD_N"
+      ],
+      "wire_ids": [
+        "ie1319"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "8",
+      "x": 118.43999929133861,
+      "y": -648.1338571653542,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1321"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "9",
+      "x": 118.43999929133861,
+      "y": -638.1338571653542,
+      "expected_net": "CHARGING_N",
+      "actual_page_wire_nets": [
+        "CHARGING_N"
+      ],
+      "wire_ids": [
+        "ie1323"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "10",
+      "x": 118.43999929133861,
+      "y": -628.1338571653542,
+      "expected_net": "SYS_RAW",
+      "actual_page_wire_nets": [
+        "SYS_RAW"
+      ],
+      "wire_ids": [
+        "ie1325"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "11",
+      "x": 118.43999929133861,
+      "y": -618.1338571653542,
+      "expected_net": "SYS_RAW",
+      "actual_page_wire_nets": [
+        "SYS_RAW"
+      ],
+      "wire_ids": [
+        "ie1327"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "12",
+      "x": 118.43999929133861,
+      "y": -608.1338571653542,
+      "expected_net": "CHG_ILIM",
+      "actual_page_wire_nets": [
+        "CHG_ILIM"
+      ],
+      "wire_ids": [
+        "ie1329"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "13",
+      "x": 118.43999929133861,
+      "y": -598.1338571653542,
+      "expected_net": "USB_PROTECTED",
+      "actual_page_wire_nets": [
+        "USB_PROTECTED"
+      ],
+      "wire_ids": [
+        "ie1331"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "14",
+      "x": 118.43999929133861,
+      "y": -588.1338571653542,
+      "expected_net": "CHG_TMR",
+      "actual_page_wire_nets": [
+        "CHG_TMR"
+      ],
+      "wire_ids": [
+        "ie1333"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "15",
+      "x": 118.43999929133861,
+      "y": -578.1338571653542,
+      "expected_net": null,
+      "actual_page_wire_nets": [],
+      "wire_ids": [],
+      "no_connect_attr_ids": [
+        "ie2165"
+      ],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "16",
+      "x": 118.43999929133861,
+      "y": -568.1338571653542,
+      "expected_net": "CHG_ISET",
+      "actual_page_wire_nets": [
+        "CHG_ISET"
+      ],
+      "wire_ids": [
+        "ie1335"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U2",
+      "number": "17",
+      "x": 118.43999929133861,
+      "y": -558.1338571653542,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1337"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R1",
+      "number": "1",
+      "x": 104.0399992913386,
+      "y": -487.5118142519684,
+      "expected_net": "CHG_ILIM",
+      "actual_page_wire_nets": [
+        "CHG_ILIM"
+      ],
+      "wire_ids": [
+        "ie1339"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R1",
+      "number": "2",
+      "x": 104.0399992913386,
+      "y": -477.5118142519684,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1341"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R2",
+      "number": "1",
+      "x": 104.0399992913386,
+      "y": -406.8897653543305,
+      "expected_net": "CHG_ISET",
+      "actual_page_wire_nets": [
+        "CHG_ISET"
+      ],
+      "wire_ids": [
+        "ie1343"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R2",
+      "number": "2",
+      "x": 104.0399992913386,
+      "y": -396.8897653543305,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1345"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R3",
+      "number": "1",
+      "x": 101.15999929133861,
+      "y": -326.2677204724408,
+      "expected_net": "CHG_TMR",
+      "actual_page_wire_nets": [
+        "CHG_TMR"
+      ],
+      "wire_ids": [
+        "ie1347"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R3",
+      "number": "2",
+      "x": 101.15999929133861,
+      "y": -316.2677204724408,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1349"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R4",
+      "number": "1",
+      "x": 109.80000015748021,
+      "y": -245.6456755118109,
+      "expected_net": "CHARGING_N",
+      "actual_page_wire_nets": [
+        "CHARGING_N"
+      ],
+      "wire_ids": [
+        "ie1351"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R4",
+      "number": "2",
+      "x": 109.80000015748021,
+      "y": -235.6456755118109,
+      "expected_net": "3V3_SYS",
+      "actual_page_wire_nets": [
+        "3V3_SYS"
+      ],
+      "wire_ids": [
+        "ie1353"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R5",
+      "number": "1",
+      "x": 634.0133334908135,
+      "y": -1019.3779490551182,
+      "expected_net": "USB_PGOOD_N",
+      "actual_page_wire_nets": [
+        "USB_PGOOD_N"
+      ],
+      "wire_ids": [
+        "ie1355"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R5",
+      "number": "2",
+      "x": 634.0133334908135,
+      "y": -1009.3779490551182,
+      "expected_net": "3V3_SYS",
+      "actual_page_wire_nets": [
+        "3V3_SYS"
+      ],
+      "wire_ids": [
+        "ie1357"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C1",
+      "number": "1",
+      "x": 639.7733334908135,
+      "y": -938.7559021259841,
+      "expected_net": "USB_PROTECTED",
+      "actual_page_wire_nets": [
+        "USB_PROTECTED"
+      ],
+      "wire_ids": [
+        "ie1359"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C1",
+      "number": "2",
+      "x": 639.7733334908135,
+      "y": -928.7559021259841,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1361"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C2",
+      "number": "1",
+      "x": 616.7333334908135,
+      "y": -858.1338592125984,
+      "expected_net": "BAT_P",
+      "actual_page_wire_nets": [
+        "BAT_P"
+      ],
+      "wire_ids": [
+        "ie1363"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C2",
+      "number": "2",
+      "x": 616.7333334908135,
+      "y": -848.1338592125984,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1365"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C3",
+      "number": "1",
+      "x": 622.4933334908135,
+      "y": -777.5118103149606,
+      "expected_net": "SYS_RAW",
+      "actual_page_wire_nets": [
+        "SYS_RAW"
+      ],
+      "wire_ids": [
+        "ie1367"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C3",
+      "number": "2",
+      "x": 622.4933334908135,
+      "y": -767.5118103149606,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1369"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J2",
+      "number": "1",
+      "x": 631.1333334908135,
+      "y": -696.8897654330707,
+      "expected_net": "BAT_PACK_P",
+      "actual_page_wire_nets": [
+        "BAT_PACK_P"
+      ],
+      "wire_ids": [
+        "ie1371"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J2",
+      "number": "2",
+      "x": 631.1333334908135,
+      "y": -686.8897654330707,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1373"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J3",
+      "number": "1",
+      "x": 622.4933334908135,
+      "y": -616.2677145669292,
+      "expected_net": "BAT_NTC",
+      "actual_page_wire_nets": [
+        "BAT_NTC"
+      ],
+      "wire_ids": [
+        "ie1375"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J3",
+      "number": "2",
+      "x": 622.4933334908135,
+      "y": -606.2677145669292,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1377"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "J3",
+      "number": "3",
+      "x": 622.4933334908135,
+      "y": -596.2677145669292,
+      "expected_net": null,
+      "actual_page_wire_nets": [],
+      "wire_ids": [],
+      "no_connect_attr_ids": [
+        "ie2166"
+      ],
+      "match": true
+    },
+    {
+      "ref": "U3",
+      "number": "1",
+      "x": 648.4133334908136,
+      "y": -525.6456677165353,
+      "expected_net": "USB_CC1",
+      "actual_page_wire_nets": [
+        "USB_CC1"
+      ],
+      "wire_ids": [
+        "ie1379"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U3",
+      "number": "2",
+      "x": 648.4133334908136,
+      "y": -515.6456677165353,
+      "expected_net": "USB_CC2",
+      "actual_page_wire_nets": [
+        "USB_CC2"
+      ],
+      "wire_ids": [
+        "ie1381"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U3",
+      "number": "3",
+      "x": 648.4133334908136,
+      "y": -505.6456677165353,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1383"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U3",
+      "number": "4",
+      "x": 648.4133334908136,
+      "y": -495.6456677165353,
+      "expected_net": "USB_VBUS_DET",
+      "actual_page_wire_nets": [
+        "USB_VBUS_DET"
+      ],
+      "wire_ids": [
+        "ie1385"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U3",
+      "number": "5",
+      "x": 648.4133334908136,
+      "y": -485.6456677165353,
+      "expected_net": null,
+      "actual_page_wire_nets": [],
+      "wire_ids": [],
+      "no_connect_attr_ids": [
+        "ie2167"
+      ],
+      "match": true
+    },
+    {
+      "ref": "U3",
+      "number": "6",
+      "x": 648.4133334908136,
+      "y": -475.6456677165353,
+      "expected_net": null,
+      "actual_page_wire_nets": [],
+      "wire_ids": [],
+      "no_connect_attr_ids": [
+        "ie2168"
+      ],
+      "match": true
+    },
+    {
+      "ref": "U3",
+      "number": "7",
+      "x": 648.4133334908136,
+      "y": -465.6456677165353,
+      "expected_net": "CC_DEFAULT_NHIGH",
+      "actual_page_wire_nets": [
+        "CC_DEFAULT_NHIGH"
+      ],
+      "wire_ids": [
+        "ie1387"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U3",
+      "number": "8",
+      "x": 648.4133334908136,
+      "y": -455.6456677165353,
+      "expected_net": null,
+      "actual_page_wire_nets": [],
+      "wire_ids": [],
+      "no_connect_attr_ids": [
+        "ie2169"
+      ],
+      "match": true
+    },
+    {
+      "ref": "U3",
+      "number": "9",
+      "x": 648.4133334908136,
+      "y": -445.6456677165353,
+      "expected_net": null,
+      "actual_page_wire_nets": [],
+      "wire_ids": [],
+      "no_connect_attr_ids": [
+        "ie2170"
+      ],
+      "match": true
+    },
+    {
+      "ref": "U3",
+      "number": "10",
+      "x": 648.4133334908136,
+      "y": -435.6456677165353,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1389"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U3",
+      "number": "11",
+      "x": 648.4133334908136,
+      "y": -425.6456677165353,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1391"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U3",
+      "number": "12",
+      "x": 648.4133334908136,
+      "y": -415.6456677165353,
+      "expected_net": "3V3_AON",
+      "actual_page_wire_nets": [
+        "3V3_AON"
+      ],
+      "wire_ids": [
+        "ie1393"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R6",
+      "number": "1",
+      "x": 636.8933343569554,
+      "y": -345.0236227559054,
+      "expected_net": "VBUS_5V",
+      "actual_page_wire_nets": [
+        "VBUS_5V"
+      ],
+      "wire_ids": [
+        "ie1395"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R6",
+      "number": "2",
+      "x": 636.8933343569554,
+      "y": -335.0236227559054,
+      "expected_net": "USB_VBUS_DET",
+      "actual_page_wire_nets": [
+        "USB_VBUS_DET"
+      ],
+      "wire_ids": [
+        "ie1397"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R7",
+      "number": "1",
+      "x": 648.4133343569554,
+      "y": -264.4015718110235,
+      "expected_net": "CC_DEFAULT_NHIGH",
+      "actual_page_wire_nets": [
+        "CC_DEFAULT_NHIGH"
+      ],
+      "wire_ids": [
+        "ie1399"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R7",
+      "number": "2",
+      "x": 648.4133343569554,
+      "y": -254.40157181102347,
+      "expected_net": "3V3_AON",
+      "actual_page_wire_nets": [
+        "3V3_AON"
+      ],
+      "wire_ids": [
+        "ie1401"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C4",
+      "number": "1",
+      "x": 1143.8266676902888,
+      "y": -1019.377953070866,
+      "expected_net": "3V3_AON",
+      "actual_page_wire_nets": [
+        "3V3_AON"
+      ],
+      "wire_ids": [
+        "ie1403"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C4",
+      "number": "2",
+      "x": 1143.8266676902888,
+      "y": -1009.377953070866,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1405"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U4",
+      "number": "1",
+      "x": 1143.8266676902888,
+      "y": -938.7559101574803,
+      "expected_net": "SYS_RAW",
+      "actual_page_wire_nets": [
+        "SYS_RAW"
+      ],
+      "wire_ids": [
+        "ie1407"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U4",
+      "number": "2",
+      "x": 1143.8266676902888,
+      "y": -928.7559101574803,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1409"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U4",
+      "number": "3",
+      "x": 1143.8266676902888,
+      "y": -918.7559101574803,
+      "expected_net": "SYS_RAW",
+      "actual_page_wire_nets": [
+        "SYS_RAW"
+      ],
+      "wire_ids": [
+        "ie1411"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U4",
+      "number": "4",
+      "x": 1143.8266676902888,
+      "y": -908.7559101574803,
+      "expected_net": null,
+      "actual_page_wire_nets": [],
+      "wire_ids": [],
+      "no_connect_attr_ids": [
+        "ie2171"
+      ],
+      "match": true
+    },
+    {
+      "ref": "U4",
+      "number": "5",
+      "x": 1143.8266676902888,
+      "y": -898.7559101574803,
+      "expected_net": "3V3_AON",
+      "actual_page_wire_nets": [
+        "3V3_AON"
+      ],
+      "wire_ids": [
+        "ie1413"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C5",
+      "number": "1",
+      "x": 1143.8266676902888,
+      "y": -828.1338612598425,
+      "expected_net": "SYS_RAW",
+      "actual_page_wire_nets": [
+        "SYS_RAW"
+      ],
+      "wire_ids": [
+        "ie1415"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C5",
+      "number": "2",
+      "x": 1143.8266676902888,
+      "y": -818.1338612598425,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1417"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C6",
+      "number": "1",
+      "x": 1143.8266676902888,
+      "y": -747.5118163779529,
+      "expected_net": "3V3_AON",
+      "actual_page_wire_nets": [
+        "3V3_AON"
+      ],
+      "wire_ids": [
+        "ie1419"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C6",
+      "number": "2",
+      "x": 1143.8266676902888,
+      "y": -737.5118163779529,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1421"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U5",
+      "number": "1",
+      "x": 1178.3866676902887,
+      "y": -666.8897655118109,
+      "expected_net": null,
+      "actual_page_wire_nets": [],
+      "wire_ids": [],
+      "no_connect_attr_ids": [
+        "ie2172"
+      ],
+      "match": true
+    },
+    {
+      "ref": "U5",
+      "number": "2",
+      "x": 1178.3866676902887,
+      "y": -656.8897655118109,
+      "expected_net": "CC_DEFAULT_NHIGH",
+      "actual_page_wire_nets": [
+        "CC_DEFAULT_NHIGH"
+      ],
+      "wire_ids": [
+        "ie1423"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U5",
+      "number": "3",
+      "x": 1178.3866676902887,
+      "y": -646.8897655118109,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1425"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U5",
+      "number": "4",
+      "x": 1178.3866676902887,
+      "y": -636.8897655118109,
+      "expected_net": "USB_HIGH_CURRENT_OK",
+      "actual_page_wire_nets": [
+        "USB_HIGH_CURRENT_OK"
+      ],
+      "wire_ids": [
+        "ie1427"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U5",
+      "number": "5",
+      "x": 1178.3866676902887,
+      "y": -626.8897655118109,
+      "expected_net": "3V3_AON",
+      "actual_page_wire_nets": [
+        "3V3_AON"
+      ],
+      "wire_ids": [
+        "ie1429"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U6",
+      "number": "1",
+      "x": 1169.7466676902886,
+      "y": -556.2677186614172,
+      "expected_net": "USB_ENUM_500",
+      "actual_page_wire_nets": [
+        "USB_ENUM_500"
+      ],
+      "wire_ids": [
+        "ie1431"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U6",
+      "number": "2",
+      "x": 1169.7466676902886,
+      "y": -546.2677186614172,
+      "expected_net": "CC_DEFAULT_NHIGH",
+      "actual_page_wire_nets": [
+        "CC_DEFAULT_NHIGH"
+      ],
+      "wire_ids": [
+        "ie1433"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U6",
+      "number": "3",
+      "x": 1169.7466676902886,
+      "y": -536.2677186614172,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ie1435"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U6",
+      "number": "4",
+      "x": 1169.7466676902886,
+      "y": -526.2677186614172,
+      "expected_net": "USB_DEFAULT_500",
+      "actual_page_wire_nets": [
+        "USB_DEFAULT_500"
+      ],
+      "wire_ids": [
+        "ie1437"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U6",
+      "number": "5",
+      "x": 1169.7466676902886,
+      "y": -516.2677186614172,
+      "expected_net": "3V3_AON",
+      "actual_page_wire_nets": [
+        "3V3_AON"
+      ],
+      "wire_ids": [
+        "ie1439"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    }
+  ],
+  "errors": [],
+  "limitations": [
+    "Pin locations are reconstructed from imported KiCad symbol geometry; native library PIN records were not captured.",
+    "Native project export must independently verify all 144 refs, 92 nets and 471 pins after all pages are moved.",
+    "Unrouted engineering draft; no native ERC, DRC or fabrication approval."
+  ],
+  "imported_non_electrical_frame_replaced": true,
+  "source_file": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-a\\easyeda\\native\\01-usb-charge-before.esource",
+  "output_file": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-a\\easyeda\\native\\01-usb-charge-neat.esource",
+  "source_sha256": "1c3e308c4346d147bfecf999c811e533b24fd558ec0cbd4a4004d23935a4f4f5",
+  "output_sha256": "04762baeacba1773d9fdbaa1f73689cf471f208e4a9d9f063076b77f82e7c93c"
+}

@@ -1,0 +1,570 @@
+﻿Reference,Physical pin,Pin name,Net,Package
+J1,A1_B12,GND,GND,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes"
+J1,A4_B9,VBUS,VBUS_5V,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes"
+J1,B8,SBU2,NC,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes"
+J1,A5,CC1,USB_CC1,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes"
+J1,B7,D-2,USB_DM,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes"
+J1,A6,D+1,USB_DP,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes"
+J1,A7,D-1,USB_DM,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes"
+J1,B6,D+2,USB_DP,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes"
+J1,A8,SBU1,NC,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes"
+J1,B5,CC2,USB_CC2,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes"
+J1,B4_A9,VBUS,VBUS_5V,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes"
+J1,B1_A12,GND,GND,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes"
+J1,SH1,SHIELD,GND,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes"
+J1,SH2,SHIELD,GND,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes"
+J1,SH3,SHIELD,GND,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes"
+J1,SH4,SHIELD,GND,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes"
+F1,1,1,VBUS_5V,0603 fuse
+F1,2,2,USB_PROTECTED,0603 fuse
+U2,1,TS,BAT_NTC,VQFN16 RGT0016 + exposed pad
+U2,2,BAT,BAT_P,VQFN16 RGT0016 + exposed pad
+U2,3,BAT,BAT_P,VQFN16 RGT0016 + exposed pad
+U2,4,CE_N,GND,VQFN16 RGT0016 + exposed pad
+U2,5,EN2,CHG_EN2,VQFN16 RGT0016 + exposed pad
+U2,6,EN1,CHG_EN1,VQFN16 RGT0016 + exposed pad
+U2,7,PGOOD_N,USB_PGOOD_N,VQFN16 RGT0016 + exposed pad
+U2,8,VSS,GND,VQFN16 RGT0016 + exposed pad
+U2,9,CHG_N,CHARGING_N,VQFN16 RGT0016 + exposed pad
+U2,10,OUT,SYS_RAW,VQFN16 RGT0016 + exposed pad
+U2,11,OUT,SYS_RAW,VQFN16 RGT0016 + exposed pad
+U2,12,ILIM,CHG_ILIM,VQFN16 RGT0016 + exposed pad
+U2,13,IN,USB_PROTECTED,VQFN16 RGT0016 + exposed pad
+U2,14,TMR,CHG_TMR,VQFN16 RGT0016 + exposed pad
+U2,15,ITERM,NC,VQFN16 RGT0016 + exposed pad
+U2,16,ISET,CHG_ISET,VQFN16 RGT0016 + exposed pad
+U2,17,EP,GND,VQFN16 RGT0016 + exposed pad
+R1,1,1,CHG_ILIM,0603
+R1,2,2,GND,0603
+R2,1,1,CHG_ISET,0603
+R2,2,2,GND,0603
+R3,1,1,CHG_TMR,0603
+R3,2,2,GND,0603
+R4,1,1,CHARGING_N,0603
+R4,2,2,3V3_SYS,0603
+R5,1,1,USB_PGOOD_N,0603
+R5,2,2,3V3_SYS,0603
+C1,1,1,USB_PROTECTED,0805
+C1,2,2,GND,0805
+C2,1,1,BAT_P,0805
+C2,2,2,GND,0805
+C3,1,1,SYS_RAW,0805
+C3,2,2,GND,0805
+J2,1,PACK+,BAT_PACK_P,JST PH 2mm 2-position right angle SMT
+J2,2,PACK-,GND,JST PH 2mm 2-position right angle SMT
+J3,1,NTC,BAT_NTC,1mm SH 3pin exact drawing pending
+J3,2,NTC_RETURN,GND,1mm SH 3pin exact drawing pending
+J3,3,KEY_NC,NC,1mm SH 3pin exact drawing pending
+U3,1,CC1,USB_CC1,X2QFN12 RWB 1.6x1.6mm
+U3,2,CC2,USB_CC2,X2QFN12 RWB 1.6x1.6mm
+U3,3,PORT,GND,X2QFN12 RWB 1.6x1.6mm
+U3,4,VBUS_DET,USB_VBUS_DET,X2QFN12 RWB 1.6x1.6mm
+U3,5,ADDR,NC,X2QFN12 RWB 1.6x1.6mm
+U3,6,OUT3,NC,X2QFN12 RWB 1.6x1.6mm
+U3,7,OUT1,CC_DEFAULT_NHIGH,X2QFN12 RWB 1.6x1.6mm
+U3,8,OUT2,NC,X2QFN12 RWB 1.6x1.6mm
+U3,9,ID,NC,X2QFN12 RWB 1.6x1.6mm
+U3,10,GND,GND,X2QFN12 RWB 1.6x1.6mm
+U3,11,EN_N,GND,X2QFN12 RWB 1.6x1.6mm
+U3,12,VDD,3V3_AON,X2QFN12 RWB 1.6x1.6mm
+R6,1,1,VBUS_5V,0603
+R6,2,2,USB_VBUS_DET,0603
+R7,1,1,CC_DEFAULT_NHIGH,0603
+R7,2,2,3V3_AON,0603
+C4,1,1,3V3_AON,0603
+C4,2,2,GND,0603
+U4,1,IN,SYS_RAW,SOT23-5 DBV
+U4,2,GND,GND,SOT23-5 DBV
+U4,3,EN,SYS_RAW,SOT23-5 DBV
+U4,4,NC,NC,SOT23-5 DBV
+U4,5,OUT,3V3_AON,SOT23-5 DBV
+C5,1,1,SYS_RAW,0603
+C5,2,2,GND,0603
+C6,1,1,3V3_AON,0603
+C6,2,2,GND,0603
+U5,1,NC,NC,SOT23-5 DBV
+U5,2,A,CC_DEFAULT_NHIGH,SOT23-5 DBV
+U5,3,GND,GND,SOT23-5 DBV
+U5,4,Y,USB_HIGH_CURRENT_OK,SOT23-5 DBV
+U5,5,VCC,3V3_AON,SOT23-5 DBV
+U6,1,A,USB_ENUM_500,SOT23-5 DBV
+U6,2,B,CC_DEFAULT_NHIGH,SOT23-5 DBV
+U6,3,GND,GND,SOT23-5 DBV
+U6,4,Y,USB_DEFAULT_500,SOT23-5 DBV
+U6,5,VCC,3V3_AON,SOT23-5 DBV
+U7,1,A,USB_SUSPEND,SOT23-5 DBV
+U7,2,B,USB_DEFAULT_500,SOT23-5 DBV
+U7,3,GND,GND,SOT23-5 DBV
+U7,4,Y,CHG_EN1,SOT23-5 DBV
+U7,5,VCC,3V3_AON,SOT23-5 DBV
+U8,1,A,USB_SUSPEND,SOT23-5 DBV
+U8,2,B,USB_HIGH_CURRENT_OK,SOT23-5 DBV
+U8,3,GND,GND,SOT23-5 DBV
+U8,4,Y,CHG_EN2,SOT23-5 DBV
+U8,5,VCC,3V3_AON,SOT23-5 DBV
+R8,1,1,USB_ENUM_500,0603
+R8,2,2,GND,0603
+R9,1,1,USB_SUSPEND,0603
+R9,2,2,GND,0603
+R10,1,1,CHG_EN1,0603
+R10,2,2,GND,0603
+R11,1,1,CHG_EN2,0603
+R11,2,2,GND,0603
+C7,1,1,3V3_AON,0603
+C7,2,2,GND,0603
+C8,1,1,3V3_AON,0603
+C8,2,2,GND,0603
+C9,1,1,3V3_AON,0603
+C9,2,2,GND,0603
+C10,1,1,3V3_AON,0603
+C10,2,2,GND,0603
+U9,1,VIN,SYS_RAW,TSOT23-8 TS8
+U9,2,PB_N,PWR_BUTTON_N,TSOT23-8 TS8
+U9,3,KILLT,PWR_KILLT,TSOT23-8 TS8
+U9,4,GND,GND,TSOT23-8 TS8
+U9,5,INT_N,PWR_INT_N,TSOT23-8 TS8
+U9,6,EN,SYS_ENABLE,TSOT23-8 TS8
+U9,7,OFFT,PWR_OFFT,TSOT23-8 TS8
+U9,8,KILL,POWER_HOLD,TSOT23-8 TS8
+SW1,1,1,PWR_BUTTON_N,physical switch footprint pending
+SW1,2,2,GND,physical switch footprint pending
+C11,1,1,SYS_RAW,0603
+C11,2,2,GND,0603
+C12,1,1,PWR_OFFT,0603
+C12,2,2,GND,0603
+C13,1,1,PWR_KILLT,0805
+C13,2,2,GND,0805
+R12,1,1,SYS_ENABLE,0603
+R12,2,2,SYS_RAW,0603
+R13,1,1,PWR_INT_N,0603
+R13,2,2,3V3_SYS,0603
+R14,1,1,POWER_HOLD,0603
+R14,2,2,3V3_SYS,0603
+U10,1,VIN,SYS_RAW,SOT23-6 DBV
+U10,2,GND,GND,SOT23-6 DBV
+U10,3,ON,SYS_ENABLE,SOT23-6 DBV
+U10,4,CT,SYS_RAMP_CT,SOT23-6 DBV
+U10,5,QOD,SYS_QOD,SOT23-6 DBV
+U10,6,VOUT,MAIN_RAW,SOT23-6 DBV
+C14,1,1,SYS_RAW,0603
+C14,2,2,GND,0603
+C15,1,1,SYS_RAMP_CT,0603
+C15,2,2,GND,0603
+R15,1,1,SYS_QOD,0603
+R15,2,2,MAIN_RAW,0603
+U11,1,EN,MAIN_RAW,VSON-HR/HotRod DLA0010A 10-pin 2x3mm
+U11,2,MODE,GND,VSON-HR/HotRod DLA0010A 10-pin 2x3mm
+U11,3,AGND,GND,VSON-HR/HotRod DLA0010A 10-pin 2x3mm
+U11,4,FB,3V3_FB,VSON-HR/HotRod DLA0010A 10-pin 2x3mm
+U11,5,PG,3V3_PG,VSON-HR/HotRod DLA0010A 10-pin 2x3mm
+U11,6,VOUT,3V3_SYS,VSON-HR/HotRod DLA0010A 10-pin 2x3mm
+U11,7,L2,BUCK_L2,VSON-HR/HotRod DLA0010A 10-pin 2x3mm
+U11,8,GND,GND,VSON-HR/HotRod DLA0010A 10-pin 2x3mm
+U11,9,L1,BUCK_L1,VSON-HR/HotRod DLA0010A 10-pin 2x3mm
+U11,10,VIN,MAIN_RAW,VSON-HR/HotRod DLA0010A 10-pin 2x3mm
+L1,1,1,BUCK_L1,Coilcraft XFL4015
+L1,2,2,BUCK_L2,Coilcraft XFL4015
+R16,1,1,3V3_SYS,0603
+R16,2,2,3V3_FB,0603
+R17,1,1,3V3_FB,0603
+R17,2,2,GND,0603
+R18,1,1,3V3_PG,0603
+R18,2,2,3V3_SYS,0603
+C16,1,1,MAIN_RAW,0805
+C16,2,2,GND,0805
+C17,1,1,3V3_SYS,0805
+C17,2,2,GND,0805
+C18,1,1,3V3_SYS,0805
+C18,2,2,GND,0805
+C19,1,1,3V3_SYS,0603
+C19,2,2,GND,0603
+U12,1,SDA,I2C_SDA,VSON12 DRZ0012A 2.5x4 mm + exposed pad
+U12,2,SCL,I2C_SCL,VSON12 DRZ0012A 2.5x4 mm + exposed pad
+U12,3,VSS,GND,VSON12 DRZ0012A 2.5x4 mm + exposed pad
+U12,4,NC,NC,VSON12 DRZ0012A 2.5x4 mm + exposed pad
+U12,5,VDD,GAUGE_1V8,VSON12 DRZ0012A 2.5x4 mm + exposed pad
+U12,6,BAT,BAT_PACK_P,VSON12 DRZ0012A 2.5x4 mm + exposed pad
+U12,7,SRN,BAT_P,VSON12 DRZ0012A 2.5x4 mm + exposed pad
+U12,8,SRP,BAT_PACK_P,VSON12 DRZ0012A 2.5x4 mm + exposed pad
+U12,9,NC,NC,VSON12 DRZ0012A 2.5x4 mm + exposed pad
+U12,10,BIN,GAUGE_BIN,VSON12 DRZ0012A 2.5x4 mm + exposed pad
+U12,11,NC,NC,VSON12 DRZ0012A 2.5x4 mm + exposed pad
+U12,12,GPOUT,GAUGE_INT_N,VSON12 DRZ0012A 2.5x4 mm + exposed pad
+U12,13,EP,GND,VSON12 DRZ0012A 2.5x4 mm + exposed pad
+R19,1,1,BAT_PACK_P,0805 sense resistor
+R19,2,2,BAT_P,0805 sense resistor
+R20,1,1,GAUGE_BIN,0603
+R20,2,2,GND,0603
+R21,1,1,I2C_SDA,0603
+R21,2,2,3V3_SYS,0603
+R22,1,1,I2C_SCL,0603
+R22,2,2,3V3_SYS,0603
+R23,1,1,I2C_SDA,0603
+R23,2,2,GND,0603
+R24,1,1,I2C_SCL,0603
+R24,2,2,GND,0603
+R25,1,1,GAUGE_INT_N,0603
+R25,2,2,3V3_SYS,0603
+R26,1,1,GAUGE_INT_N,0603
+R26,2,2,GND,0603
+C20,1,1,BAT_PACK_P,0603
+C20,2,2,GND,0603
+C21,1,1,GAUGE_1V8,0603
+C21,2,2,GND,0603
+U13,1,IO1,USB_CC1,SOT-9X3 DRT 3-pin 1x0.8mm body
+U13,2,IO2,USB_CC2,SOT-9X3 DRT 3-pin 1x0.8mm body
+U13,3,GND,GND,SOT-9X3 DRT 3-pin 1x0.8mm body
+D1,1,IO,USB_PROTECTED,DYA SOD-523
+D1,2,RETURN,GND,DYA SOD-523
+U1,1,GND,GND,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,2,3V3,3V3_SYS,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,3,EN,ESP_EN,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,4,GPIO4,AUD_BCLK,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,5,GPIO5,AUD_FSYNC,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,6,GPIO6,AUD_SDOUT,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,7,GPIO7,BTN_START_N,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,8,GPIO15,I2S1_WS,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,9,GPIO16,I2S1_DOUT,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,10,GPIO17,AMP_ENABLE,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,11,GPIO18,PWR_INT_N,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,12,GPIO8,I2C_SDA,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,13,GPIO19_USB_D-,ESP_USB_DM,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,14,GPIO20_USB_D+,ESP_USB_DP,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,15,GPIO3,NC,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,16,GPIO46,NC,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,17,GPIO9,I2C_SCL,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,18,GPIO10,LCD_CS_N,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,19,GPIO11,LCD_MOSI_MCU,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,20,GPIO12,LCD_SCLK_MCU,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,21,GPIO13,LCD_BL,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,22,GPIO14,I2S1_BCLK,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,23,GPIO21,POWER_HOLD,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,24,GPIO47,CHARGING_N,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,25,GPIO48,USB_PGOOD_N,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,26,GPIO45,NC,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,27,GPIO0,BOOT_N,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,28,GPIO35_PSRAM,NC,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,29,GPIO36_PSRAM,NC,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,30,GPIO37_PSRAM,NC,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,31,GPIO38,SD_CLK_MCU,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,32,GPIO39,SD_CMD,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,33,GPIO40,SD_D0,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,34,GPIO41,SD_CD_N,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,35,GPIO42,ADC_SHDN_N,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,36,GPIO44_U0RXD,LCD_RST_N,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,37,GPIO43_U0TXD,LCD_DC,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,38,GPIO2,USB_SUSPEND,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,39,GPIO1,USB_ENUM_500,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,40,GND,GND,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U1,41,GND_EP,GND,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41"
+U30,1,CLKOUT,NC,Micro Crystal C7 3.2x1.5x0.8mm
+U30,2,INT_N,NC,Micro Crystal C7 3.2x1.5x0.8mm
+U30,3,SCL,I2C_SCL,Micro Crystal C7 3.2x1.5x0.8mm
+U30,4,SDA,I2C_SDA,Micro Crystal C7 3.2x1.5x0.8mm
+U30,5,VSS,GND,Micro Crystal C7 3.2x1.5x0.8mm
+U30,6,VBACKUP,RTC_VBACKUP,Micro Crystal C7 3.2x1.5x0.8mm
+U30,7,VDD,3V3_SYS,Micro Crystal C7 3.2x1.5x0.8mm
+U30,8,EVI,RTC_EVI,Micro Crystal C7 3.2x1.5x0.8mm
+U31,1,P0,NC,"TI D SOIC-8 4.9x3.91mm, 1.27mm pitch"
+U31,2,P1,BTN_STOP_N,"TI D SOIC-8 4.9x3.91mm, 1.27mm pitch"
+U31,3,P2,BTN_UP_N,"TI D SOIC-8 4.9x3.91mm, 1.27mm pitch"
+U31,4,GND,GND,"TI D SOIC-8 4.9x3.91mm, 1.27mm pitch"
+U31,5,P3,BTN_DOWN_N,"TI D SOIC-8 4.9x3.91mm, 1.27mm pitch"
+U31,6,SCL,I2C_SCL,"TI D SOIC-8 4.9x3.91mm, 1.27mm pitch"
+U31,7,SDA,I2C_SDA,"TI D SOIC-8 4.9x3.91mm, 1.27mm pitch"
+U31,8,VCC,3V3_SYS,"TI D SOIC-8 4.9x3.91mm, 1.27mm pitch"
+U34,1,1D+,USB_DP_ISO,TI RSE UQFN-10 2.0x1.5mm
+U34,2,1D-,USB_DM_ISO,TI RSE UQFN-10 2.0x1.5mm
+U34,3,2D+,USB_UNUSED_DP,TI RSE UQFN-10 2.0x1.5mm
+U34,4,2D-,USB_UNUSED_DM,TI RSE UQFN-10 2.0x1.5mm
+U34,5,GND,GND,TI RSE UQFN-10 2.0x1.5mm
+U34,6,OE_N,GND,TI RSE UQFN-10 2.0x1.5mm
+U34,7,D-,USB_DM,TI RSE UQFN-10 2.0x1.5mm
+U34,8,D+,USB_DP,TI RSE UQFN-10 2.0x1.5mm
+U34,9,S,GND,TI RSE UQFN-10 2.0x1.5mm
+U34,10,VCC,3V3_SYS,TI RSE UQFN-10 2.0x1.5mm
+U35,1,D+,USB_DP,"TI DRT SOT-3 1.0x0.8mm, 0.50mm maximum height"
+U35,2,D-,USB_DM,"TI DRT SOT-3 1.0x0.8mm, 0.50mm maximum height"
+U35,3,GND,GND,"TI DRT SOT-3 1.0x0.8mm, 0.50mm maximum height"
+J6,1,DAT2,SD_D2_PU,Hirose DM3AT push-push microSD top mount
+J6,2,CD_DAT3,SD_D3_PU,Hirose DM3AT push-push microSD top mount
+J6,3,CMD,SD_CMD,Hirose DM3AT push-push microSD top mount
+J6,4,VDD,3V3_SYS,Hirose DM3AT push-push microSD top mount
+J6,5,CLK,SD_CLK,Hirose DM3AT push-push microSD top mount
+J6,6,VSS,GND,Hirose DM3AT push-push microSD top mount
+J6,7,DAT0,SD_D0,Hirose DM3AT push-push microSD top mount
+J6,8,DAT1,SD_D1_PU,Hirose DM3AT push-push microSD top mount
+J6,A,CARD_DETECT_A,SD_CD_N,Hirose DM3AT push-push microSD top mount
+J6,B,CARD_DETECT_B,GND,Hirose DM3AT push-push microSD top mount
+J6,SH,SHIELD,GND,Hirose DM3AT push-push microSD top mount
+J7,1,BL,LCD_BL,JST PH 8-position 2.0mm vertical through-hole
+J7,2,RST,LCD_RST_N,JST PH 8-position 2.0mm vertical through-hole
+J7,3,DC,LCD_DC,JST PH 8-position 2.0mm vertical through-hole
+J7,4,CS,LCD_CS_N,JST PH 8-position 2.0mm vertical through-hole
+J7,5,CLK,LCD_SCLK,JST PH 8-position 2.0mm vertical through-hole
+J7,6,DIN,LCD_MOSI,JST PH 8-position 2.0mm vertical through-hole
+J7,7,GND,GND,JST PH 8-position 2.0mm vertical through-hole
+J7,8,VCC,3V3_SYS,JST PH 8-position 2.0mm vertical through-hole
+R300,1,1,3V3_SYS,"0603 metric1608, 1%, 0.1W"
+R300,2,2,ESP_EN,"0603 metric1608, 1%, 0.1W"
+C300,1,1,ESP_EN,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C300,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C301,1,1,3V3_SYS,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C301,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C302,1,1,3V3_SYS,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C302,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+R301,1,1,3V3_SYS,"0603 metric1608, 1%, 0.1W"
+R301,2,2,BOOT_N,"0603 metric1608, 1%, 0.1W"
+R302,1,1,USB_DM_ISO,"0603 metric1608, 1%, 0.1W"
+R302,2,2,ESP_USB_DM,"0603 metric1608, 1%, 0.1W"
+R303,1,1,USB_DP_ISO,"0603 metric1608, 1%, 0.1W"
+R303,2,2,ESP_USB_DP,"0603 metric1608, 1%, 0.1W"
+C303,1,1,ESP_USB_DM,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C303,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C304,1,1,ESP_USB_DP,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C304,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+R304,1,1,3V3_SYS,"0603 metric1608, 1%, 0.1W"
+R304,2,2,LCD_CS_N,"0603 metric1608, 1%, 0.1W"
+R305,1,1,3V3_SYS,"0603 metric1608, 1%, 0.1W"
+R305,2,2,LCD_RST_N,"0603 metric1608, 1%, 0.1W"
+R306,1,1,LCD_SCLK_MCU,"0603 metric1608, 1%, 0.1W"
+R306,2,2,LCD_SCLK,"0603 metric1608, 1%, 0.1W"
+R307,1,1,LCD_MOSI_MCU,"0603 metric1608, 1%, 0.1W"
+R307,2,2,LCD_MOSI,"0603 metric1608, 1%, 0.1W"
+C305,1,1,3V3_SYS,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C305,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C306,1,1,3V3_SYS,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C306,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+R310,1,1,3V3_SYS,"0603 metric1608, 1%, 0.1W"
+R310,2,2,SD_CMD,"0603 metric1608, 1%, 0.1W"
+R311,1,1,3V3_SYS,"0603 metric1608, 1%, 0.1W"
+R311,2,2,SD_D0,"0603 metric1608, 1%, 0.1W"
+R312,1,1,3V3_SYS,"0603 metric1608, 1%, 0.1W"
+R312,2,2,SD_D1_PU,"0603 metric1608, 1%, 0.1W"
+R313,1,1,3V3_SYS,"0603 metric1608, 1%, 0.1W"
+R313,2,2,SD_D2_PU,"0603 metric1608, 1%, 0.1W"
+R314,1,1,3V3_SYS,"0603 metric1608, 1%, 0.1W"
+R314,2,2,SD_D3_PU,"0603 metric1608, 1%, 0.1W"
+R315,1,1,SD_CLK_MCU,"0603 metric1608, 1%, 0.1W"
+R315,2,2,SD_CLK,"0603 metric1608, 1%, 0.1W"
+R316,1,1,3V3_SYS,"0603 metric1608, 1%, 0.1W"
+R316,2,2,SD_CD_N,"0603 metric1608, 1%, 0.1W"
+C310,1,1,3V3_SYS,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C310,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C311,1,1,3V3_SYS,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C311,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C312,1,1,SD_CD_N,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C312,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+R320,1,1,BAT_P,"0603 metric1608, 1%, 0.1W"
+R320,2,2,RTC_VBACKUP,"0603 metric1608, 1%, 0.1W"
+R321,1,1,RTC_EVI,"0603 metric1608, 1%, 0.1W"
+R321,2,2,GND,"0603 metric1608, 1%, 0.1W"
+C320,1,1,3V3_SYS,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C320,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C321,1,1,RTC_VBACKUP,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C321,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C330,1,1,3V3_SYS,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C330,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+R330,1,1,3V3_SYS,"0603 metric1608, 1%, 0.1W"
+R330,2,2,BTN_START_N,"0603 metric1608, 1%, 0.1W"
+C331,1,1,BTN_START_N,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C331,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+R331,1,1,3V3_SYS,"0603 metric1608, 1%, 0.1W"
+R331,2,2,BTN_STOP_N,"0603 metric1608, 1%, 0.1W"
+C332,1,1,BTN_STOP_N,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C332,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+R332,1,1,3V3_SYS,"0603 metric1608, 1%, 0.1W"
+R332,2,2,BTN_UP_N,"0603 metric1608, 1%, 0.1W"
+C333,1,1,BTN_UP_N,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C333,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+R333,1,1,3V3_SYS,"0603 metric1608, 1%, 0.1W"
+R333,2,2,BTN_DOWN_N,"0603 metric1608, 1%, 0.1W"
+C334,1,1,BTN_DOWN_N,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C334,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C340,1,1,3V3_SYS,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+C340,2,2,GND,"0603 metric1608 X7R (except marked C0G), 10V minimum"
+R341,1,1,USB_UNUSED_DP,"0603 metric1608, 1%, 0.1W"
+R341,2,2,GND,"0603 metric1608, 1%, 0.1W"
+R342,1,1,USB_UNUSED_DM,"0603 metric1608, 1%, 0.1W"
+R342,2,2,GND,"0603 metric1608, 1%, 0.1W"
+SW300,1,A,BOOT_N,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss"
+SW300,2,B,GND,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss"
+SW301,1,A,BTN_START_N,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss"
+SW301,2,B,GND,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss"
+SW302,1,A,BTN_STOP_N,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss"
+SW302,2,B,GND,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss"
+SW303,1,A,BTN_UP_N,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss"
+SW303,2,B,GND,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss"
+SW304,1,A,BTN_DOWN_N,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss"
+SW304,2,B,GND,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss"
+SW305,1,A,ESP_EN,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss"
+SW305,2,B,GND,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss"
+U20,1,VDD,MIC_3V3,"Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port"
+U20,2,CLOCK,PDM_CLK_LOCAL,"Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port"
+U20,3,DATA,U20_D,"Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port"
+U20,4,LR,GND,"Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port"
+U20,5,GND,GND,"Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port"
+U21,1,VDD,MIC_3V3,"Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port"
+U21,2,CLOCK,PDM_CLK_LOCAL,"Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port"
+U21,3,DATA,U21_D,"Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port"
+U21,4,LR,MIC_3V3,"Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port"
+U21,5,GND,GND,"Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port"
+R201,1,1,U20_D,0805
+R201,2,2,PDM_DIN_PAIR,0805
+R202,1,1,U21_D,0805
+R202,2,2,PDM_DIN_PAIR,0805
+R203,1,1,PDM_CLK_BUFFER_OUT,0805
+R203,2,2,PDM_CLK_LOCAL,0805
+R204,1,1,3V3_SYS,0805
+R204,2,2,MIC_3V3,0805
+C200,1,1,MIC_3V3,0805
+C200,2,2,GND,0805
+C201,1,1,MIC_3V3,0805
+C201,2,2,GND,0805
+C202,1,1,MIC_3V3,0805
+C202,2,2,GND,0805
+C203,1,1,MIC_3V3,0805
+C203,2,2,GND,0805
+C204,1,1,MIC_3V3,0805
+C204,2,2,GND,0805
+U22,1,DIN,I2S1_DOUT_IC,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+U22,2,GAIN_SLOT,AMP_GAIN,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+U22,3,GND,GND,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+U22,4,SD_MODE,AMP_ENABLE,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+U22,5,NC,NC,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+U22,6,NC,NC,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+U22,7,VDD,MAIN_RAW,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+U22,8,VDD,MAIN_RAW,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+U22,9,OUTP,SPK_P,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+U22,10,OUTN,SPK_N,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+U22,11,GND,GND,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+U22,12,NC,NC,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+U22,13,NC,NC,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+U22,14,LRCLK,I2S1_WS_IC,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+U22,15,GND,GND,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+U22,16,BCLK,I2S1_BCLK_IC,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+U22,17,EP,GND,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031
+R207,1,1,I2S1_DOUT,0805
+R207,2,2,I2S1_DOUT_IC,0805
+R208,1,1,MAIN_RAW,0805
+R208,2,2,AMP_GAIN,0805
+R209,1,1,AMP_ENABLE,0805
+R209,2,2,GND,0805
+R210,1,1,I2S1_WS,0805
+R210,2,2,I2S1_WS_IC,0805
+R211,1,1,I2S1_BCLK,0805
+R211,2,2,I2S1_BCLK_IC,0805
+C205,1,1,MAIN_RAW,0805
+C205,2,2,GND,0805
+C206,1,1,MAIN_RAW,0805
+C206,2,2,GND,0805
+C207,1,1,MAIN_RAW,1210
+C207,2,2,GND,1210
+J5,1,SPK+,SPK_P,JST SH 1.0mm 1x2 right-angle SMD
+J5,2,SPK-,SPK_N,JST SH 1.0mm 1x2 right-angle SMD
+U23,1,AVDD,ADC_AVDD,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,2,AREG,ADC_AREG,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,3,VREF,ADC_VREF,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,4,AVSS,GND,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,5,MICBIAS,MICBIAS_3V014,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,6,IN1P_GPI1,ADC_IN1P,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,7,IN1M_GPO1,ADC_IN1M,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,8,IN2P_GPI2,ADC_IN2P,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,9,IN2M_GPO2,ADC_IN2M,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,10,IN3P_GPI3,PDM_DIN_PAIR,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,11,IN3M_GPO3,PDM_CLK_ADC_OUT,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,12,IN4P_GPI4,NC,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,13,IN4M_GPO4,NC,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,14,SHDNZ,ADC_SHDN_N,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,15,ADDR1_MISO,GND,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,16,ADDR0_SCLK,GND,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,17,SCL_MOSI,I2C_SCL,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,18,SDA_SSZ,I2C_SDA,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,19,IOVDD,3V3_SYS,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,20,GPIO1,NC,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,21,SDOUT,ADC_SDOUT_DRIVER,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,22,BCLK,ADC_BCLK_IN,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,23,FSYNC,ADC_FSYNC_IN,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,24,DREG,ADC_DREG,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U23,25,VSS_EP,GND,"TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25"
+U24,1,NC,NC,TI DBV0005A SOT-23-5
+U24,2,A,PDM_CLK_ADC_OUT,TI DBV0005A SOT-23-5
+U24,3,GND,GND,TI DBV0005A SOT-23-5
+U24,4,Y,PDM_CLK_BUFFER_OUT,TI DBV0005A SOT-23-5
+U24,5,VCC,MIC_3V3,TI DBV0005A SOT-23-5
+FB220,1,1,3V3_SYS,0805
+FB220,2,2,ADC_AVDD,0805
+R220,1,1,ADC_SHDN_N,0805
+R220,2,2,GND,0805
+R221,1,1,AUD_BCLK,0805
+R221,2,2,ADC_BCLK_IN,0805
+R222,1,1,AUD_FSYNC,0805
+R222,2,2,ADC_FSYNC_IN,0805
+R223,1,1,ADC_SDOUT_DRIVER,0805
+R223,2,2,AUD_SDOUT,0805
+R224,1,1,PDM_CLK_ADC_OUT,0805
+R224,2,2,GND,0805
+C220,1,1,ADC_AVDD,0805
+C220,2,2,GND,0805
+C221,1,1,ADC_AVDD,0805
+C221,2,2,GND,0805
+C222,1,1,ADC_AREG,0805
+C222,2,2,GND,0805
+C223,1,1,ADC_AREG,0805
+C223,2,2,GND,0805
+C224,1,1,ADC_DREG,0805
+C224,2,2,GND,0805
+C225,1,1,ADC_DREG,0805
+C225,2,2,GND,0805
+C226,1,1,ADC_VREF,0805
+C226,2,2,GND,0805
+C227,1,1,ADC_VREF,0805
+C227,2,2,GND,0805
+C228,1,1,MICBIAS_3V014,0805
+C228,2,2,GND,0805
+C229,1,1,MICBIAS_3V014,0805
+C229,2,2,GND,0805
+C230,1,1,MIC_3V3,0805
+C230,2,2,GND,0805
+C231,1,1,3V3_SYS,0805
+C231,2,2,GND,0805
+C232,1,1,3V3_SYS,0805
+C232,2,2,GND,0805
+J8,1,SLEEVE,GND,"Same Sky SJ1-3533NG, right-angle 3-pin through-hole TRS"
+J8,2,TIP,MIC1_JACK_TIP,"Same Sky SJ1-3533NG, right-angle 3-pin through-hole TRS"
+J8,3,RING,NC,"Same Sky SJ1-3533NG, right-angle 3-pin through-hole TRS"
+R230,1,1,MICBIAS_3V014,0805
+R230,2,2,MIC1_JACK_TIP,0805
+R231,1,1,MIC1_JACK_TIP,0805
+R231,2,2,MIC1_AC_SIGNAL,0805
+R232,1,1,GND,0805
+R232,2,2,MIC1_AC_RETURN,0805
+C233,1,1,MIC1_AC_SIGNAL,0805
+C233,2,2,ADC_IN1P,0805
+C234,1,1,MIC1_AC_RETURN,0805
+C234,2,2,ADC_IN1M,0805
+C235,1,1,ADC_IN1P,0805
+C235,2,2,GND,0805
+C236,1,1,ADC_IN1M,0805
+C236,2,2,GND,0805
+D220,1,IO,MIC1_JACK_TIP,TI DYA0002A SOD-523
+D220,2,GND,GND,TI DYA0002A SOD-523
+J9,1,SLEEVE,GND,"Same Sky SJ1-3533NG, right-angle 3-pin through-hole TRS"
+J9,2,TIP,MIC2_JACK_TIP,"Same Sky SJ1-3533NG, right-angle 3-pin through-hole TRS"
+J9,3,RING,NC,"Same Sky SJ1-3533NG, right-angle 3-pin through-hole TRS"
+R235,1,1,MICBIAS_3V014,0805
+R235,2,2,MIC2_JACK_TIP,0805
+R236,1,1,MIC2_JACK_TIP,0805
+R236,2,2,MIC2_AC_SIGNAL,0805
+R237,1,1,GND,0805
+R237,2,2,MIC2_AC_RETURN,0805
+C238,1,1,MIC2_AC_SIGNAL,0805
+C238,2,2,ADC_IN2P,0805
+C239,1,1,MIC2_AC_RETURN,0805
+C239,2,2,ADC_IN2M,0805
+C240,1,1,ADC_IN2P,0805
+C240,2,2,GND,0805
+C241,1,1,ADC_IN2M,0805
+C241,2,2,GND,0805
+D221,1,IO,MIC2_JACK_TIP,TI DYA0002A SOD-523
+D221,2,GND,GND,TI DYA0002A SOD-523

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, X } from "lucide-react";
 import type { MeetingApproval, WorkspaceMode } from "@/lib/workspace/model";
 import { scheduleDetailsSchema } from "@/lib/workspace/model";
 import styles from "./workspace.module.css";
@@ -101,7 +100,7 @@ export function ApprovalDialog({
             disabled={working}
             aria-label="Close approval"
           >
-            <X />
+            Close
           </button>
         </header>
         <p className={styles.subtle}>
@@ -183,7 +182,6 @@ export function ApprovalDialog({
             Cancel
           </button>
           <button className={styles.primaryButton} disabled={working}>
-            <Check />
             {working
               ? "Adding meeting…"
               : mode === "sample"

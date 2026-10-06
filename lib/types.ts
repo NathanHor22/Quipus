@@ -112,6 +112,18 @@ export interface ScheduleDetails {
   evidence: string | null;
 }
 
+/** Durable, owner-scoped recording state; AI completion has no estimated percentage. */
+export interface RecordingProgressState {
+  stage: string | null;
+  uploadedBytes?: number;
+  totalBytes?: number;
+  error?: string | null;
+  updatedAt?: string | null;
+  captureEndedAt?: string | null;
+  /** Duration from the archived WAV metadata, rather than upload completion time. */
+  durationSeconds?: number | null;
+}
+
 export interface Meeting {
   id: string;
   title: string;
@@ -122,6 +134,7 @@ export interface Meeting {
   contacts: Contact[];
   recordingId?: string | null;
   recordingUrl?: string | null;
+  recordingProgress?: RecordingProgressState | null;
   transcript?: TranscriptSegment[];
   insight?: MeetingInsight | null;
   evidence?: MeetingEvidence[];

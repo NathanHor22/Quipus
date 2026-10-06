@@ -1,0 +1,367 @@
+{
+  "path": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-b\\easyeda\\native\\mic-library-fixed.esource",
+  "sha256": "3d7f1743d392b521456e9df6165cb3940fc49fb677bb906f75c1b9f091236b9d",
+  "footprint_uuid": "99bab940c4f22b22",
+  "native_title": null,
+  "record_count": 165,
+  "changed_pads": [
+    {
+      "id": "ie10",
+      "number": "1",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie12",
+      "number": "2",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie14",
+      "number": "3",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie16",
+      "number": "4",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie18",
+      "number": "5",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "topSolderExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomSolderExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie19",
+      "number": "5",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "topSolderExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomSolderExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie20",
+      "number": "5",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "topSolderExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomSolderExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie21",
+      "number": "5",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "topSolderExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomSolderExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    }
+  ],
+  "geometry_repairs": [
+    {
+      "id": "ie23",
+      "operation": "Reflect only Y of curved paste FILL to match canonical local footprint coordinates",
+      "max_contour_difference_after_mm": 1.8526737435061829e-06,
+      "vertices": 98
+    },
+    {
+      "id": "ie24",
+      "operation": "Reflect only Y of curved paste FILL to match canonical local footprint coordinates",
+      "max_contour_difference_after_mm": 1.7899720668242483e-06,
+      "vertices": 98
+    },
+    {
+      "id": "ie25",
+      "operation": "Reflect only Y of curved paste FILL to match canonical local footprint coordinates",
+      "max_contour_difference_after_mm": 1.7899720668242483e-06,
+      "vertices": 98
+    }
+  ],
+  "identifiers_and_all_other_geometry_preserved": true,
+  "native_apply_and_save": "VERIFIED_BY_PARENT_NATIVE_UI_WITNESS_AND_INDEPENDENT_FINAL_PROJECT_EXPORT_AUDIT",
+  "live_source": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-b\\easyeda\\native\\mic-editor-before.esource",
+  "live_source_sha256": "e5e82a9d77624fed45462a58d8e0be54af9727378d5d1a702557dbbf2a71f3a1",
+  "native_doc_type_preserved": true,
+  "live_doc_type": "PCB",
+  "reference": "U20",
+  "explicit_paste_before": {
+    "expected_count": 7,
+    "native_count": 7,
+    "pass": false,
+    "apertures": [
+      {
+        "expected_kind": "rect",
+        "native_id": "ie11",
+        "pass": true,
+        "difference_mm": 1.6000000002680537e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "rect",
+        "native_id": "ie13",
+        "pass": true,
+        "difference_mm": 1.5999999999349868e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "rect",
+        "native_id": "ie15",
+        "pass": true,
+        "difference_mm": 1.6000000002680537e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "rect",
+        "native_id": "ie17",
+        "pass": true,
+        "difference_mm": 1.5999999999349868e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie24",
+        "pass": false,
+        "difference_mm": 2.1180264974041303,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie23",
+        "pass": false,
+        "difference_mm": 2.0984079482656863,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie25",
+        "pass": false,
+        "difference_mm": 1.9013373729978196,
+        "boundary_stroke_mm": 0.00508
+      }
+    ],
+    "unmatched_native_ids": []
+  },
+  "explicit_paste_after": {
+    "expected_count": 7,
+    "native_count": 7,
+    "pass": true,
+    "apertures": [
+      {
+        "expected_kind": "rect",
+        "native_id": "ie11",
+        "pass": true,
+        "difference_mm": 1.6000000002680537e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "rect",
+        "native_id": "ie13",
+        "pass": true,
+        "difference_mm": 1.5999999999349868e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "rect",
+        "native_id": "ie15",
+        "pass": true,
+        "difference_mm": 1.6000000002680537e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "rect",
+        "native_id": "ie17",
+        "pass": true,
+        "difference_mm": 1.5999999999349868e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie23",
+        "pass": true,
+        "difference_mm": 1.8526737435061829e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie24",
+        "pass": true,
+        "difference_mm": 1.7899720668242483e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie25",
+        "pass": true,
+        "difference_mm": 1.7899720668242483e-06,
+        "boundary_stroke_mm": 0.00508
+      }
+    ],
+    "unmatched_native_ids": []
+  },
+  "manufacturing_release": false,
+  "status": "VERIFIED_APPLIED_SAVED_AND_REEXPORTED",
+  "final_native_evidence": {
+    "capture": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-b\\easyeda\\native\\pcb-final.esource",
+    "capture_sha256": "299981378ff657e3aebd834a51e26d2fa41804a9d9e8c0c5d34b2b89d3b9411d",
+    "original_pre_fix_capture_sha256": "d0f3c6f8e3ad78e1b43bec9af5d24545207d3cd50258a10247110db7608fa49f",
+    "category_results": {
+      "electrical": "PASS",
+      "metadata": "PASS",
+      "placement": "PASS",
+      "geometry": "PASS",
+      "stencil": "PASS"
+    },
+    "electronic_components": 180,
+    "nets": 113,
+    "physical_pad_instances": 606,
+    "standalone_mounting_holes": [
+      {
+        "label": null,
+        "primitive_id": "ie1122",
+        "native_component_id": null,
+        "center_mm": [
+          5.00000016,
+          19.0000001
+        ],
+        "diameter_mm": 2.79999948,
+        "plated": false,
+        "representation": "standalone native NPTH PAD",
+        "expected_label": "H1"
+      },
+      {
+        "label": null,
+        "primitive_id": "ie1123",
+        "native_component_id": null,
+        "center_mm": [
+          59.99999937999999,
+          19.0000001
+        ],
+        "diameter_mm": 2.79999948,
+        "plated": false,
+        "representation": "standalone native NPTH PAD",
+        "expected_label": "H2"
+      },
+      {
+        "label": null,
+        "primitive_id": "ie1124",
+        "native_component_id": null,
+        "center_mm": [
+          5.00000016,
+          119.00000075999999
+        ],
+        "diameter_mm": 2.79999948,
+        "plated": false,
+        "representation": "standalone native NPTH PAD",
+        "expected_label": "H3"
+      },
+      {
+        "label": null,
+        "primitive_id": "ie1125",
+        "native_component_id": null,
+        "center_mm": [
+          59.99999937999999,
+          119.00000075999999
+        ],
+        "diameter_mm": 2.79999948,
+        "plated": false,
+        "representation": "standalone native NPTH PAD",
+        "expected_label": "H4"
+      }
+    ],
+    "witness": "Parent reports native Apply/Save accepted and saved project re-exported; native DRC543 connection errors,0clearance,0netlist.",
+    "verification_scope": "Saved geometry, stencil fields and net parity; copper routing and manufacturing release remain incomplete."
+  }
+}

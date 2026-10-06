@@ -25,7 +25,15 @@ export type WorkspaceDeviceSummary = {
   last_seen_at: string | null;
 };
 
-export function useWorkspace(initialMode: WorkspaceMode) {
+export type ApprovalReceipt = {
+  meetingId: string;
+  title: string;
+  startAt: string;
+  attendees: string[];
+  mode: WorkspaceMode;
+};
+
+export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string | null = null) {
   const [mode, setMode] = useState<WorkspaceMode>(initialMode);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,10 +41,16 @@ export function useWorkspace(initialMode: WorkspaceMode) {
   const [notice, setNotice] = useState<string | null>(null);
   const [integrations, setIntegrations] = useState<Record<string, boolean>>({});
   const [device, setDevice] = useState<WorkspaceDeviceSummary | null>(null);
+  const [deviceStatusLoaded, setDeviceStatusLoaded] = useState(false);
+  const [approvalReceipt, setApprovalReceipt] = useState<ApprovalReceipt | null>(null);
   const [working, setWorking] = useState<string | null>(null);
   const generation = useRef(0);
   const actionLock = useRef(false);
   const liveRefreshRunning = useRef(false);
+  const metadataRefreshedAt = useRef(0);
+  const devicePaired = useRef(false);
+  const owner = useRef(accountIdentity);
+  owner.current = accountIdentity;
 
   const loadSample = useCallback((reset = false) => {
     generation.current++;
@@ -56,6 +70,8 @@ export function useWorkspace(initialMode: WorkspaceMode) {
     setError(null);
     setIntegrations({});
     setDevice(null);
+    setDeviceStatusLoaded(false);
+    setApprovalReceipt(null);
     const url = new URL(window.location.href);
     url.searchParams.set("mode", "sample");
     window.history.replaceState({}, "", url);
@@ -67,6 +83,7 @@ export function useWorkspace(initialMode: WorkspaceMode) {
       if (silent && (liveRefreshRunning.current || actionLock.current)) return;
       if (silent) liveRefreshRunning.current = true;
       const current = ++generation.current;
+      const requestOwner = owner.current;
       if (!silent) {
         setMode("live");
         setMeetings([]);
@@ -74,6 +91,7 @@ export function useWorkspace(initialMode: WorkspaceMode) {
         setError(null);
         setIntegrations({});
         setDevice(null);
+        setDeviceStatusLoaded(false);
         const url = new URL(window.location.href);
         url.searchParams.delete("mode");
         window.history.replaceState({}, "", url);
@@ -81,7 +99,7 @@ export function useWorkspace(initialMode: WorkspaceMode) {
       try {
         const response = await fetch("/api/meetings", { cache: "no-store" });
         const payload = await response.json();
-        if (current !== generation.current) return;
+        if (current !== generation.current || requestOwner !== owner.current) return;
         if (!response.ok)
           throw new Error(
             payload.error || "Your workspace could not be loaded.",
@@ -96,7 +114,7 @@ export function useWorkspace(initialMode: WorkspaceMode) {
           );
         }
         setMeetings(payload.meetings || []);
-        if (!silent) {
+        if (!silent || Date.now() - metadataRefreshedAt.current >= (devicePaired.current ? 30_000 : 10_000)) {
           const [integrationRequest, deviceRequest] = await Promise.allSettled([
             fetch("/api/integrations", { cache: "no-store" }),
             fetch("/api/devices", { cache: "no-store" }),
@@ -105,10 +123,12 @@ export function useWorkspace(initialMode: WorkspaceMode) {
             integrationRequest.status === "fulfilled" &&
             integrationRequest.value.ok &&
             current === generation.current
-          )
-            setIntegrations(
-              (await integrationRequest.value.json()).integrations || {},
-            );
+          ) {
+            const integrationPayload = await integrationRequest.value.json();
+            if (current !== generation.current || requestOwner !== owner.current) return;
+            setIntegrations(integrationPayload.integrations || {});
+            metadataRefreshedAt.current = Date.now();
+          }
           if (
             deviceRequest.status === "fulfilled" &&
             deviceRequest.value.ok &&
@@ -117,18 +137,22 @@ export function useWorkspace(initialMode: WorkspaceMode) {
             const devicePayload = (await deviceRequest.value.json()) as {
               devices?: WorkspaceDeviceSummary[];
             };
+            if (current !== generation.current || requestOwner !== owner.current) return;
             setDevice(devicePayload.devices?.[0] || null);
+            setDeviceStatusLoaded(true);
+            devicePaired.current = Boolean(devicePayload.devices?.length);
+            metadataRefreshedAt.current = Date.now();
           }
         }
       } catch (cause) {
-        if (!silent && current === generation.current)
+        if (!silent && current === generation.current && requestOwner === owner.current)
           setError(
             cause instanceof Error
               ? cause.message
               : "Your workspace could not be loaded.",
           );
       } finally {
-        if (!silent && current === generation.current) setLoading(false);
+        if (!silent && current === generation.current && requestOwner === owner.current) setLoading(false);
         if (silent) liveRefreshRunning.current = false;
       }
     },
@@ -136,12 +160,16 @@ export function useWorkspace(initialMode: WorkspaceMode) {
   );
 
   useEffect(() => {
+    setApprovalReceipt(null);
+    setNotice(null);
+    metadataRefreshedAt.current = 0;
+    devicePaired.current = false;
     if (initialMode === "sample") loadSample();
     else void loadLive(true);
     return () => {
       generation.current++;
     };
-  }, [initialMode, loadLive, loadSample]);
+  }, [accountIdentity, initialMode, loadLive, loadSample]);
 
   useEffect(() => {
     if (mode !== "live" || loading) return;
@@ -197,15 +225,18 @@ export function useWorkspace(initialMode: WorkspaceMode) {
     if (mode === "live") generation.current++;
     setWorking(approval.id);
     setError(null);
+    const actionOwner = owner.current;
     try {
       if (mode === "sample") {
         const next = approveSample(meetings, approval);
         setMeetings(next);
         setNotice("Added to your sample calendar. No invitation was sent.");
-        return (
+        const created = (
           next.find((meeting) => meeting.sourceApprovalId === approval.id) ||
           null
         );
+        if (created) setApprovalReceipt({ meetingId: created.id, title: created.title, startAt: created.startAt, attendees: [...approval.details.attendees], mode });
+        return created;
       }
       const response = await fetch("/api/actions/calendar", {
         method: "POST",
@@ -213,6 +244,7 @@ export function useWorkspace(initialMode: WorkspaceMode) {
         body: JSON.stringify(liveApprovalRequest(approval)),
       });
       const payload = await response.json();
+      if (actionOwner !== owner.current) return null;
       if (!response.ok || !payload.event)
         throw new Error(
           payload.error || "The calendar invitation could not be created.",
@@ -240,8 +272,10 @@ export function useWorkspace(initialMode: WorkspaceMode) {
         created,
       ]);
       setNotice("Meeting added to Google Calendar. Invitation sent.");
+      setApprovalReceipt({ meetingId: created.id, title: created.title, startAt: created.startAt, attendees: [...approval.details.attendees], mode });
       return created;
     } catch (cause) {
+      if (actionOwner !== owner.current) return null;
       setError(
         cause instanceof Error
           ? cause.message
@@ -266,6 +300,7 @@ export function useWorkspace(initialMode: WorkspaceMode) {
     if (mode === "live") generation.current++;
     setWorking(id);
     setError(null);
+    const actionOwner = owner.current;
     try {
       if (mode === "live") {
         if (id.startsWith("sample:"))
@@ -279,6 +314,7 @@ export function useWorkspace(initialMode: WorkspaceMode) {
           },
         );
         const payload = await response.json();
+        if (actionOwner !== owner.current) return false;
         if (!response.ok || !payload.persisted)
           throw new Error(payload.error || "The change could not be saved.");
       }
@@ -286,6 +322,7 @@ export function useWorkspace(initialMode: WorkspaceMode) {
       if (changes.status === "dismissed") setNotice("Approval dismissed.");
       return true;
     } catch (cause) {
+      if (actionOwner !== owner.current) return false;
       setError(
         cause instanceof Error
           ? cause.message
@@ -307,6 +344,7 @@ export function useWorkspace(initialMode: WorkspaceMode) {
     if (mode === "live") generation.current++;
     setWorking(`contact:${id}`);
     setError(null);
+    const actionOwner = owner.current;
     try {
       let saved: Contact = { id, ...changes };
       if (mode === "live") {
@@ -321,6 +359,7 @@ export function useWorkspace(initialMode: WorkspaceMode) {
           contact?: Contact;
           error?: string;
         };
+        if (actionOwner !== owner.current) return false;
         if (!response.ok || !payload.contact)
           throw new Error(payload.error || "The contact could not be updated.");
         saved = payload.contact;
@@ -336,6 +375,7 @@ export function useWorkspace(initialMode: WorkspaceMode) {
       setNotice("Contact details updated.");
       return true;
     } catch (cause) {
+      if (actionOwner !== owner.current) return false;
       setError(
         cause instanceof Error
           ? cause.message
@@ -356,6 +396,9 @@ export function useWorkspace(initialMode: WorkspaceMode) {
     notice,
     integrations,
     device,
+    deviceStatusLoaded,
+    approvalReceipt,
+    dismissApprovalReceipt: () => setApprovalReceipt(null),
     working,
     approve,
     patchFollowUp,

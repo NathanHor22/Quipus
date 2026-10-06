@@ -1,0 +1,243 @@
+{
+  "status": "LOCAL_GEOMETRY_AND_KICAD_CARRIER_PASS_NATIVE_REV_B_IMPORT_AND_GERBER_CHECKS_PENDING",
+  "footprint": "hardware\\quipus-pcb\\rev-b\\easyeda\\footprints\\Quipus_Infineon_IM69D128S_QuarterGround.kicad_mod",
+  "sha256": "a8788c413c2dbbf05fa1577272c028fc03594c2fe965f1836d0d282fb99c6111",
+  "units": "mm",
+  "authoritative_native_file": "hardware\\quipus-pcb\\rev-a\\easyeda\\native\\microphone-footprint-final.esource",
+  "authoritative_native_sha256": "45ea8bf5dd2c93b501bb10f20fc2f2704adb103a7e5c5ec3c488ded3f2b14c64",
+  "manufacturer_source_footprint": ".tools\\quipus-footprints\\audio\\Infineon_IM69D128SV01_PG-TLGA-5-2_2.65x3.50mm_NPTH0.60.kicad_mod",
+  "manufacturer_source_sha256": "18289563cd29d2f77e11121af724e66f2e6c68e8e6bca0b31e12a27b63e864fc",
+  "transformation": {
+    "native_side": "bottom, X-reflected",
+    "source_side": "top",
+    "x_reflected_back": true,
+    "native_acoustic_center_mm": [
+      0.0,
+      -0.7100011199999999
+    ],
+    "source_exact_acoustic_center_mm": [
+      0.0,
+      -0.71
+    ],
+    "y_rounding_alignment_mm": 1.119999999965593e-06,
+    "copper_paths": "native absolute XY converted to pad-local XY",
+    "coordinate_rounding_digits": 10
+  },
+  "physical_electrical_pad_numbers": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "5",
+    "5",
+    "5"
+  ],
+  "ground_pin_number": "5",
+  "quadrants": [
+    {
+      "source_native_id": "ie18",
+      "anchor_mm": [
+        -0.67749928,
+        -0.71
+      ],
+      "vertices": 182,
+      "anchor_inside_copper": true,
+      "anchor_disk_radius_mm": 0.05,
+      "minimum_anchor_to_boundary_mm": 0.1849937779968847,
+      "anchor_disk_inside_own_copper": true,
+      "acoustic_center_outside_copper": true,
+      "minimum_copper_to_npth_mm": 0.19248023702169792,
+      "area_mm2": 0.3937392409909106
+    },
+    {
+      "source_native_id": "e98cf8df8e4f9e762",
+      "anchor_mm": [
+        0.0,
+        -0.03250072000000003
+      ],
+      "vertices": 182,
+      "anchor_inside_copper": true,
+      "anchor_disk_radius_mm": 0.05,
+      "minimum_anchor_to_boundary_mm": 0.1849937779968848,
+      "anchor_disk_inside_own_copper": true,
+      "acoustic_center_outside_copper": true,
+      "minimum_copper_to_npth_mm": 0.19248023702169786,
+      "area_mm2": 0.39373924099091107
+    },
+    {
+      "source_native_id": "ed9b807e727b4e48d",
+      "anchor_mm": [
+        0.67749928,
+        -0.71
+      ],
+      "vertices": 182,
+      "anchor_inside_copper": true,
+      "anchor_disk_radius_mm": 0.05,
+      "minimum_anchor_to_boundary_mm": 0.1849937779968847,
+      "anchor_disk_inside_own_copper": true,
+      "acoustic_center_outside_copper": true,
+      "minimum_copper_to_npth_mm": 0.19248023702169792,
+      "area_mm2": 0.3937392409909106
+    },
+    {
+      "source_native_id": "ef5dca8a7d237bfba",
+      "anchor_mm": [
+        0.0,
+        -1.3874992800000001
+      ],
+      "vertices": 182,
+      "anchor_inside_copper": true,
+      "anchor_disk_radius_mm": 0.05,
+      "minimum_anchor_to_boundary_mm": 0.18499377799688468,
+      "anchor_disk_inside_own_copper": true,
+      "acoustic_center_outside_copper": true,
+      "minimum_copper_to_npth_mm": 0.1924802370216981,
+      "area_mm2": 0.3937392409909113
+    }
+  ],
+  "quarter_shared_edges": [
+    {
+      "endpoints_mm": [
+        [
+          -0.6098794,
+          -1.3198794
+        ],
+        [
+          -0.34824924,
+          -1.05824924
+        ]
+      ],
+      "quarter_indices": [
+        0,
+        3
+      ]
+    },
+    {
+      "endpoints_mm": [
+        [
+          -0.6098794,
+          -0.1001206
+        ],
+        [
+          -0.34824924,
+          -0.36175076
+        ]
+      ],
+      "quarter_indices": [
+        0,
+        1
+      ]
+    },
+    {
+      "endpoints_mm": [
+        [
+          0.34824924,
+          -0.36175076
+        ],
+        [
+          0.6098794,
+          -0.1001206
+        ]
+      ],
+      "quarter_indices": [
+        1,
+        2
+      ]
+    },
+    {
+      "endpoints_mm": [
+        [
+          0.34824924,
+          -1.05824924
+        ],
+        [
+          0.6098794,
+          -1.3198794
+        ]
+      ],
+      "quarter_indices": [
+        2,
+        3
+      ]
+    }
+  ],
+  "annulus_nominal_od_mm": 1.725,
+  "annulus_nominal_id_mm": 0.985,
+  "npth": {
+    "at_mm": [
+      0,
+      -0.71
+    ],
+    "diameter_mm": 0.6,
+    "plated": false,
+    "unchanged_from_original_source": true
+  },
+  "unchanged_geometry": {
+    "signal_copper_and_signal_paste_pads_1_to_4": true,
+    "three_original_ground_paste_sector_polygons": true,
+    "original_mask_annulus": true,
+    "original_body_and_courtyard": true,
+    "no_automatic_ground_paste_layer": true
+  },
+  "converter_roundtrip": [
+    {
+      "side": "F",
+      "rotation_deg": 0,
+      "four_ground_pads": true,
+      "acoustic_npth_preserved": true,
+      "carrier_parse_pass": true
+    },
+    {
+      "side": "F",
+      "rotation_deg": 90,
+      "four_ground_pads": true,
+      "acoustic_npth_preserved": true,
+      "carrier_parse_pass": true
+    },
+    {
+      "side": "F",
+      "rotation_deg": 180,
+      "four_ground_pads": true,
+      "acoustic_npth_preserved": true,
+      "carrier_parse_pass": true
+    },
+    {
+      "side": "F",
+      "rotation_deg": 270,
+      "four_ground_pads": true,
+      "acoustic_npth_preserved": true,
+      "carrier_parse_pass": true
+    },
+    {
+      "side": "B",
+      "rotation_deg": 0,
+      "four_ground_pads": true,
+      "acoustic_npth_preserved": true,
+      "carrier_parse_pass": true
+    },
+    {
+      "side": "B",
+      "rotation_deg": 90,
+      "four_ground_pads": true,
+      "acoustic_npth_preserved": true,
+      "carrier_parse_pass": true
+    },
+    {
+      "side": "B",
+      "rotation_deg": 180,
+      "four_ground_pads": true,
+      "acoustic_npth_preserved": true,
+      "carrier_parse_pass": true
+    },
+    {
+      "side": "B",
+      "rotation_deg": 270,
+      "four_ground_pads": true,
+      "acoustic_npth_preserved": true,
+      "carrier_parse_pass": true
+    }
+  ],
+  "stencil_note": "Original manufacturer-oriented paste geometry retained byte-wise at element level; native canonical FILL boundary stroke 0.2 mil is intentionally not reproduced. Native import and actual stencil Gerbers still need review.",
+  "release": false
+}

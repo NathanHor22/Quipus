@@ -1,0 +1,848 @@
+{
+  "path": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-b\\easyeda\\native\\adc-library-fixed.esource",
+  "sha256": "b94c7d18905241deacb9b583457388ee2e2dd4170dc2a1c56114563ff7b3a46c",
+  "footprint_uuid": "029edec69c75e6d9",
+  "native_title": null,
+  "record_count": 201,
+  "changed_pads": [
+    {
+      "id": "ie10",
+      "number": "1",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie12",
+      "number": "7",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie14",
+      "number": "13",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie16",
+      "number": "19",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie18",
+      "number": "2",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie20",
+      "number": "8",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie22",
+      "number": "14",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie24",
+      "number": "20",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie26",
+      "number": "3",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie28",
+      "number": "9",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie30",
+      "number": "15",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie32",
+      "number": "21",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie34",
+      "number": "4",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie36",
+      "number": "10",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie38",
+      "number": "16",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie40",
+      "number": "22",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie42",
+      "number": "5",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie44",
+      "number": "11",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie46",
+      "number": "17",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie48",
+      "number": "23",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie50",
+      "number": "6",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie52",
+      "number": "12",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie54",
+      "number": "18",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie56",
+      "number": "24",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    },
+    {
+      "id": "ie58",
+      "number": "25",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    }
+  ],
+  "geometry_repairs": [],
+  "identifiers_and_all_other_geometry_preserved": true,
+  "native_apply_and_save": "VERIFIED_BY_PARENT_NATIVE_UI_WITNESS_AND_INDEPENDENT_FINAL_PROJECT_EXPORT_AUDIT",
+  "live_source": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-b\\easyeda\\native\\adc-editor-before.esource",
+  "live_source_sha256": "9c70ed508f2e9dba914bb75f623d054813e9268c3e9f69e491e8492120b4dda9",
+  "native_doc_type_preserved": true,
+  "live_doc_type": "PCB",
+  "reference": "U23",
+  "explicit_paste_before": {
+    "expected_count": 28,
+    "native_count": 28,
+    "pass": true,
+    "apertures": [
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie11",
+        "pass": true,
+        "difference_mm": 1.665082580650062e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie13",
+        "pass": true,
+        "difference_mm": 1.7259490143976493e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie15",
+        "pass": true,
+        "difference_mm": 1.7850770293634757e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie17",
+        "pass": true,
+        "difference_mm": 1.7850770293634757e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie19",
+        "pass": true,
+        "difference_mm": 1.6697305170850672e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie21",
+        "pass": true,
+        "difference_mm": 1.6697305170850672e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie23",
+        "pass": true,
+        "difference_mm": 1.7441330223987788e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie25",
+        "pass": true,
+        "difference_mm": 1.7441330223987788e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie27",
+        "pass": true,
+        "difference_mm": 1.6867127790480488e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie29",
+        "pass": true,
+        "difference_mm": 1.7387639286952305e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie31",
+        "pass": true,
+        "difference_mm": 1.7387639286952305e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie33",
+        "pass": true,
+        "difference_mm": 1.68928979177007e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie35",
+        "pass": true,
+        "difference_mm": 1.7387639286952305e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie37",
+        "pass": true,
+        "difference_mm": 1.6867127790480488e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie39",
+        "pass": true,
+        "difference_mm": 1.68928979177007e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie41",
+        "pass": true,
+        "difference_mm": 1.7387639286952305e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie43",
+        "pass": true,
+        "difference_mm": 1.6697305170850672e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie45",
+        "pass": true,
+        "difference_mm": 1.6697305170850672e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie47",
+        "pass": true,
+        "difference_mm": 1.7441330223987788e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie49",
+        "pass": true,
+        "difference_mm": 1.7441330223987788e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie51",
+        "pass": true,
+        "difference_mm": 1.7259490143976493e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie53",
+        "pass": true,
+        "difference_mm": 1.665082580650062e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie55",
+        "pass": true,
+        "difference_mm": 1.7850770293634757e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie57",
+        "pass": true,
+        "difference_mm": 1.7850770293634757e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "rect",
+        "native_id": "ie59",
+        "pass": true,
+        "difference_mm": 3.399999999320613e-07,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "rect",
+        "native_id": "ie60",
+        "pass": true,
+        "difference_mm": 3.399999999320613e-07,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "rect",
+        "native_id": "ie61",
+        "pass": true,
+        "difference_mm": 3.399999999320613e-07,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "rect",
+        "native_id": "ie62",
+        "pass": true,
+        "difference_mm": 3.399999999320613e-07,
+        "boundary_stroke_mm": 0.00508
+      }
+    ],
+    "unmatched_native_ids": []
+  },
+  "explicit_paste_after": {
+    "expected_count": 28,
+    "native_count": 28,
+    "pass": true,
+    "apertures": [
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie11",
+        "pass": true,
+        "difference_mm": 1.665082580650062e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie13",
+        "pass": true,
+        "difference_mm": 1.7259490143976493e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie15",
+        "pass": true,
+        "difference_mm": 1.7850770293634757e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie17",
+        "pass": true,
+        "difference_mm": 1.7850770293634757e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie19",
+        "pass": true,
+        "difference_mm": 1.6697305170850672e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie21",
+        "pass": true,
+        "difference_mm": 1.6697305170850672e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie23",
+        "pass": true,
+        "difference_mm": 1.7441330223987788e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie25",
+        "pass": true,
+        "difference_mm": 1.7441330223987788e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie27",
+        "pass": true,
+        "difference_mm": 1.6867127790480488e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie29",
+        "pass": true,
+        "difference_mm": 1.7387639286952305e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie31",
+        "pass": true,
+        "difference_mm": 1.7387639286952305e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie33",
+        "pass": true,
+        "difference_mm": 1.68928979177007e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie35",
+        "pass": true,
+        "difference_mm": 1.7387639286952305e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie37",
+        "pass": true,
+        "difference_mm": 1.6867127790480488e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie39",
+        "pass": true,
+        "difference_mm": 1.68928979177007e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie41",
+        "pass": true,
+        "difference_mm": 1.7387639286952305e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie43",
+        "pass": true,
+        "difference_mm": 1.6697305170850672e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie45",
+        "pass": true,
+        "difference_mm": 1.6697305170850672e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie47",
+        "pass": true,
+        "difference_mm": 1.7441330223987788e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie49",
+        "pass": true,
+        "difference_mm": 1.7441330223987788e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie51",
+        "pass": true,
+        "difference_mm": 1.7259490143976493e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie53",
+        "pass": true,
+        "difference_mm": 1.665082580650062e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie55",
+        "pass": true,
+        "difference_mm": 1.7850770293634757e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "polygon",
+        "native_id": "ie57",
+        "pass": true,
+        "difference_mm": 1.7850770293634757e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "rect",
+        "native_id": "ie59",
+        "pass": true,
+        "difference_mm": 3.399999999320613e-07,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "rect",
+        "native_id": "ie60",
+        "pass": true,
+        "difference_mm": 3.399999999320613e-07,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "rect",
+        "native_id": "ie61",
+        "pass": true,
+        "difference_mm": 3.399999999320613e-07,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "rect",
+        "native_id": "ie62",
+        "pass": true,
+        "difference_mm": 3.399999999320613e-07,
+        "boundary_stroke_mm": 0.00508
+      }
+    ],
+    "unmatched_native_ids": []
+  },
+  "manufacturing_release": false,
+  "status": "VERIFIED_APPLIED_SAVED_AND_REEXPORTED",
+  "final_native_evidence": {
+    "capture": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-b\\easyeda\\native\\pcb-final.esource",
+    "capture_sha256": "299981378ff657e3aebd834a51e26d2fa41804a9d9e8c0c5d34b2b89d3b9411d",
+    "original_pre_fix_capture_sha256": "d0f3c6f8e3ad78e1b43bec9af5d24545207d3cd50258a10247110db7608fa49f",
+    "category_results": {
+      "electrical": "PASS",
+      "metadata": "PASS",
+      "placement": "PASS",
+      "geometry": "PASS",
+      "stencil": "PASS"
+    },
+    "electronic_components": 180,
+    "nets": 113,
+    "physical_pad_instances": 606,
+    "standalone_mounting_holes": [
+      {
+        "label": null,
+        "primitive_id": "ie1122",
+        "native_component_id": null,
+        "center_mm": [
+          5.00000016,
+          19.0000001
+        ],
+        "diameter_mm": 2.79999948,
+        "plated": false,
+        "representation": "standalone native NPTH PAD",
+        "expected_label": "H1"
+      },
+      {
+        "label": null,
+        "primitive_id": "ie1123",
+        "native_component_id": null,
+        "center_mm": [
+          59.99999937999999,
+          19.0000001
+        ],
+        "diameter_mm": 2.79999948,
+        "plated": false,
+        "representation": "standalone native NPTH PAD",
+        "expected_label": "H2"
+      },
+      {
+        "label": null,
+        "primitive_id": "ie1124",
+        "native_component_id": null,
+        "center_mm": [
+          5.00000016,
+          119.00000075999999
+        ],
+        "diameter_mm": 2.79999948,
+        "plated": false,
+        "representation": "standalone native NPTH PAD",
+        "expected_label": "H3"
+      },
+      {
+        "label": null,
+        "primitive_id": "ie1125",
+        "native_component_id": null,
+        "center_mm": [
+          59.99999937999999,
+          119.00000075999999
+        ],
+        "diameter_mm": 2.79999948,
+        "plated": false,
+        "representation": "standalone native NPTH PAD",
+        "expected_label": "H4"
+      }
+    ],
+    "witness": "Parent reports native Apply/Save accepted and saved project re-exported; native DRC543 connection errors,0clearance,0netlist.",
+    "verification_scope": "Saved geometry, stencil fields and net parity; copper routing and manufacturing release remain incomplete."
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "status": "VERIFIED_APPLIED_SAVED_AND_REEXPORTED",
+  "live_source": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-b\\easyeda\\native\\pcb-editor-before-restore.esource",
+  "live_source_sha256": "8a075c2685b28feaa7fec4f7b82c14284a179bfbe2adb6c8e16bc9e82566d6fe",
+  "original_capture_sha256": "d0f3c6f8e3ad78e1b43bec9af5d24545207d3cd50258a10247110db7608fa49f",
+  "native_template_footprint_uuid": "b83a27709d77ecd1",
+  "output": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-b\\easyeda\\native\\pcb-mounting-holes-fixed.esource",
+  "output_sha256": "21bf35297bc1758e707ff3ed533545d8d7ea009394cd3b0e4ab690aa0c850dce",
+  "existing_records_unchanged": true,
+  "electronic_component_count_preserved": 180,
+  "existing_json_records_unchanged": true,
+  "terminal_separator_added_to_previous_last_record": true,
+  "native_dochead_and_canvas_unchanged": true,
+  "original_records": 1829,
+  "output_records": 1833,
+  "new_standalone_npths": [
+    {
+      "id": "ie1122",
+      "reference_for_documentation": "H1",
+      "center_mm": [
+        5,
+        19
+      ],
+      "diameter_mm": 2.799999988,
+      "plated": false,
+      "net": null,
+      "representation": "standalone native board PAD"
+    },
+    {
+      "id": "ie1123",
+      "reference_for_documentation": "H2",
+      "center_mm": [
+        60,
+        19
+      ],
+      "diameter_mm": 2.799999988,
+      "plated": false,
+      "net": null,
+      "representation": "standalone native board PAD"
+    },
+    {
+      "id": "ie1124",
+      "reference_for_documentation": "H3",
+      "center_mm": [
+        5,
+        119
+      ],
+      "diameter_mm": 2.799999988,
+      "plated": false,
+      "net": null,
+      "representation": "standalone native board PAD"
+    },
+    {
+      "id": "ie1125",
+      "reference_for_documentation": "H4",
+      "center_mm": [
+        60,
+        119
+      ],
+      "diameter_mm": 2.799999988,
+      "plated": false,
+      "net": null,
+      "representation": "standalone native board PAD"
+    }
+  ],
+  "already_restored": false,
+  "no_external_footprint_dependency_added": true,
+  "manufacturing_release": false,
+  "notes": [
+    "Four2.8mm NPTH PADs copy the actual original native hole geometry and use native world-mil coordinates.",
+    "Free NPTH pads are mechanical geometry rather than COMPONENT records; no unsupported exclusion property is added.",
+    "The restored holes have no electrical net and do not change113 canonical nets or180 electronic component references.",
+    "Native Apply/Save, whole-board DRC and a new packed source export are required before marking restoration verified."
+  ],
+  "native_apply_and_save": "VERIFIED_BY_PARENT_NATIVE_UI_WITNESS_AND_INDEPENDENT_FINAL_PROJECT_EXPORT_AUDIT",
+  "final_native_evidence": {
+    "capture": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-b\\easyeda\\native\\pcb-final.esource",
+    "capture_sha256": "299981378ff657e3aebd834a51e26d2fa41804a9d9e8c0c5d34b2b89d3b9411d",
+    "original_pre_fix_capture_sha256": "d0f3c6f8e3ad78e1b43bec9af5d24545207d3cd50258a10247110db7608fa49f",
+    "category_results": {
+      "electrical": "PASS",
+      "metadata": "PASS",
+      "placement": "PASS",
+      "geometry": "PASS",
+      "stencil": "PASS"
+    },
+    "electronic_components": 180,
+    "nets": 113,
+    "physical_pad_instances": 606,
+    "standalone_mounting_holes": [
+      {
+        "label": null,
+        "primitive_id": "ie1122",
+        "native_component_id": null,
+        "center_mm": [
+          5.00000016,
+          19.0000001
+        ],
+        "diameter_mm": 2.79999948,
+        "plated": false,
+        "representation": "standalone native NPTH PAD",
+        "expected_label": "H1"
+      },
+      {
+        "label": null,
+        "primitive_id": "ie1123",
+        "native_component_id": null,
+        "center_mm": [
+          59.99999937999999,
+          19.0000001
+        ],
+        "diameter_mm": 2.79999948,
+        "plated": false,
+        "representation": "standalone native NPTH PAD",
+        "expected_label": "H2"
+      },
+      {
+        "label": null,
+        "primitive_id": "ie1124",
+        "native_component_id": null,
+        "center_mm": [
+          5.00000016,
+          119.00000075999999
+        ],
+        "diameter_mm": 2.79999948,
+        "plated": false,
+        "representation": "standalone native NPTH PAD",
+        "expected_label": "H3"
+      },
+      {
+        "label": null,
+        "primitive_id": "ie1125",
+        "native_component_id": null,
+        "center_mm": [
+          59.99999937999999,
+          119.00000075999999
+        ],
+        "diameter_mm": 2.79999948,
+        "plated": false,
+        "representation": "standalone native NPTH PAD",
+        "expected_label": "H4"
+      }
+    ],
+    "witness": "Parent reports native Apply/Save accepted and saved project re-exported; native DRC543 connection errors,0clearance,0netlist.",
+    "verification_scope": "Saved geometry, stencil fields and net parity; copper routing and manufacturing release remain incomplete."
+  }
+}

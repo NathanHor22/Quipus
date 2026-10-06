@@ -1,0 +1,445 @@
+- link:
+  - /url: "#"
+- generic "File":
+  - generic: File (F)
+- generic "Edit":
+  - generic: Edit (E)
+- generic "View":
+  - generic: View (V)
+- generic "Place":
+  - generic: Place (P)
+- generic "Design":
+  - generic: Design (D)
+- generic "More"
+- generic: V3.2.149
+- generic: Personal
+- generic: EN
+- generic "Notifications"
+- generic "Homepage":
+  - img "Avatar"
+  - generic: nathanhor2001
+- text: "Holiday Notice: EasyEDA team (Sep 25–27 & Oct 1–7) & JLCPCB factories (Sep 25, 27 & Oct 1–4) will be on holiday. Please order 3–5 days early!"
+- link "View Details >":
+  - /url: https://oshwlab.com/forum/post/17ff2809dd9541b7a600b026e47e58de
+- generic: 
+- generic "Board"
+- generic "Open Project(Ctrl+O)"
+- generic "Save(Ctrl+Shift+S)"
+- generic "Save All(Ctrl+S)"
+- generic "Backup"
+- generic "Undo(Ctrl+Z)"
+- generic "Redo(Ctrl+Y)"
+- generic "Common(Default)":
+  - generic: Common(Default)
+- generic "Arrays"
+- generic "Find Similar Objects(Ctrl+Shift+F)"
+- generic "Zoom In"
+- generic "Zoom Out"
+- generic "Fit All in Window(K)"
+- generic "Fit Selection View"
+- generic "Fit Area Selection View"
+- generic "Grid Style"
+- generic "Grid Size":
+  - textbox: "0.05"
+- generic "Unit":
+  - generic: inch
+- generic "Snap(Alt+S)"
+- generic "Component(Shift+F)"
+- generic "Resistor"
+- generic "Wire(Alt+W)"
+- generic "Bus(Alt+B)"
+- generic "Net Label(Alt+N)"
+- generic "More"
+- 'generic "Auto Hide : Close"'
+- generic "All Projects":
+  - generic: A
+  - generic: l
+  - generic: l
+  - generic: P
+  - generic: r
+  - generic: o
+  - generic: j
+  - generic: e
+  - generic: c
+  - generic: t
+  - generic: s
+- generic "Project Design":
+  - generic: P
+  - generic: r
+  - generic: o
+  - generic: j
+  - generic: e
+  - generic: c
+  - generic: t
+  - generic: D
+  - generic: e
+  - generic: s
+  - generic: i
+  - generic: g
+  - generic: "n"
+- generic "Common Library":
+  - generic: C
+  - generic: o
+  - generic: m
+  - generic: m
+  - generic: o
+  - generic: "n"
+  - generic: L
+  - generic: i
+  - generic: b
+  - generic: r
+  - generic: a
+  - generic: r
+  - generic: "y"
+- text: 
+- generic "Page":
+  - generic: Page
+- generic "Net":
+  - generic: Net
+- generic "Component":
+  - generic: Component
+- generic "Object":
+  - generic: Object
+- generic "Search"
+- generic "Filter"
+- textbox
+- list:
+  - generic "Quipus A1 – Hardware Rev A":
+    - generic "main"
+    - generic: Quipus A1 – Hardware Rev A
+  - 'generic "Board: Quipus-A1"':
+    - generic: Quipus-A1
+  - 'generic "Schematic: Quipus-A1"':
+    - generic: Quipus-A1
+  - 'generic "Page: 1. 01 USB-C and charger"':
+    - generic: 1. 01 USB-C and charger
+  - 'generic "Page: 2. 08 Buttons and service"':
+    - generic: 2. 08 Buttons and service
+  - 'generic "Page: 3. 09 Microphones and speaker"':
+    - generic: 3. 09 Microphones and speaker
+  - 'generic "Page: 4. 07 Controller support"':
+    - generic: 4. 07 Controller support
+  - 'generic "Page: 5. 06 Processor display and SD"':
+    - generic: 5. 06 Processor display and SD
+  - 'generic "Page: 6. 05 Battery fuel gauge"':
+    - generic: 6. 05 Battery fuel gauge
+  - 'generic "Page: 7. 04 Main 3V3 regulator"':
+    - generic: 7. 04 Main 3V3 regulator
+  - 'generic "Page: 8. 03 Power switch and always-on"':
+    - generic: 8. 03 Power switch and always-on
+  - 'generic "Page: 9. 02 USB current and suspend"':
+    - generic: 9. 02 USB current and suspend
+  - 'generic "PCB: Quipus-A1"':
+    - generic: Quipus-A1
+- generic "Start Page":
+  - generic: Start Page
+- generic "Quipus-A1":
+  - generic: Quipus-A1
+  - text: 
+- generic "01 USB-C and charger.Quipus-A1":
+  - generic: 01 USB-C and charger.Quipus-A1
+  - text: 
+- generic "08 Buttons and service.Quipus-A1":
+  - generic: 08 Buttons and service.Quipus-A1
+  - text: 
+- generic "09 Microphones and speaker.Quipus-A1":
+  - generic: 09 Microphones and speaker.Quipus-A1
+  - text: 
+- generic "07 Controller support.Quipus-A1":
+  - generic: 07 Controller support.Quipus-A1
+  - text: 
+- generic "06 Processor display and SD.Quipus-A1":
+  - generic: 06 Processor display and SD.Quipus-A1
+  - text: 
+- generic "05 Battery fuel gauge.Quipus-A1":
+  - generic: 05 Battery fuel gauge.Quipus-A1
+  - text: 
+- generic "04 Main 3V3 regulator.Quipus-A1":
+  - generic: 04 Main 3V3 regulator.Quipus-A1
+  - text: 
+- generic "03 Power switch and always-on.Quipus-A1":
+  - generic: 03 Power switch and always-on.Quipus-A1
+  - text: 
+- generic "02 USB current and suspend.Quipus-A1":
+  - generic: 02 USB current and suspend.Quipus-A1
+  - text: 
+- generic "Quipus-A1":
+  - generic: Quipus-A1
+  - text: 
+- generic: "X:"
+- generic: "Y:"
+- generic: "dX:"
+- generic: "dY:"
+- 'generic "Scaling Ratio: 28%"':
+  - textbox: 28%
+- 'generic "Grid Size: 0.05inch"':
+  - textbox: "0.05"
+- 'generic "ALT Snap: 0.01mil"':
+  - textbox: "0.01"
+- generic "inch":
+  - generic: inch
+- generic "Grid Style"
+- generic "Snap"
+- 'generic "Auto Hide : Close"'
+- generic "Property":
+  - generic: P
+  - generic: r
+  - generic: o
+  - generic: p
+  - generic: e
+  - generic: r
+  - generic: t
+  - generic: "y"
+- generic "Filter":
+  - generic: F
+  - generic: i
+  - generic: l
+  - generic: t
+  - generic: e
+  - generic: r
+- generic: Page
+- generic: Selected Objects0
+- generic "Basic Properties":
+  - generic: Basic Properties
+- generic "Name"
+- textbox "01 USB-C and charger" [disabled]
+- generic "Drawing"
+- textbox "Drawing-Symbol_A4"
+- generic: ···
+- generic "Edit Drawing"
+- generic "Revert to Template"
+- generic "Drawing Border":
+  - generic: Drawing Border
+- generic "Border"
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: Show
+- generic "Title Block Position"
+- generic "Right Bottom":
+  - generic: Right Bottom
+- generic "Size"
+- generic "Customize":
+  - generic: Customize
+- generic: Drawing Width
+- generic: Drawing Height
+- textbox "16.54inch"
+- textbox "11.7inch"
+- generic "Cancel Equal proportion adjustment"
+- generic "Width and height confrontation"
+- generic "Region Start"
+- generic "Left Top":
+  - generic: Left Top
+- generic "X Region Count"
+- textbox "6"
+- generic "Y Region Count"
+- textbox "4"
+- generic "Blade Width"
+- textbox "0.1inch"
+- generic "Color"
+- textbox
+- textbox "#A00000(Default)"
+- generic "Restore Default"
+- generic "Title Block":
+  - generic: Title Block
+- generic "Title Block"
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: Show
+- checkbox
+- generic "@Create Date"
+- checkbox
+- textbox "2026-10-01" [disabled]
+- checkbox
+- generic "@Create Time"
+- checkbox
+- textbox "14:44:51" [disabled]
+- checkbox
+- generic "@Page Count"
+- checkbox
+- textbox "9" [disabled]
+- checkbox
+- generic "@Page Name"
+- checkbox
+- textbox "01 USB-C and charger" [disabled]
+- checkbox
+- generic "@Page No"
+- checkbox
+- textbox "1" [disabled]
+- checkbox
+- generic "@Project Name"
+- checkbox
+- textbox "Quipus A1 – Hardware Rev A" [disabled]
+- checkbox
+- generic "@Board Name"
+- checkbox
+- textbox "Quipus-A1" [disabled]
+- checkbox
+- generic "@Schematic Name"
+- checkbox
+- textbox "Quipus-A1" [disabled]
+- checkbox
+- generic "@Update Date"
+- checkbox
+- textbox "2026-10-01" [disabled]
+- checkbox
+- generic "@Update Time"
+- checkbox
+- textbox "15:49:41" [disabled]
+- checkbox
+- generic "Company"
+- checkbox
+- textbox "EasyEDA.com"
+- checkbox
+- generic "Page Size"
+- checkbox
+- textbox "A3"
+- checkbox
+- generic "Reviewed"
+- checkbox
+- textbox
+- checkbox
+- generic "Version"
+- checkbox
+- textbox "V1.0"
+- checkbox
+- generic "Drawn"
+- checkbox
+- textbox
+- checkbox
+- generic "Description"
+- checkbox
+- textbox
+- generic: Add Property
+- text: ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔
+- text: ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔
+- 'generic "Auto Hide : Close"'
+- generic "Library":
+  - generic: Library
+- generic "Log":
+  - generic: Log
+- generic "Device Standardization":
+  - generic: Device Standardization
+- generic "DRC":
+  - generic: DRC
+- generic "Find Result":
+  - generic: Find Result
+- text:  
+- generic "Property List":
+  - generic: Property List
+- text: ✔ ✔ ✔ ✔ ✔
+- button "Check DRC" [active]
+- button "Export"
+- button "Clear"
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: All
+- generic: (9)
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: Fatal Error
+- generic: (0)
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: Error
+- generic: (0)
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: Warn
+- generic: (0)
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: Info
+- generic: (9)
+- paragraph:
+  - generic: 2026-10-01 15:50:11
+  - generic: "[Info] :"
+  - text: "The pin of the component Quipus_J1 does not correspond to the pad (Pad has no corresponding pin: ):"
+  - generic: $2I2
+- paragraph:
+  - generic: 2026-10-01 15:50:11
+  - generic: "[Info] :"
+  - text: "The pin of the component Quipus_J2 does not correspond to the pad (Pad has no corresponding pin: MP):"
+  - generic: $2I13
+- paragraph:
+  - generic: 2026-10-01 15:50:11
+  - generic: "[Info] :"
+  - text: "The pin of the component Quipus_J3 does not correspond to the pad (Pad has no corresponding pin: MP):"
+  - generic: $2I14
+- paragraph:
+  - generic: 2026-10-01 15:50:11
+  - generic: "[Info] :"
+  - text: "The pin of the component Quipus_U20 does not correspond to the pad (Pad has no corresponding pin: ):"
+  - generic: $4I2
+- paragraph:
+  - generic: 2026-10-01 15:50:11
+  - generic: "[Info] :"
+  - text: "The pin of the component Quipus_U21 does not correspond to the pad (Pad has no corresponding pin: ):"
+  - generic: $4I3
+- text: ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔
+- text: 
+- generic: Floating Tool
+- generic "Collapse"
+- generic "close"
+- generic "VCC"
+- generic "+5V"
+- generic "GND"
+- generic "PGND"
+- generic "AGND"
+- generic "IN"
+- generic "OUT"
+- generic "BI"
+- generic "IN"
+- generic "OUT"
+- generic "BI"
+- generic "Net Label"
+- generic "Short Flag"
+- generic "No Connect Flag"
+- generic "Differential Pairs Flag"
+- generic "Test Point"
+- generic: Floating Tool
+- generic "Collapse"
+- generic "close"
+- generic "Normal View"
+- generic "Outline View"
+- generic "Gerber View"
+- generic "Top Side"
+- generic "Bottom Side"
+- generic "Left Side"
+- generic "Right Side"
+- generic "Front Side"
+- generic "Back Side"
+- generic "Explode"
+- generic "Fit All in Window"
+- generic "Import Changes"
+- generic "Refresh"
+- generic: Table Setting
+- generic "close"
+- generic "Add Row Above"
+- generic "Add Row Below"
+- generic "Add Column Left"
+- generic "Add Column Right"
+- generic "Delete Row"
+- generic "Delete Column"
+- generic "Merge Cell"
+- generic "Split Cell"
+- generic "Border"
+- generic "Full Border"
+- generic "Outer Border"
+- generic "Inner Border"
+- generic "No Border"
+- generic "Left Border"
+- generic "Right Border"
+- generic "Top Border"
+- generic "Bottom Border"
+- generic "Border Color"
+- textbox
+- generic: "#A00000"
+- generic "Restore Default"
+- generic "Align Top"
+- generic "Align Top"
+- generic "Align Vertical Centers"
+- generic "Align Bottom"
+- generic "Align Left"
+- generic "Align Left"
+- generic "Align Horizontal Centers"
+- generic "Align Right"

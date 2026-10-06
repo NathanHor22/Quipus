@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-01",
+  "method": "Individual native PAD Properties Net assignment; geometry unmodified",
+  "new_ground_quarters": [
+    {
+      "id": "e6",
+      "net": "",
+      "cx": "226.4mil",
+      "cy": "-400.3mil",
+      "finalNet": "GND"
+    },
+    {
+      "cx": "226.4mil",
+      "cy": "-346.9mil",
+      "id": "e8",
+      "net": "",
+      "x": 910.3000259399414,
+      "y": 77,
+      "finalNet": "GND"
+    },
+    {
+      "cx": "2332.7mil",
+      "cy": "-3606.8mil",
+      "id": "e8",
+      "net": "",
+      "x": 910.3000259399414,
+      "y": 77,
+      "finalNet": "GND"
+    },
+    {
+      "cx": "2332.7mil",
+      "cy": "-3660.1mil",
+      "id": "e6",
+      "net": "",
+      "x": 910.3000259399414,
+      "y": 77,
+      "finalNet": "GND"
+    },
+    {
+      "cx": "199.7mil",
+      "cy": "-373.6mil",
+      "id": "e7",
+      "net": "",
+      "x": 910.3000259399414,
+      "y": 77,
+      "finalNet": "GND"
+    },
+    {
+      "cx": "2306mil",
+      "cy": "-3633.4mil",
+      "id": "e7",
+      "net": "",
+      "x": 910.3000259399414,
+      "y": 77,
+      "finalNet": "GND"
+    }
+  ],
+  "new_ground_quarter_count": 6,
+  "native_net_count_including_empty": 93,
+  "canonical_net_count": 92
+}

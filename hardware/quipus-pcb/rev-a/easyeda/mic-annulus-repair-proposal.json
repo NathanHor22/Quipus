@@ -1,0 +1,77 @@
+{
+  "status": "Unassigned proposal; native geometry and DRC must be tested before adoption",
+  "base_footprint": ".tools/quipus-footprints/audio/Infineon_IM69D128SV01_PG-TLGA-5-2_2.65x3.50mm_NPTH0.60.kicad_mod",
+  "base_sha256": "18289563cd29d2f77e11121af724e66f2e6c68e8e6bca0b31e12a27b63e864fc",
+  "candidate_footprint": ".tools/quipus-footprints/audio/candidates/Infineon_IM69D128SV01_PG-TLGA-5-2_2.65x3.50mm_NPTH0.60_PolygonAnnulusCandidate.kicad_mod",
+  "candidate_sha256": "98f27090b8c4786beea8b3983216f51ec8b2cb5ba00c0a2cda4797e9092c444f",
+  "preserved": {
+    "pad_number": "5",
+    "anchor_mm": [
+      0.6775,
+      -0.71
+    ],
+    "anchor_diameter_mm": 0.1,
+    "copper_outer_mm": 1.725,
+    "copper_inner_mm": 0.985,
+    "npth_mm": 0.6,
+    "mask_outer_mm": 1.825,
+    "mask_inner_mm": 0.885,
+    "paste_sectors": 3
+  },
+  "candidate_copper_quarters": 4,
+  "candidate_mask_quarters": 4,
+  "tessellation": {
+    "segments_per_quarter": 90,
+    "angle_step_degrees": 1,
+    "maximum_inner_chord_radial_error_mm": 1.875289089562998e-05,
+    "minimum_copper_to_npth_mm": 0.19248124710910436
+  },
+  "preferred_native_file_default_pad_shape_mm": [
+    "POLY",
+    [
+      [
+        "CIRCLE",
+        -0.6775,
+        0,
+        0.8625,
+        0
+      ],
+      [
+        "CIRCLE",
+        -0.6775,
+        0,
+        0.4925,
+        1
+      ]
+    ]
+  ],
+  "preferred_native_file_default_pad_shape_mil": [
+    "POLY",
+    [
+      [
+        "CIRCLE",
+        -26.673228346456693,
+        0,
+        33.95669291338583,
+        0
+      ],
+      [
+        "CIRCLE",
+        -26.673228346456693,
+        0,
+        19.38976377952756,
+        1
+      ]
+    ]
+  ],
+  "native_shape_coordinate_note": "Shapes are relative to the unchanged current pad anchor (+0.6775,-0.710) in source footprint coordinates. Confirm imported anchor/rotation/mirror and actual File Source units before replacing its default shape; use that sample to adapt signs. Keep all other pad fields and net/pin number intact.",
+  "native_verification": "Native complex polygons have nonzero fill; use opposite contour winding for an inner hole. The supplied file shape is the official legacy-v2 POLY array form. Current 3.x File Source can use an object defaultPad with padType POLYGON; do not substitute the legacy payload before checking a real native sample. The API enum is POLYGON and is also distinct from the legacy file token.",
+  "sources": [
+    "https://raw.githubusercontent.com/easyeda/easyeda-pro-file-format-v2/main/docs/en/pcb/primitives/pad.md",
+    "https://raw.githubusercontent.com/easyeda/easyeda-pro-file-format-v2/main/docs/en/pcb/polygon-system/complex-polygon.md",
+    "https://raw.githubusercontent.com/easyeda/easyeda-pro-file-format-v2/main/docs/en/pcb/polygon-system/single-polygon.md",
+    "https://prodocs.easyeda.com/en/api/reference/pro-api.tpcb_primitivepadshape.html",
+    "https://raw.githubusercontent.com/easyeda/easyeda-pro-format-skill/main/primitives/PCB/pad.md",
+    "https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d128s-datasheet-en.pdf"
+  ]
+}

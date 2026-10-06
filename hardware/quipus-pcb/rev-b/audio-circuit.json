@@ -1,0 +1,1795 @@
+{
+  "title": "Quipus Rev B four-channel audio review draft",
+  "revision": "B1 review draft",
+  "status": "engineering-review;not-fabrication-release",
+  "date": "2026-10-02",
+  "sources": {
+    "microphone": "https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d128s-datasheet-en.pdf",
+    "microphone_product": "https://www.infineon.com/part/IM69D128S",
+    "amplifier": "https://www.analog.com/media/en/technical-documentation/data-sheets/max98357a-max98357b.pdf",
+    "connectors": "https://www.jst.com/products/crimp-style-connectors-wire-to-board-type/sh-connector",
+    "i2s": "https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/api-reference/peripherals/i2s.html",
+    "adc": "https://www.ti.com/lit/ds/symlink/tlv320adc5140.pdf",
+    "adc_application": "https://www.ti.com/lit/pdf/sbaa395",
+    "buffer": "https://www.ti.com/lit/gpn/sn74lvc1g17",
+    "jack": "https://www.sameskydevices.com/product/resource/sj1-353xng.pdf",
+    "external_microphone": "https://puiaudio.com/file/specs-AOM-5024L-HD-R.pdf",
+    "esd": "https://www.ti.com/lit/ds/symlink/tpd1e10b06.pdf",
+    "ferrite": "https://www.murata.com/en-eu/api/pdfdownloadapi?cate=cgsubChipFerriBead&partno=BLM21PG221SN1D"
+  },
+  "rail_contract": {
+    "MIC_3V3": {
+      "nominal_v": 3.3,
+      "allowed_min_v": 1.62,
+      "allowed_max_v": 3.6,
+      "planning_mA_per_microphone": 1
+    },
+    "ADC_AVDD": {
+      "nominal_v": 3.3,
+      "allowed_min_v": 3,
+      "allowed_max_v": 3.6
+    },
+    "ADC_IOVDD": {
+      "nominal_v": 3.3,
+      "allowed_min_v": 3,
+      "allowed_max_v": 3.6
+    },
+    "MICBIAS_3V014": {
+      "nominal_v": 3.014,
+      "load_limit_mA": 20,
+      "bias_resistor_ohm": 2200
+    },
+    "SYS_SW": {
+      "assumed_min_v": 3,
+      "assumed_max_v": 4.5,
+      "amplifier_allowed_min_v": 2.5,
+      "amplifier_allowed_max_v": 5.5
+    }
+  },
+  "interfaces": {
+    "capture": {
+      "peripheral": "ESP32-S3 I2S0 standard TDM master RX; ADC slave TX",
+      "pcm_hz": 16000,
+      "slots": 4,
+      "slot_bits": 32,
+      "bclk_hz": 2048000,
+      "fsync_hz": 16000,
+      "clock_nets": [
+        "AUD_BCLK",
+        "AUD_FSYNC"
+      ],
+      "data_net": "AUD_SDOUT",
+      "shutdown_net": "ADC_SHDN_N",
+      "i2c_address_7bit": "0x4C",
+      "pdm_hz": 3072000,
+      "pdm_data": "PDM_DIN_PAIR",
+      "channels": [
+        {
+          "channel": 1,
+          "source": "J8 analog left extension",
+          "slot": 0
+        },
+        {
+          "channel": 2,
+          "source": "J9 analog right extension",
+          "slot": 1
+        },
+        {
+          "channel": 3,
+          "source": "U20 top PDM LR=GND",
+          "slot": 2
+        },
+        {
+          "channel": 4,
+          "source": "U21 bottom PDM LR=VDD",
+          "slot": 3
+        }
+      ]
+    },
+    "playback": {
+      "peripheral": "I2S1 standard I2S TX",
+      "nets": [
+        "I2S1_BCLK",
+        "I2S1_WS",
+        "I2S1_DOUT"
+      ],
+      "enable": "AMP_ENABLE",
+      "output_channel": "left"
+    }
+  },
+  "firmware_contract": {
+    "implemented": false,
+    "note": "This electrical draft does not change existing firmware; four-channel driver and platform profile remain work to implement.",
+    "required": [
+      "Configure ADC AREG internal mode before leaving sleep (P0R2 bit7=1) with 3.3V AVDD.",
+      "Enable PLL slave auto-clock operation using ESP BCLK/FSYNC; no independent MCLK needed.",
+      "Configure GPI3=PDMDIN2 (P0R44=0x50), GPO3=PDMCLK push-pull (P0R36=0x41). Disable GPIO1 and other unused pin functions.",
+      "CH1/2 single-ended AC coupled20kohm input, CH3/4 digitalPDM. P0R60/P0R65=0x28 starting value; P0R70/P0R75=0x40.",
+      "PDMDIN2_EDGE=1 (P0R32 bit6) puts U20 LR=GND onCH3 rising-sample and U21 LR=VDD onCH4 falling-sample. Verify by touching/talking to one mic at a time.",
+      "Set BIAS_CFG(P0R59)=0x10 for VREF2.75V/MICBIAS3.014V; enable MICBIAS only when capture needed.",
+      "Set audio slots0/1/2/3 with32bitwordTDM128BCLKframe and confirm FSYNC/polarity/dataoffset with logic analyser.",
+      "Start analog gain0dB and fixed digital gain; raise only after clipping/noise tests. Keep channels separate onSD.",
+      "Wait ADC regulator/reference/input settle and Infineon microphone startup>=50ms before retaining samples.",
+      "Disable MICBIAS/ADC clock during sleep; mute/ramp amplifier when microphone prompts complete; never play shutdown transient into recording."
+    ]
+  },
+  "components": [
+    {
+      "ref": "U20",
+      "value": "IM69D128SV01XTMA1",
+      "package": "Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port",
+      "pins": [
+        {
+          "number": "1",
+          "name": "VDD",
+          "net": "MIC_3V3",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "2",
+          "name": "CLOCK",
+          "net": "PDM_CLK_LOCAL",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "DATA",
+          "net": "U20_D",
+          "electrical_type": "tri_state"
+        },
+        {
+          "number": "4",
+          "name": "LR",
+          "net": "GND",
+          "electrical_type": "input"
+        },
+        {
+          "number": "5",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        }
+      ],
+      "notes": "Exact IM69D128SV01 manufacturer land pattern; 0.6 mm nonplated PCB acoustic hole. Two opposite-edge outputs share PDM_DIN_PAIR to U23 pin 10. Raised case cap is a protected acoustic opening, not an exposed sensor.",
+      "source": "https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d128s-datasheet-en.pdf",
+      "acoustic_hole_mm": 0.6,
+      "group": "Internal microphones",
+      "assembly": "factory reflow; not a first-time hand-soldering task"
+    },
+    {
+      "ref": "U21",
+      "value": "IM69D128SV01XTMA1",
+      "package": "Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port",
+      "pins": [
+        {
+          "number": "1",
+          "name": "VDD",
+          "net": "MIC_3V3",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "2",
+          "name": "CLOCK",
+          "net": "PDM_CLK_LOCAL",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "DATA",
+          "net": "U21_D",
+          "electrical_type": "tri_state"
+        },
+        {
+          "number": "4",
+          "name": "LR",
+          "net": "MIC_3V3",
+          "electrical_type": "input"
+        },
+        {
+          "number": "5",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        }
+      ],
+      "notes": "Exact IM69D128SV01 manufacturer land pattern; 0.6 mm nonplated PCB acoustic hole. Two opposite-edge outputs share PDM_DIN_PAIR to U23 pin 10. Raised case cap is a protected acoustic opening, not an exposed sensor.",
+      "source": "https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d128s-datasheet-en.pdf",
+      "acoustic_hole_mm": 0.6,
+      "group": "Internal microphones",
+      "assembly": "factory reflow; not a first-time hand-soldering task"
+    },
+    {
+      "ref": "R201",
+      "value": "100 ohm 1%",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "U20_D",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "PDM_DIN_PAIR",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "100 ohm at microphone DATA pin; the two LR-selected tri-state microphone outputs share one PDM data net.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Internal microphones"
+    },
+    {
+      "ref": "R202",
+      "value": "100 ohm 1%",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "U21_D",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "PDM_DIN_PAIR",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "100 ohm at microphone DATA pin; the two LR-selected tri-state microphone outputs share one PDM data net.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Internal microphones"
+    },
+    {
+      "ref": "R203",
+      "value": "33 ohm 1%",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "PDM_CLK_BUFFER_OUT",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "PDM_CLK_LOCAL",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "33 ohm source termination immediately at U24 output; tune only following oscilloscope measurements.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Internal microphones"
+    },
+    {
+      "ref": "R204",
+      "value": "0 ohm",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Microphone-rail measurement link. Not a load switch.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Internal microphones"
+    },
+    {
+      "ref": "C200",
+      "value": "1uF X7R 10V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Place at U20 VDD.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Internal microphones"
+    },
+    {
+      "ref": "C201",
+      "value": "100nF X7R 10V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Place at U20 VDD.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Internal microphones"
+    },
+    {
+      "ref": "C202",
+      "value": "1uF X7R 10V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Place at U21 VDD.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Internal microphones"
+    },
+    {
+      "ref": "C203",
+      "value": "100nF X7R 10V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Place at U21 VDD.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Internal microphones"
+    },
+    {
+      "ref": "C204",
+      "value": "4.7uF X7R 10V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Local mic-rail reservoir.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Internal microphones"
+    },
+    {
+      "ref": "U22",
+      "value": "MAX98357AETE+",
+      "package": "TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031",
+      "pins": [
+        {
+          "number": "1",
+          "name": "DIN",
+          "net": "I2S1_DOUT_IC",
+          "electrical_type": "input"
+        },
+        {
+          "number": "2",
+          "name": "GAIN_SLOT",
+          "net": "AMP_GAIN",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "4",
+          "name": "SD_MODE",
+          "net": "AMP_ENABLE",
+          "electrical_type": "input"
+        },
+        {
+          "number": "5",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "6",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "7",
+          "name": "VDD",
+          "net": "SYS_SW",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "8",
+          "name": "VDD",
+          "net": "SYS_SW",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "9",
+          "name": "OUTP",
+          "net": "SPK_P",
+          "electrical_type": "output"
+        },
+        {
+          "number": "10",
+          "name": "OUTN",
+          "net": "SPK_N",
+          "electrical_type": "output"
+        },
+        {
+          "number": "11",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "12",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "13",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "14",
+          "name": "LRCLK",
+          "net": "I2S1_WS_IC",
+          "electrical_type": "input"
+        },
+        {
+          "number": "15",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "16",
+          "name": "BCLK",
+          "net": "I2S1_BCLK_IC",
+          "electrical_type": "input"
+        },
+        {
+          "number": "17",
+          "name": "EP",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Exposed pad is modelled as 17: cross-check CAD package convention. A version uses I2S; B version is not a substitute. SD_MODE high selects left channel; low shuts down. Supply 2.5â€“5.5 V; 3.3 V GPIO compatible. Speaker outputs are differential; neither is GND.",
+      "source": "https://www.analog.com/media/en/technical-documentation/data-sheets/max98357a-max98357b.pdf",
+      "group": "Speaker amplifier",
+      "assembly": "factory reflow; not a first-time hand-soldering task"
+    },
+    {
+      "ref": "R207",
+      "value": "33 ohm 1%",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2S1_DOUT",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "I2S1_DOUT_IC",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At ESP32 I2S1 DATA source.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Speaker amplifier"
+    },
+    {
+      "ref": "R208",
+      "value": "100k 1%",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_SW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "AMP_GAIN",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Selects 3 dB gain. Connect to SYS_SW, the amplifier supply, rather than 3V3.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Speaker amplifier"
+    },
+    {
+      "ref": "R209",
+      "value": "100k 1%",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "AMP_ENABLE",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Keep amplifier shut down during reset.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Speaker amplifier"
+    },
+    {
+      "ref": "R210",
+      "value": "33 ohm 1%",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2S1_WS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "I2S1_WS_IC",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At ESP32 I2S1 WS source.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Speaker amplifier"
+    },
+    {
+      "ref": "R211",
+      "value": "33 ohm 1%",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2S1_BCLK",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "I2S1_BCLK_IC",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At ESP32 I2S1 BCLK source.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Speaker amplifier"
+    },
+    {
+      "ref": "C205",
+      "value": "100nF X7R 10V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_SW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At U22 pins 7 and 8, with short ground return.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Speaker amplifier"
+    },
+    {
+      "ref": "C206",
+      "value": "10uF X7R 10V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_SW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At U22 pins 7 and 8; verify effective capacitance at 4.4 V.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Speaker amplifier"
+    },
+    {
+      "ref": "C207",
+      "value": "47uF X7R 10V DNP",
+      "package": "1210",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_SW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Optional reservoir. Initially not populated; populate following supply transient test.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "populate": false,
+      "group": "Speaker amplifier"
+    },
+    {
+      "ref": "J5",
+      "value": "SM02B-SRSS-TB",
+      "package": "JST SH 1.0mm 1x2 right-angle SMD",
+      "pins": [
+        {
+          "number": "1",
+          "name": "SPK+",
+          "net": "SPK_P",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "SPK-",
+          "net": "SPK_N",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Mates SHR-02V-S. Neither pin is ground. Short twisted pair to 8 ohm, 2 W nominal dynamic speaker; exact speaker part pending. Speaker connector intentionally differs from battery series.",
+      "source": "https://www.jst.com/products/crimp-style-connectors-wire-to-board-type/sh-connector",
+      "group": "Speaker amplifier",
+      "assembly": "factory SMD connector; user fits precrimped speaker harness after power tests"
+    },
+    {
+      "ref": "U23",
+      "value": "TLV320ADC5140IRTWR",
+      "package": "TI RTW0024A WQFN24 4x4mm 0.5mm pitch, exposed ground pad 25",
+      "pins": [
+        {
+          "number": "1",
+          "name": "AVDD",
+          "net": "ADC_AVDD",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "2",
+          "name": "AREG",
+          "net": "ADC_AREG",
+          "electrical_type": "power_out"
+        },
+        {
+          "number": "3",
+          "name": "VREF",
+          "net": "ADC_VREF",
+          "electrical_type": "power_out"
+        },
+        {
+          "number": "4",
+          "name": "AVSS",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "5",
+          "name": "MICBIAS",
+          "net": "MICBIAS_3V014",
+          "electrical_type": "power_out"
+        },
+        {
+          "number": "6",
+          "name": "IN1P_GPI1",
+          "net": "ADC_IN1P",
+          "electrical_type": "input"
+        },
+        {
+          "number": "7",
+          "name": "IN1M_GPO1",
+          "net": "ADC_IN1M",
+          "electrical_type": "input"
+        },
+        {
+          "number": "8",
+          "name": "IN2P_GPI2",
+          "net": "ADC_IN2P",
+          "electrical_type": "input"
+        },
+        {
+          "number": "9",
+          "name": "IN2M_GPO2",
+          "net": "ADC_IN2M",
+          "electrical_type": "input"
+        },
+        {
+          "number": "10",
+          "name": "IN3P_GPI3",
+          "net": "PDM_DIN_PAIR",
+          "electrical_type": "input"
+        },
+        {
+          "number": "11",
+          "name": "IN3M_GPO3",
+          "net": "PDM_CLK_ADC_OUT",
+          "electrical_type": "output"
+        },
+        {
+          "number": "12",
+          "name": "IN4P_GPI4",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "13",
+          "name": "IN4M_GPO4",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "14",
+          "name": "SHDNZ",
+          "net": "ADC_SHDN_N",
+          "electrical_type": "input"
+        },
+        {
+          "number": "15",
+          "name": "ADDR1_MISO",
+          "net": "GND",
+          "electrical_type": "input"
+        },
+        {
+          "number": "16",
+          "name": "ADDR0_SCLK",
+          "net": "GND",
+          "electrical_type": "input"
+        },
+        {
+          "number": "17",
+          "name": "SCL_MOSI",
+          "net": "I2C_SCL",
+          "electrical_type": "input"
+        },
+        {
+          "number": "18",
+          "name": "SDA_SSZ",
+          "net": "I2C_SDA",
+          "electrical_type": "open_collector"
+        },
+        {
+          "number": "19",
+          "name": "IOVDD",
+          "net": "3V3",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "20",
+          "name": "GPIO1",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "21",
+          "name": "SDOUT",
+          "net": "ADC_SDOUT_DRIVER",
+          "electrical_type": "output"
+        },
+        {
+          "number": "22",
+          "name": "BCLK",
+          "net": "ADC_BCLK_IN",
+          "electrical_type": "input"
+        },
+        {
+          "number": "23",
+          "name": "FSYNC",
+          "net": "ADC_FSYNC_IN",
+          "electrical_type": "input"
+        },
+        {
+          "number": "24",
+          "name": "DREG",
+          "net": "ADC_DREG",
+          "electrical_type": "power_out"
+        },
+        {
+          "number": "25",
+          "name": "VSS_EP",
+          "net": "GND",
+          "electrical_type": "power_in"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "ADC slave; ESP32 generates BCLK/FSYNC. Internal PLL derives clocks from BCLK. CH1/2 analog; CH3/4 digital PDMDIN2 on GPI3. Disable unused GPIO1/GPI4/GPO4 in firmware. Use I2C address 0x4C. EP25 is CAD convention requiring footprint verification. AREG/DREG are regulator outputs and must never be wired to 3.3 V. SHDNZ remains low until supplies settle.",
+      "source": "https://www.ti.com/lit/ds/symlink/tlv320adc5140.pdf",
+      "assembly": "factory reflow"
+    },
+    {
+      "ref": "U24",
+      "value": "SN74LVC1G17DBVR",
+      "package": "TI DBV0005A SOT-23-5",
+      "pins": [
+        {
+          "number": "1",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "2",
+          "name": "A",
+          "net": "PDM_CLK_ADC_OUT",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "4",
+          "name": "Y",
+          "net": "PDM_CLK_BUFFER_OUT",
+          "electrical_type": "output"
+        },
+        {
+          "number": "5",
+          "name": "VCC",
+          "net": "MIC_3V3",
+          "electrical_type": "power_in"
+        }
+      ],
+      "group": "Internal microphones",
+      "notes": "Noninverting Schmitt clock buffer. Datasheet pin numbers verified for DBV. Candidate restores clock edge to meet microphone 13 ns maximum; loaded edge and overall setup/hold MUST be measured. Does not justify long PDM cables.",
+      "source": "https://www.ti.com/lit/gpn/sn74lvc1g17",
+      "assembly": "factory reflow"
+    },
+    {
+      "ref": "FB220",
+      "value": "BLM21PG221SN1D",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "ADC_AVDD",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "220 ohm at 100 MHz; 2 A rated; 0.045 ohm maximum DCR. AVDD filtering candidate; measure noise and stability with actual regulator/PCB.",
+      "source": "https://www.murata.com/en-eu/api/pdfdownloadapi?cate=cgsubChipFerriBead&partno=BLM21PG221SN1D",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "R220",
+      "value": "100k ohm 1% 0.125W",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ADC_SHDN_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "ADC stays shut down during processor reset.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "R221",
+      "value": "33 ohm 1% 0.125W",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "AUD_BCLK",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "ADC_BCLK_IN",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "Source termination at ESP32 BCLK output.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "R222",
+      "value": "33 ohm 1% 0.125W",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "AUD_FSYNC",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "ADC_FSYNC_IN",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "Source termination at ESP32 FSYNC output.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "R223",
+      "value": "33 ohm 1% 0.125W",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ADC_SDOUT_DRIVER",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "AUD_SDOUT",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "Source termination at ADC output.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "R224",
+      "value": "100k ohm 1% 0.125W",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "PDM_CLK_ADC_OUT",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Internal microphones",
+      "notes": "Defines buffer input low when ADC GPO3 is disabled, stopping microphone clock.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C220",
+      "value": "1uF X7R 25V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ADC_AVDD",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "AVDD bulk bypass at pin1",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C221",
+      "value": "100nF X7R 25V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ADC_AVDD",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "AVDD high-frequency bypass at pin1",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C222",
+      "value": "10uF X7R 16V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ADC_AREG",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "Internal 1.8 V analog regulator bypass; at pin2; no external load",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C223",
+      "value": "100nF X7R 25V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ADC_AREG",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "Internal regulator high-frequency bypass at pin2",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C224",
+      "value": "10uF X7R 16V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ADC_DREG",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "Internal 1.5 V digital regulator bypass at pin24; no external load",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C225",
+      "value": "100nF X7R 25V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ADC_DREG",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "Internal regulator high-frequency bypass at pin24",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C226",
+      "value": "2.2uF X7R 16V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ADC_VREF",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "Must retain >=1uF effective at2.75V. Set VREF quick charge to10ms, measure settling.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C227",
+      "value": "100nF X7R 25V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ADC_VREF",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "Reference bypass at pin3; direct short return to AVSS",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C228",
+      "value": "2.2uF X7R 16V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MICBIAS_3V014",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "Quiet microphone bias reservoir at pin5; validate effective capacitance and startup.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C229",
+      "value": "100nF X7R 25V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MICBIAS_3V014",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "Bias high-frequency bypass at pin5; direct return to AVSS",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C230",
+      "value": "100nF X7R 25V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Internal microphones",
+      "notes": "At U24 pin5",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C231",
+      "value": "10uF X7R 16V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "IOVDD bulk bypass at pin19",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C232",
+      "value": "100nF X7R 25V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "Four-channel audio capture",
+      "notes": "IOVDD high-frequency bypass at pin19",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "J8",
+      "value": "SJ1-3533NG",
+      "package": "Same Sky SJ1-3533NG, right-angle 3-pin through-hole TRS",
+      "pins": [
+        {
+          "number": "1",
+          "name": "SLEEVE",
+          "net": "GND",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "TIP",
+          "net": "MIC1_JACK_TIP",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "3",
+          "name": "RING",
+          "net": null,
+          "electrical_type": "no_connect"
+        }
+      ],
+      "group": "External microphone A",
+      "notes": "Manufacturer sheet2 pinmap verified:1 sleeve,2 tip,3 ring. Ring intentionally NC for own mono accessory. No insertion-detect switch. Create/verify exact footprint and1:1 paper fit before fabrication. This is MIC IN, not headphone output.",
+      "source": "https://www.sameskydevices.com/product/resource/sj1-353xng.pdf",
+      "assembly": "user through-hole after board power tests"
+    },
+    {
+      "ref": "R230",
+      "value": "2.2k ohm 1% 0.125W",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MICBIAS_3V014",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "MIC1_JACK_TIP",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "External microphone A",
+      "notes": "Separate bias resistor for this capsule, located on main board. No extra bias resistor in puck.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "R231",
+      "value": "100 ohm 1% 0.125W",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC1_JACK_TIP",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "MIC1_AC_SIGNAL",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "External microphone A",
+      "notes": "Series transient/RF limiting before AC coupling; ESD validation still required.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "R232",
+      "value": "100 ohm 1% 0.125W",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "GND",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "MIC1_AC_RETURN",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "External microphone A",
+      "notes": "Matched resistance for AC-coupled negative input branch.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C233",
+      "value": "1uF X7R 25V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC1_AC_SIGNAL",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "ADC_IN1P",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "External microphone A",
+      "notes": "AC coupling; verify low voltage coefficient at common-mode bias. Film alternative needs new footprint.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C234",
+      "value": "1uF X7R 25V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC1_AC_RETURN",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "ADC_IN1M",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "External microphone A",
+      "notes": "TI single-ended AC topology: INM connects to GND THROUGH coupling capacitor, not directly.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C235",
+      "value": "100pF C0G 50V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ADC_IN1P",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "External microphone A",
+      "notes": "Initial RF bypass; characterize with cable and input source impedance. Does not replace input ESD qualification.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C236",
+      "value": "100pF C0G 50V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ADC_IN1M",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "External microphone A",
+      "notes": "Matched RF bypass for input return branch.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "D220",
+      "value": "TPD1E10B06DYAR",
+      "package": "TI DYA0002A SOD-523",
+      "pins": [
+        {
+          "number": "1",
+          "name": "IO",
+          "net": "MIC1_JACK_TIP",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "External microphone A",
+      "notes": "Bidirectional5.5V standoff12pF TVS at socket. Physical pin1/2 interchangeable electrically. Does not hold ADC voltage under absolute max on its own: series resistance, board current path and pulse tests required.",
+      "source": "https://www.ti.com/lit/ds/symlink/tpd1e10b06.pdf",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "J9",
+      "value": "SJ1-3533NG",
+      "package": "Same Sky SJ1-3533NG, right-angle 3-pin through-hole TRS",
+      "pins": [
+        {
+          "number": "1",
+          "name": "SLEEVE",
+          "net": "GND",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "TIP",
+          "net": "MIC2_JACK_TIP",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "3",
+          "name": "RING",
+          "net": null,
+          "electrical_type": "no_connect"
+        }
+      ],
+      "group": "External microphone B",
+      "notes": "Manufacturer sheet2 pinmap verified:1 sleeve,2 tip,3 ring. Ring intentionally NC for own mono accessory. No insertion-detect switch. Create/verify exact footprint and1:1 paper fit before fabrication. This is MIC IN, not headphone output.",
+      "source": "https://www.sameskydevices.com/product/resource/sj1-353xng.pdf",
+      "assembly": "user through-hole after board power tests"
+    },
+    {
+      "ref": "R235",
+      "value": "2.2k ohm 1% 0.125W",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MICBIAS_3V014",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "MIC2_JACK_TIP",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "External microphone B",
+      "notes": "Separate bias resistor for this capsule, located on main board. No extra bias resistor in puck.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "R236",
+      "value": "100 ohm 1% 0.125W",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC2_JACK_TIP",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "MIC2_AC_SIGNAL",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "External microphone B",
+      "notes": "Series transient/RF limiting before AC coupling; ESD validation still required.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "R237",
+      "value": "100 ohm 1% 0.125W",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "GND",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "MIC2_AC_RETURN",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "External microphone B",
+      "notes": "Matched resistance for AC-coupled negative input branch.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C238",
+      "value": "1uF X7R 25V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC2_AC_SIGNAL",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "ADC_IN2P",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "External microphone B",
+      "notes": "AC coupling; verify low voltage coefficient at common-mode bias. Film alternative needs new footprint.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C239",
+      "value": "1uF X7R 25V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC2_AC_RETURN",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "ADC_IN2M",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "External microphone B",
+      "notes": "TI single-ended AC topology: INM connects to GND THROUGH coupling capacitor, not directly.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C240",
+      "value": "100pF C0G 50V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ADC_IN2P",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "External microphone B",
+      "notes": "Initial RF bypass; characterize with cable and input source impedance. Does not replace input ESD qualification.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "C241",
+      "value": "100pF C0G 50V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ADC_IN2M",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "External microphone B",
+      "notes": "Matched RF bypass for input return branch.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    },
+    {
+      "ref": "D221",
+      "value": "TPD1E10B06DYAR",
+      "package": "TI DYA0002A SOD-523",
+      "pins": [
+        {
+          "number": "1",
+          "name": "IO",
+          "net": "MIC2_JACK_TIP",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "group": "External microphone B",
+      "notes": "Bidirectional5.5V standoff12pF TVS at socket. Physical pin1/2 interchangeable electrically. Does not hold ADC voltage under absolute max on its own: series resistance, board current path and pulse tests required.",
+      "source": "https://www.ti.com/lit/ds/symlink/tpd1e10b06.pdf",
+      "assembly": "factory default; optional 0805 learning assembly under supervision"
+    }
+  ],
+  "notes": [
+    "Four physical microphones; no guarantee of four speakers or room pickup distance.",
+    "External cables initial1m shielded analog, not PDM/USB; ringNC only for Quipus accessory. Do not assume universal TRS/TRRS compatibility.",
+    "Do not assign obsolete RevA J4 to long cables. Remove J4/R205/R206; new analoginputs require PCB/firmware revision.",
+    "Analog and digital paths have different group delay; preserve separate channels and calibrate before summing/beamforming.",
+    "PCB layout, verified footprints, ERC/DRC, audio streaming firmware and bench validation are not supplied as a manufacturing release."
+  ],
+  "unresolved": [
+    "Confirm exact SJ1-3533NG footprint/drill geometry using manufacturer top-view drawing and physical sample before routing.",
+    "Obtain verified PUI physical +/- pad identity: current published mechanical drawing shows two pads but does not label them. Do not guess pad polarity.",
+    "Measure U24 loaded clock10-90% rise/fall<=13ns, duty45-55%, PDM setup>=30ns and hold>=0ns at ADC.",
+    "Validate mixed analog/PDM TDM configuration, LR channelmapping, PLLlock, sample timestamps and group-delay calibration on evaluation hardware.",
+    "Qualify ESD/pop/plug shorting behaviour at3.5mm input. TVSstandalone clamp voltage is aboveADCabsolute maximum.",
+    "Verify effective capacitor values and startup; ADC regulator outputs must not be shorted to supply orloaded externally.",
+    "Selected 0805passives stillrequire purchasingmanufacturerpartnumbers/DCbias review; no substitute footprints withoutreview.",
+    "8ohm2W speaker exactpart remainsHOLD; amplifieroutputcurrent/mecchanicalfit/thermal tests required."
+  ]
+}

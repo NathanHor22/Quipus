@@ -1,0 +1,163 @@
+(module "Quipus:Quipus_GCT_USB4105_GF_A_SHARED_CONTACTS"
+  (layer F.Cu)
+  (descr "GCT USB4105-GF-A; official KiCad geometry normalized to 12 solder tails; https://gct.co/files/drawings/usb4105.pdf")
+  (attr smd)
+  (fp_text reference "REF**"
+    (at 0 -5.5 0)
+    (layer F.SilkS)
+    (effects
+      (font
+        (size 1 1)
+        (thickness 0.15))))
+  (fp_text value "Quipus_GCT_USB4105_GF_A_SHARED_CONTACTS"
+    (at 0 5 0)
+    (layer F.Fab)
+    (effects
+      (font
+        (size 1 1)
+        (thickness 0.15))))
+  (fp_line
+    (start -4.67 -0.1)
+    (end -4.67 -1.8)
+    (layer F.SilkS)
+    (width 0.12))
+  (fp_line
+    (start 4.67 -0.1)
+    (end 4.67 -1.8)
+    (layer F.SilkS)
+    (width 0.12))
+  (fp_line
+    (start 5 3.675)
+    (end -5 3.675)
+    (layer Dwgs.User)
+    (width 0.1))
+  (fp_line
+    (start -5.32 -4.76)
+    (end 5.32 -4.76)
+    (layer F.CrtYd)
+    (width 0.05))
+  (fp_line
+    (start 5.32 -4.76)
+    (end 5.32 4.18)
+    (layer F.CrtYd)
+    (width 0.05))
+  (fp_line
+    (start 5.32 4.18)
+    (end -5.32 4.18)
+    (layer F.CrtYd)
+    (width 0.05))
+  (fp_line
+    (start -5.32 4.18)
+    (end -5.32 -4.76)
+    (layer F.CrtYd)
+    (width 0.05))
+  (fp_line
+    (start -4.47 -3.675)
+    (end 4.47 -3.675)
+    (layer F.Fab)
+    (width 0.1))
+  (fp_line
+    (start 4.47 -3.675)
+    (end 4.47 3.675)
+    (layer F.Fab)
+    (width 0.1))
+  (fp_line
+    (start 4.47 3.675)
+    (end -4.47 3.675)
+    (layer F.Fab)
+    (width 0.1))
+  (fp_line
+    (start -4.47 3.675)
+    (end -4.47 -3.675)
+    (layer F.Fab)
+    (width 0.1))
+  (pad "" np_thru_hole circle
+    (size 0.65 0.65)
+    (drill 0.65)
+    (layers *.Cu *.Mask)
+    (at -2.89 -2.605 0))
+  (pad "" np_thru_hole circle
+    (size 0.65 0.65)
+    (drill 0.65)
+    (layers *.Cu *.Mask)
+    (at 2.89 -2.605 0))
+  (pad "A1_B12" smd roundrect
+    (size 0.6 1.15)
+    (layers F.Cu F.Mask F.Paste)
+    (roundrect_rratio 0.25)
+    (at -3.2 -3.68 0))
+  (pad "A4_B9" smd roundrect
+    (size 0.6 1.15)
+    (layers F.Cu F.Mask F.Paste)
+    (roundrect_rratio 0.25)
+    (at -2.4 -3.68 0))
+  (pad "A5" smd roundrect
+    (size 0.3 1.15)
+    (layers F.Cu F.Mask F.Paste)
+    (roundrect_rratio 0.25)
+    (at -1.25 -3.68 0))
+  (pad "A6" smd roundrect
+    (size 0.3 1.15)
+    (layers F.Cu F.Mask F.Paste)
+    (roundrect_rratio 0.25)
+    (at -0.25 -3.68 0))
+  (pad "A7" smd roundrect
+    (size 0.3 1.15)
+    (layers F.Cu F.Mask F.Paste)
+    (roundrect_rratio 0.25)
+    (at 0.25 -3.68 0))
+  (pad "A8" smd roundrect
+    (size 0.3 1.15)
+    (layers F.Cu F.Mask F.Paste)
+    (roundrect_rratio 0.25)
+    (at 1.25 -3.68 0))
+  (pad "B4_A9" smd roundrect
+    (size 0.6 1.15)
+    (layers F.Cu F.Mask F.Paste)
+    (roundrect_rratio 0.25)
+    (at 2.4 -3.68 0))
+  (pad "B1_A12" smd roundrect
+    (size 0.6 1.15)
+    (layers F.Cu F.Mask F.Paste)
+    (roundrect_rratio 0.25)
+    (at 3.2 -3.68 0))
+  (pad "B5" smd roundrect
+    (size 0.3 1.15)
+    (layers F.Cu F.Mask F.Paste)
+    (roundrect_rratio 0.25)
+    (at 1.75 -3.68 0))
+  (pad "B6" smd roundrect
+    (size 0.3 1.15)
+    (layers F.Cu F.Mask F.Paste)
+    (roundrect_rratio 0.25)
+    (at 0.75 -3.68 0))
+  (pad "B7" smd roundrect
+    (size 0.3 1.15)
+    (layers F.Cu F.Mask F.Paste)
+    (roundrect_rratio 0.25)
+    (at -0.75 -3.68 0))
+  (pad "B8" smd roundrect
+    (size 0.3 1.15)
+    (layers F.Cu F.Mask F.Paste)
+    (roundrect_rratio 0.25)
+    (at -1.75 -3.68 0))
+  (pad "SH1" thru_hole oval
+    (size 1 2.1)
+    (drill oval 0.6 1.7)
+    (layers *.Cu *.Mask F.Paste)
+    (at -4.32 -3.105 0))
+  (pad "SH2" thru_hole oval
+    (size 1 1.8)
+    (drill oval 0.6 1.4)
+    (layers *.Cu *.Mask F.Paste)
+    (at -4.32 1.075 0))
+  (pad "SH3" thru_hole oval
+    (size 1 2.1)
+    (drill oval 0.6 1.7)
+    (layers *.Cu *.Mask F.Paste)
+    (at 4.32 -3.105 0))
+  (pad "SH4" thru_hole oval
+    (size 1 1.8)
+    (drill oval 0.6 1.4)
+    (layers *.Cu *.Mask F.Paste)
+    (at 4.32 1.075 0)))

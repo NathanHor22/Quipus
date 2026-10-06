@@ -1,0 +1,67 @@
+{
+  "status": "illustrative assumptions, unmeasured",
+  "battery": {
+    "capacity_mah": 2000,
+    "nominal_v": 3.7,
+    "maximum_charge_v": 4.2,
+    "nominal_wh": 7.4,
+    "planning_usable_fraction": 0.8
+  },
+  "runtime_scenarios": [
+    {
+      "battery_ma": 80,
+      "recording_hours": 20.0,
+      "six_hour_days": 3.33
+    },
+    {
+      "battery_ma": 120,
+      "recording_hours": 13.33,
+      "six_hour_days": 2.22
+    },
+    {
+      "battery_ma": 180,
+      "recording_hours": 8.89,
+      "six_hour_days": 1.48
+    },
+    {
+      "battery_ma": 240,
+      "recording_hours": 6.67,
+      "six_hour_days": 1.11
+    }
+  ],
+  "rev_b_audio_capture_planning": {
+    "rail_3v3_ma": 37,
+    "rail_3v3_mw": 122.1,
+    "note": "Audio subsystem allowance including ADC, two built-in mics, clock buffer and two external mic bias branches. Not measured, not worst-case, and not added blindly to the old envelope which already included microphones."
+  },
+  "weekly_recording_hours": [
+    35,
+    42
+  ],
+  "week_recording_only_max_battery_ma": [
+    45.71,
+    38.1
+  ],
+  "nominal_charge_ma": 445,
+  "ideal_capacity_divided_by_charge_hours": 4.49,
+  "charge_note": "Lower-bound capacity/current calculation only. CV tail, active load, source limit and thermal regulation extend charging.",
+  "rail_capacity_check": {
+    "rail_3v3_peak_budget_a": 0.85,
+    "loaded_converter_input_check_v": 3.0,
+    "converter_assumed_efficiency": 0.85,
+    "estimated_converter_input_a": 1.1,
+    "speaker_supply_burst_allowance_a": 0.35,
+    "sum_estimated_main_switch_a": 1.45,
+    "note": "Retained Rev A pre-layout envelope, NOT yet revised or measured for added ADC/buffer/bias loads, targeting <1.5 A through the 2 A load switch. 3.0 V is the loaded converter input, not the battery open-circuit voltage. Include charger FET, switch, shunt and harness drop. Start speaker at -6 dBFS ceiling; validate coincident Wi-Fi/SD/speaker peaks and derate at lower input voltage."
+  },
+  "raw_storage": {
+    "format": "PCM16, 16 kHz, 4 separate channels",
+    "bytes_per_second": 128000,
+    "six_hour_decimal_gb": 2.7648,
+    "mono_six_hour_decimal_gb": 0.6912,
+    "fat32_4gib_four_channel_hours": 9.32,
+    "raw_32_bit_dma_bytes_per_second": 256000,
+    "one_minute_decimal_mb": 7.68,
+    "note": "Keep separate mic channels for development. Segment long recordings and preserve a meeting manifest. Classic RIFF WAV also has a 4 GiB limit; changing SD filesystem alone does not fix it."
+  }
+}

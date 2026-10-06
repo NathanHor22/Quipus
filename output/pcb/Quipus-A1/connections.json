@@ -1,0 +1,7080 @@
+{
+  "revision": "A1-DRAFT",
+  "net_aliases": {
+    "3V3": "3V3_SYS",
+    "3V3_MAIN": "3V3_SYS",
+    "SYS_SW": "MAIN_RAW"
+  },
+  "components": [
+    {
+      "ref": "J1",
+      "value": "GCT USB4105-GF-A",
+      "group": "01_usb_charge",
+      "package": "GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes",
+      "source": "https://gct.co/files/drawings/usb4105.pdf",
+      "notes": "Sixteen mating contacts map to twelve solder tails: A1/B12, A4/B9, B4/A9, B1/A12 share pads. Four shield stakes connect to ground. Pad names below explicitly combine shared contacts; verify the imported CAD footprint uses the same mapping. No external CC Rd resistors.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "A1_B12",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "A4_B9",
+          "name": "VBUS",
+          "net": "VBUS_5V",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "B8",
+          "name": "SBU2",
+          "net": null,
+          "electrical_type": "passive"
+        },
+        {
+          "number": "A5",
+          "name": "CC1",
+          "net": "USB_CC1",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "B7",
+          "name": "D-2",
+          "net": "USB_DM",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "A6",
+          "name": "D+1",
+          "net": "USB_DP",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "A7",
+          "name": "D-1",
+          "net": "USB_DM",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "B6",
+          "name": "D+2",
+          "net": "USB_DP",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "A8",
+          "name": "SBU1",
+          "net": null,
+          "electrical_type": "passive"
+        },
+        {
+          "number": "B5",
+          "name": "CC2",
+          "net": "USB_CC2",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "B4_A9",
+          "name": "VBUS",
+          "net": "VBUS_5V",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "B1_A12",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "SH1",
+          "name": "SHIELD",
+          "net": "GND",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "SH2",
+          "name": "SHIELD",
+          "net": "GND",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "SH3",
+          "name": "SHIELD",
+          "net": "GND",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "SH4",
+          "name": "SHIELD",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": "Sixteen mating contacts map to twelve solder tails: A1/B12, A4/B9, B4/A9, B1/A12 share pads. Four shield stakes connect to ground. Pad names below explicitly combine shared contacts; verify the imported CAD footprint uses the same mapping. No external CC Rd resistors."
+    },
+    {
+      "ref": "F1",
+      "value": "Littelfuse 0467002.NRHF 2 A",
+      "group": "01_usb_charge",
+      "package": "0603 fuse",
+      "source": "https://www.littelfuse.com/assetdocs/fuse-467-datasheet?assetguid=4a59f034-1cca-460e-a5ba-e1e66247c76d",
+      "notes": "Candidate fast-acting input fuse; verify current and temperature derating, inrush, and fault coordination on the PCB. The charger, not this fuse, controls USB current entitlement.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "VBUS_5V",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "USB_PROTECTED",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": "Candidate fast-acting input fuse; verify current and temperature derating, inrush, and fault coordination on the PCB. The charger, not this fuse, controls USB current entitlement."
+    },
+    {
+      "ref": "U2",
+      "value": "BQ24074RGTR",
+      "group": "01_usb_charge",
+      "package": "VQFN16 RGT0016 + exposed pad",
+      "source": "https://www.ti.com/lit/ds/symlink/bq24074.pdf",
+      "notes": "Standard 4.2 V Li-ion chemistry. Temperature sensing must match the actual cell. ITERM intentionally unconnected for default termination.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "TS",
+          "net": "BAT_NTC",
+          "electrical_type": "input"
+        },
+        {
+          "number": "2",
+          "name": "BAT",
+          "net": "BAT_P",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "3",
+          "name": "BAT",
+          "net": "BAT_P",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "4",
+          "name": "CE_N",
+          "net": "GND",
+          "electrical_type": "input"
+        },
+        {
+          "number": "5",
+          "name": "EN2",
+          "net": "CHG_EN2",
+          "electrical_type": "input"
+        },
+        {
+          "number": "6",
+          "name": "EN1",
+          "net": "CHG_EN1",
+          "electrical_type": "input"
+        },
+        {
+          "number": "7",
+          "name": "PGOOD_N",
+          "net": "USB_PGOOD_N",
+          "electrical_type": "open_collector"
+        },
+        {
+          "number": "8",
+          "name": "VSS",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "9",
+          "name": "CHG_N",
+          "net": "CHARGING_N",
+          "electrical_type": "open_collector"
+        },
+        {
+          "number": "10",
+          "name": "OUT",
+          "net": "SYS_RAW",
+          "electrical_type": "power_out"
+        },
+        {
+          "number": "11",
+          "name": "OUT",
+          "net": "SYS_RAW",
+          "electrical_type": "power_out"
+        },
+        {
+          "number": "12",
+          "name": "ILIM",
+          "net": "CHG_ILIM",
+          "electrical_type": "input"
+        },
+        {
+          "number": "13",
+          "name": "IN",
+          "net": "USB_PROTECTED",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "14",
+          "name": "TMR",
+          "net": "CHG_TMR",
+          "electrical_type": "input"
+        },
+        {
+          "number": "15",
+          "name": "ITERM",
+          "net": null,
+          "electrical_type": "input"
+        },
+        {
+          "number": "16",
+          "name": "ISET",
+          "net": "CHG_ISET",
+          "electrical_type": "input"
+        },
+        {
+          "number": "17",
+          "name": "EP",
+          "net": "GND",
+          "electrical_type": "power_in"
+        }
+      ],
+      "origin": "Power",
+      "note": "Standard 4.2 V Li-ion chemistry. Temperature sensing must match the actual cell. ITERM intentionally unconnected for default termination."
+    },
+    {
+      "ref": "R1",
+      "value": "1.24k 1%",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "CHG_ILIM",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R2",
+      "value": "2.00k 1%",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "CHG_ISET",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R3",
+      "value": "68.0k 1%",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "CHG_TMR",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R4",
+      "value": "100k",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "CHARGING_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R5",
+      "value": "100k",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "USB_PGOOD_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "C1",
+      "value": "4.7uF 16V X7R",
+      "group": "01_usb_charge",
+      "package": "0805",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "USB_PROTECTED",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "C2",
+      "value": "10uF 10V X7R",
+      "group": "01_usb_charge",
+      "package": "0805",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BAT_P",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "C3",
+      "value": "22uF 10V X7R",
+      "group": "01_usb_charge",
+      "package": "0805",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_RAW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "J2",
+      "value": "JST S2B-PH-SM4-TB(LF)(SN) battery",
+      "group": "01_usb_charge",
+      "package": "JST PH 2mm 2-position right angle SMT",
+      "source": "https://www.jst-mfg.com/product/pdf/eng/ePH.pdf",
+      "notes": "Board-defined pin 1 is positive. Verify pack polarity physically. Protected 1S 2000 mAh pack, standard 4.2 V charge, at least 2 A discharge capability. Swap with device off and USB unplugged.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "PACK+",
+          "net": "BAT_PACK_P",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "PACK-",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": "Board-defined pin 1 is positive. Verify pack polarity physically. Protected 1S 2000 mAh pack, standard 4.2 V charge, at least 2 A discharge capability. Swap with device off and USB unplugged."
+    },
+    {
+      "ref": "J3",
+      "value": "3-pin keyed NTC connector - JST SH family candidate",
+      "group": "01_usb_charge",
+      "package": "1mm SH 3pin exact drawing pending",
+      "source": "https://www.ti.com/lit/ds/symlink/bq24074.pdf",
+      "notes": "Three positions prevent swapping with the two-position speaker connector. A 10 kOhm 103AT-2 thermistor must be thermally attached to the cell. Do not populate a fixed bypass resistor.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "NTC",
+          "net": "BAT_NTC",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "NTC_RETURN",
+          "net": "GND",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "3",
+          "name": "KEY_NC",
+          "net": null,
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": "Three positions prevent swapping with the two-position speaker connector. A 10 kOhm 103AT-2 thermistor must be thermally attached to the cell. Do not populate a fixed bypass resistor."
+    },
+    {
+      "ref": "U3",
+      "value": "TUSB320LAIRWBR",
+      "group": "01_usb_charge",
+      "package": "X2QFN12 RWB 1.6x1.6mm",
+      "source": "https://www.ti.com/lit/ds/symlink/tusb320lai.pdf",
+      "notes": "Sink only; ADDR floating selects GPIO mode. OUT1 high means default current; low means 1.5 A or 3 A advertised. No external CC pull-down resistors.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "CC1",
+          "net": "USB_CC1",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "2",
+          "name": "CC2",
+          "net": "USB_CC2",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "3",
+          "name": "PORT",
+          "net": "GND",
+          "electrical_type": "input"
+        },
+        {
+          "number": "4",
+          "name": "VBUS_DET",
+          "net": "USB_VBUS_DET",
+          "electrical_type": "input"
+        },
+        {
+          "number": "5",
+          "name": "ADDR",
+          "net": null,
+          "electrical_type": "input"
+        },
+        {
+          "number": "6",
+          "name": "OUT3",
+          "net": null,
+          "electrical_type": "open_collector"
+        },
+        {
+          "number": "7",
+          "name": "OUT1",
+          "net": "CC_DEFAULT_NHIGH",
+          "electrical_type": "open_collector"
+        },
+        {
+          "number": "8",
+          "name": "OUT2",
+          "net": null,
+          "electrical_type": "open_collector"
+        },
+        {
+          "number": "9",
+          "name": "ID",
+          "net": null,
+          "electrical_type": "open_collector"
+        },
+        {
+          "number": "10",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "11",
+          "name": "EN_N",
+          "net": "GND",
+          "electrical_type": "input"
+        },
+        {
+          "number": "12",
+          "name": "VDD",
+          "net": "3V3_AON",
+          "electrical_type": "power_in"
+        }
+      ],
+      "origin": "Power",
+      "note": "Sink only; ADDR floating selects GPIO mode. OUT1 high means default current; low means 1.5 A or 3 A advertised. No external CC pull-down resistors."
+    },
+    {
+      "ref": "R6",
+      "value": "887k 1%",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "VBUS_5V",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "USB_VBUS_DET",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R7",
+      "value": "10k",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "CC_DEFAULT_NHIGH",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3_AON",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "C4",
+      "value": "100nF 10V",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_AON",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "U4",
+      "value": "TLV75533PDBVR",
+      "group": "01_usb_charge",
+      "package": "SOT23-5 DBV",
+      "source": "https://www.ti.com/lit/ds/symlink/tlv755p.pdf",
+      "notes": "Always-on control LDO, nominal 3.3 V on USB. At low battery it follows SYS_RAW minus dropout. Device off does not mean zero battery current.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "IN",
+          "net": "SYS_RAW",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "2",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "3",
+          "name": "EN",
+          "net": "SYS_RAW",
+          "electrical_type": "input"
+        },
+        {
+          "number": "4",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "5",
+          "name": "OUT",
+          "net": "3V3_AON",
+          "electrical_type": "power_out"
+        }
+      ],
+      "origin": "Power",
+      "note": "Always-on control LDO, nominal 3.3 V on USB. At low battery it follows SYS_RAW minus dropout. Device off does not mean zero battery current."
+    },
+    {
+      "ref": "C5",
+      "value": "1uF 10V X7R",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_RAW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "C6",
+      "value": "1uF 10V X7R",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_AON",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "U5",
+      "value": "SN74LVC1G04DBVR",
+      "group": "01_usb_charge",
+      "package": "SOT23-5 DBV",
+      "source": "https://www.ti.com/document-viewer/SN74LVC1G04/datasheet/GUID-047EF317-EC05-483E-B17F-7CDF4F4C03DB",
+      "notes": "Y=!OUT1",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "2",
+          "name": "A",
+          "net": "CC_DEFAULT_NHIGH",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "4",
+          "name": "Y",
+          "net": "USB_HIGH_CURRENT_OK",
+          "electrical_type": "output"
+        },
+        {
+          "number": "5",
+          "name": "VCC",
+          "net": "3V3_AON",
+          "electrical_type": "power_in"
+        }
+      ],
+      "origin": "Power",
+      "note": "Y=!OUT1"
+    },
+    {
+      "ref": "U6",
+      "value": "SN74LVC1G08DBVR",
+      "group": "01_usb_charge",
+      "package": "SOT23-5 DBV",
+      "source": "https://www.ti.com/lit/ds/symlink/sn74lvc1g08.pdf",
+      "notes": "Y=USB_ENUM_500 AND OUT1",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "USB_ENUM_500",
+          "electrical_type": "input"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "CC_DEFAULT_NHIGH",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "4",
+          "name": "Y",
+          "net": "USB_DEFAULT_500",
+          "electrical_type": "output"
+        },
+        {
+          "number": "5",
+          "name": "VCC",
+          "net": "3V3_AON",
+          "electrical_type": "power_in"
+        }
+      ],
+      "origin": "Power",
+      "note": "Y=USB_ENUM_500 AND OUT1"
+    },
+    {
+      "ref": "U7",
+      "value": "SN74LVC1G32DBVR",
+      "group": "01_usb_charge",
+      "package": "SOT23-5 DBV",
+      "source": "https://www.ti.com/lit/ds/symlink/sn74lvc1g32.pdf",
+      "notes": "EN1=SUSPEND OR (ENUM500 AND OUT1)",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "USB_SUSPEND",
+          "electrical_type": "input"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "USB_DEFAULT_500",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "4",
+          "name": "Y",
+          "net": "CHG_EN1",
+          "electrical_type": "output"
+        },
+        {
+          "number": "5",
+          "name": "VCC",
+          "net": "3V3_AON",
+          "electrical_type": "power_in"
+        }
+      ],
+      "origin": "Power",
+      "note": "EN1=SUSPEND OR (ENUM500 AND OUT1)"
+    },
+    {
+      "ref": "U8",
+      "value": "SN74LVC1G32DBVR",
+      "group": "01_usb_charge",
+      "package": "SOT23-5 DBV",
+      "source": "https://www.ti.com/lit/ds/symlink/sn74lvc1g32.pdf",
+      "notes": "EN2=SUSPEND OR NOT OUT1",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "USB_SUSPEND",
+          "electrical_type": "input"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "USB_HIGH_CURRENT_OK",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "4",
+          "name": "Y",
+          "net": "CHG_EN2",
+          "electrical_type": "output"
+        },
+        {
+          "number": "5",
+          "name": "VCC",
+          "net": "3V3_AON",
+          "electrical_type": "power_in"
+        }
+      ],
+      "origin": "Power",
+      "note": "EN2=SUSPEND OR NOT OUT1"
+    },
+    {
+      "ref": "R8",
+      "value": "100k",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "USB_ENUM_500",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R9",
+      "value": "100k",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "USB_SUSPEND",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R10",
+      "value": "100k",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "CHG_EN1",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R11",
+      "value": "100k",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "CHG_EN2",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "C7",
+      "value": "100nF 10V",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_AON",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "C8",
+      "value": "100nF 10V",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_AON",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "C9",
+      "value": "100nF 10V",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_AON",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "C10",
+      "value": "100nF 10V",
+      "group": "01_usb_charge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_AON",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "U9",
+      "value": "LTC2951ITS8-1#TRPBF",
+      "group": "02_power_control",
+      "package": "TSOT23-8 TS8",
+      "source": "https://www.analog.com/media/en/technical-documentation/data-sheets/295112fb.pdf",
+      "notes": "Use the -1 variant with active-high enable. Pull KILL up to switched 3V3 so startup does not depend on firmware responding within 512 ms.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "VIN",
+          "net": "SYS_RAW",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "2",
+          "name": "PB_N",
+          "net": "PWR_BUTTON_N",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "KILLT",
+          "net": "PWR_KILLT",
+          "electrical_type": "input"
+        },
+        {
+          "number": "4",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "5",
+          "name": "INT_N",
+          "net": "PWR_INT_N",
+          "electrical_type": "open_collector"
+        },
+        {
+          "number": "6",
+          "name": "EN",
+          "net": "SYS_ENABLE",
+          "electrical_type": "open_collector"
+        },
+        {
+          "number": "7",
+          "name": "OFFT",
+          "net": "PWR_OFFT",
+          "electrical_type": "input"
+        },
+        {
+          "number": "8",
+          "name": "KILL",
+          "net": "POWER_HOLD",
+          "electrical_type": "input"
+        }
+      ],
+      "origin": "Power",
+      "note": "Use the -1 variant with active-high enable. Pull KILL up to switched 3V3 so startup does not depend on firmware responding within 512 ms."
+    },
+    {
+      "ref": "SW1",
+      "value": "POWER momentary normally-open",
+      "group": "02_power_control",
+      "package": "physical switch footprint pending",
+      "source": "",
+      "notes": "On press: at least 128 ms. Off request: nominal 674 ms hold. Forced off approximately 6.54 s after the shutdown interrupt.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "PWR_BUTTON_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": "On press: at least 128 ms. Off request: nominal 674 ms hold. Forced off approximately 6.54 s after the shutdown interrupt."
+    },
+    {
+      "ref": "C11",
+      "value": "100nF 10V",
+      "group": "02_power_control",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_RAW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "C12",
+      "value": "100nF 10V",
+      "group": "02_power_control",
+      "package": "0603",
+      "source": "",
+      "notes": "Nominal total off-button debounce approximately 674 ms.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "PWR_OFFT",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": "Nominal total off-button debounce approximately 674 ms."
+    },
+    {
+      "ref": "C13",
+      "value": "1uF 10V lowleakage X7R",
+      "group": "02_power_control",
+      "package": "0805",
+      "source": "",
+      "notes": "Nominal 6.54 s shutdown grace period after interrupt; verify capacitance tolerance and timing on the bench.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "PWR_KILLT",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": "Nominal 6.54 s shutdown grace period after interrupt; verify capacitance tolerance and timing on the bench."
+    },
+    {
+      "ref": "R12",
+      "value": "100k",
+      "group": "02_power_control",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_ENABLE",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SYS_RAW",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R13",
+      "value": "10k",
+      "group": "02_power_control",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "PWR_INT_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R14",
+      "value": "100k",
+      "group": "02_power_control",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "POWER_HOLD",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "U10",
+      "value": "TPS22918DBVR",
+      "group": "02_power_control",
+      "package": "SOT23-6 DBV",
+      "source": "https://www.ti.com/lit/ds/symlink/tps22918.pdf",
+      "notes": "Rated 2 A main load switch. Target normal system peak below 1.5 A at this node. Both amplifier and buck-boost supply are downstream. Do not inject external power into SYS_SW.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "VIN",
+          "net": "SYS_RAW",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "2",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "3",
+          "name": "ON",
+          "net": "SYS_ENABLE",
+          "electrical_type": "input"
+        },
+        {
+          "number": "4",
+          "name": "CT",
+          "net": "SYS_RAMP_CT",
+          "electrical_type": "input"
+        },
+        {
+          "number": "5",
+          "name": "QOD",
+          "net": "SYS_QOD",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "6",
+          "name": "VOUT",
+          "net": "MAIN_RAW",
+          "electrical_type": "power_out"
+        }
+      ],
+      "origin": "Power",
+      "note": "Rated 2 A main load switch. Target normal system peak below 1.5 A at this node. Both amplifier and buck-boost supply are downstream. Do not inject external power into SYS_SW."
+    },
+    {
+      "ref": "C14",
+      "value": "1uF 10V X7R",
+      "group": "02_power_control",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_RAW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "C15",
+      "value": "10nF 25V X7R",
+      "group": "02_power_control",
+      "package": "0603",
+      "source": "",
+      "notes": "Slew approximately 5.53 ms/V; rise approximately 24 ms at 4.4 V. Verify loaded startup.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_RAMP_CT",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": "Slew approximately 5.53 ms/V; rise approximately 24 ms at 4.4 V. Verify loaded startup."
+    },
+    {
+      "ref": "R15",
+      "value": "100ohm",
+      "group": "02_power_control",
+      "package": "0603",
+      "source": "",
+      "notes": "Limits output discharge current. QOD must not connect to an independently powered rail.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_QOD",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "MAIN_RAW",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": "Limits output discharge current. QOD must not connect to an independently powered rail."
+    },
+    {
+      "ref": "U11",
+      "value": "TPS63802DLAR",
+      "group": "03_regulator",
+      "package": "VSON/HotRod DLA10 1.4x2.3mm",
+      "source": "https://www.ti.com/lit/ds/symlink/tps63802.pdf",
+      "notes": "MODE low selects power saving. The board cannot draw 2 A from 3V3 plus speaker power simultaneously through a 2 A battery connector.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "EN",
+          "net": "MAIN_RAW",
+          "electrical_type": "input"
+        },
+        {
+          "number": "2",
+          "name": "MODE",
+          "net": "GND",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "AGND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "4",
+          "name": "FB",
+          "net": "3V3_FB",
+          "electrical_type": "input"
+        },
+        {
+          "number": "5",
+          "name": "PG",
+          "net": "3V3_PG",
+          "electrical_type": "open_collector"
+        },
+        {
+          "number": "6",
+          "name": "VOUT",
+          "net": "3V3_SYS",
+          "electrical_type": "power_out"
+        },
+        {
+          "number": "7",
+          "name": "L2",
+          "net": "BUCK_L2",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "8",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "9",
+          "name": "L1",
+          "net": "BUCK_L1",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "10",
+          "name": "VIN",
+          "net": "MAIN_RAW",
+          "electrical_type": "power_in"
+        }
+      ],
+      "origin": "Power",
+      "note": "MODE low selects power saving. The board cannot draw 2 A from 3V3 plus speaker power simultaneously through a 2 A battery connector."
+    },
+    {
+      "ref": "L1",
+      "value": "0.47uH Coilcraft XFL4015-471ME",
+      "group": "03_regulator",
+      "package": "Coilcraft XFL4015",
+      "source": "",
+      "notes": "Datasheet candidate: 5.4 A saturation current and 7.6 mOhm DCR. Verify exact supplier land pattern and available revision.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BUCK_L1",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "BUCK_L2",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": "Datasheet candidate: 5.4 A saturation current and 7.6 mOhm DCR. Verify exact supplier land pattern and available revision."
+    },
+    {
+      "ref": "R16",
+      "value": "511k 1%",
+      "group": "03_regulator",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3_FB",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R17",
+      "value": "91.0k 1%",
+      "group": "03_regulator",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_FB",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R18",
+      "value": "100k",
+      "group": "03_regulator",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_PG",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "C16",
+      "value": "10uF 10V X7R",
+      "group": "03_regulator",
+      "package": "0805",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MAIN_RAW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "C17",
+      "value": "22uF 10V X7R",
+      "group": "03_regulator",
+      "package": "0805",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "C18",
+      "value": "22uF 10V X7R",
+      "group": "03_regulator",
+      "package": "0805",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "C19",
+      "value": "100nF 10V",
+      "group": "03_regulator",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "U12",
+      "value": "BQ27441DRZR-G1A",
+      "group": "04_gauge",
+      "package": "VSON12 DRZ0012A 2.5x4 mm + exposed pad",
+      "source": "https://www.ti.com/lit/ds/symlink/bq27441-g1.pdf",
+      "notes": "I2C address 0x55. This gauge does not replace cell protection. All charger and external battery loads connect downstream of R19. VDD must not supply other circuits.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "SDA",
+          "net": "I2C_SDA",
+          "electrical_type": "open_collector"
+        },
+        {
+          "number": "2",
+          "name": "SCL",
+          "net": "I2C_SCL",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "VSS",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "4",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "5",
+          "name": "VDD",
+          "net": "GAUGE_1V8",
+          "electrical_type": "power_out"
+        },
+        {
+          "number": "6",
+          "name": "BAT",
+          "net": "BAT_PACK_P",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "7",
+          "name": "SRN",
+          "net": "BAT_P",
+          "electrical_type": "input"
+        },
+        {
+          "number": "8",
+          "name": "SRP",
+          "net": "BAT_PACK_P",
+          "electrical_type": "input"
+        },
+        {
+          "number": "9",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "10",
+          "name": "BIN",
+          "net": "GAUGE_BIN",
+          "electrical_type": "input"
+        },
+        {
+          "number": "11",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "12",
+          "name": "GPOUT",
+          "net": "GAUGE_INT_N",
+          "electrical_type": "open_collector"
+        },
+        {
+          "number": "13",
+          "name": "EP",
+          "net": "GND",
+          "electrical_type": "power_in"
+        }
+      ],
+      "origin": "Power",
+      "note": "I2C address 0x55. This gauge does not replace cell protection. All charger and external battery loads connect downstream of R19. VDD must not supply other circuits."
+    },
+    {
+      "ref": "R19",
+      "value": "0.010ohm 1% lowTCR 0.25W",
+      "group": "04_gauge",
+      "package": "0805 sense resistor",
+      "source": "",
+      "notes": "Kelvin sense from both resistor pads. At 2 A: 20 mV drop and 40 mW dissipation.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BAT_PACK_P",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "BAT_P",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": "Kelvin sense from both resistor pads. At 2 A: 20 mV drop and 40 mW dissipation."
+    },
+    {
+      "ref": "R20",
+      "value": "10k",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "Defined for cold battery replacement; not automatic hot-swap insertion detection.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "GAUGE_BIN",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": "Defined for cold battery replacement; not automatic hot-swap insertion detection."
+    },
+    {
+      "ref": "R21",
+      "value": "10k",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2C_SDA",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R22",
+      "value": "10k",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2C_SCL",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R23",
+      "value": "1M",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2C_SDA",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R24",
+      "value": "1M",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2C_SCL",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R25",
+      "value": "10k",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "GAUGE_INT_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "R26",
+      "value": "1M",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "Prevents a floating input with main power off. Local test net unless an MCU GPIO is assigned.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "GAUGE_INT_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": "Prevents a floating input with main power off. Local test net unless an MCU GPIO is assigned."
+    },
+    {
+      "ref": "C20",
+      "value": "1uF 10V X7R",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BAT_PACK_P",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "C21",
+      "value": "470nF 6.3V X7R",
+      "group": "04_gauge",
+      "package": "0603",
+      "source": "",
+      "notes": "",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "GAUGE_1V8",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": ""
+    },
+    {
+      "ref": "U13",
+      "value": "TPD2EUSB30DRTR",
+      "group": "01_usb_charge",
+      "package": "DRT 3-pin",
+      "source": "https://www.ti.com/lit/ds/symlink/tpd2eusb30.pdf",
+      "notes": "CC1/CC2 protection, close to USB connector. Verify transient clamping with layout.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "IO1",
+          "net": "USB_CC1",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "IO2",
+          "net": "USB_CC2",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "3",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        }
+      ],
+      "origin": "Power",
+      "note": "CC1/CC2 protection, close to USB connector. Verify transient clamping with layout."
+    },
+    {
+      "ref": "D1",
+      "value": "TPD1E10B06DYAR",
+      "group": "01_usb_charge",
+      "package": "DYA SOD-523",
+      "source": "https://www.ti.com/lit/ds/symlink/tpd1e10b06.pdf",
+      "notes": "VBUS ESD clamp. Does not provide sustained overvoltage protection. Verify chosen package and protection coordination.",
+      "status": "engineering-draft",
+      "pins": [
+        {
+          "number": "1",
+          "name": "IO",
+          "net": "USB_PROTECTED",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "RETURN",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "origin": "Power",
+      "note": "VBUS ESD clamp. Does not provide sustained overvoltage protection. Verify chosen package and protection coordination."
+    },
+    {
+      "ref": "U1",
+      "value": "ESP32-S3-WROOM-1-N16R8",
+      "package": "Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41",
+      "pins": [
+        {
+          "number": "1",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "2",
+          "name": "3V3",
+          "net": "3V3_SYS",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "3",
+          "name": "EN",
+          "net": "ESP_EN",
+          "electrical_type": "input"
+        },
+        {
+          "number": "4",
+          "name": "GPIO4",
+          "net": "PDM_CLK",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "5",
+          "name": "GPIO5",
+          "net": "PDM_DIN0",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "6",
+          "name": "GPIO6",
+          "net": "PDM_DIN1",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "7",
+          "name": "GPIO7",
+          "net": "BTN_START_N",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "8",
+          "name": "GPIO15",
+          "net": "I2S1_WS",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "9",
+          "name": "GPIO16",
+          "net": "I2S1_DOUT",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "10",
+          "name": "GPIO17",
+          "net": "AMP_ENABLE",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "11",
+          "name": "GPIO18",
+          "net": "PWR_INT_N",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "12",
+          "name": "GPIO8",
+          "net": "I2C_SDA",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "13",
+          "name": "GPIO19_USB_D-",
+          "net": "ESP_USB_DM",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "14",
+          "name": "GPIO20_USB_D+",
+          "net": "ESP_USB_DP",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "15",
+          "name": "GPIO3",
+          "net": null,
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "16",
+          "name": "GPIO46",
+          "net": null,
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "17",
+          "name": "GPIO9",
+          "net": "I2C_SCL",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "18",
+          "name": "GPIO10",
+          "net": "LCD_CS_N",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "19",
+          "name": "GPIO11",
+          "net": "LCD_MOSI_MCU",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "20",
+          "name": "GPIO12",
+          "net": "LCD_SCLK_MCU",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "21",
+          "name": "GPIO13",
+          "net": "LCD_BL",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "22",
+          "name": "GPIO14",
+          "net": "I2S1_BCLK",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "23",
+          "name": "GPIO21",
+          "net": "POWER_HOLD",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "24",
+          "name": "GPIO47",
+          "net": "CHARGING_N",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "25",
+          "name": "GPIO48",
+          "net": "USB_PGOOD_N",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "26",
+          "name": "GPIO45",
+          "net": null,
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "27",
+          "name": "GPIO0",
+          "net": "BOOT_N",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "28",
+          "name": "GPIO35_PSRAM",
+          "net": null,
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "29",
+          "name": "GPIO36_PSRAM",
+          "net": null,
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "30",
+          "name": "GPIO37_PSRAM",
+          "net": null,
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "31",
+          "name": "GPIO38",
+          "net": "SD_CLK_MCU",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "32",
+          "name": "GPIO39",
+          "net": "SD_CMD",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "33",
+          "name": "GPIO40",
+          "net": "SD_D0",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "34",
+          "name": "GPIO41",
+          "net": "SD_CD_N",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "35",
+          "name": "GPIO42",
+          "net": null,
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "36",
+          "name": "GPIO44_U0RXD",
+          "net": "LCD_RST_N",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "37",
+          "name": "GPIO43_U0TXD",
+          "net": "LCD_DC",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "38",
+          "name": "GPIO2",
+          "net": "USB_SUSPEND",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "39",
+          "name": "GPIO1",
+          "net": "USB_ENUM_500",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "40",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "41",
+          "name": "GND_EP",
+          "net": "GND",
+          "electrical_type": "power_in"
+        }
+      ],
+      "notes": "Exact N16R8 ordering code only. GPIO35-37 are reserved for internal Octal PSRAM; leave disconnected. GPIO3/45/46 left unused. GPIO42 is spare; GPIO7 is Start/Enter and RTC-domain wake input. GPIO43 is UART0 TX at ROM boot: LCD_CS_N external pull-up prevents interpreting ROM transitions. Native USB is the service interface; LCD uses SPI2_HOST, not the flash SPI1 bus. GPIO47/48 are valid 3.3V for N16R8; do not silently substitute N16R16VA.",
+      "source": "https://documentation.espressif.com/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf",
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Exact N16R8 ordering code only. GPIO35-37 are reserved for internal Octal PSRAM; leave disconnected. GPIO3/45/46 left unused. GPIO42 is spare; GPIO7 is Start/Enter and RTC-domain wake input. GPIO43 is UART0 TX at ROM boot: LCD_CS_N external pull-up prevents interpreting ROM transitions. Native USB is the service interface; LCD uses SPI2_HOST, not the flash SPI1 bus. GPIO47/48 are valid 3.3V for N16R8; do not silently substitute N16R16VA."
+    },
+    {
+      "ref": "U30",
+      "value": "RV-3028-C7-TA-QC",
+      "package": "Micro Crystal C7 3.2x1.5x0.8mm",
+      "pins": [
+        {
+          "number": "1",
+          "name": "CLKOUT",
+          "net": null,
+          "electrical_type": "output"
+        },
+        {
+          "number": "2",
+          "name": "INT_N",
+          "net": null,
+          "electrical_type": "open_collector"
+        },
+        {
+          "number": "3",
+          "name": "SCL",
+          "net": "I2C_SCL",
+          "electrical_type": "input"
+        },
+        {
+          "number": "4",
+          "name": "SDA",
+          "net": "I2C_SDA",
+          "electrical_type": "open_collector"
+        },
+        {
+          "number": "5",
+          "name": "VSS",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "6",
+          "name": "VBACKUP",
+          "net": "RTC_VBACKUP",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "7",
+          "name": "VDD",
+          "net": "3V3_SYS",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "8",
+          "name": "EVI",
+          "net": "RTC_EVI",
+          "electrical_type": "input"
+        }
+      ],
+      "notes": "I2C address 0x52. Factory-program EEPROM backup BSM=11 (LSM), TCE=0 and disable CLKOUT. Backup switchover is disabled on new parts; unconfigured part does not preserve time after main rail off. Backup uses protected BAT_P; no time guarantee if LiPo removed or protection trips. I2C pull-ups reside on switched 3V3 power sheet.",
+      "source": "https://www.microcrystal.com/fileadmin/Media/Products/RTC/App.Manual/RV-3028-C7_App-Manual.pdf",
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "I2C address 0x52. Factory-program EEPROM backup BSM=11 (LSM), TCE=0 and disable CLKOUT. Backup switchover is disabled on new parts; unconfigured part does not preserve time after main rail off. Backup uses protected BAT_P; no time guarantee if LiPo removed or protection trips. I2C pull-ups reside on switched 3V3 power sheet."
+    },
+    {
+      "ref": "U31",
+      "value": "PCA9536DR",
+      "package": "TI D SOIC-8 4.9x3.91mm, 1.27mm pitch",
+      "pins": [
+        {
+          "number": "1",
+          "name": "P0",
+          "net": null,
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "2",
+          "name": "P1",
+          "net": "BTN_STOP_N",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "3",
+          "name": "P2",
+          "net": "BTN_UP_N",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "4",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "5",
+          "name": "P3",
+          "net": "BTN_DOWN_N",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "6",
+          "name": "SCL",
+          "net": "I2C_SCL",
+          "electrical_type": "input"
+        },
+        {
+          "number": "7",
+          "name": "SDA",
+          "net": "I2C_SDA",
+          "electrical_type": "bidirectional"
+        },
+        {
+          "number": "8",
+          "name": "VCC",
+          "net": "3V3_SYS",
+          "electrical_type": "power_in"
+        }
+      ],
+      "notes": "I2C address 0x41. Stop/Back, Up and Down only; Start/Enter connects directly to RTC GPIO7. P0 is unused and held high by the expander internal weak pull-up; configure as input and mask out its reading. Configure 0x03=0x0F explicitly; input register 0x00; active-low switches. Poll approximately 10ms while UI is active, 20ms debounce; stop polling in deep sleep and use direct Start button to wake. Powered off with ESP. Hardware power/BOOT/RESET bypass expander.",
+      "source": "https://www.ti.com/lit/ds/symlink/pca9536.pdf",
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "I2C address 0x41. Stop/Back, Up and Down only; Start/Enter connects directly to RTC GPIO7. P0 is unused and held high by the expander internal weak pull-up; configure as input and mask out its reading. Configure 0x03=0x0F explicitly; input register 0x00; active-low switches. Poll approximately 10ms while UI is active, 20ms debounce; stop polling in deep sleep and use direct Start button to wake. Powered off with ESP. Hardware power/BOOT/RESET bypass expander."
+    },
+    {
+      "ref": "U34",
+      "value": "TS3USB221ARSER",
+      "package": "TI RSE UQFN-10 2.0x1.5mm",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1D+",
+          "net": "USB_DP_ISO",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "1D-",
+          "net": "USB_DM_ISO",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "3",
+          "name": "2D+",
+          "net": "USB_UNUSED_DP",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "4",
+          "name": "2D-",
+          "net": "USB_UNUSED_DM",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "5",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "6",
+          "name": "OE_N",
+          "net": "GND",
+          "electrical_type": "input"
+        },
+        {
+          "number": "7",
+          "name": "D-",
+          "net": "USB_DM",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "8",
+          "name": "D+",
+          "net": "USB_DP",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "9",
+          "name": "S",
+          "net": "GND",
+          "electrical_type": "input"
+        },
+        {
+          "number": "10",
+          "name": "VCC",
+          "net": "3V3_SYS",
+          "electrical_type": "power_in"
+        }
+      ],
+      "notes": "Power-off-protected USB data switch. S=0/OE_N=0 selects port1 only while powered. Main-off VCC=0 has specified Ioff <=2uA per I/O (not zero). D+/D- remain isolated from unpowered ESP when USB charging remains active. Fit unused-port 49.9ohm terminations per manufacturer recommendation. Validate full-speed eye/edge waveform after adding switch plus series damping.",
+      "source": "https://www.ti.com/lit/ds/symlink/ts3usb221a.pdf",
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Power-off-protected USB data switch. S=0/OE_N=0 selects port1 only while powered. Main-off VCC=0 has specified Ioff <=2uA per I/O (not zero). D+/D- remain isolated from unpowered ESP when USB charging remains active. Fit unused-port 49.9ohm terminations per manufacturer recommendation. Validate full-speed eye/edge waveform after adding switch plus series damping."
+    },
+    {
+      "ref": "U35",
+      "value": "TPD2EUSB30DRTR",
+      "package": "TI DRT SOT-3 1.0x0.6mm",
+      "pins": [
+        {
+          "number": "1",
+          "name": "D+",
+          "net": "USB_DP",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "D-",
+          "net": "USB_DM",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "3",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        }
+      ],
+      "notes": "USB ESD array placed immediately beside USB-C connector, before isolation switch. No supply pin and no diode injection into switched 3V3 rail. Power sheet owns VBUS and CC protection. Ground return short to ground plane.",
+      "source": "https://www.ti.com/lit/ds/symlink/tpd2eusb30.pdf",
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "USB ESD array placed immediately beside USB-C connector, before isolation switch. No supply pin and no diode injection into switched 3V3 rail. Power sheet owns VBUS and CC protection. Ground return short to ground plane."
+    },
+    {
+      "ref": "J6",
+      "value": "DM3AT-SF-PEJM5",
+      "package": "Hirose DM3AT push-push microSD top mount",
+      "pins": [
+        {
+          "number": "1",
+          "name": "DAT2",
+          "net": "SD_D2_PU",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "CD_DAT3",
+          "net": "SD_D3_PU",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "3",
+          "name": "CMD",
+          "net": "SD_CMD",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "4",
+          "name": "VDD",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "5",
+          "name": "CLK",
+          "net": "SD_CLK",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "6",
+          "name": "VSS",
+          "net": "GND",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "7",
+          "name": "DAT0",
+          "net": "SD_D0",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "8",
+          "name": "DAT1",
+          "net": "SD_D1_PU",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "A",
+          "name": "CARD_DETECT_A",
+          "net": "SD_CD_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "B",
+          "name": "CARD_DETECT_B",
+          "net": "GND",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "SH",
+          "name": "SHIELD",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Native 1-bit SDMMC. DAT1/2/3 have 10k pull-ups even though not routed to ESP. Hirose drawing names separate detect contacts A/B, not 9/10; CAD footprint must map those named pads explicitly. Symbol SH represents all shell solder stakes; do not short detect-A to shell through a generic footprint. Detect closes A-B with card inserted. Enclosure must allow ejection travel.",
+      "source": "https://www.hirose.com/product/download/?distributor=chip1&lang=en&num=DM3AT-SF-PEJM5&type=2d",
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Native 1-bit SDMMC. DAT1/2/3 have 10k pull-ups even though not routed to ESP. Hirose drawing names separate detect contacts A/B, not 9/10; CAD footprint must map those named pads explicitly. Symbol SH represents all shell solder stakes; do not short detect-A to shell through a generic footprint. Detect closes A-B with card inserted. Enclosure must allow ejection travel."
+    },
+    {
+      "ref": "J7",
+      "value": "B8B-PH-K-S(LF)(SN)",
+      "package": "JST PH 8-position 2.0mm vertical through-hole",
+      "pins": [
+        {
+          "number": "1",
+          "name": "BL",
+          "net": "LCD_BL",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "RST",
+          "net": "LCD_RST_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "3",
+          "name": "DC",
+          "net": "LCD_DC",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "4",
+          "name": "CS",
+          "net": "LCD_CS_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "5",
+          "name": "CLK",
+          "net": "LCD_SCLK",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "6",
+          "name": "DIN",
+          "net": "LCD_MOSI",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "7",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "8",
+          "name": "VCC",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Custom Quipus connector numbering matches Waveshare SKU15867 MODULE J2 PH2.0, not its reversed J1 header. Vendor schematic J2:1BL,2RST,3DC,4CS,5SCK,6DIN,7GND,8VCC. Match signals by continuity, do not assume supplied cable colors/orientation. External module 45x31mm includes ST7789 240x240 and NPN backlight driver; no direct LED-current drive from GPIO.",
+      "source": "https://files.waveshare.com/upload/0/0c/1.3inch_LCD_Module_Schematic.pdf",
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Custom Quipus connector numbering matches Waveshare SKU15867 MODULE J2 PH2.0, not its reversed J1 header. Vendor schematic J2:1BL,2RST,3DC,4CS,5SCK,6DIN,7GND,8VCC. Match signals by continuity, do not assume supplied cable colors/orientation. External module 45x31mm includes ST7789 240x240 and NPN backlight driver; no direct LED-current drive from GPIO."
+    },
+    {
+      "ref": "R300",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "ESP_EN",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Power-up RC pull-up; short EN trace.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Power-up RC pull-up; short EN trace."
+    },
+    {
+      "ref": "C300",
+      "value": "1uF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ESP_EN",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "10ms nominal RC; verify regulator startup and brownout recovery.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "10ms nominal RC; verify regulator startup and brownout recovery."
+    },
+    {
+      "ref": "C301",
+      "value": "10uF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "ESP module local bulk; effective capacitance under DC bias matters.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "ESP module local bulk; effective capacitance under DC bias matters."
+    },
+    {
+      "ref": "C302",
+      "value": "100nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "ESP module pin2 local bypass.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "ESP module pin2 local bypass."
+    },
+    {
+      "ref": "R301",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "BOOT_N",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "External boot strap pull-up. No capacitor on BOOT_N.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "External boot strap pull-up. No capacitor on BOOT_N."
+    },
+    {
+      "ref": "R302",
+      "value": "22ohm",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "USB_DM_ISO",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "ESP_USB_DM",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Near module; initial damping value. Tune from waveform.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Near module; initial damping value. Tune from waveform."
+    },
+    {
+      "ref": "R303",
+      "value": "22ohm",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "USB_DP_ISO",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "ESP_USB_DP",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Near module; match R302.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Near module; match R302."
+    },
+    {
+      "ref": "C303",
+      "value": "DNP / C0G tuning footprint",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ESP_USB_DM",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Leave unpopulated; no guessed capacitance.",
+      "source": "engineering selection; validate during prototype",
+      "populate": false,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Leave unpopulated; no guessed capacitance."
+    },
+    {
+      "ref": "C304",
+      "value": "DNP / C0G tuning footprint",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ESP_USB_DP",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Leave unpopulated; no guessed capacitance.",
+      "source": "engineering selection; validate during prototype",
+      "populate": false,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Leave unpopulated; no guessed capacitance."
+    },
+    {
+      "ref": "R304",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "LCD_CS_N",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Holds display unselected during ROM serial TX on GPIO43.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Holds display unselected during ROM serial TX on GPIO43."
+    },
+    {
+      "ref": "R305",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "LCD_RST_N",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Deasserted default; firmware drives low reset pulse before initialization.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Deasserted default; firmware drives low reset pulse before initialization."
+    },
+    {
+      "ref": "R306",
+      "value": "33ohm",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "LCD_SCLK_MCU",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "LCD_SCLK",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Source damping; initialize SPI2 at conservative clock for cable.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Source damping; initialize SPI2 at conservative clock for cable."
+    },
+    {
+      "ref": "R307",
+      "value": "33ohm",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "LCD_MOSI_MCU",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "LCD_MOSI",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Source damping.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Source damping."
+    },
+    {
+      "ref": "C305",
+      "value": "10uF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At J7 display connector.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "At J7 display connector."
+    },
+    {
+      "ref": "C306",
+      "value": "100nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At J7.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "At J7."
+    },
+    {
+      "ref": "R310",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SD_CMD",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "SD external pull-up, including unused data contacts.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "SD external pull-up, including unused data contacts."
+    },
+    {
+      "ref": "R311",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SD_D0",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "SD external pull-up, including unused data contacts.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "SD external pull-up, including unused data contacts."
+    },
+    {
+      "ref": "R312",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SD_D1_PU",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "SD external pull-up, including unused data contacts.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "SD external pull-up, including unused data contacts."
+    },
+    {
+      "ref": "R313",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SD_D2_PU",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "SD external pull-up, including unused data contacts.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "SD external pull-up, including unused data contacts."
+    },
+    {
+      "ref": "R314",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SD_D3_PU",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "SD external pull-up, including unused data contacts.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "SD external pull-up, including unused data contacts."
+    },
+    {
+      "ref": "R315",
+      "value": "22ohm",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SD_CLK_MCU",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SD_CLK",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At ESP source; SDMMC initialize400kHz, validate20MHz1bit before40MHz.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "At ESP source; SDMMC initialize400kHz, validate20MHz1bit before40MHz."
+    },
+    {
+      "ref": "R316",
+      "value": "100k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SD_CD_N",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Card detector only; card inserted closes switch to GND.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Card detector only; card inserted closes switch to GND."
+    },
+    {
+      "ref": "C310",
+      "value": "10uF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At SD socket power contacts.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "At SD socket power contacts."
+    },
+    {
+      "ref": "C311",
+      "value": "100nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At SD socket.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "At SD socket."
+    },
+    {
+      "ref": "C312",
+      "value": "10nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SD_CD_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "1ms nominal CD RC; debounce and unmount in firmware.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "1ms nominal CD RC; debounce and unmount in firmware."
+    },
+    {
+      "ref": "R320",
+      "value": "330ohm",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BAT_P",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "RTC_VBACKUP",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Protect RTC backup supply; NOT raw unprotected cell; RTC trickle disabled.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Protect RTC backup supply; NOT raw unprotected cell; RTC trickle disabled."
+    },
+    {
+      "ref": "R321",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "RTC_EVI",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Never float EVI. External-event feature disabled.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Never float EVI. External-event feature disabled."
+    },
+    {
+      "ref": "C320",
+      "value": "100nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At RV3028 VDD.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "At RV3028 VDD."
+    },
+    {
+      "ref": "C321",
+      "value": "100nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "RTC_VBACKUP",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At RV3028 backup pin.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "At RV3028 backup pin."
+    },
+    {
+      "ref": "C330",
+      "value": "100nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At PCA9536 VCC.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "At PCA9536 VCC."
+    },
+    {
+      "ref": "R330",
+      "value": "47k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "BTN_START_N",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "External pull-up for direct GPIO7 Start/Enter wake input; remains defined during deep sleep.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "External pull-up for direct GPIO7 Start/Enter wake input; remains defined during deep sleep."
+    },
+    {
+      "ref": "C331",
+      "value": "10nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BTN_START_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Noise filter; software debounce remains required.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Noise filter; software debounce remains required."
+    },
+    {
+      "ref": "R331",
+      "value": "47k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "BTN_STOP_N",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "External pull-up supplements expander weak pull-up.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "External pull-up supplements expander weak pull-up."
+    },
+    {
+      "ref": "C332",
+      "value": "10nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BTN_STOP_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Noise filter; software debounce remains required.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Noise filter; software debounce remains required."
+    },
+    {
+      "ref": "R332",
+      "value": "47k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "BTN_UP_N",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "External pull-up supplements expander weak pull-up.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "External pull-up supplements expander weak pull-up."
+    },
+    {
+      "ref": "C333",
+      "value": "10nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BTN_UP_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Noise filter; software debounce remains required.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Noise filter; software debounce remains required."
+    },
+    {
+      "ref": "R333",
+      "value": "47k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "BTN_DOWN_N",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "External pull-up supplements expander weak pull-up.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "External pull-up supplements expander weak pull-up."
+    },
+    {
+      "ref": "C334",
+      "value": "10nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BTN_DOWN_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Noise filter; software debounce remains required.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Noise filter; software debounce remains required."
+    },
+    {
+      "ref": "C340",
+      "value": "100nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At TS3USB221A VCC.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "At TS3USB221A VCC."
+    },
+    {
+      "ref": "R341",
+      "value": "49.9ohm",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "USB_UNUSED_DP",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Unused USB switch port termination per TI guidance.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Unused USB switch port termination per TI guidance."
+    },
+    {
+      "ref": "R342",
+      "value": "49.9ohm",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "USB_UNUSED_DM",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Unused USB switch port termination per TI guidance.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true,
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "Unused USB switch port termination per TI guidance."
+    },
+    {
+      "ref": "SW300",
+      "value": "B3U-1000P",
+      "package": "Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "BOOT_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "BOOT; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.",
+      "source": "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf",
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "BOOT; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen."
+    },
+    {
+      "ref": "SW301",
+      "value": "B3U-1000P",
+      "package": "Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "BTN_START_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "START_ENTER; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.",
+      "source": "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf",
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "START_ENTER; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen."
+    },
+    {
+      "ref": "SW302",
+      "value": "B3U-1000P",
+      "package": "Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "BTN_STOP_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "STOP_BACK; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.",
+      "source": "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf",
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "STOP_BACK; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen."
+    },
+    {
+      "ref": "SW303",
+      "value": "B3U-1000P",
+      "package": "Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "BTN_UP_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "UP; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.",
+      "source": "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf",
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "UP; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen."
+    },
+    {
+      "ref": "SW304",
+      "value": "B3U-1000P",
+      "package": "Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "BTN_DOWN_N",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "DOWN; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.",
+      "source": "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf",
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "DOWN; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen."
+    },
+    {
+      "ref": "SW305",
+      "value": "B3U-1000P",
+      "package": "Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "ESP_EN",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "RESET; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.",
+      "source": "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf",
+      "group": "Controller",
+      "origin": "Controller",
+      "note": "RESET; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen."
+    },
+    {
+      "ref": "U20",
+      "value": "IM69D128SV01XTMA1",
+      "package": "Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port",
+      "pins": [
+        {
+          "number": "1",
+          "name": "VDD",
+          "net": "MIC_3V3",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "2",
+          "name": "CLOCK",
+          "net": "PDM_CLK_LOCAL",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "DATA",
+          "net": "U20_D",
+          "electrical_type": "tri_state"
+        },
+        {
+          "number": "4",
+          "name": "LR",
+          "net": "GND",
+          "electrical_type": "input"
+        },
+        {
+          "number": "5",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        }
+      ],
+      "notes": "3.3 V supply is within the 1.62\u00e2\u20ac\u201c3.60 V operating range. Use exact datasheet Figures 12/13 land pattern and 0.6 mm nonplated acoustic hole. Two mics share opposite-edge slots. Do not use IM69D130 footprint.",
+      "source": "https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d128s-datasheet-en.pdf",
+      "acoustic_hole_mm": 0.6,
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "3.3 V supply is within the 1.62\u00e2\u20ac\u201c3.60 V operating range. Use exact datasheet Figures 12/13 land pattern and 0.6 mm nonplated acoustic hole. Two mics share opposite-edge slots. Do not use IM69D130 footprint."
+    },
+    {
+      "ref": "U21",
+      "value": "IM69D128SV01XTMA1",
+      "package": "Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port",
+      "pins": [
+        {
+          "number": "1",
+          "name": "VDD",
+          "net": "MIC_3V3",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "2",
+          "name": "CLOCK",
+          "net": "PDM_CLK_LOCAL",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "DATA",
+          "net": "U21_D",
+          "electrical_type": "tri_state"
+        },
+        {
+          "number": "4",
+          "name": "LR",
+          "net": "MIC_3V3",
+          "electrical_type": "input"
+        },
+        {
+          "number": "5",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        }
+      ],
+      "notes": "3.3 V supply is within the 1.62\u00e2\u20ac\u201c3.60 V operating range. Use exact datasheet Figures 12/13 land pattern and 0.6 mm nonplated acoustic hole. Two mics share opposite-edge slots. Do not use IM69D130 footprint.",
+      "source": "https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d128s-datasheet-en.pdf",
+      "acoustic_hole_mm": 0.6,
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "3.3 V supply is within the 1.62\u00e2\u20ac\u201c3.60 V operating range. Use exact datasheet Figures 12/13 land pattern and 0.6 mm nonplated acoustic hole. Two mics share opposite-edge slots. Do not use IM69D130 footprint."
+    },
+    {
+      "ref": "R201",
+      "value": "100 ohm 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "U20_D",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "PDM_DIN0",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At U20 DATA output.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "At U20 DATA output."
+    },
+    {
+      "ref": "R202",
+      "value": "100 ohm 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "U21_D",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "PDM_DIN0",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At U21 DATA output.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "At U21 DATA output."
+    },
+    {
+      "ref": "R203",
+      "value": "33 ohm 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "PDM_CLK",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "PDM_CLK_LOCAL",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Source termination near ESP32. Tune after scope validation.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "Source termination near ESP32. Tune after scope validation."
+    },
+    {
+      "ref": "R204",
+      "value": "0 ohm",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3_SYS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Microphone-rail measurement link. Not a load switch.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "Microphone-rail measurement link. Not a load switch."
+    },
+    {
+      "ref": "R205",
+      "value": "33 ohm 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "PDM_CLK",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "PDM_CLK_EXT",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Source termination for short external clock branch. Tune after scope validation.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "Source termination for short external clock branch. Tune after scope validation."
+    },
+    {
+      "ref": "R206",
+      "value": "100k 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "PDM_DIN1",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Defines undriven external input; disable external firmware channel when absent.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "Defines undriven external input; disable external firmware channel when absent."
+    },
+    {
+      "ref": "C200",
+      "value": "1uF X7R 10V",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Place at U20 VDD.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "Place at U20 VDD."
+    },
+    {
+      "ref": "C201",
+      "value": "100nF X7R 10V",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Place at U20 VDD.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "Place at U20 VDD."
+    },
+    {
+      "ref": "C202",
+      "value": "1uF X7R 10V",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Place at U21 VDD.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "Place at U21 VDD."
+    },
+    {
+      "ref": "C203",
+      "value": "100nF X7R 10V",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Place at U21 VDD.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "Place at U21 VDD."
+    },
+    {
+      "ref": "C204",
+      "value": "4.7uF X7R 10V",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Local mic-rail reservoir.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "Local mic-rail reservoir."
+    },
+    {
+      "ref": "J4",
+      "value": "SM04B-SRSS-TB",
+      "package": "JST SH 1.0mm 1x4 right-angle SMD",
+      "pins": [
+        {
+          "number": "1",
+          "name": "3V3",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "3",
+          "name": "CLK",
+          "net": "PDM_CLK_EXT",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "4",
+          "name": "DATA",
+          "net": "PDM_DIN1",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Mates SHR-04V-S with SSH-003T-P0.2-H contacts. Internal digital PDM accessory with an initial cable target of 50 mm or less; not USB, TRRS or analog. Accessory needs local mic bypass and a 100 ohm DATA series resistor. Pin assignment is Quipus-specific; verify cable orientation.",
+      "source": "https://www.jst.com/products/crimp-style-connectors-wire-to-board-type/sh-connector",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "Mates SHR-04V-S with SSH-003T-P0.2-H contacts. Internal digital PDM accessory with an initial cable target of 50 mm or less; not USB, TRRS or analog. Accessory needs local mic bypass and a 100 ohm DATA series resistor. Pin assignment is Quipus-specific; verify cable orientation."
+    },
+    {
+      "ref": "U22",
+      "value": "MAX98357AETE+",
+      "package": "TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031",
+      "pins": [
+        {
+          "number": "1",
+          "name": "DIN",
+          "net": "I2S1_DOUT_IC",
+          "electrical_type": "input"
+        },
+        {
+          "number": "2",
+          "name": "GAIN_SLOT",
+          "net": "AMP_GAIN",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "4",
+          "name": "SD_MODE",
+          "net": "AMP_ENABLE",
+          "electrical_type": "input"
+        },
+        {
+          "number": "5",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "6",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "7",
+          "name": "VDD",
+          "net": "MAIN_RAW",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "8",
+          "name": "VDD",
+          "net": "MAIN_RAW",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "9",
+          "name": "OUTP",
+          "net": "SPK_P",
+          "electrical_type": "output"
+        },
+        {
+          "number": "10",
+          "name": "OUTN",
+          "net": "SPK_N",
+          "electrical_type": "output"
+        },
+        {
+          "number": "11",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "12",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "13",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "14",
+          "name": "LRCLK",
+          "net": "I2S1_WS_IC",
+          "electrical_type": "input"
+        },
+        {
+          "number": "15",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "16",
+          "name": "BCLK",
+          "net": "I2S1_BCLK_IC",
+          "electrical_type": "input"
+        },
+        {
+          "number": "17",
+          "name": "EP",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Exposed pad is modelled as 17: cross-check CAD package convention. A version uses I2S; B version is not a substitute. SD_MODE high selects left channel; low shuts down. Supply 2.5\u00e2\u20ac\u201c5.5 V; 3.3 V GPIO compatible. Speaker outputs are differential; neither is GND.",
+      "source": "https://www.analog.com/media/en/technical-documentation/data-sheets/max98357a-max98357b.pdf",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "Exposed pad is modelled as 17: cross-check CAD package convention. A version uses I2S; B version is not a substitute. SD_MODE high selects left channel; low shuts down. Supply 2.5\u00e2\u20ac\u201c5.5 V; 3.3 V GPIO compatible. Speaker outputs are differential; neither is GND."
+    },
+    {
+      "ref": "R207",
+      "value": "33 ohm 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2S1_DOUT",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "I2S1_DOUT_IC",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At ESP32 I2S1 DATA source.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "At ESP32 I2S1 DATA source."
+    },
+    {
+      "ref": "R208",
+      "value": "100k 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MAIN_RAW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "AMP_GAIN",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Selects 3 dB gain. Connect to SYS_SW, the amplifier supply, rather than 3V3.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "Selects 3 dB gain. Connect to SYS_SW, the amplifier supply, rather than 3V3."
+    },
+    {
+      "ref": "R209",
+      "value": "100k 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "AMP_ENABLE",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Keep amplifier shut down during reset.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "Keep amplifier shut down during reset."
+    },
+    {
+      "ref": "R210",
+      "value": "33 ohm 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2S1_WS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "I2S1_WS_IC",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At ESP32 I2S1 WS source.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "At ESP32 I2S1 WS source."
+    },
+    {
+      "ref": "R211",
+      "value": "33 ohm 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2S1_BCLK",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "I2S1_BCLK_IC",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At ESP32 I2S1 BCLK source.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "At ESP32 I2S1 BCLK source."
+    },
+    {
+      "ref": "C205",
+      "value": "100nF X7R 10V",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MAIN_RAW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At U22 pins 7 and 8, with short ground return.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "At U22 pins 7 and 8, with short ground return."
+    },
+    {
+      "ref": "C206",
+      "value": "10uF X7R 10V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MAIN_RAW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At U22 pins 7 and 8; verify effective capacitance at 4.4 V.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "At U22 pins 7 and 8; verify effective capacitance at 4.4 V."
+    },
+    {
+      "ref": "C207",
+      "value": "47uF X7R 10V DNP",
+      "package": "1210",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MAIN_RAW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Optional reservoir. Initially not populated; populate following supply transient test.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "populate": false,
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "Optional reservoir. Initially not populated; populate following supply transient test."
+    },
+    {
+      "ref": "J5",
+      "value": "SM02B-SRSS-TB",
+      "package": "JST SH 1.0mm 1x2 right-angle SMD",
+      "pins": [
+        {
+          "number": "1",
+          "name": "SPK+",
+          "net": "SPK_P",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "SPK-",
+          "net": "SPK_N",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Mates SHR-02V-S. Neither pin is ground. Short twisted pair to 8 ohm, 2 W nominal dynamic speaker; exact speaker part pending. Speaker connector intentionally differs from battery series.",
+      "source": "https://www.jst.com/products/crimp-style-connectors-wire-to-board-type/sh-connector",
+      "group": "Audio",
+      "origin": "Audio",
+      "note": "Mates SHR-02V-S. Neither pin is ground. Short twisted pair to 8 ohm, 2 W nominal dynamic speaker; exact speaker part pending. Speaker connector intentionally differs from battery series."
+    }
+  ],
+  "nets": {
+    "GND": [
+      {
+        "ref": "J1",
+        "pin": "A1_B12",
+        "name": "GND"
+      },
+      {
+        "ref": "J1",
+        "pin": "B1_A12",
+        "name": "GND"
+      },
+      {
+        "ref": "J1",
+        "pin": "SH1",
+        "name": "SHIELD"
+      },
+      {
+        "ref": "J1",
+        "pin": "SH2",
+        "name": "SHIELD"
+      },
+      {
+        "ref": "J1",
+        "pin": "SH3",
+        "name": "SHIELD"
+      },
+      {
+        "ref": "J1",
+        "pin": "SH4",
+        "name": "SHIELD"
+      },
+      {
+        "ref": "U2",
+        "pin": "4",
+        "name": "CE_N"
+      },
+      {
+        "ref": "U2",
+        "pin": "8",
+        "name": "VSS"
+      },
+      {
+        "ref": "U2",
+        "pin": "17",
+        "name": "EP"
+      },
+      {
+        "ref": "R1",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R2",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R3",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C1",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C2",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C3",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "J2",
+        "pin": "2",
+        "name": "PACK-"
+      },
+      {
+        "ref": "J3",
+        "pin": "2",
+        "name": "NTC_RETURN"
+      },
+      {
+        "ref": "U3",
+        "pin": "3",
+        "name": "PORT"
+      },
+      {
+        "ref": "U3",
+        "pin": "10",
+        "name": "GND"
+      },
+      {
+        "ref": "U3",
+        "pin": "11",
+        "name": "EN_N"
+      },
+      {
+        "ref": "C4",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "U4",
+        "pin": "2",
+        "name": "GND"
+      },
+      {
+        "ref": "C5",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C6",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "U5",
+        "pin": "3",
+        "name": "GND"
+      },
+      {
+        "ref": "U6",
+        "pin": "3",
+        "name": "GND"
+      },
+      {
+        "ref": "U7",
+        "pin": "3",
+        "name": "GND"
+      },
+      {
+        "ref": "U8",
+        "pin": "3",
+        "name": "GND"
+      },
+      {
+        "ref": "R8",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R9",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R10",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R11",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C7",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C8",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C9",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C10",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "U9",
+        "pin": "4",
+        "name": "GND"
+      },
+      {
+        "ref": "SW1",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C11",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C12",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C13",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "U10",
+        "pin": "2",
+        "name": "GND"
+      },
+      {
+        "ref": "C14",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C15",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "U11",
+        "pin": "2",
+        "name": "MODE"
+      },
+      {
+        "ref": "U11",
+        "pin": "3",
+        "name": "AGND"
+      },
+      {
+        "ref": "U11",
+        "pin": "8",
+        "name": "GND"
+      },
+      {
+        "ref": "R17",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C16",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C17",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C18",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C19",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "U12",
+        "pin": "3",
+        "name": "VSS"
+      },
+      {
+        "ref": "U12",
+        "pin": "13",
+        "name": "EP"
+      },
+      {
+        "ref": "R20",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R23",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R24",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R26",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C20",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C21",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "U13",
+        "pin": "3",
+        "name": "GND"
+      },
+      {
+        "ref": "D1",
+        "pin": "2",
+        "name": "RETURN"
+      },
+      {
+        "ref": "U1",
+        "pin": "1",
+        "name": "GND"
+      },
+      {
+        "ref": "U1",
+        "pin": "40",
+        "name": "GND"
+      },
+      {
+        "ref": "U1",
+        "pin": "41",
+        "name": "GND_EP"
+      },
+      {
+        "ref": "U30",
+        "pin": "5",
+        "name": "VSS"
+      },
+      {
+        "ref": "U31",
+        "pin": "4",
+        "name": "GND"
+      },
+      {
+        "ref": "U34",
+        "pin": "5",
+        "name": "GND"
+      },
+      {
+        "ref": "U34",
+        "pin": "6",
+        "name": "OE_N"
+      },
+      {
+        "ref": "U34",
+        "pin": "9",
+        "name": "S"
+      },
+      {
+        "ref": "U35",
+        "pin": "3",
+        "name": "GND"
+      },
+      {
+        "ref": "J6",
+        "pin": "6",
+        "name": "VSS"
+      },
+      {
+        "ref": "J6",
+        "pin": "B",
+        "name": "CARD_DETECT_B"
+      },
+      {
+        "ref": "J6",
+        "pin": "SH",
+        "name": "SHIELD"
+      },
+      {
+        "ref": "J7",
+        "pin": "7",
+        "name": "GND"
+      },
+      {
+        "ref": "C300",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C301",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C302",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C303",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C304",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C305",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C306",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C310",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C311",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C312",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R321",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C320",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C321",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C330",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C331",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C332",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C333",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C334",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C340",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R341",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R342",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "SW300",
+        "pin": "2",
+        "name": "B"
+      },
+      {
+        "ref": "SW301",
+        "pin": "2",
+        "name": "B"
+      },
+      {
+        "ref": "SW302",
+        "pin": "2",
+        "name": "B"
+      },
+      {
+        "ref": "SW303",
+        "pin": "2",
+        "name": "B"
+      },
+      {
+        "ref": "SW304",
+        "pin": "2",
+        "name": "B"
+      },
+      {
+        "ref": "SW305",
+        "pin": "2",
+        "name": "B"
+      },
+      {
+        "ref": "U20",
+        "pin": "4",
+        "name": "LR"
+      },
+      {
+        "ref": "U20",
+        "pin": "5",
+        "name": "GND"
+      },
+      {
+        "ref": "U21",
+        "pin": "5",
+        "name": "GND"
+      },
+      {
+        "ref": "R206",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C200",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C201",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C202",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C203",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C204",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "J4",
+        "pin": "2",
+        "name": "GND"
+      },
+      {
+        "ref": "U22",
+        "pin": "3",
+        "name": "GND"
+      },
+      {
+        "ref": "U22",
+        "pin": "11",
+        "name": "GND"
+      },
+      {
+        "ref": "U22",
+        "pin": "15",
+        "name": "GND"
+      },
+      {
+        "ref": "U22",
+        "pin": "17",
+        "name": "EP"
+      },
+      {
+        "ref": "R209",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C205",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C206",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C207",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "VBUS_5V": [
+      {
+        "ref": "J1",
+        "pin": "A4_B9",
+        "name": "VBUS"
+      },
+      {
+        "ref": "J1",
+        "pin": "B4_A9",
+        "name": "VBUS"
+      },
+      {
+        "ref": "F1",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R6",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "USB_CC1": [
+      {
+        "ref": "J1",
+        "pin": "A5",
+        "name": "CC1"
+      },
+      {
+        "ref": "U3",
+        "pin": "1",
+        "name": "CC1"
+      },
+      {
+        "ref": "U13",
+        "pin": "1",
+        "name": "IO1"
+      }
+    ],
+    "USB_DM": [
+      {
+        "ref": "J1",
+        "pin": "B7",
+        "name": "D-2"
+      },
+      {
+        "ref": "J1",
+        "pin": "A7",
+        "name": "D-1"
+      },
+      {
+        "ref": "U34",
+        "pin": "7",
+        "name": "D-"
+      },
+      {
+        "ref": "U35",
+        "pin": "2",
+        "name": "D-"
+      }
+    ],
+    "USB_DP": [
+      {
+        "ref": "J1",
+        "pin": "A6",
+        "name": "D+1"
+      },
+      {
+        "ref": "J1",
+        "pin": "B6",
+        "name": "D+2"
+      },
+      {
+        "ref": "U34",
+        "pin": "8",
+        "name": "D+"
+      },
+      {
+        "ref": "U35",
+        "pin": "1",
+        "name": "D+"
+      }
+    ],
+    "USB_CC2": [
+      {
+        "ref": "J1",
+        "pin": "B5",
+        "name": "CC2"
+      },
+      {
+        "ref": "U3",
+        "pin": "2",
+        "name": "CC2"
+      },
+      {
+        "ref": "U13",
+        "pin": "2",
+        "name": "IO2"
+      }
+    ],
+    "USB_PROTECTED": [
+      {
+        "ref": "F1",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "U2",
+        "pin": "13",
+        "name": "IN"
+      },
+      {
+        "ref": "C1",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "D1",
+        "pin": "1",
+        "name": "IO"
+      }
+    ],
+    "BAT_NTC": [
+      {
+        "ref": "U2",
+        "pin": "1",
+        "name": "TS"
+      },
+      {
+        "ref": "J3",
+        "pin": "1",
+        "name": "NTC"
+      }
+    ],
+    "BAT_P": [
+      {
+        "ref": "U2",
+        "pin": "2",
+        "name": "BAT"
+      },
+      {
+        "ref": "U2",
+        "pin": "3",
+        "name": "BAT"
+      },
+      {
+        "ref": "C2",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "U12",
+        "pin": "7",
+        "name": "SRN"
+      },
+      {
+        "ref": "R19",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R320",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "CHG_EN2": [
+      {
+        "ref": "U2",
+        "pin": "5",
+        "name": "EN2"
+      },
+      {
+        "ref": "U8",
+        "pin": "4",
+        "name": "Y"
+      },
+      {
+        "ref": "R11",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "CHG_EN1": [
+      {
+        "ref": "U2",
+        "pin": "6",
+        "name": "EN1"
+      },
+      {
+        "ref": "U7",
+        "pin": "4",
+        "name": "Y"
+      },
+      {
+        "ref": "R10",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "USB_PGOOD_N": [
+      {
+        "ref": "U2",
+        "pin": "7",
+        "name": "PGOOD_N"
+      },
+      {
+        "ref": "R5",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "U1",
+        "pin": "25",
+        "name": "GPIO48"
+      }
+    ],
+    "CHARGING_N": [
+      {
+        "ref": "U2",
+        "pin": "9",
+        "name": "CHG_N"
+      },
+      {
+        "ref": "R4",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "U1",
+        "pin": "24",
+        "name": "GPIO47"
+      }
+    ],
+    "SYS_RAW": [
+      {
+        "ref": "U2",
+        "pin": "10",
+        "name": "OUT"
+      },
+      {
+        "ref": "U2",
+        "pin": "11",
+        "name": "OUT"
+      },
+      {
+        "ref": "C3",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "U4",
+        "pin": "1",
+        "name": "IN"
+      },
+      {
+        "ref": "U4",
+        "pin": "3",
+        "name": "EN"
+      },
+      {
+        "ref": "C5",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "U9",
+        "pin": "1",
+        "name": "VIN"
+      },
+      {
+        "ref": "C11",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R12",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "U10",
+        "pin": "1",
+        "name": "VIN"
+      },
+      {
+        "ref": "C14",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "CHG_ILIM": [
+      {
+        "ref": "U2",
+        "pin": "12",
+        "name": "ILIM"
+      },
+      {
+        "ref": "R1",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "CHG_TMR": [
+      {
+        "ref": "U2",
+        "pin": "14",
+        "name": "TMR"
+      },
+      {
+        "ref": "R3",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "CHG_ISET": [
+      {
+        "ref": "U2",
+        "pin": "16",
+        "name": "ISET"
+      },
+      {
+        "ref": "R2",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "3V3_SYS": [
+      {
+        "ref": "R4",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R5",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R13",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R14",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "U11",
+        "pin": "6",
+        "name": "VOUT"
+      },
+      {
+        "ref": "R16",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R18",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C17",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C18",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C19",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R21",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R22",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R25",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "U1",
+        "pin": "2",
+        "name": "3V3"
+      },
+      {
+        "ref": "U30",
+        "pin": "7",
+        "name": "VDD"
+      },
+      {
+        "ref": "U31",
+        "pin": "8",
+        "name": "VCC"
+      },
+      {
+        "ref": "U34",
+        "pin": "10",
+        "name": "VCC"
+      },
+      {
+        "ref": "J6",
+        "pin": "4",
+        "name": "VDD"
+      },
+      {
+        "ref": "J7",
+        "pin": "8",
+        "name": "VCC"
+      },
+      {
+        "ref": "R300",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C301",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C302",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R301",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R304",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R305",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C305",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C306",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R310",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R311",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R312",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R313",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R314",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R316",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C310",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C311",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C320",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C330",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R330",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R331",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R332",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R333",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C340",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R204",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "BAT_PACK_P": [
+      {
+        "ref": "J2",
+        "pin": "1",
+        "name": "PACK+"
+      },
+      {
+        "ref": "U12",
+        "pin": "6",
+        "name": "BAT"
+      },
+      {
+        "ref": "U12",
+        "pin": "8",
+        "name": "SRP"
+      },
+      {
+        "ref": "R19",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C20",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "USB_VBUS_DET": [
+      {
+        "ref": "U3",
+        "pin": "4",
+        "name": "VBUS_DET"
+      },
+      {
+        "ref": "R6",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "CC_DEFAULT_NHIGH": [
+      {
+        "ref": "U3",
+        "pin": "7",
+        "name": "OUT1"
+      },
+      {
+        "ref": "R7",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "U5",
+        "pin": "2",
+        "name": "A"
+      },
+      {
+        "ref": "U6",
+        "pin": "2",
+        "name": "B"
+      }
+    ],
+    "3V3_AON": [
+      {
+        "ref": "U3",
+        "pin": "12",
+        "name": "VDD"
+      },
+      {
+        "ref": "R7",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C4",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "U4",
+        "pin": "5",
+        "name": "OUT"
+      },
+      {
+        "ref": "C6",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "U5",
+        "pin": "5",
+        "name": "VCC"
+      },
+      {
+        "ref": "U6",
+        "pin": "5",
+        "name": "VCC"
+      },
+      {
+        "ref": "U7",
+        "pin": "5",
+        "name": "VCC"
+      },
+      {
+        "ref": "U8",
+        "pin": "5",
+        "name": "VCC"
+      },
+      {
+        "ref": "C7",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C8",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C9",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C10",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "USB_HIGH_CURRENT_OK": [
+      {
+        "ref": "U5",
+        "pin": "4",
+        "name": "Y"
+      },
+      {
+        "ref": "U8",
+        "pin": "2",
+        "name": "B"
+      }
+    ],
+    "USB_ENUM_500": [
+      {
+        "ref": "U6",
+        "pin": "1",
+        "name": "A"
+      },
+      {
+        "ref": "R8",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "U1",
+        "pin": "39",
+        "name": "GPIO1"
+      }
+    ],
+    "USB_DEFAULT_500": [
+      {
+        "ref": "U6",
+        "pin": "4",
+        "name": "Y"
+      },
+      {
+        "ref": "U7",
+        "pin": "2",
+        "name": "B"
+      }
+    ],
+    "USB_SUSPEND": [
+      {
+        "ref": "U7",
+        "pin": "1",
+        "name": "A"
+      },
+      {
+        "ref": "U8",
+        "pin": "1",
+        "name": "A"
+      },
+      {
+        "ref": "R9",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "U1",
+        "pin": "38",
+        "name": "GPIO2"
+      }
+    ],
+    "PWR_BUTTON_N": [
+      {
+        "ref": "U9",
+        "pin": "2",
+        "name": "PB_N"
+      },
+      {
+        "ref": "SW1",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "PWR_KILLT": [
+      {
+        "ref": "U9",
+        "pin": "3",
+        "name": "KILLT"
+      },
+      {
+        "ref": "C13",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "PWR_INT_N": [
+      {
+        "ref": "U9",
+        "pin": "5",
+        "name": "INT_N"
+      },
+      {
+        "ref": "R13",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "U1",
+        "pin": "11",
+        "name": "GPIO18"
+      }
+    ],
+    "SYS_ENABLE": [
+      {
+        "ref": "U9",
+        "pin": "6",
+        "name": "EN"
+      },
+      {
+        "ref": "R12",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "U10",
+        "pin": "3",
+        "name": "ON"
+      }
+    ],
+    "PWR_OFFT": [
+      {
+        "ref": "U9",
+        "pin": "7",
+        "name": "OFFT"
+      },
+      {
+        "ref": "C12",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "POWER_HOLD": [
+      {
+        "ref": "U9",
+        "pin": "8",
+        "name": "KILL"
+      },
+      {
+        "ref": "R14",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "U1",
+        "pin": "23",
+        "name": "GPIO21"
+      }
+    ],
+    "SYS_RAMP_CT": [
+      {
+        "ref": "U10",
+        "pin": "4",
+        "name": "CT"
+      },
+      {
+        "ref": "C15",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "SYS_QOD": [
+      {
+        "ref": "U10",
+        "pin": "5",
+        "name": "QOD"
+      },
+      {
+        "ref": "R15",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "MAIN_RAW": [
+      {
+        "ref": "U10",
+        "pin": "6",
+        "name": "VOUT"
+      },
+      {
+        "ref": "R15",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "U11",
+        "pin": "1",
+        "name": "EN"
+      },
+      {
+        "ref": "U11",
+        "pin": "10",
+        "name": "VIN"
+      },
+      {
+        "ref": "C16",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "U22",
+        "pin": "7",
+        "name": "VDD"
+      },
+      {
+        "ref": "U22",
+        "pin": "8",
+        "name": "VDD"
+      },
+      {
+        "ref": "R208",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C205",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C206",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C207",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "3V3_FB": [
+      {
+        "ref": "U11",
+        "pin": "4",
+        "name": "FB"
+      },
+      {
+        "ref": "R16",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R17",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "3V3_PG": [
+      {
+        "ref": "U11",
+        "pin": "5",
+        "name": "PG"
+      },
+      {
+        "ref": "R18",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "BUCK_L2": [
+      {
+        "ref": "U11",
+        "pin": "7",
+        "name": "L2"
+      },
+      {
+        "ref": "L1",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "BUCK_L1": [
+      {
+        "ref": "U11",
+        "pin": "9",
+        "name": "L1"
+      },
+      {
+        "ref": "L1",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "I2C_SDA": [
+      {
+        "ref": "U12",
+        "pin": "1",
+        "name": "SDA"
+      },
+      {
+        "ref": "R21",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R23",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "U1",
+        "pin": "12",
+        "name": "GPIO8"
+      },
+      {
+        "ref": "U30",
+        "pin": "4",
+        "name": "SDA"
+      },
+      {
+        "ref": "U31",
+        "pin": "7",
+        "name": "SDA"
+      }
+    ],
+    "I2C_SCL": [
+      {
+        "ref": "U12",
+        "pin": "2",
+        "name": "SCL"
+      },
+      {
+        "ref": "R22",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R24",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "U1",
+        "pin": "17",
+        "name": "GPIO9"
+      },
+      {
+        "ref": "U30",
+        "pin": "3",
+        "name": "SCL"
+      },
+      {
+        "ref": "U31",
+        "pin": "6",
+        "name": "SCL"
+      }
+    ],
+    "GAUGE_1V8": [
+      {
+        "ref": "U12",
+        "pin": "5",
+        "name": "VDD"
+      },
+      {
+        "ref": "C21",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "GAUGE_BIN": [
+      {
+        "ref": "U12",
+        "pin": "10",
+        "name": "BIN"
+      },
+      {
+        "ref": "R20",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "GAUGE_INT_N": [
+      {
+        "ref": "U12",
+        "pin": "12",
+        "name": "GPOUT"
+      },
+      {
+        "ref": "R25",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R26",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "ESP_EN": [
+      {
+        "ref": "U1",
+        "pin": "3",
+        "name": "EN"
+      },
+      {
+        "ref": "R300",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C300",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "SW305",
+        "pin": "1",
+        "name": "A"
+      }
+    ],
+    "PDM_CLK": [
+      {
+        "ref": "U1",
+        "pin": "4",
+        "name": "GPIO4"
+      },
+      {
+        "ref": "R203",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "R205",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "PDM_DIN0": [
+      {
+        "ref": "U1",
+        "pin": "5",
+        "name": "GPIO5"
+      },
+      {
+        "ref": "R201",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "R202",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "PDM_DIN1": [
+      {
+        "ref": "U1",
+        "pin": "6",
+        "name": "GPIO6"
+      },
+      {
+        "ref": "R206",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "J4",
+        "pin": "4",
+        "name": "DATA"
+      }
+    ],
+    "BTN_START_N": [
+      {
+        "ref": "U1",
+        "pin": "7",
+        "name": "GPIO7"
+      },
+      {
+        "ref": "R330",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C331",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "SW301",
+        "pin": "1",
+        "name": "A"
+      }
+    ],
+    "I2S1_WS": [
+      {
+        "ref": "U1",
+        "pin": "8",
+        "name": "GPIO15"
+      },
+      {
+        "ref": "R210",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "I2S1_DOUT": [
+      {
+        "ref": "U1",
+        "pin": "9",
+        "name": "GPIO16"
+      },
+      {
+        "ref": "R207",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "AMP_ENABLE": [
+      {
+        "ref": "U1",
+        "pin": "10",
+        "name": "GPIO17"
+      },
+      {
+        "ref": "U22",
+        "pin": "4",
+        "name": "SD_MODE"
+      },
+      {
+        "ref": "R209",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "ESP_USB_DM": [
+      {
+        "ref": "U1",
+        "pin": "13",
+        "name": "GPIO19_USB_D-"
+      },
+      {
+        "ref": "R302",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C303",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "ESP_USB_DP": [
+      {
+        "ref": "U1",
+        "pin": "14",
+        "name": "GPIO20_USB_D+"
+      },
+      {
+        "ref": "R303",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C304",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "LCD_CS_N": [
+      {
+        "ref": "U1",
+        "pin": "18",
+        "name": "GPIO10"
+      },
+      {
+        "ref": "J7",
+        "pin": "4",
+        "name": "CS"
+      },
+      {
+        "ref": "R304",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "LCD_MOSI_MCU": [
+      {
+        "ref": "U1",
+        "pin": "19",
+        "name": "GPIO11"
+      },
+      {
+        "ref": "R307",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "LCD_SCLK_MCU": [
+      {
+        "ref": "U1",
+        "pin": "20",
+        "name": "GPIO12"
+      },
+      {
+        "ref": "R306",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "LCD_BL": [
+      {
+        "ref": "U1",
+        "pin": "21",
+        "name": "GPIO13"
+      },
+      {
+        "ref": "J7",
+        "pin": "1",
+        "name": "BL"
+      }
+    ],
+    "I2S1_BCLK": [
+      {
+        "ref": "U1",
+        "pin": "22",
+        "name": "GPIO14"
+      },
+      {
+        "ref": "R211",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "BOOT_N": [
+      {
+        "ref": "U1",
+        "pin": "27",
+        "name": "GPIO0"
+      },
+      {
+        "ref": "R301",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "SW300",
+        "pin": "1",
+        "name": "A"
+      }
+    ],
+    "SD_CLK_MCU": [
+      {
+        "ref": "U1",
+        "pin": "31",
+        "name": "GPIO38"
+      },
+      {
+        "ref": "R315",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "SD_CMD": [
+      {
+        "ref": "U1",
+        "pin": "32",
+        "name": "GPIO39"
+      },
+      {
+        "ref": "J6",
+        "pin": "3",
+        "name": "CMD"
+      },
+      {
+        "ref": "R310",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "SD_D0": [
+      {
+        "ref": "U1",
+        "pin": "33",
+        "name": "GPIO40"
+      },
+      {
+        "ref": "J6",
+        "pin": "7",
+        "name": "DAT0"
+      },
+      {
+        "ref": "R311",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "SD_CD_N": [
+      {
+        "ref": "U1",
+        "pin": "34",
+        "name": "GPIO41"
+      },
+      {
+        "ref": "J6",
+        "pin": "A",
+        "name": "CARD_DETECT_A"
+      },
+      {
+        "ref": "R316",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C312",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "LCD_RST_N": [
+      {
+        "ref": "U1",
+        "pin": "36",
+        "name": "GPIO44_U0RXD"
+      },
+      {
+        "ref": "J7",
+        "pin": "2",
+        "name": "RST"
+      },
+      {
+        "ref": "R305",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "LCD_DC": [
+      {
+        "ref": "U1",
+        "pin": "37",
+        "name": "GPIO43_U0TXD"
+      },
+      {
+        "ref": "J7",
+        "pin": "3",
+        "name": "DC"
+      }
+    ],
+    "RTC_VBACKUP": [
+      {
+        "ref": "U30",
+        "pin": "6",
+        "name": "VBACKUP"
+      },
+      {
+        "ref": "R320",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C321",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "RTC_EVI": [
+      {
+        "ref": "U30",
+        "pin": "8",
+        "name": "EVI"
+      },
+      {
+        "ref": "R321",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "BTN_STOP_N": [
+      {
+        "ref": "U31",
+        "pin": "2",
+        "name": "P1"
+      },
+      {
+        "ref": "R331",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C332",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "SW302",
+        "pin": "1",
+        "name": "A"
+      }
+    ],
+    "BTN_UP_N": [
+      {
+        "ref": "U31",
+        "pin": "3",
+        "name": "P2"
+      },
+      {
+        "ref": "R332",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C333",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "SW303",
+        "pin": "1",
+        "name": "A"
+      }
+    ],
+    "BTN_DOWN_N": [
+      {
+        "ref": "U31",
+        "pin": "5",
+        "name": "P3"
+      },
+      {
+        "ref": "R333",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C334",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "SW304",
+        "pin": "1",
+        "name": "A"
+      }
+    ],
+    "USB_DP_ISO": [
+      {
+        "ref": "U34",
+        "pin": "1",
+        "name": "1D+"
+      },
+      {
+        "ref": "R303",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "USB_DM_ISO": [
+      {
+        "ref": "U34",
+        "pin": "2",
+        "name": "1D-"
+      },
+      {
+        "ref": "R302",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "USB_UNUSED_DP": [
+      {
+        "ref": "U34",
+        "pin": "3",
+        "name": "2D+"
+      },
+      {
+        "ref": "R341",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "USB_UNUSED_DM": [
+      {
+        "ref": "U34",
+        "pin": "4",
+        "name": "2D-"
+      },
+      {
+        "ref": "R342",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "SD_D2_PU": [
+      {
+        "ref": "J6",
+        "pin": "1",
+        "name": "DAT2"
+      },
+      {
+        "ref": "R313",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "SD_D3_PU": [
+      {
+        "ref": "J6",
+        "pin": "2",
+        "name": "CD_DAT3"
+      },
+      {
+        "ref": "R314",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "SD_CLK": [
+      {
+        "ref": "J6",
+        "pin": "5",
+        "name": "CLK"
+      },
+      {
+        "ref": "R315",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "SD_D1_PU": [
+      {
+        "ref": "J6",
+        "pin": "8",
+        "name": "DAT1"
+      },
+      {
+        "ref": "R312",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "LCD_SCLK": [
+      {
+        "ref": "J7",
+        "pin": "5",
+        "name": "CLK"
+      },
+      {
+        "ref": "R306",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "LCD_MOSI": [
+      {
+        "ref": "J7",
+        "pin": "6",
+        "name": "DIN"
+      },
+      {
+        "ref": "R307",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "MIC_3V3": [
+      {
+        "ref": "U20",
+        "pin": "1",
+        "name": "VDD"
+      },
+      {
+        "ref": "U21",
+        "pin": "1",
+        "name": "VDD"
+      },
+      {
+        "ref": "U21",
+        "pin": "4",
+        "name": "LR"
+      },
+      {
+        "ref": "R204",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "C200",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C201",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C202",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C203",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "C204",
+        "pin": "1",
+        "name": "1"
+      },
+      {
+        "ref": "J4",
+        "pin": "1",
+        "name": "3V3"
+      }
+    ],
+    "PDM_CLK_LOCAL": [
+      {
+        "ref": "U20",
+        "pin": "2",
+        "name": "CLOCK"
+      },
+      {
+        "ref": "U21",
+        "pin": "2",
+        "name": "CLOCK"
+      },
+      {
+        "ref": "R203",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "U20_D": [
+      {
+        "ref": "U20",
+        "pin": "3",
+        "name": "DATA"
+      },
+      {
+        "ref": "R201",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "U21_D": [
+      {
+        "ref": "U21",
+        "pin": "3",
+        "name": "DATA"
+      },
+      {
+        "ref": "R202",
+        "pin": "1",
+        "name": "1"
+      }
+    ],
+    "PDM_CLK_EXT": [
+      {
+        "ref": "R205",
+        "pin": "2",
+        "name": "2"
+      },
+      {
+        "ref": "J4",
+        "pin": "3",
+        "name": "CLK"
+      }
+    ],
+    "I2S1_DOUT_IC": [
+      {
+        "ref": "U22",
+        "pin": "1",
+        "name": "DIN"
+      },
+      {
+        "ref": "R207",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "AMP_GAIN": [
+      {
+        "ref": "U22",
+        "pin": "2",
+        "name": "GAIN_SLOT"
+      },
+      {
+        "ref": "R208",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "SPK_P": [
+      {
+        "ref": "U22",
+        "pin": "9",
+        "name": "OUTP"
+      },
+      {
+        "ref": "J5",
+        "pin": "1",
+        "name": "SPK+"
+      }
+    ],
+    "SPK_N": [
+      {
+        "ref": "U22",
+        "pin": "10",
+        "name": "OUTN"
+      },
+      {
+        "ref": "J5",
+        "pin": "2",
+        "name": "SPK-"
+      }
+    ],
+    "I2S1_WS_IC": [
+      {
+        "ref": "U22",
+        "pin": "14",
+        "name": "LRCLK"
+      },
+      {
+        "ref": "R210",
+        "pin": "2",
+        "name": "2"
+      }
+    ],
+    "I2S1_BCLK_IC": [
+      {
+        "ref": "U22",
+        "pin": "16",
+        "name": "BCLK"
+      },
+      {
+        "ref": "R211",
+        "pin": "2",
+        "name": "2"
+      }
+    ]
+  }
+}

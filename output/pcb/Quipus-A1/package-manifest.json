@@ -1,0 +1,158 @@
+{
+  "status": "engineering review draft; not for fabrication",
+  "pdf": "Quipus-A1-schematic-review.pdf",
+  "files": [
+    {
+      "path": "Quipus-A1/audio-design.md",
+      "sha256": "1fb05a6467367bdd728a072d78a0e2856fbdfe65dcf184bd17c67181e28db620"
+    },
+    {
+      "path": "Quipus-A1/bill-of-materials.csv",
+      "sha256": "4fbf0a5eaf38cc3035b7ed613ff7e06dd38b9fac2a6efa914c1434ec577861a0"
+    },
+    {
+      "path": "Quipus-A1/connections.json",
+      "sha256": "74415393c3c6811b993ffa2a05cc754a056744325cb8a0a0c2d027517445a1da"
+    },
+    {
+      "path": "Quipus-A1/controller-design.md",
+      "sha256": "a2992806bf99eee345fba08af8356cb29fb371ffe8f56ced07fb70f9299f7839"
+    },
+    {
+      "path": "Quipus-A1/legacy-kicad/01_01_usb_charge_1.sch",
+      "sha256": "1f15efa9b513805c22d12cc9b270c0badff7cb25fb64e301631b53e558e1da56"
+    },
+    {
+      "path": "Quipus-A1/legacy-kicad/01_01_usb_charge_2.sch",
+      "sha256": "315e06a90d4801bf680749526557132cc21065495219123e3569517e88df750a"
+    },
+    {
+      "path": "Quipus-A1/legacy-kicad/02_02_power_control_1.sch",
+      "sha256": "0951e0e178cd7643b967e82903cd86cc516e7878e38aaca935a246cb978fc6f2"
+    },
+    {
+      "path": "Quipus-A1/legacy-kicad/03_03_regulator_1.sch",
+      "sha256": "f7dae682f47adb98a795c3efe69c4e386334a84375bb287fcb5cce00ee81ea2e"
+    },
+    {
+      "path": "Quipus-A1/legacy-kicad/04_04_gauge_1.sch",
+      "sha256": "de2a5208cb773857fda962268d505a5179e9c0782b68b63ef04018f604f8aa86"
+    },
+    {
+      "path": "Quipus-A1/legacy-kicad/05_controller_1.sch",
+      "sha256": "c4c70265de9eeeaeaaacf33a0b814ffdae8c6b080ea015abdc0df86473b9ea12"
+    },
+    {
+      "path": "Quipus-A1/legacy-kicad/05_controller_2.sch",
+      "sha256": "fcd95c2df06463e81fc6abb4e6e25a16034689902440395c8de1082ec4be0604"
+    },
+    {
+      "path": "Quipus-A1/legacy-kicad/05_controller_3.sch",
+      "sha256": "db2806680c7f35d771dae713279d157b52699ddcf3f9847b6c5cb30578b4e020"
+    },
+    {
+      "path": "Quipus-A1/legacy-kicad/06_audio_1.sch",
+      "sha256": "11b0a3ed370bdc2836168de28d5d51b8b1fb5229d4061d2adba85fb2814f9fa0"
+    },
+    {
+      "path": "Quipus-A1/legacy-kicad/Quipus-A1-cache.lib",
+      "sha256": "2af71f1f001b3782ef91d07cf44e6d8468a525050b21315f6c6c43969d006813"
+    },
+    {
+      "path": "Quipus-A1/legacy-kicad/Quipus-A1.sch",
+      "sha256": "afbbbf294c08f453415461162454d039bcd7e5845f3e5c2f3af11b1b8dce0ecc"
+    },
+    {
+      "path": "Quipus-A1/legacy-kicad/sym-lib-table",
+      "sha256": "ecc238084feae269f1a793d625f07023823bed6baa074aa52d6daa60f3e4ec33"
+    },
+    {
+      "path": "Quipus-A1/model/board-outline-study.step",
+      "sha256": "d3cc6ceb260bda474648752dcd045a441f59639417643a59d54186f85cba5bf1"
+    },
+    {
+      "path": "Quipus-A1/model/model-manifest.json",
+      "sha256": "903353d919b6d0fedc1b29a6b22e23b4ee4b93b2f46d2bc363a2e487be839ddb"
+    },
+    {
+      "path": "Quipus-A1/model/Quipus-A1-placement-preview.png",
+      "sha256": "6f28bc1057e8a57eed12263500e0e049fda8ebc41c525988f09661071044c626"
+    },
+    {
+      "path": "Quipus-A1/model/Quipus-A1-placement-study.step",
+      "sha256": "be5b8e4a0d227d62dcadb7da7d02b5696e0fa5b3c87def5a0b86166989c82894"
+    },
+    {
+      "path": "Quipus-A1/model/README.md",
+      "sha256": "9c7b78824d8d33d3993cf99783fb2e87717a8a27e72c99d163dfae2954073ff3"
+    },
+    {
+      "path": "Quipus-A1/off-board-assembly-parts.csv",
+      "sha256": "ceb19566aa1503b41c1fe3a204fa22c01d79f07475ebffdcf307f7d931672ded"
+    },
+    {
+      "path": "Quipus-A1/pin-connections.csv",
+      "sha256": "8fff301b9d4b7ed97ebd3625c20b224db4f4a5d93e45877e038fdea97c01b874"
+    },
+    {
+      "path": "Quipus-A1/power-budget.json",
+      "sha256": "9133d5b81a6024dbe0f86a3b41190cd2415ea582b563e369f3a682ef824cc943"
+    },
+    {
+      "path": "Quipus-A1/power-design.md",
+      "sha256": "e419e9d3dd4848200302d2ff2aee157b9482f4a43bf461b2a388da8baa83212a"
+    },
+    {
+      "path": "Quipus-A1/README.md",
+      "sha256": "43d0c637ca64fc305426156b6b66c72dc9e4cbdc7a3608212985165c196c41f4"
+    },
+    {
+      "path": "Quipus-A1/schematics/01_01_usb_charge_1.kicad_sch",
+      "sha256": "c23832c28cfb12dbfc83c24ebe1f5ac218e553633645946a63c142874976bb95"
+    },
+    {
+      "path": "Quipus-A1/schematics/01_01_usb_charge_2.kicad_sch",
+      "sha256": "4469c17f238a4783f8c35bc3b2da2ec6cb2ff14d0caa02acac95a020626efe4b"
+    },
+    {
+      "path": "Quipus-A1/schematics/02_02_power_control_1.kicad_sch",
+      "sha256": "99bdc53ff790e182b73e1edb4eae28270ddbe53e87a39e7cda811a1058c9ed19"
+    },
+    {
+      "path": "Quipus-A1/schematics/03_03_regulator_1.kicad_sch",
+      "sha256": "a51c461fd1460cacceab1819bd506f52d2f6869f6400eb709456d82d2f935d12"
+    },
+    {
+      "path": "Quipus-A1/schematics/04_04_gauge_1.kicad_sch",
+      "sha256": "302068b541014da184b7a7110c9b96aed9ae3f59d57daffc6b268c44a218f934"
+    },
+    {
+      "path": "Quipus-A1/schematics/05_controller_1.kicad_sch",
+      "sha256": "8def116db1d08bd70791d97992c5dd22d8a6494c35edb6e288a539db209226b6"
+    },
+    {
+      "path": "Quipus-A1/schematics/05_controller_2.kicad_sch",
+      "sha256": "8bd19277ad18ea4368b6c4bbb1df0df9cdcede9bdeb8e2214d2d4f7fb225e0d3"
+    },
+    {
+      "path": "Quipus-A1/schematics/05_controller_3.kicad_sch",
+      "sha256": "ddc7acda7e8ea28e9bc377cd15faec33b5168c7b07897f28627cd409a24b1dd5"
+    },
+    {
+      "path": "Quipus-A1/schematics/06_audio_1.kicad_sch",
+      "sha256": "ab7944583ac14e4c591fa85027b07e6f7641a08d18011fd030d1313df2b13953"
+    },
+    {
+      "path": "Quipus-A1/schematics/Quipus-A1.kicad_pro",
+      "sha256": "f91a4ee195dd0d5f708ec4605e86826c594a90daa52f0eb4afd11160bfcd09e3"
+    },
+    {
+      "path": "Quipus-A1/schematics/Quipus-A1.kicad_sch",
+      "sha256": "30c09778ac5ba956a750f7e939667f19909d65884e5fe565de930b14f115c3dc"
+    },
+    {
+      "path": "Quipus-A1/validation.json",
+      "sha256": "3e70a62c6cec43740aaaef105cb13c3738c600a35c85f549604e170a0323ed68"
+    }
+  ]
+}

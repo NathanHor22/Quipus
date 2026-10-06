@@ -1,0 +1,7 @@
+import { notFound } from "next/navigation";
+import { FlowReviewHarness } from "@/components/__flow_review/Harness";
+
+export default function FlowReviewPage() {
+  if (process.env.NODE_ENV !== "development") notFound();
+  return <FlowReviewHarness />;
+}

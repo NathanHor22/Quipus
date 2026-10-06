@@ -1,0 +1,507 @@
+{
+  "status": "pass",
+  "native_component_refs": [
+    "C16",
+    "C17",
+    "C18",
+    "C19",
+    "L1",
+    "R16",
+    "R17",
+    "R18",
+    "U11"
+  ],
+  "components": 9,
+  "wire_count": 26,
+  "pin_count": 26,
+  "net_count": 7,
+  "columns": 1,
+  "sheet": "A3",
+  "usable_bounds": [
+    55.0,
+    -1060.0,
+    1599.0,
+    -210.0
+  ],
+  "translations": [
+    {
+      "refs": [
+        "U11"
+      ],
+      "dx": -245.60566999999998,
+      "dy": 408.85039000000006
+    },
+    {
+      "refs": [
+        "L1"
+      ],
+      "dx": -248.48566999999997,
+      "dy": 396.48031354330715
+    },
+    {
+      "refs": [
+        "R16"
+      ],
+      "dx": -248.48566999999997,
+      "dy": 384.11023307086634
+    },
+    {
+      "refs": [
+        "R17"
+      ],
+      "dx": -251.36567000000002,
+      "dy": 371.7401585826774
+    },
+    {
+      "refs": [
+        "R18"
+      ],
+      "dx": -248.48566999999997,
+      "dy": 359.37008007874056
+    },
+    {
+      "refs": [
+        "C16"
+      ],
+      "dx": -245.60566999999998,
+      "dy": 346.9999975590556
+    },
+    {
+      "refs": [
+        "C17"
+      ],
+      "dx": -248.48566999999997,
+      "dy": 334.6299210236225
+    },
+    {
+      "refs": [
+        "C18"
+      ],
+      "dx": -248.48566999999997,
+      "dy": 322.2598404724415
+    },
+    {
+      "refs": [
+        "C19"
+      ],
+      "dx": -783.9187400000001,
+      "dy": 1133.8267659055125
+    }
+  ],
+  "all_pin_nets_match_source": true,
+  "source_electrical_signature_sha256": "385770f25e4b165d52dad241fd3b846982809a11e1a93c92f829abec40c30036",
+  "component_unique_ids": {
+    "U11": "2fd166bdb6936536",
+    "L1": "d450ceac7adb81c3",
+    "R16": "3c543c7c58e1cc80",
+    "R17": "6346d187b4e0bc9c",
+    "R18": "5f673669f0d56d8f",
+    "C16": "c8e923f96b539988",
+    "C17": "48700c84863a802e",
+    "C18": "d9d0285421fe3ef0",
+    "C19": "9b75bd895f0e39d2"
+  },
+  "pins": [
+    {
+      "ref": "U11",
+      "number": "1",
+      "x": 104.03999929133863,
+      "y": -1019.3779564566928,
+      "expected_net": "MAIN_RAW",
+      "actual_page_wire_nets": [
+        "MAIN_RAW"
+      ],
+      "wire_ids": [
+        "197a6defc8b2cc84"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U11",
+      "number": "2",
+      "x": 104.03999929133863,
+      "y": -1009.3779564566928,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "ed8351a6b355fb7b"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U11",
+      "number": "3",
+      "x": 104.03999929133863,
+      "y": -999.3779564566928,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "602349a3d3c8e777"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U11",
+      "number": "4",
+      "x": 104.03999929133863,
+      "y": -989.3779564566928,
+      "expected_net": "3V3_FB",
+      "actual_page_wire_nets": [
+        "3V3_FB"
+      ],
+      "wire_ids": [
+        "341166a886d60a34"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U11",
+      "number": "5",
+      "x": 104.03999929133863,
+      "y": -979.3779564566928,
+      "expected_net": "3V3_PG",
+      "actual_page_wire_nets": [
+        "3V3_PG"
+      ],
+      "wire_ids": [
+        "36a589af1f7d608b"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U11",
+      "number": "6",
+      "x": 104.03999929133863,
+      "y": -969.3779564566928,
+      "expected_net": "3V3_SYS",
+      "actual_page_wire_nets": [
+        "3V3_SYS"
+      ],
+      "wire_ids": [
+        "e608e523df43c3ed"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U11",
+      "number": "7",
+      "x": 104.03999929133863,
+      "y": -959.3779564566928,
+      "expected_net": "BUCK_L2",
+      "actual_page_wire_nets": [
+        "BUCK_L2"
+      ],
+      "wire_ids": [
+        "8bee982c4b2660eb"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U11",
+      "number": "8",
+      "x": 104.03999929133863,
+      "y": -949.3779564566928,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "6cfcc1457de504d3"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U11",
+      "number": "9",
+      "x": 104.03999929133863,
+      "y": -939.3779564566928,
+      "expected_net": "BUCK_L1",
+      "actual_page_wire_nets": [
+        "BUCK_L1"
+      ],
+      "wire_ids": [
+        "59a7b9ecc063a819"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "U11",
+      "number": "10",
+      "x": 104.03999929133863,
+      "y": -929.3779564566928,
+      "expected_net": "MAIN_RAW",
+      "actual_page_wire_nets": [
+        "MAIN_RAW"
+      ],
+      "wire_ids": [
+        "ac9c9a3625d72838"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "L1",
+      "number": "1",
+      "x": 101.15999929133864,
+      "y": -858.7559069291337,
+      "expected_net": "BUCK_L1",
+      "actual_page_wire_nets": [
+        "BUCK_L1"
+      ],
+      "wire_ids": [
+        "d9be00ba714c6fca"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "L1",
+      "number": "2",
+      "x": 101.15999929133864,
+      "y": -848.7559069291337,
+      "expected_net": "BUCK_L2",
+      "actual_page_wire_nets": [
+        "BUCK_L2"
+      ],
+      "wire_ids": [
+        "04ebe8472a899e92"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R16",
+      "number": "1",
+      "x": 101.15999929133864,
+      "y": -778.1338614173226,
+      "expected_net": "3V3_SYS",
+      "actual_page_wire_nets": [
+        "3V3_SYS"
+      ],
+      "wire_ids": [
+        "e07d4c139d79b841"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R16",
+      "number": "2",
+      "x": 101.15999929133864,
+      "y": -768.1338614173226,
+      "expected_net": "3V3_FB",
+      "actual_page_wire_nets": [
+        "3V3_FB"
+      ],
+      "wire_ids": [
+        "477c2af26e9f1ad6"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R17",
+      "number": "1",
+      "x": 98.27999929133858,
+      "y": -697.5118099212596,
+      "expected_net": "3V3_FB",
+      "actual_page_wire_nets": [
+        "3V3_FB"
+      ],
+      "wire_ids": [
+        "3b46c6d76ab69636"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R17",
+      "number": "2",
+      "x": 98.27999929133858,
+      "y": -687.5118099212596,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "f32adf8f6ef5aff3"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R18",
+      "number": "1",
+      "x": 101.15999929133864,
+      "y": -616.8897624409444,
+      "expected_net": "3V3_PG",
+      "actual_page_wire_nets": [
+        "3V3_PG"
+      ],
+      "wire_ids": [
+        "668e5e7e4b56e2af"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R18",
+      "number": "2",
+      "x": 101.15999929133864,
+      "y": -606.8897624409444,
+      "expected_net": "3V3_SYS",
+      "actual_page_wire_nets": [
+        "3V3_SYS"
+      ],
+      "wire_ids": [
+        "cb4ca7e523fc3dd5"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C16",
+      "number": "1",
+      "x": 104.03999929133863,
+      "y": -536.2677189763774,
+      "expected_net": "MAIN_RAW",
+      "actual_page_wire_nets": [
+        "MAIN_RAW"
+      ],
+      "wire_ids": [
+        "a2f695c4db64cf3c"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C16",
+      "number": "2",
+      "x": 104.03999929133863,
+      "y": -526.2677189763774,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "d528a0ad0f2626a4"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C17",
+      "number": "1",
+      "x": 101.15999929133864,
+      "y": -455.64566952755854,
+      "expected_net": "3V3_SYS",
+      "actual_page_wire_nets": [
+        "3V3_SYS"
+      ],
+      "wire_ids": [
+        "590f9f40dbc10207"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C17",
+      "number": "2",
+      "x": 101.15999929133864,
+      "y": -445.64566952755854,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "48e5146291bd1dc3"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C18",
+      "number": "1",
+      "x": 101.15999929133864,
+      "y": -375.02362409448756,
+      "expected_net": "3V3_SYS",
+      "actual_page_wire_nets": [
+        "3V3_SYS"
+      ],
+      "wire_ids": [
+        "79ce205c977e666f"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C18",
+      "number": "2",
+      "x": 101.15999929133864,
+      "y": -365.02362409448756,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "9824fed4eddc8bb7"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C19",
+      "number": "1",
+      "x": 101.16000015748023,
+      "y": -294.40158055118036,
+      "expected_net": "3V3_SYS",
+      "actual_page_wire_nets": [
+        "3V3_SYS"
+      ],
+      "wire_ids": [
+        "7e90beccf87772a3"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C19",
+      "number": "2",
+      "x": 101.16000015748023,
+      "y": -284.40158055118036,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "59ea587a718d19a7"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    }
+  ],
+  "errors": [],
+  "limitations": [
+    "Pin locations are reconstructed from imported KiCad symbol geometry; native library PIN records were not captured.",
+    "Native project export must independently verify all 144 refs, 92 nets and 471 pins after all pages are moved.",
+    "Unrouted engineering draft; no native ERC, DRC or fabrication approval."
+  ],
+  "imported_non_electrical_frame_replaced": false,
+  "source_file": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-a\\easyeda\\native\\04-regulator-before.esource",
+  "output_file": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-a\\easyeda\\native\\04-regulator-neat.esource",
+  "source_sha256": "f099021c2451c7a592fc1ac1bed82ec9838d30bd50c7e7a2fe69bacfa6f3bccc",
+  "output_sha256": "439d56a1f656762082e408480df767bb6acc4947e2c67131e8aa977be1c6eee5"
+}

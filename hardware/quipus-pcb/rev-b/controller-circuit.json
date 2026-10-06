@@ -1,0 +1,1536 @@
+{
+  "title": "Quipus Rev B controller, timekeeper, controls, storage and display circuit",
+  "revision": "B1 review draft",
+  "date": "2026-10-02",
+  "status": "For engineering review; not fabrication release",
+  "sources": {
+    "esp": "https://documentation.espressif.com/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf",
+    "design": "https://docs.espressif.com/projects/esp-hardware-design-guidelines/en/latest/esp32s3/schematic-checklist.html",
+    "sd": "https://www.hirose.com/product/download/?distributor=chip1&lang=en&num=DM3AT-SF-PEJM5&type=2d",
+    "sd_pull": "https://docs.espressif.com/projects/esp-idf/en/v5.2.3/esp32s3/api-reference/peripherals/sd_pullup_requirements.html",
+    "lcd": "https://files.waveshare.com/upload/0/0c/1.3inch_LCD_Module_Schematic.pdf",
+    "lcd_product": "https://www.waveshare.com/1.3inch-lcd-module.htm",
+    "rtc": "https://www.microcrystal.com/fileadmin/Media/Products/RTC/App.Manual/RV-3028-C7_App-Manual.pdf",
+    "io": "https://www.ti.com/lit/ds/symlink/pca9536.pdf",
+    "usb_switch": "https://www.ti.com/lit/ds/symlink/ts3usb221a.pdf",
+    "usb_esd": "https://www.ti.com/lit/ds/symlink/tpd2eusb30.pdf",
+    "buttons": "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf",
+    "i2s": "https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/api-reference/peripherals/i2s.html",
+    "audio_adc": "https://www.ti.com/lit/ds/symlink/tlv320adc5140.pdf"
+  },
+  "interfaces": {
+    "power": [
+      "3V3",
+      "GND",
+      "BAT_P",
+      "POWER_HOLD",
+      "PWR_INT_N",
+      "CHARGING_N",
+      "USB_PGOOD_N",
+      "USB_ENUM_500",
+      "USB_SUSPEND",
+      "USB_DM",
+      "USB_DP",
+      "I2C_SDA",
+      "I2C_SCL"
+    ],
+    "audio": [
+      "AUD_BCLK",
+      "AUD_FSYNC",
+      "AUD_SDOUT",
+      "ADC_SHDN_N",
+      "I2C_SDA",
+      "I2C_SCL",
+      "I2S1_BCLK",
+      "I2S1_WS",
+      "I2S1_DOUT",
+      "AMP_ENABLE"
+    ]
+  },
+  "gpio_budget": {
+    "module_gpio_count": 36,
+    "reserved_psram": 3,
+    "reserved_straps": 4,
+    "native_usb": 2,
+    "remaining_general": 27,
+    "used_general": 27,
+    "spare_general": [],
+    "note": "Straps include dedicated BOOT GPIO0. GPIO3/45/46 unused. All 27 available general GPIO are allocated after GPIO42 becomes ADC_SHDN_N. Expander frees three GPIO; USB negotiation consumes two. Start/Enter uses RTC-capable GPIO7 for sleep wake. No off-board PDM input on this revision."
+  },
+  "unresolved": [
+    "Manufacturer socket A/B/shell pad mapping must be replicated, not assumed from generic footprint.",
+    "LCD wiring harness must be checked against Waveshare J2; header J1 has reversed numbering.",
+    "Buttons and case actuator dimensions not mechanically approved.",
+    "Transient/USB/I2C timing and powered-off leakage require bench validation.",
+    "Battery-backed RTC requires initial EEPROM configuration and time synchronization; no independent backup cell.",
+    "No assembled prototype or electrical rule check from final CAD has yet validated this draft.",
+    "ADC-to-ESP32 TDM slot order, edge polarity, 32-bit sample alignment and four-channel WAV format need an actual bench recording.",
+    "All general GPIO are now allocated; new USB-host microphone or other functionality needs a fresh pin/resource review.",
+    "ADC adds I2C capacitance and audio load. Validate bus rise time and revise measured power budget before release."
+  ],
+  "components": [
+    {
+      "ref": "U1",
+      "value": "ESP32-S3-WROOM-1-N16R8",
+      "package": "Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41",
+      "pins": [
+        {
+          "number": "1",
+          "name": "GND",
+          "net": "GND"
+        },
+        {
+          "number": "2",
+          "name": "3V3",
+          "net": "3V3"
+        },
+        {
+          "number": "3",
+          "name": "EN",
+          "net": "ESP_EN"
+        },
+        {
+          "number": "4",
+          "name": "GPIO4",
+          "net": "AUD_BCLK",
+          "electrical_type": "output"
+        },
+        {
+          "number": "5",
+          "name": "GPIO5",
+          "net": "AUD_FSYNC",
+          "electrical_type": "output"
+        },
+        {
+          "number": "6",
+          "name": "GPIO6",
+          "net": "AUD_SDOUT",
+          "electrical_type": "input"
+        },
+        {
+          "number": "7",
+          "name": "GPIO7",
+          "net": "BTN_START_N"
+        },
+        {
+          "number": "8",
+          "name": "GPIO15",
+          "net": "I2S1_WS"
+        },
+        {
+          "number": "9",
+          "name": "GPIO16",
+          "net": "I2S1_DOUT"
+        },
+        {
+          "number": "10",
+          "name": "GPIO17",
+          "net": "AMP_ENABLE"
+        },
+        {
+          "number": "11",
+          "name": "GPIO18",
+          "net": "PWR_INT_N"
+        },
+        {
+          "number": "12",
+          "name": "GPIO8",
+          "net": "I2C_SDA"
+        },
+        {
+          "number": "13",
+          "name": "GPIO19_USB_D-",
+          "net": "ESP_USB_DM"
+        },
+        {
+          "number": "14",
+          "name": "GPIO20_USB_D+",
+          "net": "ESP_USB_DP"
+        },
+        {
+          "number": "15",
+          "name": "GPIO3",
+          "net": null
+        },
+        {
+          "number": "16",
+          "name": "GPIO46",
+          "net": null
+        },
+        {
+          "number": "17",
+          "name": "GPIO9",
+          "net": "I2C_SCL"
+        },
+        {
+          "number": "18",
+          "name": "GPIO10",
+          "net": "LCD_CS_N"
+        },
+        {
+          "number": "19",
+          "name": "GPIO11",
+          "net": "LCD_MOSI_MCU"
+        },
+        {
+          "number": "20",
+          "name": "GPIO12",
+          "net": "LCD_SCLK_MCU"
+        },
+        {
+          "number": "21",
+          "name": "GPIO13",
+          "net": "LCD_BL"
+        },
+        {
+          "number": "22",
+          "name": "GPIO14",
+          "net": "I2S1_BCLK"
+        },
+        {
+          "number": "23",
+          "name": "GPIO21",
+          "net": "POWER_HOLD"
+        },
+        {
+          "number": "24",
+          "name": "GPIO47",
+          "net": "CHARGING_N"
+        },
+        {
+          "number": "25",
+          "name": "GPIO48",
+          "net": "USB_PGOOD_N"
+        },
+        {
+          "number": "26",
+          "name": "GPIO45",
+          "net": null
+        },
+        {
+          "number": "27",
+          "name": "GPIO0",
+          "net": "BOOT_N"
+        },
+        {
+          "number": "28",
+          "name": "GPIO35_PSRAM",
+          "net": null
+        },
+        {
+          "number": "29",
+          "name": "GPIO36_PSRAM",
+          "net": null
+        },
+        {
+          "number": "30",
+          "name": "GPIO37_PSRAM",
+          "net": null
+        },
+        {
+          "number": "31",
+          "name": "GPIO38",
+          "net": "SD_CLK_MCU"
+        },
+        {
+          "number": "32",
+          "name": "GPIO39",
+          "net": "SD_CMD"
+        },
+        {
+          "number": "33",
+          "name": "GPIO40",
+          "net": "SD_D0"
+        },
+        {
+          "number": "34",
+          "name": "GPIO41",
+          "net": "SD_CD_N"
+        },
+        {
+          "number": "35",
+          "name": "GPIO42",
+          "net": "ADC_SHDN_N",
+          "electrical_type": "output"
+        },
+        {
+          "number": "36",
+          "name": "GPIO44_U0RXD",
+          "net": "LCD_RST_N"
+        },
+        {
+          "number": "37",
+          "name": "GPIO43_U0TXD",
+          "net": "LCD_DC"
+        },
+        {
+          "number": "38",
+          "name": "GPIO2",
+          "net": "USB_SUSPEND"
+        },
+        {
+          "number": "39",
+          "name": "GPIO1",
+          "net": "USB_ENUM_500"
+        },
+        {
+          "number": "40",
+          "name": "GND",
+          "net": "GND"
+        },
+        {
+          "number": "41",
+          "name": "GND_EP",
+          "net": "GND"
+        }
+      ],
+      "notes": "Exact N16R8 ordering code only. GPIO35-37 are reserved for internal Octal PSRAM; leave disconnected. GPIO3/45/46 left unused. GPIO4/5 are I2S0 master TDM clocks, GPIO6 captures ADC output and GPIO42 controls ADC shutdown; GPIO7 is Start/Enter and RTC-domain wake input. GPIO43 is UART0 TX at ROM boot: LCD_CS_N external pull-up prevents interpreting ROM transitions. Native USB is the service interface; LCD uses SPI2_HOST, not the flash SPI1 bus. GPIO47/48 are valid 3.3V for N16R8; do not silently substitute N16R16VA.",
+      "source": "https://documentation.espressif.com/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf"
+    },
+    {
+      "ref": "U30",
+      "value": "RV-3028-C7-TA-QC",
+      "package": "Micro Crystal C7 3.2x1.5x0.8mm",
+      "pins": [
+        {
+          "number": "1",
+          "name": "CLKOUT",
+          "net": null
+        },
+        {
+          "number": "2",
+          "name": "INT_N",
+          "net": null
+        },
+        {
+          "number": "3",
+          "name": "SCL",
+          "net": "I2C_SCL"
+        },
+        {
+          "number": "4",
+          "name": "SDA",
+          "net": "I2C_SDA"
+        },
+        {
+          "number": "5",
+          "name": "VSS",
+          "net": "GND"
+        },
+        {
+          "number": "6",
+          "name": "VBACKUP",
+          "net": "RTC_VBACKUP"
+        },
+        {
+          "number": "7",
+          "name": "VDD",
+          "net": "3V3"
+        },
+        {
+          "number": "8",
+          "name": "EVI",
+          "net": "RTC_EVI"
+        }
+      ],
+      "notes": "I2C address 0x52. Factory-program EEPROM backup BSM=11 (LSM), TCE=0 and disable CLKOUT. Backup switchover is disabled on new parts; unconfigured part does not preserve time after main rail off. Backup uses protected BAT_P; no time guarantee if LiPo removed or protection trips. I2C pull-ups reside on switched 3V3 power sheet.",
+      "source": "https://www.microcrystal.com/fileadmin/Media/Products/RTC/App.Manual/RV-3028-C7_App-Manual.pdf"
+    },
+    {
+      "ref": "U31",
+      "value": "PCA9536DR",
+      "package": "TI D SOIC-8 4.9x3.91mm, 1.27mm pitch",
+      "pins": [
+        {
+          "number": "1",
+          "name": "P0",
+          "net": null
+        },
+        {
+          "number": "2",
+          "name": "P1",
+          "net": "BTN_STOP_N"
+        },
+        {
+          "number": "3",
+          "name": "P2",
+          "net": "BTN_UP_N"
+        },
+        {
+          "number": "4",
+          "name": "GND",
+          "net": "GND"
+        },
+        {
+          "number": "5",
+          "name": "P3",
+          "net": "BTN_DOWN_N"
+        },
+        {
+          "number": "6",
+          "name": "SCL",
+          "net": "I2C_SCL"
+        },
+        {
+          "number": "7",
+          "name": "SDA",
+          "net": "I2C_SDA"
+        },
+        {
+          "number": "8",
+          "name": "VCC",
+          "net": "3V3"
+        }
+      ],
+      "notes": "I2C address 0x41. Stop/Back, Up and Down only; Start/Enter connects directly to RTC GPIO7. P0 is unused and held high by the expander internal weak pull-up; configure as input and mask out its reading. Configure 0x03=0x0F explicitly; input register 0x00; active-low switches. Poll approximately 10ms while UI is active, 20ms debounce; stop polling in deep sleep and use direct Start button to wake. Powered off with ESP. Hardware power/BOOT/RESET bypass expander.",
+      "source": "https://www.ti.com/lit/ds/symlink/pca9536.pdf"
+    },
+    {
+      "ref": "U34",
+      "value": "TS3USB221ARSER",
+      "package": "TI RSE UQFN-10 2.0x1.5mm",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1D+",
+          "net": "USB_DP_ISO"
+        },
+        {
+          "number": "2",
+          "name": "1D-",
+          "net": "USB_DM_ISO"
+        },
+        {
+          "number": "3",
+          "name": "2D+",
+          "net": "USB_UNUSED_DP"
+        },
+        {
+          "number": "4",
+          "name": "2D-",
+          "net": "USB_UNUSED_DM"
+        },
+        {
+          "number": "5",
+          "name": "GND",
+          "net": "GND"
+        },
+        {
+          "number": "6",
+          "name": "OE_N",
+          "net": "GND"
+        },
+        {
+          "number": "7",
+          "name": "D-",
+          "net": "USB_DM"
+        },
+        {
+          "number": "8",
+          "name": "D+",
+          "net": "USB_DP"
+        },
+        {
+          "number": "9",
+          "name": "S",
+          "net": "GND"
+        },
+        {
+          "number": "10",
+          "name": "VCC",
+          "net": "3V3"
+        }
+      ],
+      "notes": "Power-off-protected USB data switch. S=0/OE_N=0 selects port1 only while powered. Main-off VCC=0 has specified Ioff <=2uA per I/O (not zero). D+/D- remain isolated from unpowered ESP when USB charging remains active. Fit unused-port 49.9ohm terminations per manufacturer recommendation. Validate full-speed eye/edge waveform after adding switch plus series damping.",
+      "source": "https://www.ti.com/lit/ds/symlink/ts3usb221a.pdf"
+    },
+    {
+      "ref": "U35",
+      "value": "TPD2EUSB30DRTR",
+      "package": "TI DRT SOT-3 1.0x0.8mm, 0.50mm maximum height",
+      "pins": [
+        {
+          "number": "1",
+          "name": "D+",
+          "net": "USB_DP"
+        },
+        {
+          "number": "2",
+          "name": "D-",
+          "net": "USB_DM"
+        },
+        {
+          "number": "3",
+          "name": "GND",
+          "net": "GND"
+        }
+      ],
+      "notes": "USB ESD array placed immediately beside USB-C connector, before isolation switch. No supply pin and no diode injection into switched 3V3 rail. Power sheet owns VBUS and CC protection. Ground return short to ground plane.",
+      "source": "https://www.ti.com/lit/ds/symlink/tpd2eusb30.pdf"
+    },
+    {
+      "ref": "J6",
+      "value": "DM3AT-SF-PEJM5",
+      "package": "Hirose DM3AT push-push microSD top mount",
+      "pins": [
+        {
+          "number": "1",
+          "name": "DAT2",
+          "net": "SD_D2_PU"
+        },
+        {
+          "number": "2",
+          "name": "CD_DAT3",
+          "net": "SD_D3_PU"
+        },
+        {
+          "number": "3",
+          "name": "CMD",
+          "net": "SD_CMD"
+        },
+        {
+          "number": "4",
+          "name": "VDD",
+          "net": "3V3"
+        },
+        {
+          "number": "5",
+          "name": "CLK",
+          "net": "SD_CLK"
+        },
+        {
+          "number": "6",
+          "name": "VSS",
+          "net": "GND"
+        },
+        {
+          "number": "7",
+          "name": "DAT0",
+          "net": "SD_D0"
+        },
+        {
+          "number": "8",
+          "name": "DAT1",
+          "net": "SD_D1_PU"
+        },
+        {
+          "number": "A",
+          "name": "CARD_DETECT_A",
+          "net": "SD_CD_N"
+        },
+        {
+          "number": "B",
+          "name": "CARD_DETECT_B",
+          "net": "GND"
+        },
+        {
+          "number": "SH",
+          "name": "SHIELD",
+          "net": "GND"
+        }
+      ],
+      "notes": "Native 1-bit SDMMC. DAT1/2/3 have 10k pull-ups even though not routed to ESP. Hirose drawing names separate detect contacts A/B, not 9/10; CAD footprint must map those named pads explicitly. Symbol SH represents all shell solder stakes; do not short detect-A to shell through a generic footprint. Detect closes A-B with card inserted. Enclosure must allow ejection travel.",
+      "source": "https://www.hirose.com/product/download/?distributor=chip1&lang=en&num=DM3AT-SF-PEJM5&type=2d"
+    },
+    {
+      "ref": "J7",
+      "value": "B8B-PH-K-S(LF)(SN)",
+      "package": "JST PH 8-position 2.0mm vertical through-hole",
+      "pins": [
+        {
+          "number": "1",
+          "name": "BL",
+          "net": "LCD_BL"
+        },
+        {
+          "number": "2",
+          "name": "RST",
+          "net": "LCD_RST_N"
+        },
+        {
+          "number": "3",
+          "name": "DC",
+          "net": "LCD_DC"
+        },
+        {
+          "number": "4",
+          "name": "CS",
+          "net": "LCD_CS_N"
+        },
+        {
+          "number": "5",
+          "name": "CLK",
+          "net": "LCD_SCLK"
+        },
+        {
+          "number": "6",
+          "name": "DIN",
+          "net": "LCD_MOSI"
+        },
+        {
+          "number": "7",
+          "name": "GND",
+          "net": "GND"
+        },
+        {
+          "number": "8",
+          "name": "VCC",
+          "net": "3V3"
+        }
+      ],
+      "notes": "Custom Quipus connector numbering matches Waveshare SKU15867 MODULE J2 PH2.0, not its reversed J1 header. Vendor schematic J2:1BL,2RST,3DC,4CS,5SCK,6DIN,7GND,8VCC. Match signals by continuity, do not assume supplied cable colors/orientation. External module 45x31mm includes ST7789 240x240 and NPN backlight driver; no direct LED-current drive from GPIO.",
+      "source": "https://files.waveshare.com/upload/0/0c/1.3inch_LCD_Module_Schematic.pdf"
+    },
+    {
+      "ref": "R300",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "ESP_EN"
+        }
+      ],
+      "notes": "Power-up RC pull-up; short EN trace.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C300",
+      "value": "1uF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ESP_EN"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "10ms nominal RC; verify regulator startup and brownout recovery.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C301",
+      "value": "10uF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "ESP module local bulk; effective capacitance under DC bias matters.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C302",
+      "value": "100nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "ESP module pin2 local bypass.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R301",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "BOOT_N"
+        }
+      ],
+      "notes": "External boot strap pull-up. No capacitor on BOOT_N.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R302",
+      "value": "22ohm",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "USB_DM_ISO"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "ESP_USB_DM"
+        }
+      ],
+      "notes": "Near module; initial damping value. Tune from waveform.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R303",
+      "value": "22ohm",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "USB_DP_ISO"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "ESP_USB_DP"
+        }
+      ],
+      "notes": "Near module; match R302.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C303",
+      "value": "DNP / C0G tuning footprint",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ESP_USB_DM"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "Leave unpopulated; no guessed capacitance.",
+      "source": "engineering selection; validate during prototype",
+      "populate": false
+    },
+    {
+      "ref": "C304",
+      "value": "DNP / C0G tuning footprint",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "ESP_USB_DP"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "Leave unpopulated; no guessed capacitance.",
+      "source": "engineering selection; validate during prototype",
+      "populate": false
+    },
+    {
+      "ref": "R304",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "LCD_CS_N"
+        }
+      ],
+      "notes": "Holds display unselected during ROM serial TX on GPIO43.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R305",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "LCD_RST_N"
+        }
+      ],
+      "notes": "Deasserted default; firmware drives low reset pulse before initialization.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R306",
+      "value": "33ohm",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "LCD_SCLK_MCU"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "LCD_SCLK"
+        }
+      ],
+      "notes": "Source damping; initialize SPI2 at conservative clock for cable.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R307",
+      "value": "33ohm",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "LCD_MOSI_MCU"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "LCD_MOSI"
+        }
+      ],
+      "notes": "Source damping.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C305",
+      "value": "10uF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "At J7 display connector.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C306",
+      "value": "100nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "At J7.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R310",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SD_CMD"
+        }
+      ],
+      "notes": "SD external pull-up, including unused data contacts.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R311",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SD_D0"
+        }
+      ],
+      "notes": "SD external pull-up, including unused data contacts.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R312",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SD_D1_PU"
+        }
+      ],
+      "notes": "SD external pull-up, including unused data contacts.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R313",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SD_D2_PU"
+        }
+      ],
+      "notes": "SD external pull-up, including unused data contacts.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R314",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SD_D3_PU"
+        }
+      ],
+      "notes": "SD external pull-up, including unused data contacts.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R315",
+      "value": "22ohm",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SD_CLK_MCU"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SD_CLK"
+        }
+      ],
+      "notes": "At ESP source; SDMMC initialize400kHz, validate20MHz1bit before40MHz.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R316",
+      "value": "100k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "SD_CD_N"
+        }
+      ],
+      "notes": "Card detector only; card inserted closes switch to GND.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C310",
+      "value": "10uF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "At SD socket power contacts.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C311",
+      "value": "100nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "At SD socket.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C312",
+      "value": "10nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SD_CD_N"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "1ms nominal CD RC; debounce and unmount in firmware.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R320",
+      "value": "330ohm",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BAT_P"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "RTC_VBACKUP"
+        }
+      ],
+      "notes": "Protect RTC backup supply; NOT raw unprotected cell; RTC trickle disabled.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R321",
+      "value": "10k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "RTC_EVI"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "Never float EVI. External-event feature disabled.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C320",
+      "value": "100nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "At RV3028 VDD.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C321",
+      "value": "100nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "RTC_VBACKUP"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "At RV3028 backup pin.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C330",
+      "value": "100nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "At PCA9536 VCC.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R330",
+      "value": "47k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "BTN_START_N"
+        }
+      ],
+      "notes": "External pull-up for direct GPIO7 Start/Enter wake input; remains defined during deep sleep.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C331",
+      "value": "10nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BTN_START_N"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "Noise filter; software debounce remains required.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R331",
+      "value": "47k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "BTN_STOP_N"
+        }
+      ],
+      "notes": "External pull-up supplements expander weak pull-up.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C332",
+      "value": "10nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BTN_STOP_N"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "Noise filter; software debounce remains required.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R332",
+      "value": "47k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "BTN_UP_N"
+        }
+      ],
+      "notes": "External pull-up supplements expander weak pull-up.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C333",
+      "value": "10nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BTN_UP_N"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "Noise filter; software debounce remains required.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R333",
+      "value": "47k",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "BTN_DOWN_N"
+        }
+      ],
+      "notes": "External pull-up supplements expander weak pull-up.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C334",
+      "value": "10nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "BTN_DOWN_N"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "Noise filter; software debounce remains required.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "C340",
+      "value": "100nF",
+      "package": "0603 metric1608 X7R (except marked C0G), 10V minimum",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "At TS3USB221A VCC.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R341",
+      "value": "49.9ohm",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "USB_UNUSED_DP"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "Unused USB switch port termination per TI guidance.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "R342",
+      "value": "49.9ohm",
+      "package": "0603 metric1608, 1%, 0.1W",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "USB_UNUSED_DM"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND"
+        }
+      ],
+      "notes": "Unused USB switch port termination per TI guidance.",
+      "source": "engineering selection; validate during prototype",
+      "populate": true
+    },
+    {
+      "ref": "SW300",
+      "value": "B3U-1000P",
+      "package": "Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "BOOT_N"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "GND"
+        }
+      ],
+      "notes": "BOOT; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.",
+      "source": "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf"
+    },
+    {
+      "ref": "SW301",
+      "value": "B3U-1000P",
+      "package": "Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "BTN_START_N"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "GND"
+        }
+      ],
+      "notes": "START_ENTER; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.",
+      "source": "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf"
+    },
+    {
+      "ref": "SW302",
+      "value": "B3U-1000P",
+      "package": "Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "BTN_STOP_N"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "GND"
+        }
+      ],
+      "notes": "STOP_BACK; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.",
+      "source": "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf"
+    },
+    {
+      "ref": "SW303",
+      "value": "B3U-1000P",
+      "package": "Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "BTN_UP_N"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "GND"
+        }
+      ],
+      "notes": "UP; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.",
+      "source": "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf"
+    },
+    {
+      "ref": "SW304",
+      "value": "B3U-1000P",
+      "package": "Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "BTN_DOWN_N"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "GND"
+        }
+      ],
+      "notes": "DOWN; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.",
+      "source": "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf"
+    },
+    {
+      "ref": "SW305",
+      "value": "B3U-1000P",
+      "package": "Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",
+      "pins": [
+        {
+          "number": "1",
+          "name": "A",
+          "net": "ESP_EN"
+        },
+        {
+          "number": "2",
+          "name": "B",
+          "net": "GND"
+        }
+      ],
+      "notes": "RESET; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.",
+      "source": "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf"
+    }
+  ],
+  "capture_config": {
+    "status": "proposed; bench validation and firmware implementation required",
+    "receiver": "ESP32-S3 I2S0 master RX in TDM mode",
+    "adc": "TLV320ADC5140 U23, slave, PLL reference BCLK",
+    "sample_rate_hz": 16000,
+    "slots": 4,
+    "slot_width_bits": 32,
+    "bclk_hz": 2048000,
+    "fsync_hz": 16000,
+    "dma_bytes_per_second": 256000,
+    "stored_pcm_bits": 16,
+    "stored_channels": 4,
+    "stored_bytes_per_second": 128000,
+    "stored_MB_per_minute_decimal": 7.68,
+    "i2c_address_hex": "0x4C",
+    "note": "Preserve four separately identified channels. Clock and frame polarity, bit offset, slots and 32-bit container alignment must match the ADC registers. No direct PDM peripheral capture or external MCLK in this GPIO plan."
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "base": "http://127.0.0.1:3007",
+  "checks": [
+    {
+      "name": "Calendar first, optional skip, account-scoped resume",
+      "pass": true,
+      "result": {
+        "calendarOptional": true,
+        "unknownHonest": true,
+        "resumeAccountScoped": true
+      }
+    },
+    {
+      "name": "Four pairing stages explain same phone/laptop and wait for actual contact",
+      "pass": true,
+      "result": {
+        "stages": 4
+      }
+    },
+    {
+      "name": "Unexpired pairing code/step resume and stay account scoped",
+      "pass": true
+    },
+    {
+      "name": "Expiry clears stored secret and permits a new code",
+      "pass": true,
+      "result": {
+        "codes": 3
+      }
+    },
+    {
+      "name": "Failed connection check recovers to actual mocked device contact",
+      "pass": true
+    },
+    {
+      "name": "Stale heartbeat never displays old online flag as a live connection",
+      "pass": true
+    },
+    {
+      "name": "Revoke opens review; Cancel and Escape submit no API request",
+      "pass": true,
+      "result": {
+        "cancelSafe": true,
+        "escapeSafe": true
+      }
+    },
+    {
+      "name": "Onboarding completes only after actual fixture pairing and uploaded recording",
+      "pass": true
+    },
+    {
+      "name": "Onboarding/paired health avoid 390px and 320px overflow",
+      "pass": true,
+      "result": [
+        {
+          "viewport": 390,
+          "document": 390
+        },
+        {
+          "viewport": 320,
+          "document": 320
+        }
+      ]
+    },
+    {
+      "name": "Confirmed revoke uses mocked API once and returns to pairing",
+      "pass": true,
+      "result": {
+        "mockedRevokes": 1
+      }
+    }
+  ],
+  "pageErrors": [],
+  "unexpectedApiRequests": [],
+  "screenshots": [
+    "glass-setup-pair-desktop.png",
+    "glass-pairing-save-desktop.png",
+    "glass-pairing-waiting-desktop.png",
+    "glass-pairing-expired-desktop.png",
+    "glass-pairing-retry-desktop.png",
+    "glass-paired-device-desktop.png",
+    "glass-paired-device-stale.png",
+    "glass-revoke-confirmation-desktop.png",
+    "glass-paired-device-mobile-390.png",
+    "glass-paired-device-mobile-320.png",
+    "glass-pairing-mobile-320.png"
+  ]
+}

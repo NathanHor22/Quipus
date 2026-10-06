@@ -1,0 +1,5670 @@
+{
+  "schema_version": 1,
+  "revision": "A1 footprint review 2026-10-01",
+  "status": "Engineering review; not fabrication release",
+  "part_count": 54,
+  "units": "mm",
+  "footprint_format": "KiCad upstream20260206; EasyEDA converter may need downlevel normalization by PCB exporter",
+  "components": [
+    {
+      "ref": "U1",
+      "value": "ESP32-S3-WROOM-1-N16R8",
+      "footprint_file": ".tools/quipus-footprints/controller/ESP32-S3-WROOM-1.kicad_mod",
+      "library_name": "RF_Module:ESP32-S3-WROOM-1",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
+        "7": "7",
+        "8": "8",
+        "9": "9",
+        "10": "10",
+        "11": "11",
+        "12": "12",
+        "13": "13",
+        "14": "14",
+        "15": "15",
+        "16": "16",
+        "17": "17",
+        "18": "18",
+        "19": "19",
+        "20": "20",
+        "21": "21",
+        "22": "22",
+        "23": "23",
+        "24": "24",
+        "25": "25",
+        "26": "26",
+        "27": "27",
+        "28": "28",
+        "29": "29",
+        "30": "30",
+        "31": "31",
+        "32": "32",
+        "33": "33",
+        "34": "34",
+        "35": "35",
+        "36": "36",
+        "37": "37",
+        "38": "38",
+        "39": "39",
+        "40": "40",
+        "41": "41"
+      },
+      "pads": [
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -2.9,
+            1.06
+          ],
+          "size_mm": [
+            0.9,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -2.9,
+            2.46,
+            270.0
+          ],
+          "size_mm": [
+            0.9,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -2.9,
+            3.86
+          ],
+          "size_mm": [
+            0.9,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -1.5,
+            1.06,
+            270.0
+          ],
+          "size_mm": [
+            0.9,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -1.5,
+            2.46,
+            270.0
+          ],
+          "size_mm": [
+            0.9,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -1.5,
+            3.86,
+            270.0
+          ],
+          "size_mm": [
+            0.9,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.1,
+            1.06,
+            270.0
+          ],
+          "size_mm": [
+            0.9,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.1,
+            2.46,
+            270.0
+          ],
+          "size_mm": [
+            0.9,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.1,
+            3.86,
+            270.0
+          ],
+          "size_mm": [
+            0.9,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -8.75,
+            -5.26
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -8.75,
+            -3.99
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -8.75,
+            -2.72
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -8.75,
+            -1.45
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -8.75,
+            -0.18
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "6",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -8.75,
+            1.09
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "7",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -8.75,
+            2.36
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "8",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -8.75,
+            3.63
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "9",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -8.75,
+            4.9
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "10",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -8.75,
+            6.17
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "11",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -8.75,
+            7.44
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "12",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -8.75,
+            8.71
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "13",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -8.75,
+            9.98
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "14",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -8.75,
+            11.25,
+            180.0
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "15",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -6.985,
+            12.5,
+            270.0
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "16",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -5.715,
+            12.5,
+            270.0
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "17",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -4.445,
+            12.5,
+            270.0
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "18",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -3.175,
+            12.5,
+            270.0
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "19",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -1.905,
+            12.5,
+            270.0
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "20",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.635,
+            12.5,
+            270.0
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "21",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.635,
+            12.5,
+            270.0
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "22",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            1.905,
+            12.5,
+            270.0
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "23",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            3.175,
+            12.5,
+            270.0
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "24",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            4.445,
+            12.5,
+            270.0
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "25",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            5.715,
+            12.5,
+            270.0
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "26",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            6.985,
+            12.5,
+            270.0
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "27",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            8.75,
+            11.25
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "28",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            8.75,
+            9.98
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "29",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            8.75,
+            8.71
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "30",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            8.75,
+            7.44
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "31",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            8.75,
+            6.17
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "32",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            8.75,
+            4.9
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "33",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            8.75,
+            3.63
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "34",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            8.75,
+            2.36
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "35",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            8.75,
+            1.09
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "36",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            8.75,
+            -0.18
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "37",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            8.75,
+            -1.45
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "38",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            8.75,
+            -2.72
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "39",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            8.75,
+            -3.99
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "40",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            8.75,
+            -5.26
+          ],
+          "size_mm": [
+            1.5,
+            0.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "41",
+          "type": "thru_hole",
+          "shape": "circle",
+          "at_mm": [
+            -2.9,
+            1.76,
+            90.0
+          ],
+          "size_mm": [
+            0.6,
+            0.6
+          ],
+          "drill_mm": [
+            "0.2"
+          ],
+          "layers": [
+            "*.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "41",
+          "type": "thru_hole",
+          "shape": "circle",
+          "at_mm": [
+            -2.9,
+            3.16
+          ],
+          "size_mm": [
+            0.6,
+            0.6
+          ],
+          "drill_mm": [
+            "0.2"
+          ],
+          "layers": [
+            "*.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "41",
+          "type": "thru_hole",
+          "shape": "circle",
+          "at_mm": [
+            -2.2,
+            1.06
+          ],
+          "size_mm": [
+            0.6,
+            0.6
+          ],
+          "drill_mm": [
+            "0.2"
+          ],
+          "layers": [
+            "*.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "41",
+          "type": "thru_hole",
+          "shape": "circle",
+          "at_mm": [
+            -2.2,
+            2.46
+          ],
+          "size_mm": [
+            0.6,
+            0.6
+          ],
+          "drill_mm": [
+            "0.2"
+          ],
+          "layers": [
+            "*.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "41",
+          "type": "thru_hole",
+          "shape": "circle",
+          "at_mm": [
+            -2.2,
+            3.86
+          ],
+          "size_mm": [
+            0.6,
+            0.6
+          ],
+          "drill_mm": [
+            "0.2"
+          ],
+          "layers": [
+            "*.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "41",
+          "type": "thru_hole",
+          "shape": "circle",
+          "at_mm": [
+            -1.5,
+            1.76
+          ],
+          "size_mm": [
+            0.6,
+            0.6
+          ],
+          "drill_mm": [
+            "0.2"
+          ],
+          "layers": [
+            "*.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "41",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -1.5,
+            2.46,
+            270.0
+          ],
+          "size_mm": [
+            3.9,
+            3.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "41",
+          "type": "thru_hole",
+          "shape": "circle",
+          "at_mm": [
+            -1.5,
+            3.16
+          ],
+          "size_mm": [
+            0.6,
+            0.6
+          ],
+          "drill_mm": [
+            "0.2"
+          ],
+          "layers": [
+            "*.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "41",
+          "type": "thru_hole",
+          "shape": "circle",
+          "at_mm": [
+            -0.8,
+            1.06
+          ],
+          "size_mm": [
+            0.6,
+            0.6
+          ],
+          "drill_mm": [
+            "0.2"
+          ],
+          "layers": [
+            "*.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "41",
+          "type": "thru_hole",
+          "shape": "circle",
+          "at_mm": [
+            -0.8,
+            2.46
+          ],
+          "size_mm": [
+            0.6,
+            0.6
+          ],
+          "drill_mm": [
+            "0.2"
+          ],
+          "layers": [
+            "*.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "41",
+          "type": "thru_hole",
+          "shape": "circle",
+          "at_mm": [
+            -0.8,
+            3.86
+          ],
+          "size_mm": [
+            0.6,
+            0.6
+          ],
+          "drill_mm": [
+            "0.2"
+          ],
+          "layers": [
+            "*.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "41",
+          "type": "thru_hole",
+          "shape": "circle",
+          "at_mm": [
+            -0.1,
+            1.76
+          ],
+          "size_mm": [
+            0.6,
+            0.6
+          ],
+          "drill_mm": [
+            "0.2"
+          ],
+          "layers": [
+            "*.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "41",
+          "type": "thru_hole",
+          "shape": "circle",
+          "at_mm": [
+            -0.1,
+            3.16
+          ],
+          "size_mm": [
+            0.6,
+            0.6
+          ],
+          "drill_mm": [
+            "0.2"
+          ],
+          "layers": [
+            "*.Cu",
+            "F.Mask"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          18,
+          25.5,
+          3.1
+        ]
+      },
+      "source_urls": [
+        "https://documentation.espressif.com/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/RF_Module.pretty/ESP32-S3-WROOM-1.kicad_mod"
+      ],
+      "sha256": "d0cfbb31fef0c47396c0d061ec5a3bff60f0567d8d4ea8dd4769c84f52bd656f",
+      "populate": true,
+      "notes": [
+        "Preserve twelve plated through-hole pad41 vias with 0.20mm drills and the central SMD pad41. All thirteen pad41 instances are GND; no NPTH features occur in this footprint. Antenna keepout must prohibit copper, tracks and components on every layer, not only F.Cu. Keep antenna at board edge and no battery/display metal nearby."
+      ],
+      "issues": [
+        "Antenna module placement and 15mm case/battery clearance require mechanical review."
+      ]
+    },
+    {
+      "ref": "U30",
+      "value": "RV-3028-C7-TA-QC",
+      "footprint_file": ".tools/quipus-footprints/controller/MicroCrystal_C7_SON-8_1.5x3.2mm_P0.9mm.kicad_mod",
+      "library_name": "Package_SON:MicroCrystal_C7_SON-8_1.5x3.2mm_P0.9mm",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
+        "7": "7",
+        "8": "8"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.65,
+            -1.35
+          ],
+          "size_mm": [
+            0.95,
+            0.65
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.65,
+            -0.45
+          ],
+          "size_mm": [
+            0.95,
+            0.65
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.65,
+            0.45
+          ],
+          "size_mm": [
+            0.95,
+            0.65
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.65,
+            1.35
+          ],
+          "size_mm": [
+            0.95,
+            0.65
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.65,
+            1.35
+          ],
+          "size_mm": [
+            0.95,
+            0.65
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "6",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.65,
+            0.45
+          ],
+          "size_mm": [
+            0.95,
+            0.65
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "7",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.65,
+            -0.45
+          ],
+          "size_mm": [
+            0.95,
+            0.65
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "8",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.65,
+            -1.35
+          ],
+          "size_mm": [
+            0.95,
+            0.65
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.5,
+          3.2,
+          0.8
+        ]
+      },
+      "source_urls": [
+        "https://www.microcrystal.com/fileadmin/Media/Products/RTC/App.Manual/RV-3028-C7_App-Manual.pdf",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Package_SON.pretty/MicroCrystal_C7_SON-8_1.5x3.2mm_P0.9mm.kicad_mod"
+      ],
+      "sha256": "dcf8e98d380a1d7fc711a4e15333c968f6a6a963ad3dd69c987c06e9942adbd1",
+      "populate": true,
+      "notes": [],
+      "issues": []
+    },
+    {
+      "ref": "U31",
+      "value": "PCA9536DR",
+      "footprint_file": ".tools/quipus-footprints/controller/SOIC-8_3.9x4.9mm_P1.27mm.kicad_mod",
+      "library_name": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
+        "7": "7",
+        "8": "8"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -2.475,
+            -1.905
+          ],
+          "size_mm": [
+            1.95,
+            0.6
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -2.475,
+            -0.635
+          ],
+          "size_mm": [
+            1.95,
+            0.6
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -2.475,
+            0.635
+          ],
+          "size_mm": [
+            1.95,
+            0.6
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -2.475,
+            1.905
+          ],
+          "size_mm": [
+            1.95,
+            0.6
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            2.475,
+            1.905
+          ],
+          "size_mm": [
+            1.95,
+            0.6
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "6",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            2.475,
+            0.635
+          ],
+          "size_mm": [
+            1.95,
+            0.6
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "7",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            2.475,
+            -0.635
+          ],
+          "size_mm": [
+            1.95,
+            0.6
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "8",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            2.475,
+            -1.905
+          ],
+          "size_mm": [
+            1.95,
+            0.6
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          3.9,
+          4.9,
+          1.75
+        ]
+      },
+      "source_urls": [
+        "https://www.ti.com/lit/ds/symlink/pca9536.pdf",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Package_SO.pretty/SOIC-8_3.9x4.9mm_P1.27mm.kicad_mod"
+      ],
+      "sha256": "074ecb2092b24fa4b4b9cdd7c926fc587b0d7d6d21e7341e57935fd42d36894f",
+      "populate": true,
+      "notes": [],
+      "issues": []
+    },
+    {
+      "ref": "U34",
+      "value": "TS3USB221ARSER",
+      "footprint_file": ".tools/quipus-footprints/controller/Texas_UQFN-10_1.5x2mm_P0.5mm.kicad_mod",
+      "library_name": "Package_DFN_QFN:Texas_UQFN-10_1.5x2mm_P0.5mm",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
+        "7": "7",
+        "8": "8",
+        "9": "9",
+        "10": "10"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.675,
+            -0.75
+          ],
+          "size_mm": [
+            0.55,
+            0.25
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.675,
+            -0.25
+          ],
+          "size_mm": [
+            0.55,
+            0.2
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.675,
+            0.25
+          ],
+          "size_mm": [
+            0.55,
+            0.2
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.675,
+            0.75
+          ],
+          "size_mm": [
+            0.55,
+            0.25
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.0,
+            0.9
+          ],
+          "size_mm": [
+            0.3,
+            0.6
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "6",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.675,
+            0.75
+          ],
+          "size_mm": [
+            0.55,
+            0.25
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "7",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.675,
+            0.25
+          ],
+          "size_mm": [
+            0.55,
+            0.2
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "8",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.675,
+            -0.25
+          ],
+          "size_mm": [
+            0.55,
+            0.2
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "9",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.675,
+            -0.75
+          ],
+          "size_mm": [
+            0.55,
+            0.25
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "10",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.0,
+            -0.9
+          ],
+          "size_mm": [
+            0.3,
+            0.6
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.5,
+          2,
+          0.6
+        ]
+      },
+      "source_urls": [
+        "https://www.ti.com/lit/ds/symlink/ts3usb221a.pdf",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Package_DFN_QFN.pretty/Texas_UQFN-10_1.5x2mm_P0.5mm.kicad_mod"
+      ],
+      "sha256": "eae5151d8b2db32ac48501c8561535e4af101c986a3eee10974db85f3fc0adb0",
+      "populate": true,
+      "notes": [],
+      "issues": []
+    },
+    {
+      "ref": "U35",
+      "value": "TPD2EUSB30DRTR",
+      "footprint_file": ".tools/quipus-footprints/controller/Texas_DRT-3.kicad_mod",
+      "library_name": "Package_TO_SOT_SMD:Texas_DRT-3",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2",
+        "3": "3"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.35,
+            0.425
+          ],
+          "size_mm": [
+            0.3,
+            0.3
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.35,
+            0.425
+          ],
+          "size_mm": [
+            0.3,
+            0.3
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.0,
+            -0.425
+          ],
+          "size_mm": [
+            0.3,
+            0.3
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.0,
+          0.8,
+          0.5
+        ]
+      },
+      "source_urls": [
+        "https://www.ti.com/lit/ds/symlink/tpd2eusb30.pdf",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Package_TO_SOT_SMD.pretty/Texas_DRT-3.kicad_mod"
+      ],
+      "sha256": "15cde3ee13da0e0426038a0a17ee16c50edc6d100b64582166b4263d4e7cae17",
+      "populate": true,
+      "notes": [
+        "TI datasheet pages26/27 reviewed visually: body1.0x0.8,height0.50max, three0.30x0.30mm lands;0.70mm lower-pad pitch and0.85mm upper/lower land center separation."
+      ],
+      "issues": [
+        "TI datasheet and official KiCad footprint specify a 1.0x0.8mm DRT body with 0.50mm maximum height. Source package prose is corrected. Before manufacture verify the purchased package revision and assembler stencil rules."
+      ]
+    },
+    {
+      "ref": "J6",
+      "value": "DM3AT-SF-PEJM5",
+      "footprint_file": ".tools/quipus-footprints/controller/Quipus_Hirose_DM3AT-SF-PEJM5_AB.kicad_mod",
+      "library_name": "Quipus:Quipus_Hirose_DM3AT-SF-PEJM5_AB",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
+        "7": "7",
+        "8": "8",
+        "A": "A",
+        "B": "B",
+        "SH": "SH"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            2.775,
+            -7.725
+          ],
+          "size_mm": [
+            0.7,
+            1.2
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            1.675,
+            -7.725
+          ],
+          "size_mm": [
+            0.7,
+            1.2
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.575,
+            -7.725
+          ],
+          "size_mm": [
+            0.7,
+            1.2
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.525,
+            -7.725
+          ],
+          "size_mm": [
+            0.7,
+            1.2
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -1.625,
+            -7.725
+          ],
+          "size_mm": [
+            0.7,
+            1.2
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "6",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -2.725,
+            -7.725
+          ],
+          "size_mm": [
+            0.7,
+            1.2
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "7",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -3.825,
+            -7.725
+          ],
+          "size_mm": [
+            0.7,
+            1.2
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "8",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -4.925,
+            -7.725
+          ],
+          "size_mm": [
+            0.7,
+            1.2
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "B",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -5.875,
+            -7.725
+          ],
+          "size_mm": [
+            0.7,
+            1.2
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "A",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -6.825,
+            2.775
+          ],
+          "size_mm": [
+            1.0,
+            0.8
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "SH",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -6.825,
+            -3.425
+          ],
+          "size_mm": [
+            1.0,
+            1.2
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "SH",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -6.825,
+            6.925
+          ],
+          "size_mm": [
+            1.0,
+            2.8
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "SH",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            4.325,
+            -7.725
+          ],
+          "size_mm": [
+            1.0,
+            1.2
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "SH",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            6.675,
+            7.375
+          ],
+          "size_mm": [
+            1.3,
+            1.9
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          13.85,
+          15.95,
+          1.68
+        ]
+      },
+      "source_urls": [
+        "https://www.hirose.com/product/download/?distributor=chip1&lang=en&num=DM3AT-SF-PEJM5&type=2d",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Connector_Card.pretty/microSD_HC_Hirose_DM3AT-SF-PEJM5.kicad_mod",
+        "https://www.hirose.com/product/download/?distributor=mouser&lang=en&num=DM3AT-SF-PEJM5&type=catalogue"
+      ],
+      "sha256": "887ebfa2dc509964fc1f137e7c7b613a99394d9a94ceb72244480740ff5a7d11",
+      "populate": true,
+      "notes": [
+        "Upstream KiCad9 is rear detection terminal B; KiCad10 is side detection terminal A. Supplied custom footprint renames physical pads to A/B matching the schematic. A at (-6.825,2.775) mm; B at (-5.875,-7.725) mm; retain four shell pads named SH. Dry switch closes A-B on insertion. Retain all four copper keepouts and front card-ejection drawing."
+      ],
+      "issues": [
+        "Pad naming was translated from Hirose catalog labels and official KiCad geometry. Before fabrication, independently compare the purchased socket drawing and verify detector contacts with continuity. Detector A/B are nonpolar; reversed A/B wiring retains function, but detector must never be assumed to be shell."
+      ]
+    },
+    {
+      "ref": "J7",
+      "value": "B8B-PH-K-S(LF)(SN)",
+      "footprint_file": ".tools/quipus-footprints/controller/JST_PH_B8B-PH-K_1x08_P2.00mm_Vertical.kicad_mod",
+      "library_name": "Connector_JST:JST_PH_B8B-PH-K_1x08_P2.00mm_Vertical",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
+        "7": "7",
+        "8": "8"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "thru_hole",
+          "shape": "roundrect",
+          "at_mm": [
+            0.0,
+            0.0
+          ],
+          "size_mm": [
+            1.2,
+            1.75
+          ],
+          "drill_mm": [
+            "0.75"
+          ],
+          "layers": [
+            "*.Cu",
+            "*.Mask"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "thru_hole",
+          "shape": "oval",
+          "at_mm": [
+            2.0,
+            0.0
+          ],
+          "size_mm": [
+            1.2,
+            1.75
+          ],
+          "drill_mm": [
+            "0.75"
+          ],
+          "layers": [
+            "*.Cu",
+            "*.Mask"
+          ]
+        },
+        {
+          "number": "3",
+          "type": "thru_hole",
+          "shape": "oval",
+          "at_mm": [
+            4.0,
+            0.0
+          ],
+          "size_mm": [
+            1.2,
+            1.75
+          ],
+          "drill_mm": [
+            "0.75"
+          ],
+          "layers": [
+            "*.Cu",
+            "*.Mask"
+          ]
+        },
+        {
+          "number": "4",
+          "type": "thru_hole",
+          "shape": "oval",
+          "at_mm": [
+            6.0,
+            0.0
+          ],
+          "size_mm": [
+            1.2,
+            1.75
+          ],
+          "drill_mm": [
+            "0.75"
+          ],
+          "layers": [
+            "*.Cu",
+            "*.Mask"
+          ]
+        },
+        {
+          "number": "5",
+          "type": "thru_hole",
+          "shape": "oval",
+          "at_mm": [
+            8.0,
+            0.0
+          ],
+          "size_mm": [
+            1.2,
+            1.75
+          ],
+          "drill_mm": [
+            "0.75"
+          ],
+          "layers": [
+            "*.Cu",
+            "*.Mask"
+          ]
+        },
+        {
+          "number": "6",
+          "type": "thru_hole",
+          "shape": "oval",
+          "at_mm": [
+            10.0,
+            0.0
+          ],
+          "size_mm": [
+            1.2,
+            1.75
+          ],
+          "drill_mm": [
+            "0.75"
+          ],
+          "layers": [
+            "*.Cu",
+            "*.Mask"
+          ]
+        },
+        {
+          "number": "7",
+          "type": "thru_hole",
+          "shape": "oval",
+          "at_mm": [
+            12.0,
+            0.0
+          ],
+          "size_mm": [
+            1.2,
+            1.75
+          ],
+          "drill_mm": [
+            "0.75"
+          ],
+          "layers": [
+            "*.Cu",
+            "*.Mask"
+          ]
+        },
+        {
+          "number": "8",
+          "type": "thru_hole",
+          "shape": "oval",
+          "at_mm": [
+            14.0,
+            0.0
+          ],
+          "size_mm": [
+            1.2,
+            1.75
+          ],
+          "drill_mm": [
+            "0.75"
+          ],
+          "layers": [
+            "*.Cu",
+            "*.Mask"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          18,
+          4.5,
+          6
+        ]
+      },
+      "source_urls": [
+        "https://files.waveshare.com/upload/0/0c/1.3inch_LCD_Module_Schematic.pdf",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Connector_JST.pretty/JST_PH_B8B-PH-K_1x08_P2.00mm_Vertical.kicad_mod"
+      ],
+      "sha256": "60f9bbf117276534d542e8f31e032cb1bb5f93f3b9b2c078336df356244aa86f",
+      "populate": true,
+      "notes": [
+        "8 contacts,2.0mm pitch,0.75mm plated drills. Pin1 square. Harness follows Waveshare MODULE J2 numbering; check actual cable continuity because Waveshare header J1 is reversed."
+      ],
+      "issues": []
+    },
+    {
+      "ref": "R300",
+      "value": "10k",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C300",
+      "value": "1uF",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C301",
+      "value": "10uF",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "0603 10uF 10V X7R must be selected for effective capacitance at3.3V; verify vendor DC bias curve before BOM freeze. Geometry alone does not validate capacitance.",
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C302",
+      "value": "100nF",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R301",
+      "value": "10k",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R302",
+      "value": "22ohm",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R303",
+      "value": "22ohm",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C303",
+      "value": "DNP / C0G tuning footprint",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": false,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C304",
+      "value": "DNP / C0G tuning footprint",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": false,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R304",
+      "value": "10k",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R305",
+      "value": "10k",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R306",
+      "value": "33ohm",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R307",
+      "value": "33ohm",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C305",
+      "value": "10uF",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "0603 10uF 10V X7R must be selected for effective capacitance at3.3V; verify vendor DC bias curve before BOM freeze. Geometry alone does not validate capacitance.",
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C306",
+      "value": "100nF",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R310",
+      "value": "10k",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R311",
+      "value": "10k",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R312",
+      "value": "10k",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R313",
+      "value": "10k",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R314",
+      "value": "10k",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R315",
+      "value": "22ohm",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R316",
+      "value": "100k",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C310",
+      "value": "10uF",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "0603 10uF 10V X7R must be selected for effective capacitance at3.3V; verify vendor DC bias curve before BOM freeze. Geometry alone does not validate capacitance.",
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C311",
+      "value": "100nF",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C312",
+      "value": "10nF",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R320",
+      "value": "330ohm",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R321",
+      "value": "10k",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C320",
+      "value": "100nF",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C321",
+      "value": "100nF",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C330",
+      "value": "100nF",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R330",
+      "value": "47k",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C331",
+      "value": "10nF",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R331",
+      "value": "47k",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C332",
+      "value": "10nF",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R332",
+      "value": "47k",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C333",
+      "value": "10nF",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R333",
+      "value": "47k",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C334",
+      "value": "10nF",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "C340",
+      "value": "100nF",
+      "footprint_file": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.8
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R341",
+      "value": "49.9ohm",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "R342",
+      "value": "49.9ohm",
+      "footprint_file": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          1.6,
+          0.8,
+          0.55
+        ],
+        "height_note": "Provisional visual envelope; final height depends on the selected passive MPN."
+      },
+      "source_urls": [
+        "engineering selection; validate during prototype",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "populate": true,
+      "notes": [],
+      "issues": [
+        "Exact passive manufacturer part number is not yet selected; verify package, height and rating before BOM freeze."
+      ]
+    },
+    {
+      "ref": "SW300",
+      "value": "B3U-1000P",
+      "footprint_file": ".tools/quipus-footprints/controller/Quipus_Omron_B3U-1000P.kicad_mod",
+      "library_name": "Quipus:Quipus_Omron_B3U-1000P",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -1.7,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            1.7
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            1.7,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            1.7
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          3,
+          2.5,
+          1.2
+        ]
+      },
+      "source_urls": [
+        "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"
+      ],
+      "sha256": "09042f8256c5c2cd97c38089029089b67984c41ce52f53da7c0a1e98f46c6243",
+      "populate": true,
+      "notes": [
+        "Manufacturer top-view nominal terminal1 right,terminal2 left. Custom variant swaps stock KiCad labels and uses nominal0.8x1.7mm lands at +/-1.7mm, matching4.2mm outer and2.6mm inner land dimensions. Switch is a symmetric normally-open dry contact. No ground terminal or locating boss."
+      ],
+      "issues": [
+        "Case actuator alignment and exact press height require mechanical prototype."
+      ]
+    },
+    {
+      "ref": "SW301",
+      "value": "B3U-1000P",
+      "footprint_file": ".tools/quipus-footprints/controller/Quipus_Omron_B3U-1000P.kicad_mod",
+      "library_name": "Quipus:Quipus_Omron_B3U-1000P",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -1.7,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            1.7
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            1.7,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            1.7
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          3,
+          2.5,
+          1.2
+        ]
+      },
+      "source_urls": [
+        "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"
+      ],
+      "sha256": "09042f8256c5c2cd97c38089029089b67984c41ce52f53da7c0a1e98f46c6243",
+      "populate": true,
+      "notes": [
+        "Manufacturer top-view nominal terminal1 right,terminal2 left. Custom variant swaps stock KiCad labels and uses nominal0.8x1.7mm lands at +/-1.7mm, matching4.2mm outer and2.6mm inner land dimensions. Switch is a symmetric normally-open dry contact. No ground terminal or locating boss."
+      ],
+      "issues": [
+        "Case actuator alignment and exact press height require mechanical prototype."
+      ]
+    },
+    {
+      "ref": "SW302",
+      "value": "B3U-1000P",
+      "footprint_file": ".tools/quipus-footprints/controller/Quipus_Omron_B3U-1000P.kicad_mod",
+      "library_name": "Quipus:Quipus_Omron_B3U-1000P",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -1.7,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            1.7
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            1.7,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            1.7
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          3,
+          2.5,
+          1.2
+        ]
+      },
+      "source_urls": [
+        "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"
+      ],
+      "sha256": "09042f8256c5c2cd97c38089029089b67984c41ce52f53da7c0a1e98f46c6243",
+      "populate": true,
+      "notes": [
+        "Manufacturer top-view nominal terminal1 right,terminal2 left. Custom variant swaps stock KiCad labels and uses nominal0.8x1.7mm lands at +/-1.7mm, matching4.2mm outer and2.6mm inner land dimensions. Switch is a symmetric normally-open dry contact. No ground terminal or locating boss."
+      ],
+      "issues": [
+        "Case actuator alignment and exact press height require mechanical prototype."
+      ]
+    },
+    {
+      "ref": "SW303",
+      "value": "B3U-1000P",
+      "footprint_file": ".tools/quipus-footprints/controller/Quipus_Omron_B3U-1000P.kicad_mod",
+      "library_name": "Quipus:Quipus_Omron_B3U-1000P",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -1.7,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            1.7
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            1.7,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            1.7
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          3,
+          2.5,
+          1.2
+        ]
+      },
+      "source_urls": [
+        "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"
+      ],
+      "sha256": "09042f8256c5c2cd97c38089029089b67984c41ce52f53da7c0a1e98f46c6243",
+      "populate": true,
+      "notes": [
+        "Manufacturer top-view nominal terminal1 right,terminal2 left. Custom variant swaps stock KiCad labels and uses nominal0.8x1.7mm lands at +/-1.7mm, matching4.2mm outer and2.6mm inner land dimensions. Switch is a symmetric normally-open dry contact. No ground terminal or locating boss."
+      ],
+      "issues": [
+        "Case actuator alignment and exact press height require mechanical prototype."
+      ]
+    },
+    {
+      "ref": "SW304",
+      "value": "B3U-1000P",
+      "footprint_file": ".tools/quipus-footprints/controller/Quipus_Omron_B3U-1000P.kicad_mod",
+      "library_name": "Quipus:Quipus_Omron_B3U-1000P",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -1.7,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            1.7
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            1.7,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            1.7
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          3,
+          2.5,
+          1.2
+        ]
+      },
+      "source_urls": [
+        "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"
+      ],
+      "sha256": "09042f8256c5c2cd97c38089029089b67984c41ce52f53da7c0a1e98f46c6243",
+      "populate": true,
+      "notes": [
+        "Manufacturer top-view nominal terminal1 right,terminal2 left. Custom variant swaps stock KiCad labels and uses nominal0.8x1.7mm lands at +/-1.7mm, matching4.2mm outer and2.6mm inner land dimensions. Switch is a symmetric normally-open dry contact. No ground terminal or locating boss."
+      ],
+      "issues": [
+        "Case actuator alignment and exact press height require mechanical prototype."
+      ]
+    },
+    {
+      "ref": "SW305",
+      "value": "B3U-1000P",
+      "footprint_file": ".tools/quipus-footprints/controller/Quipus_Omron_B3U-1000P.kicad_mod",
+      "library_name": "Quipus:Quipus_Omron_B3U-1000P",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "pads": [
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -1.7,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            1.7
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            1.7,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            1.7
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "dimensions_mm": {
+        "body_xyz": [
+          3,
+          2.5,
+          1.2
+        ]
+      },
+      "source_urls": [
+        "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf",
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"
+      ],
+      "sha256": "09042f8256c5c2cd97c38089029089b67984c41ce52f53da7c0a1e98f46c6243",
+      "populate": true,
+      "notes": [
+        "Manufacturer top-view nominal terminal1 right,terminal2 left. Custom variant swaps stock KiCad labels and uses nominal0.8x1.7mm lands at +/-1.7mm, matching4.2mm outer and2.6mm inner land dimensions. Switch is a symmetric normally-open dry contact. No ground terminal or locating boss."
+      ],
+      "issues": [
+        "Case actuator alignment and exact press height require mechanical prototype."
+      ]
+    }
+  ],
+  "validation": {
+    "all54_refs_present": true,
+    "all_schematic_pins_have_actual_pads": true,
+    "native_EasyEDA_import_tested": false,
+    "native_DRC_tested": false
+  }
+}

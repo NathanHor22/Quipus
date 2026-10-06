@@ -1,0 +1,176 @@
+{
+  "path": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-b\\easyeda\\native\\u2-library-fixed.esource",
+  "sha256": "c764f102a6bc08afb0a33a3bf507853deb10ceed6349e64f86077e8ca410257f",
+  "footprint_uuid": "0053beec1f9b605e",
+  "native_title": null,
+  "record_count": 169,
+  "changed_pads": [
+    {
+      "id": "ie27",
+      "number": "17",
+      "fields": {
+        "topPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        },
+        "bottomPasteExpansion": {
+          "before": 0,
+          "after": -1000
+        }
+      }
+    }
+  ],
+  "geometry_repairs": [],
+  "identifiers_and_all_other_geometry_preserved": true,
+  "native_apply_and_save": "VERIFIED_BY_PARENT_NATIVE_UI_WITNESS_AND_INDEPENDENT_FINAL_PROJECT_EXPORT_AUDIT",
+  "live_source": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-b\\easyeda\\native\\u2-editor-before.esource",
+  "live_source_sha256": "eefb79d1956471e779bb13f249f17e459519c40b0b525109955d88126fd8cf8e",
+  "native_doc_type_preserved": true,
+  "live_doc_type": "PCB",
+  "reference": "U2",
+  "explicit_paste_before": {
+    "expected_count": 4,
+    "native_count": 4,
+    "pass": true,
+    "apertures": [
+      {
+        "expected_kind": "roundrect",
+        "native_id": "ie29",
+        "pass": true,
+        "difference_mm": 1.4200000000297308e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "roundrect",
+        "native_id": "ie28",
+        "pass": true,
+        "difference_mm": 1.4200000000297308e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "roundrect",
+        "native_id": "ie31",
+        "pass": true,
+        "difference_mm": 1.4200000000297308e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "roundrect",
+        "native_id": "ie30",
+        "pass": true,
+        "difference_mm": 1.4200000000297308e-06,
+        "boundary_stroke_mm": 0.00508
+      }
+    ],
+    "unmatched_native_ids": []
+  },
+  "explicit_paste_after": {
+    "expected_count": 4,
+    "native_count": 4,
+    "pass": true,
+    "apertures": [
+      {
+        "expected_kind": "roundrect",
+        "native_id": "ie29",
+        "pass": true,
+        "difference_mm": 1.4200000000297308e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "roundrect",
+        "native_id": "ie28",
+        "pass": true,
+        "difference_mm": 1.4200000000297308e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "roundrect",
+        "native_id": "ie31",
+        "pass": true,
+        "difference_mm": 1.4200000000297308e-06,
+        "boundary_stroke_mm": 0.00508
+      },
+      {
+        "expected_kind": "roundrect",
+        "native_id": "ie30",
+        "pass": true,
+        "difference_mm": 1.4200000000297308e-06,
+        "boundary_stroke_mm": 0.00508
+      }
+    ],
+    "unmatched_native_ids": []
+  },
+  "manufacturing_release": false,
+  "status": "VERIFIED_APPLIED_SAVED_AND_REEXPORTED",
+  "final_native_evidence": {
+    "capture": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-b\\easyeda\\native\\pcb-final.esource",
+    "capture_sha256": "299981378ff657e3aebd834a51e26d2fa41804a9d9e8c0c5d34b2b89d3b9411d",
+    "original_pre_fix_capture_sha256": "d0f3c6f8e3ad78e1b43bec9af5d24545207d3cd50258a10247110db7608fa49f",
+    "category_results": {
+      "electrical": "PASS",
+      "metadata": "PASS",
+      "placement": "PASS",
+      "geometry": "PASS",
+      "stencil": "PASS"
+    },
+    "electronic_components": 180,
+    "nets": 113,
+    "physical_pad_instances": 606,
+    "standalone_mounting_holes": [
+      {
+        "label": null,
+        "primitive_id": "ie1122",
+        "native_component_id": null,
+        "center_mm": [
+          5.00000016,
+          19.0000001
+        ],
+        "diameter_mm": 2.79999948,
+        "plated": false,
+        "representation": "standalone native NPTH PAD",
+        "expected_label": "H1"
+      },
+      {
+        "label": null,
+        "primitive_id": "ie1123",
+        "native_component_id": null,
+        "center_mm": [
+          59.99999937999999,
+          19.0000001
+        ],
+        "diameter_mm": 2.79999948,
+        "plated": false,
+        "representation": "standalone native NPTH PAD",
+        "expected_label": "H2"
+      },
+      {
+        "label": null,
+        "primitive_id": "ie1124",
+        "native_component_id": null,
+        "center_mm": [
+          5.00000016,
+          119.00000075999999
+        ],
+        "diameter_mm": 2.79999948,
+        "plated": false,
+        "representation": "standalone native NPTH PAD",
+        "expected_label": "H3"
+      },
+      {
+        "label": null,
+        "primitive_id": "ie1125",
+        "native_component_id": null,
+        "center_mm": [
+          59.99999937999999,
+          119.00000075999999
+        ],
+        "diameter_mm": 2.79999948,
+        "plated": false,
+        "representation": "standalone native NPTH PAD",
+        "expected_label": "H4"
+      }
+    ],
+    "witness": "Parent reports native Apply/Save accepted and saved project re-exported; native DRC543 connection errors,0clearance,0netlist.",
+    "verification_scope": "Saved geometry, stencil fields and net parity; copper routing and manufacturing release remain incomplete."
+  }
+}

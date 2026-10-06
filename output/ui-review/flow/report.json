@@ -1,0 +1,109 @@
+{
+  "base": "http://127.0.0.1:3007",
+  "createdAt": "2026-10-06T11:41:18.372Z",
+  "checks": [
+    {
+      "name": "First login offers optional calendar access before pairing",
+      "pass": true,
+      "result": {
+        "calendarOptional": true,
+        "account": "flow-owner@example.test"
+      }
+    },
+    {
+      "name": "Setup collapse and calendar skip resume only for the same account",
+      "pass": true,
+      "result": [
+        "quipus:setup:flow-client%40example.test",
+        "quipus:setup:flow-owner%40example.test"
+      ]
+    },
+    {
+      "name": "Pairing guides the same phone or laptop through all four stages",
+      "pass": true,
+      "result": {
+        "pairingRequests": 1,
+        "waitingForDevice": true
+      }
+    },
+    {
+      "name": "Active pairing code and stage resume across reload and stay isolated by account",
+      "pass": true,
+      "result": {
+        "resumed": true,
+        "isolated": true
+      }
+    },
+    {
+      "name": "Pairing offers expiry recovery and a fresh code",
+      "pass": true,
+      "result": {
+        "pairingRequests": 3,
+        "expiredCleared": true
+      }
+    },
+    {
+      "name": "Connection retry recovers to actual mock device contact",
+      "pass": true,
+      "result": {
+        "confirmedFromMockContact": true
+      }
+    },
+    {
+      "name": "Stale online flag is displayed as an old heartbeat, not live connection",
+      "pass": true
+    },
+    {
+      "name": "Revoke asks for confirmation and cancellation sends no request",
+      "pass": true,
+      "result": {
+        "revokeRequests": 0,
+        "cancel": true,
+        "escape": true
+      }
+    },
+    {
+      "name": "Setup completes only after real fixture pairing and upload",
+      "pass": true,
+      "result": {
+        "requiredActualRecording": true
+      }
+    },
+    {
+      "name": "Paired view and setup avoid overflow at mobile widths",
+      "pass": true,
+      "result": [
+        {
+          "viewport": 390,
+          "document": 390
+        },
+        {
+          "viewport": 320,
+          "document": 320
+        }
+      ]
+    },
+    {
+      "name": "Confirmed revoke uses only mocked API and returns to pairing",
+      "pass": true,
+      "result": {
+        "mockedRevokeRequests": 1
+      }
+    }
+  ],
+  "pageErrors": [],
+  "unexpectedApiRequests": [],
+  "screenshots": [
+    "setup-pair-desktop.png",
+    "pairing-save-desktop.png",
+    "pairing-waiting-desktop.png",
+    "pairing-expired-desktop.png",
+    "pairing-retry-desktop.png",
+    "paired-device-desktop.png",
+    "paired-device-stale.png",
+    "revoke-confirmation-desktop.png",
+    "paired-device-mobile-390.png",
+    "paired-device-mobile-320.png",
+    "pairing-mobile-320.png"
+  ]
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { LoaderCircle, Upload, X } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { LiveRecorder } from "@/components/Meeting/LiveRecorder";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { MAX_AUDIO_BYTES, normalizeAudioContentType } from "@/lib/audio-upload";
@@ -150,7 +150,7 @@ export function RecordingDialog({
             onClick={onClose}
             aria-label="Close recording"
           >
-            <X />
+            Close
           </button>
         </header>
         <p className={styles.subtle}>
@@ -171,7 +171,6 @@ export function RecordingDialog({
               style={{ padding: 0 }}
             >
               <label className={styles.uploadArea}>
-                <Upload />
                 <strong>{file?.name || "Choose an audio recording"}</strong>
                 <span>MP3, M4A, WAV, or WebM · up to 25 MB</span>
                 <input
@@ -207,7 +206,6 @@ export function RecordingDialog({
                 The original date helps interpret phrases like “tomorrow”.
               </p>
               <button className={styles.primaryButton} disabled={!file}>
-                <Upload />
                 Upload & prepare recap
               </button>
             </form>

@@ -5,6 +5,8 @@ import type { Commitment, Contact, FollowUp, Meeting, MeetingEvidence, MeetingIn
 import { demoMeetings } from "@/lib/demo-data";
 import {
   archivedLanternSessionMeeting,
+  withSessionRecordingProgress,
+  shouldIncludeArchivedSession,
   type ArchivedLanternSession,
 } from "@/lib/hardware-session-meeting";
 import { getServerSupabase, resolveWorkspaceUserId } from "@/lib/supabase/server";
@@ -33,10 +35,9 @@ export async function loadMeetings(): Promise<{ meetings: Meeting[]; source: "su
       .order("start_at"),
     client
       .from("lantern_sessions")
-      .select("id,started_at,capture_ended_at,recording_id,processing_error,processing_stage,upload_bytes,upload_total_bytes")
+      .select("id,started_at,recording_started_at,capture_ended_at,recording_id,meeting_id,processing_error,processing_stage,upload_bytes,upload_total_bytes,updated_at")
       .eq("user_id", userId)
       .or("recording_id.not.is.null,processing_stage.not.is.null")
-      .is("meeting_id", null)
       .order("started_at"),
   ]);
   if (meetingsResult.error) {
@@ -47,6 +48,9 @@ export async function loadMeetings(): Promise<{ meetings: Meeting[]; source: "su
   }
   const meetingRows = meetingsResult.data || [];
   const archivedSessionRows = (archivedSessionsResult.data || []) as ArchivedLanternSession[];
+  const sessionByMeetingId = new Map(archivedSessionRows.filter((session) => session.meeting_id).map((session) => [session.meeting_id, session]));
+  const sessionByRecordingId = new Map(archivedSessionRows.filter((session) => session.recording_id).map((session) => [session.recording_id, session]));
+  const sessionByReference = new Map(archivedSessionRows.map((session) => [`hardware:${session.id}`, session]));
   if (!meetingRows.length && !archivedSessionRows.length) {
     return { meetings: [], source: "supabase" };
   }
@@ -56,7 +60,7 @@ export async function loadMeetings(): Promise<{ meetings: Meeting[]; source: "su
     ? await client.from("meeting_contacts").select("meeting_id,is_primary,contacts(*)").in("meeting_id", meetingIds)
     : { data: [], error: null };
   const [recordingsResult, transcriptsResult, insightsResult, commitmentsResult, evidenceResult, researchResult, followUpsResult, actionsResult] = await Promise.all([
-    client.from("recordings").select("id,storage_path").eq("user_id", userId),
+    client.from("recordings").select("id,storage_path,duration_seconds").eq("user_id", userId),
     client.from("transcripts").select("recording_id,segments").eq("user_id", userId),
     client.from("meeting_insights").select("*").eq("user_id", userId),
     client.from("commitments").select("*").eq("user_id", userId),
@@ -169,7 +173,7 @@ export async function loadMeetings(): Promise<{ meetings: Meeting[]; source: "su
     } : null;
     const recording = row.recording_id ? recordingById.get(row.recording_id) : undefined;
     const path = recording?.storage_path;
-    return {
+    const meeting: Meeting = {
       id: row.client_reference || row.id,
       title: row.title,
       startAt: row.start_at,
@@ -182,6 +186,7 @@ export async function loadMeetings(): Promise<{ meetings: Meeting[]; source: "su
       contacts: contactsByMeeting.get(row.id) || [],
       recordingId: row.recording_id,
       recordingUrl: typeof path === "string" ? signedByPath.get(path) || null : null,
+      recordingProgress: typeof recording?.duration_seconds === "number" ? { stage: null, durationSeconds: recording.duration_seconds } : null,
       transcript: (row.recording_id ? transcriptByRecording.get(row.recording_id) : []) as TranscriptSegment[],
       insight,
       evidence: evidenceByMeeting.get(row.id) || [],
@@ -190,17 +195,21 @@ export async function loadMeetings(): Promise<{ meetings: Meeting[]; source: "su
         ...followUp,
         meetingId: row.client_reference || row.id,
       })),
-    } satisfies Meeting;
+    };
+    const session = sessionByMeetingId.get(row.id)
+      || sessionByRecordingId.get(row.recording_id)
+      || sessionByReference.get(row.client_reference || row.id);
+    return session ? withSessionRecordingProgress(meeting, session, recording?.duration_seconds) : meeting;
   });
-  const existingReferences = new Set(meetings.map((meeting) => meeting.id));
   for (const session of archivedSessionRows) {
-    if (existingReferences.has(`hardware:${session.id}`)) continue;
+    if (!shouldIncludeArchivedSession(session, meetings)) continue;
     const recording = recordingById.get(session.recording_id);
     const path = recording?.storage_path;
     meetings.push(
       archivedLanternSessionMeeting(
         session,
         typeof path === "string" ? signedByPath.get(path) || null : null,
+        recording?.duration_seconds,
       ),
     );
   }

@@ -1,0 +1,187 @@
+{
+  "checks": [
+    {
+      "name": "Centred login at 1440px has faithful logo above the glass panel",
+      "pass": true,
+      "result": {
+        "viewport": 1440,
+        "logoCenter": 720,
+        "cardCenter": 720,
+        "logoBottom": 310.859375,
+        "cardTop": 339.859375,
+        "radius": "3px",
+        "blur": "blur(16px)",
+        "background": "linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.72))"
+      }
+    },
+    {
+      "name": "Centred login at 390px has faithful logo above the glass panel",
+      "pass": true,
+      "result": {
+        "viewport": 390,
+        "logoCenter": 195,
+        "cardCenter": 195,
+        "logoBottom": 221.78125,
+        "cardTop": 246.78125,
+        "radius": "3px",
+        "blur": "blur(16px)",
+        "background": "linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.72))"
+      }
+    },
+    {
+      "name": "Centred login at 320px has faithful logo above the glass panel",
+      "pass": true,
+      "result": {
+        "viewport": 320,
+        "logoCenter": 160,
+        "cardCenter": 160,
+        "logoBottom": 183.78125,
+        "cardTop": 208.78125,
+        "radius": "3px",
+        "blur": "blur(16px)",
+        "background": "linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.72))"
+      }
+    },
+    {
+      "name": "OS reduced motion presents static decorations and immediate login heading",
+      "pass": true,
+      "result": {
+        "animation": "none"
+      }
+    },
+    {
+      "name": "Client navigation retains readable dark login and ivory logo backing",
+      "pass": true,
+      "result": {
+        "theme": "dark",
+        "text": "rgb(245, 243, 237)",
+        "logo": "rgb(245, 243, 237)"
+      }
+    },
+    {
+      "name": "Conversation detail uses framed controls and compact glass cards",
+      "pass": true,
+      "result": {
+        "buttons": [
+          {
+            "text": "Back to conversations",
+            "width": "1px",
+            "style": "solid",
+            "radius": "3px"
+          },
+          {
+            "text": "Summary",
+            "width": "1px",
+            "style": "solid",
+            "radius": "3px"
+          },
+          {
+            "text": "Actions",
+            "width": "1px",
+            "style": "solid",
+            "radius": "3px"
+          },
+          {
+            "text": "Transcript",
+            "width": "1px",
+            "style": "solid",
+            "radius": "3px"
+          },
+          {
+            "text": "Audio",
+            "width": "1px",
+            "style": "solid",
+            "radius": "3px"
+          },
+          {
+            "text": "Correct",
+            "width": "1px",
+            "style": "solid",
+            "radius": "3px"
+          },
+          {
+            "text": "View client history",
+            "width": "1px",
+            "style": "solid",
+            "radius": "3px"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Dark transcript is readable and remains framed",
+      "pass": true
+    },
+    {
+      "name": "Client history uses framed source navigation and glass panels",
+      "pass": true,
+      "result": {
+        "buttons": [
+          {
+            "text": "People & companies",
+            "width": "1px",
+            "style": "solid",
+            "radius": "3px"
+          },
+          {
+            "text": "Correct details",
+            "width": "1px",
+            "style": "solid",
+            "radius": "3px"
+          },
+          {
+            "text": "View conversation",
+            "width": "1px",
+            "style": "solid",
+            "radius": "3px"
+          },
+          {
+            "text": "5 Oct 202610:00 amA pilot worth getting rightStart with a pilot at the Bangsar and PJ branches. Keep installation outside trading hours to avoid disruption. Mr Chung will bring his operations lead to the next meeting.",
+            "width": "1px",
+            "style": "solid",
+            "radius": "3px"
+          },
+          {
+            "text": "Review conversation",
+            "width": "1px",
+            "style": "solid",
+            "radius": "3px"
+          },
+          {
+            "text": "Review conversation",
+            "width": "1px",
+            "style": "solid",
+            "radius": "3px"
+          },
+          {
+            "text": "Review conversation",
+            "width": "1px",
+            "style": "solid",
+            "radius": "3px"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Client history remains readable at 320px and in dark mode",
+      "pass": true
+    },
+    {
+      "name": "Owned UI has no runtime exceptions or external requests",
+      "pass": true
+    }
+  ],
+  "screenshots": [
+    "login-1440.png",
+    "login-390.png",
+    "login-320.png",
+    "login-dark.png",
+    "detail-desktop.png",
+    "transcript-dark.png",
+    "client-desktop.png",
+    "client-mobile-320.png",
+    "client-dark-mobile-320.png"
+  ],
+  "runtimeErrors": [],
+  "externalRequests": []
+}

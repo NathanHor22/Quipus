@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { QuipusExperience } from "@/components/experience/QuipusExperience";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -8,20 +9,20 @@ export const metadata: Metadata = {
     template: "%s · Quipus",
   },
   description:
-    "Capture client conversations, remember what mattered, and approve every follow-up before it leaves your workspace.",
+    "Record meetings. Review the details. Follow up. Keep every conversation moving with Quipus.",
   category: "business",
   manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {
-  colorScheme: "dark light",
-  themeColor: "#111916",
+  colorScheme: "light dark",
+  themeColor: "#F5F3ED",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" data-theme="light" suppressHydrationWarning>
+      <body><QuipusExperience>{children}</QuipusExperience></body>
     </html>
   );
 }

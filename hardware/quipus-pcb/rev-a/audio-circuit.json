@@ -1,0 +1,701 @@
+{
+  "title": "Quipus Rev A preliminary audio circuit",
+  "status": "engineering-review;not-fabrication-release",
+  "date": "2026-09-29",
+  "rail_contract": {
+    "MIC_3V3": {
+      "nominal_v": 3.3,
+      "maximum_v": 3.6
+    },
+    "SYS_SW": {
+      "assumed_min_v": 3,
+      "assumed_max_v": 4.5,
+      "amplifier_allowed_min_v": 2.5,
+      "amplifier_allowed_max_v": 5.5
+    }
+  },
+  "interfaces": {
+    "capture": {
+      "peripheral": "I2S0 PDM RX",
+      "clock_net": "PDM_CLK",
+      "data_nets": [
+        "PDM_DIN0",
+        "PDM_DIN1"
+      ],
+      "pcm_hz": 16000,
+      "decimation": 128,
+      "pdm_hz": 2048000
+    },
+    "playback": {
+      "peripheral": "I2S1 standard I2S TX",
+      "nets": [
+        "I2S1_BCLK",
+        "I2S1_WS",
+        "I2S1_DOUT"
+      ],
+      "enable": "AMP_ENABLE",
+      "output_channel": "left"
+    }
+  },
+  "components": [
+    {
+      "ref": "U20",
+      "value": "IM69D128SV01XTMA1",
+      "package": "Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port",
+      "pins": [
+        {
+          "number": "1",
+          "name": "VDD",
+          "net": "MIC_3V3",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "2",
+          "name": "CLOCK",
+          "net": "PDM_CLK_LOCAL",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "DATA",
+          "net": "U20_D",
+          "electrical_type": "tri_state"
+        },
+        {
+          "number": "4",
+          "name": "LR",
+          "net": "GND",
+          "electrical_type": "input"
+        },
+        {
+          "number": "5",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        }
+      ],
+      "notes": "3.3 V supply is within the 1.62\u00e2\u20ac\u201c3.60 V operating range. Use exact datasheet Figures 12/13 land pattern and 0.6 mm nonplated acoustic hole. Two mics share opposite-edge slots. Do not use IM69D130 footprint.",
+      "source": "https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d128s-datasheet-en.pdf",
+      "acoustic_hole_mm": 0.6
+    },
+    {
+      "ref": "U21",
+      "value": "IM69D128SV01XTMA1",
+      "package": "Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port",
+      "pins": [
+        {
+          "number": "1",
+          "name": "VDD",
+          "net": "MIC_3V3",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "2",
+          "name": "CLOCK",
+          "net": "PDM_CLK_LOCAL",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "DATA",
+          "net": "U21_D",
+          "electrical_type": "tri_state"
+        },
+        {
+          "number": "4",
+          "name": "LR",
+          "net": "MIC_3V3",
+          "electrical_type": "input"
+        },
+        {
+          "number": "5",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        }
+      ],
+      "notes": "3.3 V supply is within the 1.62\u00e2\u20ac\u201c3.60 V operating range. Use exact datasheet Figures 12/13 land pattern and 0.6 mm nonplated acoustic hole. Two mics share opposite-edge slots. Do not use IM69D130 footprint.",
+      "source": "https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d128s-datasheet-en.pdf",
+      "acoustic_hole_mm": 0.6
+    },
+    {
+      "ref": "R201",
+      "value": "100 ohm 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "U20_D",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "PDM_DIN0",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At U20 DATA output.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "R202",
+      "value": "100 ohm 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "U21_D",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "PDM_DIN0",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At U21 DATA output.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "R203",
+      "value": "33 ohm 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "PDM_CLK",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "PDM_CLK_LOCAL",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Source termination near ESP32. Tune after scope validation.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "R204",
+      "value": "0 ohm",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Microphone-rail measurement link. Not a load switch.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "R205",
+      "value": "33 ohm 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "PDM_CLK",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "PDM_CLK_EXT",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Source termination for short external clock branch. Tune after scope validation.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "R206",
+      "value": "100k 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "PDM_DIN1",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Defines undriven external input; disable external firmware channel when absent.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "C200",
+      "value": "1uF X7R 10V",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Place at U20 VDD.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "C201",
+      "value": "100nF X7R 10V",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Place at U20 VDD.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "C202",
+      "value": "1uF X7R 10V",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Place at U21 VDD.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "C203",
+      "value": "100nF X7R 10V",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Place at U21 VDD.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "C204",
+      "value": "4.7uF X7R 10V",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Local mic-rail reservoir.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "J4",
+      "value": "SM04B-SRSS-TB",
+      "package": "JST SH 1.0mm 1x4 right-angle SMD",
+      "pins": [
+        {
+          "number": "1",
+          "name": "3V3",
+          "net": "MIC_3V3",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "3",
+          "name": "CLK",
+          "net": "PDM_CLK_EXT",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "4",
+          "name": "DATA",
+          "net": "PDM_DIN1",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Mates SHR-04V-S with SSH-003T-P0.2-H contacts. Internal digital PDM accessory with an initial cable target of 50 mm or less; not USB, TRRS or analog. Accessory needs local mic bypass and a 100 ohm DATA series resistor. Pin assignment is Quipus-specific; verify cable orientation.",
+      "source": "https://www.jst.com/products/crimp-style-connectors-wire-to-board-type/sh-connector"
+    },
+    {
+      "ref": "U22",
+      "value": "MAX98357AETE+",
+      "package": "TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031",
+      "pins": [
+        {
+          "number": "1",
+          "name": "DIN",
+          "net": "I2S1_DOUT_IC",
+          "electrical_type": "input"
+        },
+        {
+          "number": "2",
+          "name": "GAIN_SLOT",
+          "net": "AMP_GAIN",
+          "electrical_type": "input"
+        },
+        {
+          "number": "3",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "4",
+          "name": "SD_MODE",
+          "net": "AMP_ENABLE",
+          "electrical_type": "input"
+        },
+        {
+          "number": "5",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "6",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "7",
+          "name": "VDD",
+          "net": "SYS_SW",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "8",
+          "name": "VDD",
+          "net": "SYS_SW",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "9",
+          "name": "OUTP",
+          "net": "SPK_P",
+          "electrical_type": "output"
+        },
+        {
+          "number": "10",
+          "name": "OUTN",
+          "net": "SPK_N",
+          "electrical_type": "output"
+        },
+        {
+          "number": "11",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "12",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "13",
+          "name": "NC",
+          "net": null,
+          "electrical_type": "no_connect"
+        },
+        {
+          "number": "14",
+          "name": "LRCLK",
+          "net": "I2S1_WS_IC",
+          "electrical_type": "input"
+        },
+        {
+          "number": "15",
+          "name": "GND",
+          "net": "GND",
+          "electrical_type": "power_in"
+        },
+        {
+          "number": "16",
+          "name": "BCLK",
+          "net": "I2S1_BCLK_IC",
+          "electrical_type": "input"
+        },
+        {
+          "number": "17",
+          "name": "EP",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Exposed pad is modelled as 17: cross-check CAD package convention. A version uses I2S; B version is not a substitute. SD_MODE high selects left channel; low shuts down. Supply 2.5\u00e2\u20ac\u201c5.5 V; 3.3 V GPIO compatible. Speaker outputs are differential; neither is GND.",
+      "source": "https://www.analog.com/media/en/technical-documentation/data-sheets/max98357a-max98357b.pdf"
+    },
+    {
+      "ref": "R207",
+      "value": "33 ohm 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2S1_DOUT",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "I2S1_DOUT_IC",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At ESP32 I2S1 DATA source.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "R208",
+      "value": "100k 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_SW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "AMP_GAIN",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Selects 3 dB gain. Connect to SYS_SW, the amplifier supply, rather than 3V3.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "R209",
+      "value": "100k 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "AMP_ENABLE",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Keep amplifier shut down during reset.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "R210",
+      "value": "33 ohm 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2S1_WS",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "I2S1_WS_IC",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At ESP32 I2S1 WS source.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "R211",
+      "value": "33 ohm 1%",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "I2S1_BCLK",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "I2S1_BCLK_IC",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At ESP32 I2S1 BCLK source.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "C205",
+      "value": "100nF X7R 10V",
+      "package": "0603",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_SW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At U22 pins 7 and 8, with short ground return.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "C206",
+      "value": "10uF X7R 10V",
+      "package": "0805",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_SW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "At U22 pins 7 and 8; verify effective capacitance at 4.4 V.",
+      "source": "Quipus engineering selection; see audio-design.md"
+    },
+    {
+      "ref": "C207",
+      "value": "47uF X7R 10V DNP",
+      "package": "1210",
+      "pins": [
+        {
+          "number": "1",
+          "name": "1",
+          "net": "SYS_SW",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "2",
+          "net": "GND",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Optional reservoir. Initially not populated; populate following supply transient test.",
+      "source": "Quipus engineering selection; see audio-design.md",
+      "populate": false
+    },
+    {
+      "ref": "J5",
+      "value": "SM02B-SRSS-TB",
+      "package": "JST SH 1.0mm 1x2 right-angle SMD",
+      "pins": [
+        {
+          "number": "1",
+          "name": "SPK+",
+          "net": "SPK_P",
+          "electrical_type": "passive"
+        },
+        {
+          "number": "2",
+          "name": "SPK-",
+          "net": "SPK_N",
+          "electrical_type": "passive"
+        }
+      ],
+      "notes": "Mates SHR-02V-S. Neither pin is ground. Short twisted pair to 8 ohm, 2 W nominal dynamic speaker; exact speaker part pending. Speaker connector intentionally differs from battery series.",
+      "source": "https://www.jst.com/products/crimp-style-connectors-wire-to-board-type/sh-connector"
+    }
+  ],
+  "notes": [
+    "3.3 V is within the IM69D128S operating range; published current and acoustic performance are mostly characterized at 1.8 V. Measure 3.3 V results.",
+    "GPIO allocation comes from the master sheet. Do not drive signals when their receiving block is unpowered.",
+    "Exact footprints are not generated here. Audit package orientation, acoustic hole and exposed-pad numbering.",
+    "Initial GPIO sequence: AMP_ENABLE low, PDM_CLK low. Start I2S and then enable the amplifier for playback; ramp data down before disabling.",
+    "Provision 1 mA per microphone at 3.3 V and 0.5 A audio-branch transient capacity for the design budget. These are allocations, not measured consumption."
+  ],
+  "sources": {
+    "microphone": "https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d128s-datasheet-en.pdf",
+    "microphone_product": "https://www.infineon.com/part/IM69D128S",
+    "amplifier": "https://www.analog.com/media/en/technical-documentation/data-sheets/max98357a-max98357b.pdf",
+    "connectors": "https://www.jst.com/products/crimp-style-connectors-wire-to-board-type/sh-connector",
+    "i2s": "https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/api-reference/peripherals/i2s.html"
+  }
+}

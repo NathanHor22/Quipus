@@ -1,0 +1,1 @@
+(fp_lib_table (lib (name "Quipus") (type "KiCad") (uri "${KIPRJMOD}/Quipus.pretty") (options "") (descr "Quipus manufacturer-reviewed footprint geometry")))

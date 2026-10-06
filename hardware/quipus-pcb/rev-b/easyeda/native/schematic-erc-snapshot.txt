@@ -1,0 +1,451 @@
+- link:
+  - /url: "#"
+- generic "File":
+  - generic: File (F)
+- generic "Edit":
+  - generic: Edit (E)
+- generic "View":
+  - generic: View (V)
+- generic "Place":
+  - generic: Place (P)
+- generic "Design":
+  - generic: Design (D)
+- generic "Layout":
+  - generic: Layout (O)
+- generic "Tools":
+  - generic: Tools (T)
+- generic "Export":
+  - generic: Export (R)
+- generic "More"
+- generic: V3.2.149
+- generic: Personal
+- generic: EN
+- generic "Notifications"
+- generic "Homepage":
+  - img "Avatar"
+  - generic: nathanhor2001
+- text: 
+- generic "Board"
+- generic "Open Project(Ctrl+O)"
+- generic "Save(Ctrl+Shift+S)"
+- generic "Save All(Ctrl+S)"
+- generic "Backup"
+- generic "Undo(Ctrl+Z)"
+- generic "Redo(Ctrl+Y)"
+- generic "Common(Default)":
+  - generic: Common(Default)
+- generic "Arrays"
+- generic "Find Similar Objects(Ctrl+Shift+F)"
+- generic "Zoom In"
+- generic "Zoom Out"
+- generic "Fit All in Window(K)"
+- generic "Fit Selection View"
+- generic "Fit Area Selection View"
+- generic "Grid Style"
+- generic "Grid Size":
+  - textbox: "0.05"
+- generic "Unit":
+  - generic: inch
+- generic "Snap(Alt+S)"
+- generic "Component(Shift+F)"
+- generic "Resistor"
+- generic "Wire(Alt+W)"
+- generic "Bus(Alt+B)"
+- generic "Net Label(Alt+N)"
+- generic "Short Flag"
+- generic "VCC"
+- generic "IN"
+- generic "IN"
+- generic "No Connect Flag"
+- generic "Junction Flag(Alt+J)"
+- generic "Differential Pairs Flag"
+- generic "More"
+- 'generic "Auto Hide : Close"'
+- generic "All Projects":
+  - generic: A
+  - generic: l
+  - generic: l
+  - generic: P
+  - generic: r
+  - generic: o
+  - generic: j
+  - generic: e
+  - generic: c
+  - generic: t
+  - generic: s
+- generic "Project Design":
+  - generic: P
+  - generic: r
+  - generic: o
+  - generic: j
+  - generic: e
+  - generic: c
+  - generic: t
+  - generic: D
+  - generic: e
+  - generic: s
+  - generic: i
+  - generic: g
+  - generic: "n"
+- generic "Common Library":
+  - generic: C
+  - generic: o
+  - generic: m
+  - generic: m
+  - generic: o
+  - generic: "n"
+  - generic: L
+  - generic: i
+  - generic: b
+  - generic: r
+  - generic: a
+  - generic: r
+  - generic: "y"
+- text: 
+- generic "Page":
+  - generic: Page
+- generic "Net":
+  - generic: Net
+- generic "Component":
+  - generic: Component
+- generic "Object":
+  - generic: Object
+- generic "Search"
+- generic "Filter"
+- textbox
+- list:
+  - generic "Quipus B1 – Four Microphone Hardware Rev B":
+    - generic "main"
+    - generic: Quipus B1 – Four Microphone Hardware Rev B
+  - 'generic "Board: Quipus-B1"':
+    - generic: Quipus-B1
+  - 'generic "Schematic: Quipus-B1"':
+    - generic: Quipus-B1
+  - 'generic "Page: 1. Quipus-B1"':
+    - generic: 1. Quipus-B1
+  - 'generic "PCB: Quipus-B1"':
+    - generic: Quipus-B1
+- text: ✔
+- generic "Start Page":
+  - generic: Start Page
+- generic "Quipus-B1":
+  - generic: Quipus-B1
+  - text: 
+- generic "Quipus-B1.Quipus-B1":
+  - generic: Quipus-B1.Quipus-B1
+  - text: 
+- generic "Quipus:Quipus_Infineon_IM69D128S_QuarterGround":
+  - generic: Quipus:Quipus_Infineon_IM69D128S_QuarterGround
+  - text: 
+- generic "Quipus:Quipus_TI_RTW0024A_TLV320ADC5140":
+  - generic: Quipus:Quipus_TI_RTW0024A_TLV320ADC5140
+  - text: 
+- generic "Quipus:Quipus_TI_RGT0016C_BQ24074":
+  - generic: Quipus:Quipus_TI_RGT0016C_BQ24074
+  - text: 
+- generic "Quipus:Quipus_TI_DLA0010A_TPS63802":
+  - generic: Quipus:Quipus_TI_DLA0010A_TPS63802
+  - text: 
+- generic "Quipus:Quipus_TI_DRZ0012A_BQ27441":
+  - generic: Quipus:Quipus_TI_DRZ0012A_BQ27441
+  - text: 
+- generic "Quipus:ESP32-S3-WROOM-1":
+  - generic: Quipus:ESP32-S3-WROOM-1
+  - text: 
+- generic "Quipus:MAX98357AETE_T1633-4_3x3mm_P0.5_EP1.23_90-0031C":
+  - generic: Quipus:MAX98357AETE_T1633-4_3x3mm_P0.5_EP1.23_90-0031C
+  - text: 
+- generic: "X:"
+- generic: "Y:"
+- generic: "dX:"
+- generic: "dY:"
+- 'generic "Scaling Ratio: 8%"':
+  - textbox: 8%
+- 'generic "Grid Size: 0.05inch"':
+  - textbox: "0.05"
+- 'generic "ALT Snap: 0.01mil"':
+  - textbox: "0.01"
+- generic "inch":
+  - generic: inch
+- generic "Grid Style"
+- generic "Snap"
+- 'generic "Auto Hide : Close"'
+- generic "Property":
+  - generic: P
+  - generic: r
+  - generic: o
+  - generic: p
+  - generic: e
+  - generic: r
+  - generic: t
+  - generic: "y"
+- generic "Filter":
+  - generic: F
+  - generic: i
+  - generic: l
+  - generic: t
+  - generic: e
+  - generic: r
+- generic: Page
+- generic: Selected Objects0
+- generic "Basic Properties":
+  - generic: Basic Properties
+- generic "Name"
+- textbox "Quipus-B1" [disabled]
+- generic "Drawing"
+- textbox "default1260x1485"
+- generic: ···
+- generic "Edit Drawing"
+- generic "Revert to Template"
+- generic "Drawing Border":
+  - generic: Drawing Border
+- generic "Border"
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: Show
+- generic "Title Block Position"
+- generic "Right Bottom":
+  - generic: Right Bottom
+- generic "Size"
+- generic "Customize":
+  - generic: Customize
+- generic: Drawing Width
+- generic: Drawing Height
+- textbox "48.8189inch"
+- textbox "57.6772inch"
+- generic "Cancel Equal proportion adjustment"
+- generic "Width and height confrontation"
+- generic "Region Start"
+- generic "Left Top":
+  - generic: Left Top
+- generic "X Region Count"
+- textbox "1"
+- generic "Y Region Count"
+- textbox "1"
+- generic "Blade Width"
+- textbox "0.1inch"
+- generic "Color"
+- textbox
+- textbox "#A00000(Default)"
+- generic "Restore Default"
+- generic "Title Block":
+  - generic: Title Block
+- generic "Title Block"
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: Show
+- checkbox
+- generic "Designator"
+- checkbox
+- textbox
+- checkbox "✔" [checked]
+- generic: ✔
+- generic "Date"
+- checkbox "✔" [checked]
+- generic: ✔
+- textbox
+- checkbox
+- generic "Type"
+- checkbox "✔" [checked]
+- generic: ✔
+- textbox
+- checkbox "✔" [checked]
+- generic: ✔
+- generic "Rev"
+- checkbox "✔" [checked]
+- generic: ✔
+- textbox
+- checkbox "✔" [checked]
+- generic: ✔
+- generic "Id"
+- checkbox "✔" [checked]
+- generic: ✔
+- textbox /
+- checkbox "✔" [checked]
+- generic: ✔
+- generic "Title"
+- checkbox "✔" [checked]
+- generic: ✔
+- textbox
+- checkbox "✔" [checked]
+- generic: ✔
+- generic "File"
+- checkbox "✔" [checked]
+- generic: ✔
+- textbox "Quipus-B1"
+- checkbox "✔" [checked]
+- generic: ✔
+- generic "Sheet"
+- checkbox "✔" [checked]
+- generic: ✔
+- textbox /
+- checkbox
+- generic "Comp"
+- checkbox "✔" [checked]
+- generic: ✔
+- textbox
+- checkbox
+- generic "Comment1"
+- checkbox "✔" [checked]
+- generic: ✔
+- textbox
+- checkbox
+- generic "Comment2"
+- checkbox "✔" [checked]
+- generic: ✔
+- textbox
+- checkbox
+- generic "Comment3"
+- checkbox "✔" [checked]
+- generic: ✔
+- textbox
+- checkbox
+- generic "Comment4"
+- checkbox "✔" [checked]
+- generic: ✔
+- textbox
+- checkbox
+- generic "Origin Footprint"
+- checkbox
+- textbox
+- checkbox
+- generic "Description"
+- checkbox
+- textbox
+- checkbox
+- generic "Add into BOM"
+- checkbox
+- textbox "yes"
+- generic: Add Property
+- text: ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔
+- text: ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔
+- 'generic "Auto Hide : Close"'
+- generic "Library":
+  - generic: Library
+- generic "Log":
+  - generic: Log
+- generic "Device Standardization":
+  - generic: Device Standardization
+- generic "DRC":
+  - generic: DRC
+- generic "Find Result":
+  - generic: Find Result
+- text:  
+- generic "Property List":
+  - generic: Property List
+- text: ✔ ✔ ✔ ✔ ✔
+- button "Check DRC"
+- button "Export"
+- button "Clear"
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: All
+- generic: (8)
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: Fatal Error
+- generic: (0)
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: Error
+- generic: (0)
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: Warn
+- generic: (0)
+- checkbox "✔" [checked]
+- generic: ✔
+- generic: Info
+- generic: (8)
+- paragraph:
+  - generic: 2026-10-02 13:26:38
+  - generic: "[Info] :"
+  - text: Start Design Rule Checking.
+- paragraph:
+  - generic: 2026-10-02 13:26:39
+  - generic: "[Info] :"
+  - text: "The pin of the component Quipus_J1 does not correspond to the pad (Pad has no corresponding pin: ):"
+  - generic: $2I2
+- paragraph:
+  - generic: 2026-10-02 13:26:39
+  - generic: "[Info] :"
+  - text: "The pin of the component Quipus_J2 does not correspond to the pad (Pad has no corresponding pin: MP):"
+  - generic: $2I13
+- paragraph:
+  - generic: 2026-10-02 13:26:39
+  - generic: "[Info] :"
+  - text: "The pin of the component Quipus_J3 does not correspond to the pad (Pad has no corresponding pin: MP):"
+  - generic: $2I14
+- paragraph:
+  - generic: 2026-10-02 13:26:39
+  - generic: "[Info] :"
+  - text: "The pin of the component Quipus_U20 does not correspond to the pad (Pad has no corresponding pin: ):"
+  - generic: $2I122
+- text: ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔ ✔
+- text: 
+- generic: Floating Tool
+- generic "Collapse"
+- generic "close"
+- generic "VCC"
+- generic "+5V"
+- generic "GND"
+- generic "PGND"
+- generic "AGND"
+- generic "IN"
+- generic "OUT"
+- generic "BI"
+- generic "IN"
+- generic "OUT"
+- generic "BI"
+- generic "Net Label"
+- generic "Short Flag"
+- generic "No Connect Flag"
+- generic "Differential Pairs Flag"
+- generic "Test Point"
+- generic: Floating Tool
+- generic "Collapse"
+- generic "close"
+- generic "Normal View"
+- generic "Outline View"
+- generic "Gerber View"
+- generic "Top Side"
+- generic "Bottom Side"
+- generic "Left Side"
+- generic "Right Side"
+- generic "Front Side"
+- generic "Back Side"
+- generic "Explode"
+- generic "Fit All in Window"
+- generic "Import Changes"
+- generic "Refresh"
+- generic: Table Setting
+- generic "close"
+- generic "Add Row Above"
+- generic "Add Row Below"
+- generic "Add Column Left"
+- generic "Add Column Right"
+- generic "Delete Row"
+- generic "Delete Column"
+- generic "Merge Cell"
+- generic "Split Cell"
+- generic "Border"
+- generic "Full Border"
+- generic "Outer Border"
+- generic "Inner Border"
+- generic "No Border"
+- generic "Left Border"
+- generic "Right Border"
+- generic "Top Border"
+- generic "Bottom Border"
+- generic "Border Color"
+- textbox
+- generic: "#A00000"
+- generic "Restore Default"
+- generic "Align Top"
+- generic "Align Top"
+- generic "Align Vertical Centers"
+- generic "Align Bottom"
+- generic "Align Left"
+- generic "Align Left"
+- generic "Align Horizontal Centers"
+- generic "Align Right"

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Check, Headphones, ShieldCheck } from "lucide-react";
 
-import { LanternMark } from "@/components/brand/LanternMark";
+import { QuipusLogo } from "@/components/brand/QuipusLogo";
+import { RevealHeading } from "@/components/experience/QuipusExperience";
 import { sanitizeAuthReturnTo } from "@/lib/auth-policy";
 import { publicSupabaseConfig } from "@/lib/supabase/session";
 
@@ -27,34 +27,21 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <main className={styles.page}>
-      <div className={styles.gridGlow} aria-hidden="true" />
       <div className={styles.authShell}>
-        <section className={styles.intro} aria-label="About Quipus">
-          <div className={styles.brandLockup}>
-            <span className={styles.logo}><LanternMark /></span>
-            <strong>Quipus</strong>
-          </div>
-          <p className={styles.eyebrow}>CONVERSATION INTELLIGENCE</p>
-          <h1>Carry every conversation forward.</h1>
-          <p className={styles.introCopy}>
-            Your meetings, source audio, commitments, and follow-ups stay in one
-            private workspace.
-          </p>
-          <ul className={styles.signalList}>
-            <li><Headphones /><span>Replay the original conversation</span></li>
-            <li><Check /><span>Review every extracted commitment</span></li>
-            <li><ShieldCheck /><span>Approve before Quipus acts</span></li>
-          </ul>
-        </section>
-
+        <Link href="/?mode=sample" className={styles.brandLockup} aria-label="Explore Quipus">
+          <QuipusLogo className={styles.logo} />
+        </Link>
         <section className={styles.card} aria-labelledby="login-title">
-          <span className={styles.accessPill}><i /> SECURE ACCESS</span>
-          <p className={styles.cardKicker}>WELCOME BACK</p>
-          <h2 id="login-title">Sign in to your Quipus.</h2>
+          <p className={styles.cardKicker}>WELCOME TO QUIPUS</p>
+          <RevealHeading
+            as="h1"
+            text="Keep every conversation moving."
+            className={styles.heading}
+          />
           <p className={styles.description}>
-            Continue with any Google account. Each account receives its own
-            private Quipus workspace.
+            Record meetings. Review the details. Follow up.
           </p>
+          <h2 id="login-title" className={styles.signInTitle}>Sign in to your workspace</h2>
 
           {message ? <p className={styles.notice} role="alert">{message}</p> : null}
 
@@ -62,21 +49,27 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <LoginButton nextPath={nextPath} />
           ) : (
             <div className={styles.localNotice}>
-              <strong>Local development mode</strong>
-              <span>Supabase Auth is not configured, so local access remains open.</span>
-              <Link href={nextPath}>Return to Quipus</Link>
+              <strong>Sign-in is unavailable right now.</strong>
+              <span>You can explore the sample workspace.</span>
+              <Link href="/?mode=sample">Explore a sample workspace</Link>
             </div>
           )}
 
           <p className={styles.footnote}>
-            Conversations, devices, and Calendar access stay tied to the account
-            you choose.
+            Each account has its own workspace. You choose what happens next.
           </p>
-          <p className={styles.footnote}>
-            <Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link>
+
+          {configured && <div className={styles.demoSection}>
+            <span>Take a look around first.</span>
+            <Link href="/?mode=sample">Explore a sample workspace</Link>
+          </div>}
+
+          <p className={styles.legalLinks}>
+            <Link href="/privacy">Privacy</Link><span aria-hidden="true">·</span><Link href="/terms">Terms</Link>
           </p>
         </section>
       </div>
+      <p className={styles.pageFooter}>A clear record. A considered next step.</p>
     </main>
   );
 }

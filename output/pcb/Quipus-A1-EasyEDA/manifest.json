@@ -1,0 +1,36 @@
+{
+  "status": "Engineering PCB placement; unrouted, not fabrication ready",
+  "components": 144,
+  "nets": 92,
+  "physical_footprint_count": 31,
+  "board_mm": [
+    65,
+    105,
+    1.6
+  ],
+  "copper_layers": 4,
+  "antenna_notch_mm": [
+    22.5,
+    0,
+    20,
+    6.7
+  ],
+  "schematic_project": "Quipus-A1",
+  "schematic_layout": "Nine source panels on one flat electrical sheet; local net labels avoid incorrect reuse-block netport conversion",
+  "tracks": 0,
+  "native_erc": "pending EasyEDA check",
+  "native_drc": "pending EasyEDA check",
+  "importer_geometry_checks": [
+    "Custom mic annulus/NPTH/paste",
+    "USB shared contacts",
+    "Gauge H-shaped EP",
+    "SD detector A/B",
+    "All-layer RF keepout"
+  ],
+  "format_warnings": [
+    "U1: footprint keepout must be lifted into board-level zones with extract_keepouts()",
+    "J6: footprint keepout must be lifted into board-level zones with extract_keepouts()"
+  ],
+  "separate_native_cloud_review": "native-review/review-status.json",
+  "native_correction_in_generated_kicad_carrier": false
+}

@@ -1,0 +1,58 @@
+{
+  "status": "Saved schematic and PCB placement revision; copper routing remains",
+  "components": 180,
+  "nets": 113,
+  "physical_footprint_count": 33,
+  "board_mm": [
+    65,
+    125,
+    1.6
+  ],
+  "copper_layers": 4,
+  "antenna_notch_mm": [
+    22.5,
+    0,
+    20,
+    6.7
+  ],
+  "schematic_project": "Quipus-B1",
+  "schematic_layout": "Thirteen source panels on one flat electrical sheet; local net labels avoid incorrect reuse-block netport conversion",
+  "tracks": 0,
+  "native_erc": {
+    "fatal": 0,
+    "errors": 0,
+    "warnings": 0,
+    "information": 8,
+    "notes": "Start/end entries and unmatched mechanical/acoustic pads; see saved native snapshot"
+  },
+  "native_drc": {
+    "connection_errors": 543,
+    "other_errors": 0,
+    "notes": "Unrouted connections remain; this is not a routed DRC pass"
+  },
+  "importer_geometry_checks": [
+    "Four-quarter GND mic annulus/NPTH/paste",
+    "USB shared contacts",
+    "Gauge H-shaped EP",
+    "SD detector A/B",
+    "All-layer RF keepout"
+  ],
+  "format_warnings": [
+    "U1: footprint keepout must be lifted into board-level zones with extract_keepouts()",
+    "J6: footprint keepout must be lifted into board-level zones with extract_keepouts()"
+  ],
+  "manufacturing_release": false,
+  "easyeda_project_id": "0960404b6cb74e4c9e220d0e9c82a5cd",
+  "easyeda_project_url": "https://pro.easyeda.com/editor#id=0960404b6cb74e4c9e220d0e9c82a5cd",
+  "native_capture_sha256": "299981378ff657e3aebd834a51e26d2fa41804a9d9e8c0c5d34b2b89d3b9411d",
+  "native_capture_checks": {
+    "electrical": "PASS",
+    "metadata": "PASS",
+    "placement": "PASS",
+    "geometry": "PASS",
+    "stencil": "PASS"
+  },
+  "carrier_sha256": "d19ff1b295be70aafc89c9cb795fcefa9964c902f8e7c659dd3cc42945544315",
+  "schematic_sha256": "187ce46543abe38d3028afd28935462efd5831e96646837cc77779733437a5f4",
+  "release_holds": "See final-engineering-review.md and README.md"
+}

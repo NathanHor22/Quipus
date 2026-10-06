@@ -1,0 +1,68 @@
+(module "Quipus:Quipus_Murata_BLM21PG221SN1D"
+  (layer F.Cu)
+  (attr smd)
+  (descr "BLM21PG family reflow a=1.2 b=2.4 c=1.25; JENF243A_9131H-01 section11.1; exact SN1 approval remains required")
+  (fp_text reference "REF**"
+    (at 0 -1.525 0)
+    (layer "F.SilkS")
+    (effects
+      (font
+        (size 0.7 0.7)
+        (thickness 0.12))))
+  (fp_text value "Quipus_Murata_BLM21PG221SN1D"
+    (at 0 1.525 0)
+    (layer "F.Fab")
+    (effects
+      (font
+        (size 0.6 0.6)
+        (thickness 0.1))))
+  (fp_line
+    (start -1 -0.625)
+    (end 1 -0.625)
+    (width 0.1)
+    (layer "F.Fab"))
+  (fp_line
+    (start 1 -0.625)
+    (end 1 0.625)
+    (width 0.1)
+    (layer "F.Fab"))
+  (fp_line
+    (start 1 0.625)
+    (end -1 0.625)
+    (width 0.1)
+    (layer "F.Fab"))
+  (fp_line
+    (start -1 0.625)
+    (end -1 -0.625)
+    (width 0.1)
+    (layer "F.Fab"))
+  (fp_line
+    (start -1.45 -1.075)
+    (end 1.45 -1.075)
+    (width 0.05)
+    (layer "F.CrtYd"))
+  (fp_line
+    (start 1.45 -1.075)
+    (end 1.45 1.075)
+    (width 0.05)
+    (layer "F.CrtYd"))
+  (fp_line
+    (start 1.45 1.075)
+    (end -1.45 1.075)
+    (width 0.05)
+    (layer "F.CrtYd"))
+  (fp_line
+    (start -1.45 1.075)
+    (end -1.45 -1.075)
+    (width 0.05)
+    (layer "F.CrtYd"))
+  (pad "1" smd rect
+    (size 0.6 1.25)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+    (solder_mask_margin 0.05)
+    (at -0.9 0 0))
+  (pad "2" smd rect
+    (size 0.6 1.25)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+    (solder_mask_margin 0.05)
+    (at 0.9 0 0)))

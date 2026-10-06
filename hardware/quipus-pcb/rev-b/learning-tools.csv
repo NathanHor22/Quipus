@@ -1,0 +1,29 @@
+category,item,quantity,minimum_specification,purpose,purchase_status,notes
+Practice,Through-hole soldering practice kit,1,Low-voltage kit with clear instructions,Learn clean joints and desoldering,Can buy now,Practice before the main PCB
+Practice,0805 SMD practice board,1,Inexpensive passive-only training board,Practice accessible SMD parts,Can buy now,Does not qualify someone to assemble exposed-pad QFN or MEMS
+Tool,Temperature-controlled soldering station,1,Appropriate low-power iron and small chisel tip,Solder practice parts and capsule leads,Can buy now,PUI capsule instructions specify iron below 90 W and 360 +/-10 C tip with <=2 s per terminal
+Tool,Iron stand and brass tip cleaner,1,Stable heat-resistant stand,Safe parking and tip cleaning,Can buy now,Keep away from battery and cables
+Consumable,Electronics solder wire,1 roll,Documented alloy and electronics grade,Make joints,Can buy now,Choose an appropriate alloy and flux procedure with the technician
+Consumable,Electronics flux,1,Compatible with solder alloy and board-cleaning process,Wetting and controlled rework,Can buy now,No plumbing flux; keep out of microphone ports
+Tool,Local fume extraction,1,Draw fumes away from operator,Control solder fumes,Can buy now,Do not blow across joints
+Tool,Eye protection,1,Suitable clear protective glasses,Soldering and clipping protection,Can buy now,Use when soldering or trimming leads
+Tool,Digital multimeter,1,Continuity resistance and DC voltage with insulated leads,Check cable polarity shorts and rails,Can buy now,Never use resistance mode on powered circuits
+Tool,Magnifier or inspection microscope,1,Enough resolution to inspect solder bridges,Inspect connectors and joints,Can buy now,Fine-pitch joints require more than unaided inspection
+Tool,Fine tweezers,1,Electronics suitable,Handle small unpowered parts,Can buy now,Do not push into acoustic openings
+Tool,Wire stripper and flush cutters,1 set,Suitable for chosen fine stranded microphone cable,Prepare cables,Can buy now,Do not nick strands
+Tool,Helping-hands fixture,1,Stable fixture with protected jaws,Support leads and plugs while soldering,Can buy now,Do not clamp the microphone diaphragm or battery
+Consumable,Heat-shrink tubing,1 assortment,Sizes matched to leads and plug shell,Insulate joints and support leads,Can buy now,Slide onto cable before soldering
+Consumable,Desoldering braid,1,Electronics grade,Remove practice solder bridges,Can buy now,Avoid repeated long heating on capsule pads
+Tool,Current-limited bench supply,1,Regulated low-voltage output with adjustable current limit,First power tests without LiPo,Borrow or buy before bring-up,Start with reviewed polarity and low diagnostic current limit
+Tool,Oscilloscope access,1,Appropriate probes and bandwidth for rails and PDM clocks,Check overshoot ripple and timing,Borrow or technician service,Speaker measurements require differential method; do not ground either speaker terminal
+Tool,ESD-safe work surface,1,Electronics bench practice,Protect unpowered sensitive parts,Can buy now,Follow proper ESD setup; not a battery-insulation mat substitute
+Off-board,PUI AOM-5024L-HD-R capsule,2 plus optional 1 spare,Exact manufacturer part number,Build external microphone pucks,Test candidate; buy after confirming accessory circuit,Do not replace by lookalike capsule without electrical review
+Off-board,Shielded mono microphone cable,2 one-metre leads,Flexible stranded cable matched to plug and strain relief,External microphone extensions,Select exact cable before puck CAD,Not unshielded Dupont jumper wires
+Off-board,Solderable 3.5 mm TRS plug,2 plus optional spare,Shell large enough for cable with strain relief,Connect microphone pucks,Select exact plug and verify final pin mapping,Initial own mono accessory tip audio/bias sleeve return ring unused
+Off-board,Precrimped JST harnesses,As final harness BOM,Exact mating family pitch contacts and pin order,Connect screen speaker battery and NTC,Buy after connector and polarity release,PH 2 mm and SH 1 mm are different; prewired colours do not prove pin order
+Off-board,Acoustic mesh and soft microphone mounts,2 puck sets,Open sound path and material suited to housing,Protect capsules and limit handling vibration,Select after housing drawing,Do not seal the acoustic opening with adhesive
+Off-board,Protected 1S 2000 mAh LiPo pack,1,Approved 4.2 V chemistry polarity discharge and temperature limits,Device battery,HOLD exact pack and NTC selection pending,Do not charge an arbitrary pack from this draft
+Off-board,Speaker,1,Reviewed 8 ohm 2 W nominal driver with case dimensions,Voice playback,HOLD exact driver selection pending,Neither amplified speaker lead connects to ground
+Off-board,Waveshare SKU 15867 display module,1,1.3 inch 240x240 ST7789 non-touch module,Compact screen,Verify exact revision and harness before ordering,LVGL is firmware; this is a module rather than bare display glass
+Off-board,Genuine 32 GB microSD card,1,Known-good FAT32 test configuration,Long recording storage,Can buy for test after firmware filesystem review,Buy from authorized seller and verify capacity
+Off-board,Case hardware and gaskets,As case drawing,Reviewed screw lengths spacers and acoustics,Final mechanical assembly,HOLD final PCB/case dimensions,No screw or sharp feature may touch battery pouch

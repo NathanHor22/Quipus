@@ -1,0 +1,73 @@
+{
+  "status": "Independent geometric placement audit; not native CAD DRC",
+  "board_file": "output/pcb/Quipus-A1-EasyEDA/Quipus-A1.kicad_pcb",
+  "components": 144,
+  "courtyard_method": "Actual stitched closed polygons; circular keepouts approximated by 48 segments; pad shapes conservatively bounded by rotated rectangles.",
+  "same_face_courtyard_overlaps": [
+    {
+      "refs": [
+        "J2",
+        "J3"
+      ],
+      "side": "B",
+      "origins_mm": [
+        [
+          11.0,
+          65.5
+        ],
+        [
+          9.0,
+          72.0
+        ]
+      ],
+      "bounds_mm": [
+        [
+          [
+            6.4,
+            60.4,
+            15.6,
+            70.6
+          ]
+        ],
+        [
+          [
+            5.6,
+            68.72,
+            12.4,
+            75.28
+          ]
+        ]
+      ]
+    }
+  ],
+  "opposite_face_through_hole_conflicts": [],
+  "copper_edge_issues": [],
+  "mounting_head_conflicts": [],
+  "front_components_under_screen_envelope": [],
+  "missing_courtyards": [],
+  "rf_keepout_layers": [
+    "B.Cu",
+    "F.Cu",
+    "In1.Cu",
+    "In2.Cu"
+  ],
+  "rf_all_four_layers_present": true,
+  "rf_component_conflicts": [],
+  "usb_pcb_edge_guide_mm": [
+    32.5,
+    105.0
+  ],
+  "usb_guide_aligned_bottom": true,
+  "sd_mouth_center_mm": [
+    64.175,
+    40.0
+  ],
+  "sd_outward_unit_vector": [
+    1.0,
+    6.123233995736766e-17
+  ],
+  "sd_faces_right": true,
+  "routing_checks_performed": false,
+  "native_drc_performed": false,
+  "proposal_dry_run": true
+}

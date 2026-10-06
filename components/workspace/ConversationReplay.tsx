@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Headphones,
   LoaderCircle,
+  Pause,
+  Play,
   RotateCcw,
   RotateCw,
-  Search,
   X,
 } from "lucide-react";
 import type { Meeting } from "@/lib/types";
@@ -16,21 +16,29 @@ import {
   formatAudioTime,
 } from "@/lib/workspace/playback";
 import styles from "./replay.module.css";
+import { recordingDurationLabel } from "@/lib/workspace/recording-progress";
 
 export interface PlaybackProgress {
   position: number;
   speed: number;
 }
 
+export type ConversationReplayView = "all" | "audio" | "transcript" | "hidden";
+type ReplayPanel = { id: string; labelledBy: string };
+
 /** Only plays captured audio. Transcript imports never become synthetic audio. */
 export function ConversationReplay({
   conversation,
   initialProgress,
   onProgress,
+  view = "all",
+  panels,
 }: {
   conversation: Meeting;
   initialProgress?: PlaybackProgress;
   onProgress: (progress: PlaybackProgress) => void;
+  view?: ConversationReplayView;
+  panels?: { audio: ReplayPanel; transcript: ReplayPanel };
 }) {
   const sample = conversation.id.startsWith("sample:");
   const recordingId = !sample ? conversation.recordingId : null;
@@ -177,6 +185,17 @@ export function ConversationReplay({
         );
   };
 
+  const togglePlayback = () => {
+    const player = audio.current;
+    if (!player || !ready) return;
+    if (!player.paused) player.pause();
+    else void player.play().catch(() => setError("The recording could not start. Please try again."));
+  };
+
+  useEffect(() => {
+    if (view === "hidden") audio.current?.pause();
+  }, [view]);
+
   const restorePosition = (player: HTMLAudioElement) => {
     player.playbackRate = progress.current.speed;
     if (pendingPosition.current <= 0) return;
@@ -204,21 +223,25 @@ export function ConversationReplay({
   };
 
   return (
-    <section className={styles.replay} aria-label="Conversation replay">
-      <div className={styles.playerCard}>
+    <section className={styles.replay} aria-label="Conversation replay" hidden={view === "hidden"}>
+      <div
+        className={styles.playerCard}
+        role={panels ? "tabpanel" : undefined}
+        id={panels?.audio.id}
+        aria-labelledby={panels?.audio.labelledBy}
+        tabIndex={panels ? 0 : undefined}
+        hidden={view === "transcript" || view === "hidden"}
+      >
         <header className={styles.playerHeader}>
-          <span className={styles.cover} aria-hidden="true">
-            <Headphones />
-          </span>
           <div>
             <span className={styles.eyebrow}>ORIGINAL RECORDING</span>
-            <h3>Captured conversation</h3>
+            <h3>Original audio</h3>
             <p>{conversation.title}</p>
+            <p className={styles.duration}>Duration · {recordingDurationLabel(conversation)}</p>
           </div>
         </header>
         <p className={styles.intro}>
-          Listen to the original audio saved by Quipus and revisit details
-          beyond the summary.
+          Listen to the original recording and revisit the details.
         </p>
         {source.url && (
           <>
@@ -329,8 +352,8 @@ export function ConversationReplay({
             </strong>
             <p>
               {sample
-                ? "You can explore the transcript excerpts below. Add a real recording in your live workspace to try playback."
-                : "The transcript is still available below. Replay needs the original recording from this conversation."}
+                ? "You can explore the transcript excerpts. Add a recording in your live workspace to try playback."
+                : "Any saved transcript remains available. Playback needs the original recording from this conversation."}
             </p>
           </div>
         )}
@@ -351,91 +374,111 @@ export function ConversationReplay({
         )}
       </div>
 
-      <div className={styles.transcriptHeader}>
-        <div>
-          <h3>Follow the conversation</h3>
-          <p>
-            {source.url
-              ? `${speakerTones.size} speaker${speakerTones.size === 1 ? "" : "s"} detected · Select a timestamp to listen from that point.`
-              : "The original transcript, in the words captured."}
-          </p>
-        </div>
-        {activeIndex >= 0 && (
-          <button type="button" onClick={jumpToCurrent}>
-            Current line
-          </button>
+      <div
+        className={styles.transcriptSection}
+        role={panels ? "tabpanel" : undefined}
+        id={panels?.transcript.id}
+        aria-labelledby={panels?.transcript.labelledBy}
+        tabIndex={panels ? 0 : undefined}
+        hidden={view === "audio" || view === "hidden"}
+      >
+        {view === "transcript" && error && (
+          <div className={styles.error} role="alert">
+            <p>{error}</p>
+            {recordingId && <button type="button" disabled={loading} onClick={() => void refreshAudio()}><RotateCcw /> Reload recording</button>}
+          </div>
         )}
-      </div>
-      {transcript.length > 0 && (
-        <label className={styles.search}>
-          <Search aria-hidden="true" />
-          <input
-            aria-label="Search transcript"
-            placeholder="Find a name, phrase, or detail"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-          {search && (
-            <button
-              type="button"
-              aria-label="Clear transcript search"
-              onClick={() => setSearch("")}
-            >
-              <X />
+        <div className={styles.transcriptHeader}>
+          <div>
+            <h3>Transcript</h3>
+            <p>
+              {source.url
+                ? `${speakerTones.size} speaker${speakerTones.size === 1 ? "" : "s"} detected · Select a timestamp to listen from that point.`
+                : "The original transcript, in the words captured."}
+            </p>
+          </div>
+          {view === "transcript" && source.url && (
+            <button type="button" disabled={!ready || loading} onClick={togglePlayback} aria-label={playing ? "Pause recording" : "Play recording"}>
+              {playing ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
+              {playing ? "Pause" : "Play"} · {formatAudioTime(position)}
             </button>
           )}
-        </label>
-      )}
-      <div className={styles.transcript}>
-        {visibleSegments.map(({ segment, index }) => {
-          const timed =
-            segment.startSeconds !== undefined &&
-            Number.isFinite(segment.startSeconds) &&
-            segment.startSeconds >= 0;
-          const active = index === activeIndex;
-          return (
-            <article
-              key={segment.id || index}
-              ref={active ? activeLine : undefined}
-              className={active ? styles.activeLine : undefined}
-              data-speaker-tone={Math.min(speakerTones.get(segment.speaker.trim()) || 1, 4)}
-              aria-current={active ? "true" : undefined}
-            >
-              <header>
-                <strong>{segment.speaker}</strong>
-                {timed &&
-                  (source.url ? (
-                    <button
-                      type="button"
-                      className={styles.timestamp}
-                      disabled={!ready || loading}
-                      onClick={() => jumpToLine(segment.startSeconds!)}
-                      aria-label={`Listen to ${segment.speaker} at ${formatAudioTime(segment.startSeconds!)}`}
-                    >
-                      {formatAudioTime(segment.startSeconds!)}
-                    </button>
-                  ) : (
-                    <span className={styles.timestampLabel}>
-                      {formatAudioTime(segment.startSeconds!)}
-                    </span>
-                  ))}
-              </header>
-              <p>{segment.text}</p>
-            </article>
-          );
-        })}
-        {!visibleSegments.length && (
-          <p className={styles.empty}>
-            {normalizedSearch
-              ? "No matching words. Try another name or phrase."
-              : "There is no transcript for this conversation yet."}
-          </p>
+          {activeIndex >= 0 && (
+            <button type="button" onClick={jumpToCurrent}>
+              Current line
+            </button>
+          )}
+        </div>
+        {transcript.length > 0 && (
+          <label className={styles.search}>
+            <input
+              aria-label="Search transcript"
+              placeholder="Find a name, phrase, or detail"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+            {search && (
+              <button
+                type="button"
+                aria-label="Clear transcript search"
+                onClick={() => setSearch("")}
+              >
+                <X aria-hidden="true" />
+              </button>
+            )}
+          </label>
         )}
+        <div className={styles.transcript}>
+          {visibleSegments.map(({ segment, index }) => {
+            const timed =
+              segment.startSeconds !== undefined &&
+              Number.isFinite(segment.startSeconds) &&
+              segment.startSeconds >= 0;
+            const active = index === activeIndex;
+            return (
+              <article
+                key={segment.id || index}
+                ref={active ? activeLine : undefined}
+                className={active ? styles.activeLine : undefined}
+                data-speaker-tone={Math.min(speakerTones.get(segment.speaker.trim()) || 1, 4)}
+                aria-current={active ? "true" : undefined}
+              >
+                <header>
+                  <strong>{segment.speaker}</strong>
+                  {timed &&
+                    (source.url ? (
+                      <button
+                        type="button"
+                        className={styles.timestamp}
+                        disabled={!ready || loading}
+                        onClick={() => jumpToLine(segment.startSeconds!)}
+                        aria-label={`Listen to ${segment.speaker} at ${formatAudioTime(segment.startSeconds!)}`}
+                      >
+                        {formatAudioTime(segment.startSeconds!)}
+                      </button>
+                    ) : (
+                      <span className={styles.timestampLabel}>
+                        {formatAudioTime(segment.startSeconds!)}
+                      </span>
+                    ))}
+                </header>
+                <p>{segment.text}</p>
+              </article>
+            );
+          })}
+          {!visibleSegments.length && (
+            <p className={styles.empty}>
+              {normalizedSearch
+                ? "No matching words. Try another name or phrase."
+                : "There is no transcript for this conversation yet."}
+            </p>
+          )}
+        </div>
+        <p className={styles.transcriptNote}>
+          The transcript may contain mistakes. The original audio is your
+          reference.
+        </p>
       </div>
-      <p className={styles.transcriptNote}>
-        The transcript may contain mistakes. The original audio is your
-        reference.
-      </p>
     </section>
   );
 }

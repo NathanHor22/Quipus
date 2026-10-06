@@ -1,0 +1,52 @@
+.history { display: grid; grid-template-columns: minmax(0, 1fr); gap: 23px; min-width: 0; }
+.history button { min-height: 38px; border-radius: var(--q-radius); }
+.back, .correct, .nextStep button, .item button, .sources button { display: inline-flex; align-items: center; justify-content: center; width: fit-content; padding: 9px 13px; border: 1px solid var(--q-line-strong); background: var(--q-glass-strong); color: var(--q-text); font-size: 11px; font-weight: 600; line-height: 1.5; }
+.back:hover, .correct:hover, .nextStep button:hover, .item button:hover, .sources button:hover { border-color: var(--q-red); }
+.hero, .nextStep, .meetings, .outstanding, .research, .details { border: 1px solid var(--q-line); border-radius: var(--q-radius); background: var(--q-panel-gradient); box-shadow: var(--q-shadow); backdrop-filter: blur(var(--q-glass-blur)); }
+.hero { display: flex; align-items: center; gap: 20px; padding: 27px 29px; }
+.avatar { display: grid; flex: 0 0 57px; height: 57px; place-items: center; border: 1px solid var(--q-line); border-radius: var(--q-radius); background: var(--q-glass-strong); color: var(--q-text); font-size: 17px; }
+.identity { flex: 1; min-width: 0; }
+.kicker { color: var(--q-muted-strong); font-size: 9px; font-weight: 700; letter-spacing: .13em; }
+.identity h2 { margin: 9px 0 5px; color: var(--q-text); font-size: 32px; font-weight: 500; line-height: 1.15; letter-spacing: -.035em; overflow-wrap: anywhere; }
+.identity p { margin: 0; color: var(--q-muted-strong); font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+.correct { flex-shrink: 0; }
+.details { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; padding: 23px 26px; }
+.details > div { min-width: 0; }
+.details > div > span { display: grid; gap: 8px; color: var(--q-muted-strong); font-size: 10px; }
+.details strong { color: var(--q-text); font-size: 12px; font-weight: 550; line-height: 1.6; overflow-wrap: anywhere; }
+.details > p { grid-column: 1 / -1; margin: 0; padding-top: 16px; border-top: 1px solid var(--q-line); color: var(--q-muted-strong); font-size: 10px; line-height: 1.7; }
+.nextStep { padding: 25px 27px; border-left: 2px solid var(--q-red); }
+.nextStep h3 { margin: 14px 0 21px; max-width: 840px; color: var(--q-text); font-size: 19px; font-weight: 500; line-height: 1.6; overflow-wrap: anywhere; }
+.nextStep > div { display: flex; justify-content: space-between; gap: 17px; align-items: center; }
+.nextStep > div > span { color: var(--q-muted-strong); font-size: 10px; }
+.columns { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(260px, 1fr); gap: 23px; align-items: start; }
+.meetings, .outstanding { min-width: 0; overflow: hidden; }
+.sectionHeader { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 21px 23px; border-bottom: 1px solid var(--q-line); }
+.sectionHeader h3 { margin: 0; color: var(--q-text); font-size: 17px; font-weight: 550; line-height: 1.4; }
+.sectionHeader > span { padding: 4px 7px; border: 1px solid var(--q-line); border-radius: var(--q-radius); background: var(--q-glass); color: var(--q-muted-strong); font-size: 9px; }
+.meeting { display: grid; grid-template-columns: 105px minmax(0, 1fr); gap: 19px; width: calc(100% - 28px); margin: 14px; padding: 18px 17px; border: 1px solid var(--q-line); background: var(--q-glass); text-align: left; }
+.meeting:hover { border-color: var(--q-red); background: var(--q-glass-strong); }
+.meetingDate { display: grid; align-content: start; gap: 7px; color: var(--q-muted-strong); font-size: 10px; line-height: 1.5; }
+.meetingDate small { font-size: 10px; }
+.meetingCopy { display: grid; gap: 8px; min-width: 0; }
+.meetingCopy strong { color: var(--q-text); font-size: 13px; font-weight: 550; line-height: 1.5; overflow-wrap: anywhere; }
+.meetingCopy > span { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: var(--q-muted-strong); font-size: 11px; line-height: 1.65; }
+.item { display: grid; gap: 10px; padding: 23px; border-bottom: 1px solid var(--q-line); }
+.item:last-child { border-bottom: 0; }
+.itemOwner { color: var(--q-muted-strong); font-size: 9px; letter-spacing: .04em; }
+.item > strong { color: var(--q-text); font-size: 12px; font-weight: 550; line-height: 1.65; overflow-wrap: anywhere; }
+.due { color: var(--q-muted-strong); font-size: 10px; }
+.item button { margin-top: 6px; font-size: 10px; }
+.empty { padding: 24px 23px; margin: 0; color: var(--q-muted-strong); font-size: 12px; line-height: 1.7; }
+.research { padding: 25px 27px; }
+.researchHeader h3 { margin: 9px 0; color: var(--q-text); font-size: 18px; font-weight: 550; }
+.researchHeader p { margin: 0; max-width: 780px; color: var(--q-muted-strong); font-size: 11px; line-height: 1.75; }
+.sources { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 22px; }
+.sources article { display: grid; align-content: start; gap: 10px; padding: 19px; border: 1px solid var(--q-line); border-radius: var(--q-radius); background: var(--q-glass); }
+.sources article > span { color: var(--q-muted-strong); font-size: 9px; }
+.sources a { display: block; padding: 10px 12px; border: 1px solid var(--q-line); border-radius: var(--q-radius); background: var(--q-glass-strong); color: var(--q-text); font-size: 12px; font-weight: 550; text-decoration: none; line-height: 1.6; overflow-wrap: anywhere; }
+.sources a:hover { border-color: var(--q-red); }
+.sources p { margin: 0; color: var(--q-muted-strong); font-size: 11px; line-height: 1.75; overflow-wrap: anywhere; }
+.sources button { margin-top: 5px; font-size: 10px; }
+@media (max-width: 850px) { .columns, .sources { grid-template-columns: minmax(0, 1fr); }.details { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .history { gap: 18px; }.hero { flex-wrap: wrap; gap: 14px; padding: 21px 18px; }.avatar { flex-basis: 43px; height: 43px; font-size: 14px; }.identity { flex: 1 1 calc(100% - 57px); }.identity h2 { font-size: 26px; }.correct { margin-left: 57px; }.details { grid-template-columns: minmax(0, 1fr); padding: 21px 18px; gap: 16px; }.nextStep { padding: 21px 18px; }.nextStep h3 { font-size: 17px; }.nextStep > div { align-items: flex-start; flex-direction: column; }.meeting { grid-template-columns: 83px minmax(0, 1fr); margin: 10px; width: calc(100% - 20px); padding: 16px 13px; gap: 11px; }.meetingCopy strong { font-size: 12px; }.sectionHeader { padding: 19px 18px; }.item { padding: 20px 18px; }.research { padding: 21px 18px; }.sources article { padding: 16px; } }

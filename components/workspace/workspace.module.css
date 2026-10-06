@@ -1,10 +1,10 @@
 .shell {
-  --w-ink: #10271c;
-  --w-muted: #64776d;
-  --w-line: #dce8df;
-  --w-green: #087a43;
-  --w-pale: #e8f7ed;
-  --w-paper: #f3f8f4;
+  --w-ink: var(--q-text);
+  --w-muted: var(--q-muted);
+  --w-line: var(--q-line);
+  --w-green: var(--q-button-bg);
+  --w-pale: var(--q-pale);
+  --w-paper: var(--q-bg);
   min-height: 100vh;
   background:
     radial-gradient(circle at 93% 2%, var(--q-pale) 0, transparent 24%),
@@ -45,8 +45,8 @@
   overflow: hidden;
   border-right: 1px solid var(--q-line);
   background:
-    radial-gradient(circle at 12% 6%, #154b31 0, transparent 27%),
-    linear-gradient(175deg, #071a12, #04100b 74%);
+    radial-gradient(circle at 12% 6%, #22364c 0, transparent 27%),
+    linear-gradient(175deg, #142b43, #0b2239 74%);
   color: var(--q-text);
   padding: 30px 18px 16px;
   display: flex;
@@ -70,7 +70,7 @@
   border-radius: 50%;
   color: var(--q-accent);
   background: var(--q-pale);
-  box-shadow: 0 0 24px #35f57d1f;
+  box-shadow: 0 0 24px #b72d3610;
 }
 .brandMark svg {
   width: 23px !important;
@@ -117,7 +117,7 @@
   height: 9px;
   border-radius: 50%;
   background: var(--q-pale);
-  box-shadow: 0 0 13px #42f385;
+  box-shadow: 0 0 13px var(--q-red);
 }
 .navLabel {
   font-size: 12px;
@@ -160,7 +160,7 @@
   background: var(--q-pale) !important;
   color: var(--q-text) !important;
   font-weight: 600;
-  box-shadow: inset 3px 0 #4ff991, 0 0 24px #24d56d0a;
+  box-shadow: inset 3px 0 var(--q-red), 0 0 24px #b72d3606;
 }
 .sidebarBottom {
   margin-top: auto;
@@ -230,7 +230,7 @@
   height: 6px;
   border-radius: 50%;
   background: var(--q-pale);
-  box-shadow: 0 0 9px #42f385;
+  box-shadow: 0 0 9px var(--q-red);
 }
 .accountSignedOut .accountState {
   color: var(--q-muted);
@@ -266,7 +266,7 @@
   flex-shrink: 0;
   border-radius: 50%;
   border: 1px solid var(--q-line);
-  background: #1b5236;
+  background: var(--q-pale);
   color: var(--q-accent);
   font-size: 12px;
 }
@@ -356,8 +356,8 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #18a65b;
-  box-shadow: 0 0 0 3px #daf4e4;
+  background: var(--q-success);
+  box-shadow: 0 0 0 3px var(--q-success-soft);
 }
 .topbarIdentity small {
   max-width: 190px;
@@ -385,13 +385,13 @@
 }
 .signInButton {
   border: 1px solid var(--q-line);
-  background: #087a43;
+  background: var(--q-button-bg);
   color: var(--q-text);
-  box-shadow: 0 6px 16px #087a4324;
+  box-shadow: 0 6px 16px #0b223918;
 }
 .signInButton:hover {
   border-color: var(--q-line);
-  background: #056637;
+  background: var(--q-button-bg);
 }
 .signOutButton {
   border: 1px solid var(--q-line);
@@ -459,11 +459,11 @@
 }
 .primaryButton {
   border: 1px solid var(--q-line);
-  background: #087a43;
+  background: var(--q-button-bg);
   color: var(--q-text);
 }
 .primaryButton:hover {
-  background: #056437;
+  background: var(--q-button-bg);
 }
 .secondaryButton {
   border: 1px solid var(--q-line);
@@ -539,7 +539,7 @@
   gap: 12px;
   border: 1px solid var(--q-line);
   background: var(--q-surface);
-  color: #deac83;
+  color: var(--q-warning);
   padding: 12px 16px;
   border-radius: 7px;
   margin-bottom: 18px;
@@ -597,7 +597,7 @@
 }
 .amber {
   background: var(--q-surface);
-  color: #deac83;
+  color: var(--q-warning);
 }
 .blue {
   background: var(--q-surface);
@@ -614,7 +614,7 @@
 .summaryCaption > span {
   width: 5px;
   height: 5px;
-  background: #8aab85;
+  background: var(--q-success);
   border-radius: 50%;
 }
 .overview {
@@ -641,7 +641,7 @@
 }
 .overviewStats > button:hover {
   border-color: var(--q-line);
-  box-shadow: 0 9px 24px #1633220a;
+  box-shadow: 0 9px 24px #0b223908;
   transform: translateY(-1px);
 }
 .overviewStats > button > span:nth-child(2) {
@@ -1004,7 +1004,7 @@
   background: var(--q-surface);
 }
 .dayNumber.todayNumber {
-  background: #2c6450;
+  background: var(--q-accent);
   color: var(--q-text);
   font-weight: 550;
 }
@@ -1085,7 +1085,7 @@
   flex-shrink: 0;
 }
 .greenDot {
-  background: #83a96f;
+  background: var(--q-success);
 }
 .blueDot {
   background: var(--q-pale);
@@ -1188,7 +1188,7 @@
   background: var(--q-surface);
   padding: 15px;
   margin-bottom: 13px;
-  box-shadow: 0 3px 5px #1c382002;
+  box-shadow: 0 3px 5px #0b223904;
 }
 .approvalIdentity {
   display: flex;
@@ -1210,7 +1210,7 @@
 }
 .peachAvatar {
   background: var(--q-surface-raised);
-  color: #deac83;
+  color: var(--q-warning);
 }
 .blueAvatar {
   background: var(--q-pale);
@@ -1361,7 +1361,7 @@
   font-size: 12px;
 }
 .missing {
-  color: #deac83;
+  color: var(--q-warning);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -1398,7 +1398,7 @@
 }
 .recentCard:hover {
   border-color: var(--q-line);
-  box-shadow: 0 4px 16px #2c4e3507;
+  box-shadow: 0 4px 16px #0b223906;
 }
 .recentCardTop {
   display: flex;
@@ -1555,7 +1555,7 @@
 }
 .filterSelect select:focus {
   border-color: var(--q-line);
-  box-shadow: 0 0 0 2px #e4efdc;
+  box-shadow: 0 0 0 2px var(--q-pale);
 }
 .search {
   display: flex;
@@ -1581,7 +1581,7 @@
 }
 .search:focus-within {
   border-color: var(--q-line);
-  box-shadow: 0 0 0 2px #e4efdc;
+  box-shadow: 0 0 0 2px var(--q-pale);
 }
 .conversationRow {
   display: flex;
@@ -1776,7 +1776,7 @@
   border-radius: 9px;
   background: var(--q-surface);
   color: var(--q-accent);
-  box-shadow: 0 6px 35px #22391d20;
+  box-shadow: 0 6px 35px #0b223916;
   font-size: 13px;
 }
 .toast > svg {
@@ -1795,10 +1795,10 @@
 }
 .drawer,
 .approvalDialog {
-  --w-ink: #202d2a;
-  --w-muted: #6b7773;
-  --w-line: #e5eae6;
-  --w-green: #24624f;
+  --w-ink: var(--q-text);
+  --w-muted: var(--q-muted);
+  --w-line: var(--q-line);
+  --w-green: var(--q-accent);
   color: var(--q-text);
   font:
     14px/1.6 "Segoe UI",
@@ -1806,11 +1806,11 @@
     sans-serif;
   background: var(--q-surface);
   border: 0;
-  box-shadow: -15px 0 70px #1c342721;
+  box-shadow: -15px 0 70px #0b223920;
 }
 .drawer::backdrop,
 .approvalDialog::backdrop {
-  background: #14281d66;
+  background: var(--q-overlay);
   backdrop-filter: blur(2px);
 }
 .drawer {
@@ -2154,7 +2154,7 @@
 }
 .inlineError {
   background: var(--q-surface);
-  color: #deac83;
+  color: var(--q-warning);
   padding: 12px;
   border-radius: 5px;
   font-size: 13px;
@@ -2507,8 +2507,8 @@
     width: 100%;
     flex-direction: row;
     padding: 7px 12px;
-    background: #173e32;
-    box-shadow: 0 -3px 15px #18392316;
+    background: var(--q-surface);
+    box-shadow: 0 -3px 15px #0b223912;
   }
   .brand,
   .sidebarBottom .account {
@@ -2906,16 +2906,122 @@
 }
 
 /* Quipus layout replaces the legacy sidebar shell. */
-.shell { --w-ink: var(--q-text); --w-muted: var(--q-muted); --w-line: var(--q-line); --w-green: var(--q-accent); --w-pale: var(--q-pale); --w-paper: var(--q-bg); color: var(--q-text); background: radial-gradient(ellipse at 70% -15%, #42644b1a, transparent 55%), var(--q-bg); font-family: "Segoe UI", Arial, sans-serif; }
+.shell { --w-ink: var(--q-text); --w-muted: var(--q-muted); --w-line: var(--q-line); --w-green: var(--q-accent); --w-pale: var(--q-pale); --w-paper: var(--q-bg); color: var(--q-text); background: transparent; font-family: "Segoe UI", Arial, sans-serif; }
 .main { margin-left: 0; min-height: calc(100vh - 106px); }
 .content { width: 100%; max-width: 1180px; padding: 12px 44px 30px; margin: 0 auto; }
 .pageHeader { align-items: center; margin: 36px 0; padding: 0; }.pageHeader h1 { font-family: "Segoe UI", Arial, sans-serif; font-size: clamp(28px,3.4vw,43px); font-weight: 400; letter-spacing: -.045em; color: var(--q-text); margin-top: 12px; }.pageHeader p { color: var(--q-muted); max-width: 620px; }
 .eyebrow { color: var(--q-muted); font-size: 10px; font-weight: 600; letter-spacing: .12em; }
 .pageFooter { border-top: 1px solid var(--q-line); padding-top: 24px; margin-top: 65px; color: var(--q-muted); font-size: 10px; }.footerBrand { color: var(--q-muted); font-size: 12px; }.footerBrand > span { font-size: 10px; }.footerLinks { font-size: 10px; }
 .settingsGrid { gap: 20px; }.settingsCard { background: var(--q-surface); border: 1px solid var(--q-line); border-radius: 18px; padding: 26px; }.settingsCard h2 { color: var(--q-text); font-weight: 500; font-size: 19px; }.settingsCard p { color: var(--q-muted); }
-.primaryButton, .signInButton { color: #142c20; background: #b5dfc5; border-color: transparent; border-radius: 24px; }.primaryButton:hover, .signInButton:hover { color: #142c20; background: #c6ebd2; }.secondaryButton, .signOutButton { background: var(--q-glass); color: var(--q-text); border-color: var(--q-line); border-radius: 24px; }
+.primaryButton, .signInButton { color: var(--q-button-text); background: var(--q-button-bg); border-color: transparent; border-radius: 24px; }.primaryButton:hover, .signInButton:hover { color: var(--q-button-text); background: var(--q-button-bg); }.secondaryButton, .signOutButton { background: var(--q-glass); color: var(--q-text); border-color: var(--q-line); border-radius: 24px; }
 .calendarLayout { grid-template-columns: minmax(0,1fr) 300px; gap: 22px; }.calendarCard { background: var(--q-surface); border-color: var(--q-line); border-radius: 18px; overflow: hidden; }.calendarToolbar { background: transparent; }.calendarToolbar h2 { font-weight: 400; }.day { background: transparent; }.day:hover { background: var(--q-glass); }.approvalRail { background: var(--q-surface); border: 1px solid var(--q-line); border-radius: 18px; }.approvalCard { background: var(--q-surface-raised); border-color: var(--q-line); border-radius: 12px; }.approvalRail h2 { font-weight: 400; }
-.drawer, .approvalDialog { color: var(--q-text); background: var(--q-surface); border-color: var(--q-line); }.drawer::backdrop, .approvalDialog::backdrop { background: #050d0aa6; backdrop-filter: blur(7px); }.drawerBody { background: var(--q-surface); }.toast { background: var(--q-surface-raised); color: var(--q-text); border: 1px solid var(--q-line); border-radius: 16px; }
+.drawer, .approvalDialog { color: var(--q-text); background: var(--q-surface); border-color: var(--q-line); }.drawer::backdrop, .approvalDialog::backdrop { background: var(--q-overlay); backdrop-filter: blur(7px); }.drawerBody { background: var(--q-surface); }.toast { background: var(--q-surface-raised); color: var(--q-text); border: 1px solid var(--q-line); border-radius: 16px; }
 .skipLink { position: absolute; top: -70px; left: 20px; z-index: 100; padding: 12px 20px; background: var(--q-surface-raised); color: var(--q-text); border-radius: 12px; }.skipLink:focus { top: 12px; }
 @media (max-width: 1150px) { .main { margin-left: 0; }.calendarLayout { grid-template-columns: minmax(0,1fr); }.approvalRail { max-height: none; }.content { padding: 12px 28px 28px; } }
 @media (max-width: 760px) { .main { margin-left: 0; padding: 0; }.content { padding: 8px 20px 26px; }.pageHeader { margin: 24px 0; }.pageHeader h1 { font-size: 32px; }.pageFooter { margin-top: 40px; gap: 15px; flex-wrap: wrap; }.footerLinks > span { display: none; }.settingsGrid { grid-template-columns: 1fr; } }
+
+/* Quipus executive workspace. Reading surfaces stay solid; the shared geometry sits behind the shell. */
+.shell { background: transparent; }
+.content { max-width: 1240px; padding: 12px 44px 34px; }
+.pageHeader { margin: 32px 0 30px; }
+.pageHeader h1 { font-weight: 450; font-size: clamp(30px,3.4vw,43px); letter-spacing: -.04em; }
+.pageHeader p { font-size: 12px !important; line-height: 1.6; }
+.pageHeader .eyebrow { font-size: 9px !important; letter-spacing: .15em; margin-bottom: 12px; }
+.primaryButton, .signInButton { background: var(--q-button-bg); color: var(--q-button-text); border-color: var(--q-button-bg); border-radius: 7px; }
+.primaryButton:hover, .signInButton:hover { background: var(--q-button-bg); color: var(--q-button-text); opacity: .88; }
+.secondaryButton, .signOutButton { border-radius: 7px; }
+.calendarSurface, .calendarCard, .approvalRail, .settingsCard { border-radius: 12px; background: var(--q-surface); box-shadow: var(--q-shadow); }
+.approvalCard { border-radius: 9px; }
+.settingsCard { padding: 23px; }
+.calendarToolbar h2 { font-size: 22px; font-family: 'Segoe UI',Arial,sans-serif; font-weight: 500; }
+.day.selectedDay { background: var(--q-pale); }
+.greenDot { background: var(--q-success); box-shadow: 0 0 0 3px var(--q-success-soft); }
+.pageFooter { margin-top: 42px; padding-bottom: 26px; font-size: 10px; }
+.drawer::backdrop, .approvalDialog::backdrop { background: var(--q-overlay); }
+@media (max-width: 1150px) { .content { padding-inline: 28px; } }
+@media (max-width: 760px) { .content { padding: 8px 20px 26px; }.pageHeader { margin: 25px 0; }.pageHeader h1 { font-size: 33px; }.calendarSurface { border-radius: 10px; }.calendarToolbar h2 { font-size: 19px; }.pageFooter { margin-top: 30px; } }
+
+
+/* Shared workspace controls, calendar and confirmation surfaces. */
+.content { max-width: 1272px; padding-inline: 44px; }
+.shell button:focus-visible,.shell a:focus-visible,.approvalDialog button:focus-visible { outline: 2px solid var(--q-text); outline-offset: 3px; }
+.primaryButton,.secondaryButton,.signInButton,.signOutButton,.iconButton,.textButton,.todayButton,.sourceLink,.dismissButton,.moreEvents,.compactAction,.modeButton { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; border: 1px solid var(--q-line-strong); border-radius: 3px; gap: 8px; padding: 9px 13px; background: var(--q-glass); color: var(--q-text); font-size: 11px; font-weight: 550; line-height: 1.4; text-decoration: none; transition: border-color .18s,background .18s; }
+.primaryButton,.signInButton { background: var(--q-button-bg); border-color: var(--q-button-bg); color: var(--q-button-text); }
+.primaryButton:hover,.signInButton:hover { opacity: .9; }
+.secondaryButton:hover,.signOutButton:hover,.iconButton:hover,.textButton:hover,.todayButton:hover,.sourceLink:hover,.dismissButton:hover,.moreEvents:hover { background: var(--q-glass-strong); border-color: var(--q-text); }
+.iconButton { width: auto; height: auto; min-width: 36px; padding: 8px 11px; }
+.calendarSurface,.approvalRail,.settingsCard,.collection,.personCard { border-radius: 3px; background: var(--q-panel-gradient); backdrop-filter: blur(var(--q-glass-blur)); box-shadow: var(--q-shadow),inset 0 1px var(--q-edge-highlight); border: 1px solid var(--q-line-strong); }
+.calendarSurface { overflow: hidden; position: relative; }
+.calendarSurface::before,.settingsCard::before { content: ''; position: absolute; top: -1px; left: -1px; width: 35px; height: 2px; background: var(--q-red); }
+.calendarLayout { gap: 18px; grid-template-columns: minmax(0,1fr) 290px; }
+.calendarToolbar { padding: 21px 20px; border-bottom: 1px solid var(--q-line); background: transparent; gap: 16px; }
+.calendarToolbar h2 { font-size: 21px; font-weight: 500; letter-spacing: -.03em; }
+.monthControls { gap: 7px; } .monthControls h2 { margin-right: 11px; }
+.monthControls .iconButton { width: 34px; min-width: 34px; height: 34px; min-height: 34px; padding: 8px; }
+.todayButton { font-size: 10px; min-height: 34px; padding: 8px 11px; }
+.viewToggle { background: var(--q-glass); border: 1px solid var(--q-line-strong); border-radius: 3px; padding: 3px; gap: 3px; }
+.viewToggle button { border: 1px solid transparent; border-radius: 2px; min-height: 30px; padding: 6px 10px; font-size: 10px; }
+.viewToggle .toggleActive { background: var(--q-text); color: var(--q-on-accent); }
+.weekdays { background: var(--q-glass); padding: 12px 0; } .weekdays span { font-size: 9px; letter-spacing: .08em; }
+.day { min-height: 100px; background: transparent; padding: 7px; border-color: var(--q-line); }
+.day.selectedDay { background: color-mix(in srgb,var(--q-red) 5%,transparent); box-shadow: inset 0 2px var(--q-red); }
+.day.otherMonth { background: color-mix(in srgb,var(--q-text) 2%,transparent); }
+.dayNumber { width: 27px; height: 27px; border: 1px solid transparent; border-radius: 2px; font-size: 10px; }
+.dayNumber.todayNumber { border-color: var(--q-red); color: var(--q-danger); background: var(--q-danger-soft); }
+.eventChip { border: 1px solid var(--q-line); border-left: 2px solid var(--q-text); border-radius: 2px; background: var(--q-glass); padding: 6px; margin-top: 4px; }
+.scheduledChip { border-left-color: var(--q-red); background: var(--q-danger-soft); }
+.conversationChip { color: var(--q-text); background: var(--q-glass); }
+.eventChip strong { font-size: 9px; line-height: 1.4; } .eventTime { font-size: 8px; color: var(--q-muted-strong); }
+.moreEvents { width: 100%; min-height: 24px; padding: 3px; margin-top: 3px; font-size: 8px; }
+.calendarLegend { background: var(--q-glass); border-top: 1px solid var(--q-line); padding: 14px 18px; font-size: 9px; }
+.agendaRow { background: transparent; border-color: var(--q-line); padding: 18px 20px; }
+.agendaRow:hover { background: var(--q-glass-strong); } .typePill { border-radius: 2px; border: 1px solid var(--q-line); }
+.approvalRail { padding: 21px 18px; } .approvalRail h2 { font-size: 22px; font-weight: 500; letter-spacing: -.03em; }
+.count { border-radius: 2px; border: 1px solid var(--q-line); color: var(--q-muted-strong); background: var(--q-glass); }
+.railIntro { font-size: 11px; line-height: 1.65; margin-bottom: 23px; }
+.approvalCard { padding: 16px 0 20px; border: 0; border-top: 1px solid var(--q-line); border-radius: 0; background: transparent; margin: 0; }
+.approvalCard h3 { font-size: 16px; } .approvalIdentity strong { font-size: 11px; } .approvalIdentity small { font-size: 10px; }
+.smallAvatar,.avatar { border-radius: 3px; border: 1px solid var(--q-line); background: var(--q-glass); }
+.approvalIdentity .iconButton { padding: 6px 9px; min-width: auto; min-height: 30px; font-size: 9px; }
+.approvalCard blockquote { border-left: 2px solid var(--q-red); background: var(--q-glass); color: var(--q-muted-strong); border-radius: 0; padding: 11px 13px; font-size: 11px; }
+.approvalTime { gap: 7px; font-size: 10px; } .attendee { font-size: 10px; overflow-wrap: anywhere; }
+.sourceLink { font-size: 10px; width: 100%; margin: 12px 0; } .approvalActions { gap: 7px; }
+.approvalActions .primaryButton { padding: 10px; min-height: 38px; font-size: 10px; } .dismissButton { font-size: 10px; padding: 9px; }
+.railFilters button { border: 1px solid var(--q-line-strong); border-radius: 3px; background: var(--q-glass); padding: 8px 11px; font-size: 10px; }
+.railFilters .activeFilter { background: var(--q-text); color: var(--q-on-accent); }
+.railFootnote { font-size: 9px; line-height: 1.65; padding-top: 18px; }
+.peopleGrid { gap: 15px; } .personCard { position: relative; padding: 21px; text-align: left; color: var(--q-text); }
+.personCard:hover { border-color: var(--q-text); background: var(--q-glass-strong); }
+.personCard h2 { font-size: 17px; } .personCard p { font-size: 11px; } .personCard footer { padding-top: 17px; font-size: 10px; }
+.search { background: var(--q-glass); border-radius: 3px; } .search input { font-size: 11px; }
+.settingsCard { padding: 24px; position: relative; } .settingsCard h2 { font-size: 19px; } .settingsCard p { font-size: 12px; line-height: 1.65; }
+.settingsGrid { gap: 16px; } .settingsCard .textButton { margin-top: 12px; }
+.connectionState { border-radius: 2px; background: var(--q-glass); padding: 8px 11px; font-size: 10px; border: 1px solid var(--q-line); }
+.region { border-radius: 3px; background: var(--q-glass); font-size: 11px; }
+.toast,.errorBanner { border-radius: 3px; background: var(--q-glass-strong); backdrop-filter: blur(var(--q-glass-blur)); box-shadow: var(--q-shadow); border: 1px solid var(--q-line-strong); }
+.errorBanner { border-left: 2px solid var(--q-red); font-size: 12px; padding: 12px 14px; gap: 12px; }
+.toast { font-size: 12px; } .toast button { border: 1px solid var(--q-line-strong); min-height: 32px; border-radius: 3px; padding: 7px 10px; background: var(--q-glass); color: var(--q-text); font-size: 10px; }
+.approvalDialog { max-height: calc(100dvh - 40px); border-radius: 3px; border: 1px solid var(--q-line-strong); background: var(--q-glass-strong); backdrop-filter: blur(var(--q-glass-blur)); box-shadow: var(--q-shadow-modal); padding: 28px; }
+.approvalDialog header { padding-bottom: 18px; border-bottom: 1px solid var(--q-line); margin-bottom: 20px; gap: 15px; }
+.approvalDialog h2 { font-size: 25px; font-weight: 500; letter-spacing: -.03em; }
+.approvalDialog input { border-radius: 3px; border-color: var(--q-line-strong); background: var(--q-glass); color: var(--q-text); font-size: 12px; }
+.approvalDialog label { font-size: 11px; } .approvalDialog .evidence { border-radius: 0; border-left: 2px solid var(--q-red); background: var(--q-glass); font-size: 12px; }
+.approvalDialog .privateNote { background: transparent; padding: 0; font-size: 11px; }
+.approvalDialog footer { border-top: 1px solid var(--q-line); padding-top: 20px; }
+.approvalDialog header .iconButton { font-size: 10px; }
+.pageFooter { font-size: 9px; margin-top: 38px; } .footerBrand { font-size: 11px; }
+.footerLinks a { display: inline-flex; border: 1px solid var(--q-line); background: var(--q-glass); padding: 6px 9px; border-radius: 3px; text-decoration: none; }
+@media (max-width:1150px) { .calendarLayout { grid-template-columns: minmax(0,1fr); } .approvalRail { max-height: none; } .content { padding-inline: 28px; } }
+@media (max-width:760px) {
+  .content { padding: 8px 20px 26px; } .calendarToolbar { flex-wrap: wrap; padding: 17px 14px; gap: 12px; }
+  .calendarToolbar h2 { font-size: 19px; } .monthControls { flex-wrap: wrap; gap: 6px; } .monthControls h2 { margin-right: 8px; }
+  .viewToggle { margin-left: auto; } .day { min-height: 83px; padding: 5px 3px; } .dayNumber { width: 25px; height: 25px; }
+  .eventChip { padding: 4px 3px; } .eventChip strong { font-size: 8px; } .eventTime { font-size: 7px; }
+  .calendarSurface { border-radius: 3px; } .calendarLegend { flex-wrap: wrap; gap: 10px; font-size: 8px; padding: 12px; }
+  .settingsGrid { grid-template-columns: 1fr; } .peopleGrid { grid-template-columns: 1fr; } .settingsCard { padding: 21px; }
+  .approvalDialog { width: calc(100vw - 28px); max-width: none; max-height: calc(100dvh - 28px); padding: 20px; }
+  .approvalDialog h2 { font-size: 22px; } .formRow { grid-template-columns: 1fr; } .approvalDialog footer { flex-wrap: wrap; }
+  .approvalDialog footer > button { flex: 1 1 auto; } .approvalDialog header .iconButton { min-width: 48px; }
+}
+@media (max-width:380px) { .content { padding-inline: 16px; } .calendarToolbar h2 { font-size: 18px; } .todayButton { padding-inline: 8px; } }
+@media (prefers-reduced-motion:reduce) { .primaryButton,.secondaryButton,.iconButton,.textButton,.todayButton,.sourceLink,.dismissButton,.moreEvents { transition: none; } }

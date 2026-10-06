@@ -3,35 +3,9 @@ import { WhatsAppDelivery } from "./WhatsAppDelivery";
 
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  CalendarDays,
-  Check,
-  CheckCheck,
-  ChevronLeft,
-  ChevronRight,
-  Clock3,
-  Headphones,
-  Home,
-  LayoutGrid,
-  List,
-  LoaderCircle,
-  LogIn,
-  LogOut,
-  MessageSquare,
-  MoreHorizontal,
-  Radio,
-  RotateCcw,
-  Search,
-  Settings2,
-  ShieldCheck,
-  Sparkles,
-  Users,
-  X,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, LoaderCircle } from "lucide-react";
 import { getMonthGrid } from "@/lib/calendar";
 import { workspaceTime } from "@/lib/workspace-time";
 import type { Meeting } from "@/lib/types";
@@ -43,20 +17,25 @@ import {
   type WorkspaceMode,
 } from "@/lib/workspace/model";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
-import { QuipusMark } from "@/components/brand/QuipusMark";
+import { RevealHeading, useQuipusMotion } from "@/components/experience/QuipusExperience";
 import { personalGreeting, validTimezone } from "@/lib/quipus-profile";
 import { QuipusHeader, viewPaths } from "./QuipusHeader";
 import { ConversationJournal } from "./ConversationJournal";
 import { ConversationDetail } from "./ConversationDetail";
+import { ConversationModal } from "./ConversationModal";
+import { ClientHistory } from "./ClientHistory";
+import { WorkspaceSetup } from "./WorkspaceSetup";
+import { RecordingProgress } from "./RecordingProgress";
+import { getRecordingProgress } from "@/lib/workspace/recording-progress";
+import { hasRecentHeartbeat } from "@/lib/workspace/setup";
+import { ApprovalReceiptNotice } from "./ApprovalReceiptNotice";
+import flow from "./flow.module.css";
 import { ProfileSettings } from "./ProfileSettings";
 import { CalendarConnection } from "./CalendarConnection";
 import { WorkspaceTimezone } from "./WorkspaceTime";
 import q from "./quipus.module.css";
 import { useWorkspace } from "./useWorkspace";
-import {
-  ConversationPanel,
-  initials,
-} from "./ConversationPanel";
+import { initials } from "./ConversationPanel";
 import { ApprovalDialog } from "./ApprovalDialog";
 import { RecordingDialog } from "./RecordingDialog";
 import { LanternDevicePanel } from "./LanternDevicePanel";
@@ -98,13 +77,15 @@ export function Workspace({
   const pathname = usePathname();
   const params = useSearchParams();
   const reducedMotion = useReducedMotion();
+  const { enabled: motionEnabled } = useQuipusMotion();
   const [account, setAccount] = useState(initialAccount);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
+  const [journalFilters, setJournalFilters] = useState({ query: "", date: "" });
   const timezone = validTimezone(account?.timezone);
   const { dateKey: formatDateKey, dateLabel, timeLabel } = workspaceTime(timezone);
   useEffect(() => { setAccount(initialAccount); }, [initialAccount]);
   useEffect(() => {
-    try { if (localStorage.getItem("quipus:theme") === "light") setTheme("light"); } catch {}
+    try { if (localStorage.getItem("quipus:theme") === "dark") setTheme("dark"); } catch {}
   }, []);
   useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
   const toggleTheme = () => {
@@ -112,7 +93,7 @@ export function Workspace({
     setTheme(next);
     try { localStorage.setItem("quipus:theme", next); } catch {}
   };
-  const workspace = useWorkspace(initialMode);
+  const workspace = useWorkspace(initialMode, initialAccount?.email || null);
   const {
     meetings,
     mode,
@@ -133,12 +114,25 @@ export function Workspace({
     ? decodeURIComponent(pathname.split("/").at(-1) || "")
     : mode === "sample" ? params.get("conversation") : initialConversationId;
   const detailMeeting = detailId ? meetings.find(m => m.id === detailId) : null;
+  const requestedTab = params.get("tab");
+  const detailTab = requestedTab === "Audio" || requestedTab === "Transcript" || requestedTab === "Actions" ? requestedTab : "Summary";
+  const detailOrigin = useRef<{ href: string; scroll: number } | null>(null);
+  const pendingScroll = useRef<number | null>(null);
   const previousPage = useRef(`${view}:${detailId || ""}`);
   useEffect(() => {
     const nextPage = `${view}:${detailId || ""}`;
     if (previousPage.current !== nextPage) document.getElementById("main-content")?.focus({ preventScroll: true });
     previousPage.current = nextPage;
   }, [view, detailId]);
+  useEffect(() => {
+    if (loading || pendingScroll.current === null) return;
+    const position = pendingScroll.current;
+    const timer = window.setTimeout(() => {
+      window.scrollTo({ top: position, behavior: "instant" });
+      pendingScroll.current = null;
+    }, reducedMotion || !motionEnabled ? 0 : 180);
+    return () => window.clearTimeout(timer);
+  }, [view, detailId, loading, motionEnabled, reducedMotion]);
   const [visibleMonth, setVisibleMonth] = useState(() =>
     formatDateKey(new Date()).slice(0, 7),
   );
@@ -154,6 +148,7 @@ export function Workspace({
   );
   const [recordingOpen, setRecordingOpen] = useState(false);
   const now = new Date();
+  const deviceOnline = Boolean(device && device.status === "online" && hasRecentHeartbeat(device.last_seen_at, now.getTime()));
   const today = formatDateKey(now);
   const approvals = useMemo(() => getApprovals(meetings), [meetings]);
   const pending = approvals.filter((approval) => approval.status === "pending");
@@ -174,6 +169,10 @@ export function Workspace({
     ],
     [conversations],
   );
+  const selectedContactId = params.get("client");
+  const selectedContact = view === "people" ? contacts.find(contact => contact.id === selectedContactId) : null;
+  const activeRecordings = conversations.filter(meeting => getRecordingProgress(meeting).shouldPoll);
+  const hasFirstUpload = conversations.some(meeting => meeting.source === "hardware" && getRecordingProgress(meeting).audioAvailable);
   const scheduled = meetings.filter(
     (meeting) => meeting.source === "calendar" || meeting.status === "upcoming",
   );
@@ -210,21 +209,45 @@ export function Workspace({
     : "?";
 
   const navigate = (next: WorkspaceView) => {
-    setSearch(""); setSelectedId(null);
+    setSelectedId(null);
     if (mode === "live") router.push(viewPaths[next]);
     else {
       const url = new URL(window.location.href);
-      url.searchParams.set("view", next); url.searchParams.delete("conversation");
+      url.searchParams.set("view", next); url.searchParams.delete("conversation"); url.searchParams.delete("client"); url.searchParams.delete("tab"); url.searchParams.delete("edit"); url.searchParams.delete("contact");
       window.history.pushState({}, "", url);
     }
   };
-  const openDetail = (id: string) => {
-    if (mode === "live") router.push(`/dashboard/conversations/${encodeURIComponent(id)}`);
+  const openDetail = (id: string, tab: "Summary" | "Actions" | "Transcript" | "Audio" = "Summary", editContact = false, contactId?: string) => {
+    detailOrigin.current = { href: window.location.pathname + window.location.search, scroll: window.scrollY };
+    setSelectedId(null);
+    const details = new URLSearchParams();
+    if (tab !== "Summary") details.set("tab", tab);
+    if (editContact) details.set("edit", "contact");
+    if (contactId) details.set("contact", contactId);
+    if (mode === "live") router.push(`/dashboard/conversations/${encodeURIComponent(id)}${details.size ? `?${details}` : ""}`);
     else {
       const url = new URL(window.location.href);
       url.searchParams.set("view", "conversations"); url.searchParams.set("conversation", id);
+      url.searchParams.delete("client"); url.searchParams.delete("tab"); url.searchParams.delete("edit"); url.searchParams.delete("contact");
+      details.forEach((value, key) => url.searchParams.set(key, value));
       window.history.pushState({}, "", url);
+      window.scrollTo({ top: 0, behavior: "instant" });
     }
+  };
+  const backFromDetail = () => {
+    const origin = detailOrigin.current;
+    if (!origin || !origin.href.startsWith("/") || origin.href.startsWith("//")) { navigate("conversations"); return; }
+    pendingScroll.current = origin.scroll;
+    if (mode === "live") router.push(origin.href, { scroll: false });
+    else window.history.pushState({}, "", origin.href);
+  };
+  const openClient = (id: string) => {
+    setSelectedId(null);
+    const url = mode === "live" ? new URL(viewPaths.people, window.location.origin) : new URL(window.location.href);
+    if (mode === "sample") { url.searchParams.set("view", "people"); url.searchParams.delete("conversation"); url.searchParams.delete("tab"); url.searchParams.delete("edit"); url.searchParams.delete("contact"); }
+    url.searchParams.set("client", id);
+    if (mode === "live") router.push(url.pathname + url.search);
+    else { window.history.pushState({}, "", url); window.scrollTo({ top: 0, behavior: "instant" }); }
   };
   const changeMonth = (amount: number) => {
     const date = new Date(`${visibleMonth}-15T12:00:00Z`);
@@ -233,14 +256,17 @@ export function Workspace({
   };
   const approve = async (approval: MeetingApproval) => {
     const created = await workspace.approve(approval);
-    if (created) {
-      setVisibleMonth(formatDateKey(created.startAt).slice(0, 7));
-      setSelectedDate(formatDateKey(created.startAt));
-      navigate("calendar");
-      setSelectedId(created.id);
-    }
     return created;
   };
+  const viewApprovedEvent = () => {
+    const receipt = workspace.approvalReceipt;
+    if (!receipt) return;
+    setVisibleMonth(formatDateKey(receipt.startAt).slice(0, 7));
+    setSelectedDate(formatDateKey(receipt.startAt));
+    navigate("calendar");
+    setSelectedId(receipt.meetingId);
+  };
+  const receiptNotice = workspace.approvalReceipt && <ApprovalReceiptNotice receipt={workspace.approvalReceipt} onView={viewApprovedEvent} onDismiss={workspace.dismissApprovalReceipt} />;
   const openConversation = (id: string) => {
     if (meetings.some((meeting) => meeting.id === id)) setSelectedId(id);
   };
@@ -250,24 +276,29 @@ export function Workspace({
       <a className={styles.skipLink} href="#main-content">Skip to content</a>
       <QuipusHeader view={view} sample={mode === "sample"} account={account} navigate={navigate} theme={theme} onTheme={toggleTheme} />
       <main className={styles.main} id="main-content" tabIndex={-1}>
+        <AnimatePresence mode="wait" initial={false}>
         <motion.div className={styles.content} key={`${view}:${detailId || ""}`}
-          initial={reducedMotion ? false : { opacity: 0, y: 9 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .22 }}>
+          initial={reducedMotion || !motionEnabled ? false : { opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
+          exit={reducedMotion || !motionEnabled ? { opacity: 1 } : { opacity: 0, y: -3 }} transition={{ duration: .14 }}>
 
           {mode === "sample" && <div className={q.sampleNote}>
-            <span><Sparkles /> You’re exploring a sample workspace. Your approvals here won’t send anything.</span>
-            <button disabled={Boolean(working)} onClick={() => { setSelectedId(null); setEditing(null); workspace.loadSample(true); }}><RotateCcw /> Reset sample</button>
+            <span><span className={q.sampleBadge}>DEMO</span> Sample meetings. Approvals stay in this demo.</span>
+            <button disabled={Boolean(working)} onClick={() => { setSelectedId(null); setEditing(null); setJournalFilters({ query: "", date: "" }); setSearch(""); navigate("overview"); workspace.loadSample(true); }}> Reset sample</button>
           </div>}
           {!detailId && (view === "overview" ? <header className={q.welcome}>
             <div className={q.welcomeCopy}>
-              <div className={q.dateLine}><i /><span>YOUR DAY, CONNECTED</span> · {new Intl.DateTimeFormat("en-MY", { weekday: "long", month: "long", day: "numeric", timeZone: timezone }).format(now)}</div>
-              <h1>{mode === "sample" ? <>A little more present.<br /><em>A lot more prepared.</em></> : personalGreeting(account?.displayName, now, timezone)}</h1>
-              <p>{mode === "sample" ? "Meet Quipus. Your conversations, commitments and next steps, thoughtfully connected." : pending.length ? `You have ${pending.length} follow-up${pending.length === 1 ? "" : "s"} ready to review. Let’s pick up where you left off.` : "A clear head for your next conversation. Everything you need to remember is right here."}</p>
+              <div className={q.dateLine}><span>YOUR WORKSPACE</span><span className={q.dateDivider} />{new Intl.DateTimeFormat("en-MY", { weekday: "long", month: "long", day: "numeric", timeZone: timezone }).format(now)}</div>
+              <RevealHeading text={mode === "sample" ? "Keep every conversation moving." : personalGreeting(account?.displayName, now, timezone)} replayKey={view} />
+              <p>{mode === "sample" ? "Record meetings. Review the details. Follow up." : pending.length ? `${pending.length} follow-up${pending.length === 1 ? "" : "s"} need${pending.length === 1 ? "s" : ""} your approval.` : "Your meetings and next steps, in one place."}</p>
             </div>
-            <div className={q.welcomeArt} aria-hidden="true"><QuipusMark /></div>
+            <div className={q.welcomeMetrics} aria-label="Workspace overview">
+              <div><strong>{conversations.length.toString().padStart(2, "0")}</strong><span>Conversations</span></div>
+              <div><strong>{pending.length.toString().padStart(2, "0")}</strong><span>To approve</span></div>
+            </div>
           </header> : <header className={styles.pageHeader}>
-            <div><p className={styles.eyebrow}>{view === "settings" ? "MAKE QUIPUS YOURS" : "EVERY THREAD, CONNECTED"}</p>
-              <h1>{view === "conversations" ? "Your conversations." : view === "calendar" ? "A little context for what’s next." : view === "people" ? "The people behind the conversations." : view === "device" ? "Your Quipus, connected." : "A workspace that knows you."}</h1>
-              <p>{view === "conversations" ? "Revisit the words. Remember what mattered. Follow through." : view === "calendar" ? "Select a meeting to revisit the conversation behind it." : view === "device" ? "Your recorder’s connection, storage and health, in one place." : view === "people" ? "People, companies and the conversations you share." : "Your profile, connections and preferences."}</p>
+            <div><p className={styles.eyebrow}>YOUR WORKSPACE</p>
+              <RevealHeading text={viewLabel[view]} replayKey={view} />
+              <p>{view === "conversations" ? "Find a meeting. Review what matters." : view === "calendar" ? "Select a meeting to see its conversation and next steps." : view === "device" ? "Connection, battery and storage." : view === "people" ? "Your clients, companies and meeting history." : "Your profile and connected accounts."}</p>
             </div>
           </header>)}
           {error && (
@@ -278,46 +309,55 @@ export function Workspace({
                 aria-label="Dismiss error"
                 onClick={() => workspace.setError(null)}
               >
-                <X />
+                Close
               </button>
             </div>
           )}
           {loading ? (
-            <div className={styles.loading}>
-              <LoaderCircle />
-              <p>Opening your workspace…</p>
+            <div className={q.workspaceSkeleton} role="status" aria-label="Loading meetings">
+              <span className={q.skeletonLabel}>Loading meetings…</span>
+              <div className={q.skeletonBrief}><i /><i /></div>
+              <div className={q.skeletonRows}>{[0,1,2,3].map(i => <i key={i} />)}</div>
             </div>
           ) : (
             <>
-              {mode === "live" && account && (view === "overview" || view === "calendar") && <CalendarConnection email={account.email} connected={integrations.google} />}
+              {!selectedId && receiptNotice}
+              {mode === "live" && account && view === "overview" && <WorkspaceSetup account={account} calendarConnected={integrations.google} devicePaired={workspace.deviceStatusLoaded ? Boolean(device) : undefined} hasRecording={hasFirstUpload} onPair={() => navigate("device")} onFirstRecording={() => navigate("device")} />}
+              {mode === "live" && account && view === "calendar" && <CalendarConnection email={account.email} connected={integrations.google} />}
               {detailId ? (detailMeeting ? <ConversationDetail
                 conversation={detailMeeting} mode={mode} working={working} error={error}
-                onBack={() => navigate("conversations")}
+                initialTab={detailTab} initialContactEditing={params.get("edit") === "contact"} initialContactId={params.get("contact")}
+                backLabel={detailOrigin.current?.href.includes("view=people") || detailOrigin.current?.href.includes("/people") ? "Back to client history" : detailOrigin.current?.href.includes("view=calendar") || detailOrigin.current?.href.includes("/calendar") ? "Back to calendar" : detailOrigin.current?.href === "/dashboard" || detailOrigin.current?.href.includes("view=overview") || detailOrigin.current?.href === "/" ? "Back to home" : "Back to conversations"}
+                onBack={backFromDetail}
                 onTask={(id, completed) => void workspace.patchFollowUp(id, { status: completed ? "completed" : "pending" })}
-                onEditApproval={setEditing} onApprove={approval => void approve(approval)} onUpdateContact={workspace.patchContact}
-              /> : <div className={styles.emptyInline}><Headphones /><h3>Conversation unavailable.</h3><p>It may still be processing, or it isn’t in this workspace.</p><button className={q.textLink} onClick={() => navigate("conversations")}>Back to conversations</button></div>) : null}
+                onEditApproval={setEditing} onUpdateContact={workspace.patchContact} onOpenContact={openClient} onRetryAccepted={() => void workspace.loadLive(false, true)}
+              /> : <div className={styles.emptyInline}><h3>Conversation unavailable.</h3><p>It may still be processing, or it isn’t in this workspace.</p><button className={q.textLink} onClick={() => navigate("conversations")}>Back to conversations</button></div>) : null}
               {view === "overview" && <>
+                {activeRecordings.length > 0 && <section className={flow.progressList} aria-label="Recordings in progress">
+                  <div className={flow.progressHeading}><h2>Recordings in progress</h2></div>
+                  {activeRecordings.map(meeting => <div key={meeting.id} className={flow.progressEntry}><h3>{meeting.title}</h3><RecordingProgress meeting={meeting} mode={mode} onOpenAudio={() => openDetail(meeting.id, "Audio")} onRetryAccepted={() => workspace.loadLive(false, true)} /></div>)}
+                </section>}
                 <div className={q.dailyBrief}>
                   <section className={q.nextAction} aria-label="Next approval">
-                    <div className={q.briefHeading}><span className={q.kicker}>A LITTLE FOLLOW-THROUGH</span><span className={q.approvalCount}>{pending.length} awaiting approval</span></div>
-                    <h2>{pending[0]?.title || "Room for your next conversation."}</h2>
-                    <p>{pending[0] ? `${pending[0].contact?.name || "Your client"}${pending[0].contact?.company ? ` · ${pending[0].contact.company}` : ""}${pending[0].details.startAt ? ` · ${dateLabel(pending[0].details.startAt)} at ${timeLabel(pending[0].details.startAt)}` : " · A few details to confirm"}` : "Your meeting briefs and follow-ups will be ready here when you are."}</p>
+                    <div className={q.briefHeading}><span className={q.kicker}>FOLLOW-UPS</span><span className={q.approvalCount}>{pending.length} to approve</span></div>
+                    <h2>{pending[0]?.title || "No pending approvals"}</h2>
+                    <p>{pending[0] ? `${pending[0].contact?.name || "Your client"}${pending[0].contact?.company ? ` · ${pending[0].contact.company}` : ""}${pending[0].details.startAt ? ` · ${dateLabel(pending[0].details.startAt)} at ${timeLabel(pending[0].details.startAt)}` : " · Confirm the meeting details"}` : "New follow-ups will appear here after your meetings."}</p>
                     <div className={q.briefBottom}>
-                      <span className={q.smallPeople}><span>{pending[0] ? initials(pending[0].contact?.name || "Client") : <CheckCheck />}</span>{pending[0] ? "You’re in control of what happens next." : "All caught up."}</span>
-                      <button className={q.actionButton} onClick={() => pending[0] ? setEditing(pending[0]) : navigate("conversations")}>{pending[0] ? "Review follow-up" : "Conversations"}<ArrowRight /></button>
+                      <span className={q.smallPeople}><span>{pending[0] ? initials(pending[0].contact?.name || "Client") : null}</span>{pending[0] ? "Awaiting your approval" : "All caught up"}</span>
+                      <button className={q.actionButton} onClick={() => pending[0] ? setEditing(pending[0]) : navigate("conversations")}>{pending[0] ? "Review follow-up" : "Conversations"}</button>
                     </div>
                   </section>
                   <section className={q.nextMeeting} aria-label="Next meeting">
-                    <div className={q.briefHeading}><span className={q.kicker}>ON YOUR HORIZON</span><CalendarDays /></div>
-                    <h2>{nextMeeting?.title || "A little breathing room."}</h2>
+                    <div className={q.briefHeading}><span className={q.kicker}>NEXT MEETING</span></div>
+                    <h2>{nextMeeting?.title || "No upcoming meetings"}</h2>
                     <p>{nextMeeting ? `${dateLabel(nextMeeting.startAt, { weekday: "short" })} · ${timeLabel(nextMeeting.startAt)}${nextMeeting.contacts[0]?.company ? ` · ${nextMeeting.contacts[0].company}` : ""}` : "Your upcoming meetings will appear here once your calendar is connected."}</p>
-                    <div className={q.briefBottom}><span className={q.smallPeople}>{nextMeeting ? "Bring the context with you." : "Make space for what matters."}</span><button className={q.textLink} onClick={() => navigate("calendar")}>Open calendar <ArrowUpRight /></button></div>
+                    <div className={q.briefBottom}><span className={q.smallPeople}>{nextMeeting?.contacts.length ? `${nextMeeting.contacts.length} participant${nextMeeting.contacts.length > 1 ? "s" : ""}` : nextMeeting ? "View meeting details" : "Your schedule, in view"}</span><button className={q.textLink} onClick={() => navigate("calendar")}>Open calendar </button></div>
                   </section>
                 </div>
-                <ConversationJournal meetings={conversations} compact onOpen={openDetail} onAll={() => navigate("conversations")} />
-                <div className={q.workspaceNote}><span>Every conversation, carried forward.</span><button className={q.deviceStatus} onClick={() => navigate("device")}><i data-offline={!device || device.status !== "online"} />{mode === "sample" ? "Explore your Quipus" : device ? `${device.name.replace(/Quipus/gi, "Quipus")} · ${device.status}` : "Connect your Quipus"}<ArrowUpRight /></button></div>
+                <ConversationJournal meetings={conversations} mode={mode} compact onOpen={openDetail} onAll={() => navigate("conversations")} filters={journalFilters} onFiltersChange={setJournalFilters} onRetryAccepted={() => void workspace.loadLive(false, true)} />
+                <div className={q.workspaceNote}><span>Conversation intelligence for your next step.</span><button className={q.deviceStatus} onClick={() => navigate("device")}><i data-offline={!deviceOnline} />{mode === "sample" ? "View sample device" : device ? `${device.name} · ${deviceOnline ? "Connected" : "No recent connection"}` : workspace.deviceStatusLoaded ? "Connect your Quipus" : "View device status"}</button></div>
               </>}
-              {view === "conversations" && !detailId && <ConversationJournal meetings={conversations} onOpen={openDetail} onPeople={() => navigate("people")} />}
+              {view === "conversations" && !detailId && <ConversationJournal meetings={conversations} mode={mode} onOpen={openDetail} onPeople={() => navigate("people")} filters={journalFilters} onFiltersChange={setJournalFilters} onRetryAccepted={() => void workspace.loadLive(false, true)} />}
               {view === "calendar" && (
                 <>
                   <div className={styles.calendarLayout}>
@@ -363,7 +403,7 @@ export function Workspace({
                             }
                             onClick={() => setLayout("month")}
                           >
-                            <LayoutGrid />
+
                             Month
                           </button>
                           <button
@@ -373,7 +413,7 @@ export function Workspace({
                             }
                             onClick={() => setLayout("agenda")}
                           >
-                            <List />
+
                             Agenda
                           </button>
                         </div>
@@ -494,7 +534,7 @@ export function Workspace({
                                     ? "Meeting"
                                     : "Conversation"}
                                 </span>
-                                <ArrowUpRight />
+
                               </button>
                             ))}
                           {!meetings.some((meeting) =>
@@ -503,7 +543,7 @@ export function Workspace({
                             ),
                           ) && (
                             <div className={styles.emptyInline}>
-                              <CalendarDays />
+
                               <h3>A little breathing room</h3>
                               <p>No meetings or conversations this month.</p>
                             </div>
@@ -527,7 +567,7 @@ export function Workspace({
                             </span>
                           </h2>
                         </div>
-                        <CheckCheck />
+
                       </header>
                       <p className={styles.railIntro}>
                         You agreed on the next step.
@@ -596,12 +636,12 @@ export function Workspace({
                                     approval.status === "dismissed"
                                   }
                                 >
-                                  <MoreHorizontal />
+                                  Edit
                                 </button>
                               </div>
                               <h3>{approval.title}</h3>
                               <div className={styles.approvalTime}>
-                                <CalendarDays />
+
                                 <span>
                                   {approval.details.startAt
                                     ? dateLabel(approval.details.startAt, {
@@ -611,7 +651,7 @@ export function Workspace({
                                 </span>
                               </div>
                               <div className={styles.approvalTime}>
-                                <Clock3 />
+
                                 <span>
                                   {approval.details.startAt
                                     ? timeLabel(approval.details.startAt)
@@ -642,7 +682,7 @@ export function Workspace({
                                   openConversation(approval.conversationId)
                                 }
                               >
-                                View conversation <ArrowUpRight />
+                                View conversation
                               </button>
                               {approval.status === "dismissed" ? (
                                 <button
@@ -661,22 +701,16 @@ export function Workspace({
                                   <button
                                     className={styles.primaryButton}
                                     disabled={Boolean(working)}
-                                    onClick={() =>
-                                      missing.length
-                                        ? setEditing(approval)
-                                        : void approve(approval)
-                                    }
+                                    onClick={() => setEditing(approval)}
                                   >
                                     {working === approval.id ? (
                                       <LoaderCircle className={styles.spin} />
-                                    ) : (
-                                      <Check />
-                                    )}
+                                    ) : null}
                                     {working === approval.id
                                       ? "Adding…"
                                       : missing.length
                                         ? "Complete details"
-                                        : "Approve"}
+                                        : "Review invitation"}
                                   </button>
                                   <button
                                     className={styles.dismissButton}
@@ -699,7 +733,7 @@ export function Workspace({
                         (approval) => approval.status === approvalFilter,
                       ).length === 0 && (
                         <div className={styles.approvalsEmpty}>
-                          <CheckCheck />
+
                           <h3>
                             {approvalFilter === "pending"
                               ? "You’re all caught up."
@@ -712,7 +746,7 @@ export function Workspace({
                         </div>
                       )}
                       <p className={styles.railFootnote}>
-                        <ShieldCheck />
+
                         {mode === "sample"
                           ? "Sample approvals stay in this browser."
                           : "Invitations are sent only after approval."}
@@ -722,10 +756,11 @@ export function Workspace({
                 </>
               )}
 
-              {view === "people" && (
+              {view === "people" && selectedContact && <ClientHistory contact={selectedContact} conversations={conversations} onBack={() => navigate("people")} onOpenMeeting={openDetail} onCorrect={() => { const latest = conversations.find(meeting => meeting.contacts.some(contact => contact.id === selectedContact.id)); if (latest) openDetail(latest.id, "Summary", true, selectedContact.id); }} />}
+              {view === "people" && !selectedContact && (
                 <section>
                   <label className={`${styles.search} ${styles.peopleSearch}`}>
-                    <Search />
+
                     <input
                       aria-label="Search people"
                       placeholder="Find a person or company"
@@ -750,10 +785,7 @@ export function Workspace({
                           <button
                             key={contact.id}
                             className={styles.personCard}
-                            onClick={() => {
-                              setSearch("");
-                              if (history[0]) openConversation(history[0].id);
-                            }}
+                            onClick={() => openClient(contact.id)}
                           >
                             <span className={styles.avatar}>
                               {initials(contact.name)}
@@ -771,7 +803,7 @@ export function Workspace({
                                 {history.length} conversation
                                 {history.length === 1 ? "" : "s"}
                               </span>
-                              <ArrowUpRight />
+
                             </footer>
                           </button>
                         );
@@ -779,7 +811,7 @@ export function Workspace({
                   </div>
                   {!contacts.length && (
                     <div className={styles.emptyInline}>
-                      <Users />
+
                       <h3>Build a memory around your clients.</h3>
                       <p>People from your conversations will appear here.</p>
                     </div>
@@ -791,6 +823,8 @@ export function Workspace({
                   mode={mode}
                   integrations={integrations}
                   conversationCount={conversations.length}
+                  accountEmail={account?.email}
+                  hasRecording={hasFirstUpload}
                 />
               )}
               {view === "settings" && (
@@ -803,9 +837,7 @@ export function Workspace({
                     {mode === "live" ? <a className={styles.secondaryButton} href="/api/google/connect?gmail=1&returnTo=%2Fdashboard%2Fsettings">Connect or refresh Gmail</a> : <p>Available in your connected workspace.</p>}
                   </section>
                   <section className={styles.settingsCard}>
-                    <span className={styles.settingsIcon}>
-                      <CalendarDays />
-                    </span>
+
                       <h2>Google Calendar</h2>
                     <p>
                       Approve a meeting in Quipus and keep it on your calendar.
@@ -834,14 +866,14 @@ export function Workspace({
                         {integrations.google
                           ? "Reconnect Google Calendar"
                           : "Connect Google Calendar"}
-                        <ArrowUpRight />
+
                       </a>
                     ) : (
                       <Link
                         className={styles.secondaryButton}
                         href={account ? "/dashboard" : "/login?next=/dashboard"}
                       >
-                        Open your live workspace <ArrowRight />
+                        Open your live workspace
                       </Link>
                     )}
                   </section>
@@ -857,9 +889,7 @@ export function Workspace({
                     </div>
                   </section>
                   <section className={styles.settingsCard}>
-                    <span className={styles.settingsIcon}>
-                      <ShieldCheck />
-                    </span>
+
                     <h2>Access & privacy</h2>
                     <p>
                       Your source recordings, transcripts, and meeting briefs
@@ -878,7 +908,7 @@ export function Workspace({
                     {account ? (
                       <form action="/api/auth/logout" method="post">
                         <button className={styles.signOutButton} type="submit">
-                          <LogOut /> Sign out
+                           Sign out
                         </button>
                       </form>
                     ) : (
@@ -887,7 +917,7 @@ export function Workspace({
                         className={styles.signInButton}
                         href="/login?next=/dashboard"
                       >
-                        <LogIn />
+
                         <span className={styles.signInFull}>Sign in with Google</span>
                         <span className={styles.signInShort}>Sign in</span>
                       </Link>
@@ -908,11 +938,19 @@ export function Workspace({
             </span>
           </footer>
         </motion.div>
+        </AnimatePresence>
       </main>
-      <ConversationPanel
+      <ConversationModal
         meeting={selectedMeeting}
         meetings={meetings}
         onClose={() => setSelectedId(null)}
+        onOpenFull={openDetail}
+        onOpenContact={openClient}
+        onEditApproval={setEditing}
+        onUpdateContact={workspace.patchContact}
+        onRetryAccepted={() => void workspace.loadLive(false, true)}
+        mode={mode}
+        receipt={receiptNotice}
         onTask={(id, completed) =>
           void workspace.patchFollowUp(id, {
             status: completed ? "completed" : "pending",
@@ -941,13 +979,13 @@ export function Workspace({
       )}
       {notice && (
         <div className={styles.toast} role="status">
-          <Check />
+
           <span>{notice}</span>
           <button
             onClick={() => workspace.setNotice(null)}
             aria-label="Dismiss notification"
           >
-            <X />
+            Close
           </button>
         </div>
       )}

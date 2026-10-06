@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-01",
+  "project_name": "Quipus A1 – Hardware Rev A",
+  "project_id": "522f339b1e454ea3a6b4b8e11788511f",
+  "pcb_document_id": "52caa9452ee66dee",
+  "status": "SCHEMATIC_AND_PLACEMENT_REVIEW_COMPLETE_ROUTING_AND_RELEASE_INCOMPLETE",
+  "schematic_pages": 9,
+  "components": 144,
+  "canonical_nets": 92,
+  "symbol_pins": 471,
+  "native_schematic_drc": {
+    "fatal": 0,
+    "errors": 0,
+    "warnings": 0,
+    "informational": 9,
+    "evidence": "schematic-drc-ui.txt"
+  },
+  "native_placement_changes_verified": 65,
+  "microphone_acoustic_holes_mm_from_front": {
+    "U20_top": [5.75, 9.49],
+    "U21_bottom": [59.25, 92.29]
+  },
+  "native_microphone_correction": {
+    "source": "microphone-footprint-final.esource",
+    "sha256": "45ea8bf5dd2c93b501bb10f20fc2f2704adb103a7e5c5ec3c488ded3f2b14c64",
+    "accepted_and_saved": true,
+    "instances_refreshed": ["U20", "U21"],
+    "new_ground_quarters_assigned": 6,
+    "minimum_copper_to_npth_mm": 0.19247956702169794
+  },
+  "native_pcb_drc": {
+    "total_findings": 452,
+    "unrouted_connection_findings": 451,
+    "schematic_import_metadata_mismatch": 1,
+    "clearance_findings": 0,
+    "evidence": "pcb-drc-final-ui.txt"
+  },
+  "final_schematic_to_pcb_net_change_preview": {
+    "net_change_rows": 0,
+    "changes_applied": false,
+    "evidence": "pcb-net-comparison-final-ui.txt",
+    "reason_cancelled": "Device metadata and four PCB-only mounting holes require deliberate synchronization."
+  },
+  "generated_carrier_sha256": "5f48361c2ff1a57b59c6621943f8e72196b9cb33372bc079969b886fc56f1d6c",
+  "native_correction_in_generated_carrier": false,
+  "remaining_work": [
+    "Synchronize schematic device metadata while preserving all four mounting holes and physical placements.",
+    "Route signals and power, create ground/thermal structures, and rerun native DRC/ERC.",
+    "Review microphone paste apertures in actual stencil/Gerber outputs.",
+    "Qualify the exact protected LiPo pack, connector polarity, NTC and permitted charging temperature range.",
+    "Verify mechanical heights, acoustic openings and microSD travel against the enclosure.",
+    "Measure charging temperature, supply transients, RF and audio performance on the assembled prototype."
+  ],
+  "fabrication_ready": false
+}

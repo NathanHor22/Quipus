@@ -1,0 +1,1395 @@
+{
+  "status": "Independent geometry check on actual assigned footprint shapes; not native CAD DRC",
+  "components_expected": 180,
+  "components_placed": 180,
+  "unplaced": [],
+  "same_face_courtyard_overlaps": [],
+  "opposite_face_PTH_conflicts": [],
+  "NPTH_body_conflicts": [],
+  "NPTH_body_clearance_mm": 0.254,
+  "audit_existing_placements": true,
+  "static_conflicts": [],
+  "packing_failures": [],
+  "anchor_adjustments": [
+    {
+      "ref": "J3",
+      "preferred": [
+        7,
+        65,
+        270,
+        "B"
+      ],
+      "actual": [
+        7.0,
+        65.5,
+        270,
+        "B"
+      ],
+      "movement_mm": 0.5
+    },
+    {
+      "ref": "C204",
+      "preferred": [
+        17,
+        32.5,
+        0,
+        "B"
+      ],
+      "actual": [
+        16.5,
+        32.5,
+        90,
+        "B"
+      ],
+      "movement_mm": 0.5
+    },
+    {
+      "ref": "C206",
+      "preferred": [
+        57.0,
+        86.0,
+        90,
+        "B"
+      ],
+      "actual": [
+        56.5,
+        86.0,
+        90,
+        "B"
+      ],
+      "movement_mm": 0.5
+    },
+    {
+      "ref": "C220",
+      "preferred": [
+        33.5,
+        42,
+        0,
+        "B"
+      ],
+      "actual": [
+        29.5,
+        42.0,
+        90,
+        "B"
+      ],
+      "movement_mm": 4.0
+    },
+    {
+      "ref": "C221",
+      "preferred": [
+        33.5,
+        42,
+        0,
+        "B"
+      ],
+      "actual": [
+        33.5,
+        38.0,
+        0,
+        "B"
+      ],
+      "movement_mm": 4.0
+    },
+    {
+      "ref": "C222",
+      "preferred": [
+        33.5,
+        42,
+        0,
+        "B"
+      ],
+      "actual": [
+        33.5,
+        46.0,
+        0,
+        "B"
+      ],
+      "movement_mm": 4.0
+    },
+    {
+      "ref": "C223",
+      "preferred": [
+        33.5,
+        42,
+        0,
+        "B"
+      ],
+      "actual": [
+        37.5,
+        42.0,
+        90,
+        "B"
+      ],
+      "movement_mm": 4.0
+    },
+    {
+      "ref": "C224",
+      "preferred": [
+        33.5,
+        42,
+        0,
+        "B"
+      ],
+      "actual": [
+        29.5,
+        38.5,
+        90,
+        "B"
+      ],
+      "movement_mm": 5.315
+    },
+    {
+      "ref": "C225",
+      "preferred": [
+        33.5,
+        42,
+        0,
+        "B"
+      ],
+      "actual": [
+        29.5,
+        45.5,
+        90,
+        "B"
+      ],
+      "movement_mm": 5.315
+    },
+    {
+      "ref": "C226",
+      "preferred": [
+        33.5,
+        42,
+        0,
+        "B"
+      ],
+      "actual": [
+        37.0,
+        38.0,
+        0,
+        "B"
+      ],
+      "movement_mm": 5.315
+    },
+    {
+      "ref": "C227",
+      "preferred": [
+        33.5,
+        42,
+        0,
+        "B"
+      ],
+      "actual": [
+        37.0,
+        46.0,
+        0,
+        "B"
+      ],
+      "movement_mm": 5.315
+    },
+    {
+      "ref": "C228",
+      "preferred": [
+        33.5,
+        42,
+        0,
+        "B"
+      ],
+      "actual": [
+        27.5,
+        42.0,
+        90,
+        "B"
+      ],
+      "movement_mm": 6.0
+    },
+    {
+      "ref": "C229",
+      "preferred": [
+        33.5,
+        42,
+        0,
+        "B"
+      ],
+      "actual": [
+        33.5,
+        36.0,
+        0,
+        "B"
+      ],
+      "movement_mm": 6.0
+    },
+    {
+      "ref": "C230",
+      "preferred": [
+        20,
+        30,
+        0,
+        "B"
+      ],
+      "actual": [
+        20.0,
+        27.0,
+        0,
+        "B"
+      ],
+      "movement_mm": 3.0
+    },
+    {
+      "ref": "C231",
+      "preferred": [
+        33.5,
+        42,
+        0,
+        "B"
+      ],
+      "actual": [
+        33.5,
+        48.0,
+        0,
+        "B"
+      ],
+      "movement_mm": 6.0
+    },
+    {
+      "ref": "C232",
+      "preferred": [
+        33.5,
+        42,
+        0,
+        "B"
+      ],
+      "actual": [
+        39.5,
+        42.0,
+        90,
+        "B"
+      ],
+      "movement_mm": 6.0
+    },
+    {
+      "ref": "C234",
+      "preferred": [
+        21,
+        75,
+        0,
+        "B"
+      ],
+      "actual": [
+        21.0,
+        73.0,
+        0,
+        "B"
+      ],
+      "movement_mm": 2.0
+    },
+    {
+      "ref": "C235",
+      "preferred": [
+        21,
+        75,
+        0,
+        "B"
+      ],
+      "actual": [
+        21.0,
+        77.0,
+        0,
+        "B"
+      ],
+      "movement_mm": 2.0
+    },
+    {
+      "ref": "C236",
+      "preferred": [
+        21,
+        75,
+        0,
+        "B"
+      ],
+      "actual": [
+        18.0,
+        75.0,
+        90,
+        "B"
+      ],
+      "movement_mm": 3.0
+    },
+    {
+      "ref": "C239",
+      "preferred": [
+        44,
+        75,
+        0,
+        "B"
+      ],
+      "actual": [
+        44.0,
+        73.0,
+        0,
+        "B"
+      ],
+      "movement_mm": 2.0
+    },
+    {
+      "ref": "C240",
+      "preferred": [
+        44,
+        75,
+        0,
+        "B"
+      ],
+      "actual": [
+        44.0,
+        77.0,
+        0,
+        "B"
+      ],
+      "movement_mm": 2.0
+    },
+    {
+      "ref": "C241",
+      "preferred": [
+        44,
+        75,
+        0,
+        "B"
+      ],
+      "actual": [
+        41.0,
+        75.0,
+        90,
+        "B"
+      ],
+      "movement_mm": 3.0
+    },
+    {
+      "ref": "R201",
+      "preferred": [
+        8.75,
+        12.5,
+        90,
+        "B"
+      ],
+      "actual": [
+        8.75,
+        12.0,
+        90,
+        "B"
+      ],
+      "movement_mm": 0.5
+    },
+    {
+      "ref": "R204",
+      "preferred": [
+        17,
+        30,
+        0,
+        "B"
+      ],
+      "actual": [
+        16.0,
+        29.5,
+        0,
+        "B"
+      ],
+      "movement_mm": 1.118
+    },
+    {
+      "ref": "R220",
+      "preferred": [
+        33.5,
+        42,
+        0,
+        "B"
+      ],
+      "actual": [
+        27.5,
+        38.5,
+        90,
+        "B"
+      ],
+      "movement_mm": 6.946
+    },
+    {
+      "ref": "R221",
+      "preferred": [
+        44.6,
+        11.55,
+        0,
+        "B"
+      ],
+      "actual": [
+        44.1,
+        11.55,
+        90,
+        "B"
+      ],
+      "movement_mm": 0.5
+    },
+    {
+      "ref": "R222",
+      "preferred": [
+        44.6,
+        14.4,
+        0,
+        "B"
+      ],
+      "actual": [
+        44.1,
+        15.4,
+        90,
+        "B"
+      ],
+      "movement_mm": 1.118
+    },
+    {
+      "ref": "R223",
+      "preferred": [
+        33.5,
+        42,
+        0,
+        "B"
+      ],
+      "actual": [
+        27.5,
+        45.5,
+        90,
+        "B"
+      ],
+      "movement_mm": 6.946
+    },
+    {
+      "ref": "R224",
+      "preferred": [
+        20,
+        30,
+        0,
+        "B"
+      ],
+      "actual": [
+        20.0,
+        33.0,
+        0,
+        "B"
+      ],
+      "movement_mm": 3.0
+    },
+    {
+      "ref": "R230",
+      "preferred": [
+        21,
+        75,
+        0,
+        "B"
+      ],
+      "actual": [
+        24.0,
+        75.0,
+        90,
+        "B"
+      ],
+      "movement_mm": 3.0
+    },
+    {
+      "ref": "R231",
+      "preferred": [
+        21,
+        75,
+        0,
+        "B"
+      ],
+      "actual": [
+        21.0,
+        71.0,
+        0,
+        "B"
+      ],
+      "movement_mm": 4.0
+    },
+    {
+      "ref": "R232",
+      "preferred": [
+        21,
+        75,
+        0,
+        "B"
+      ],
+      "actual": [
+        21.0,
+        79.0,
+        0,
+        "B"
+      ],
+      "movement_mm": 4.0
+    },
+    {
+      "ref": "R235",
+      "preferred": [
+        44,
+        75,
+        0,
+        "B"
+      ],
+      "actual": [
+        47.0,
+        75.0,
+        90,
+        "B"
+      ],
+      "movement_mm": 3.0
+    },
+    {
+      "ref": "R236",
+      "preferred": [
+        44,
+        75,
+        0,
+        "B"
+      ],
+      "actual": [
+        44.0,
+        71.0,
+        0,
+        "B"
+      ],
+      "movement_mm": 4.0
+    },
+    {
+      "ref": "R237",
+      "preferred": [
+        44,
+        75,
+        0,
+        "B"
+      ],
+      "actual": [
+        42.5,
+        79.0,
+        0,
+        "B"
+      ],
+      "movement_mm": 4.272
+    },
+    {
+      "ref": "FB220",
+      "preferred": [
+        33.5,
+        42,
+        0,
+        "B"
+      ],
+      "actual": [
+        36.5,
+        35.5,
+        90,
+        "B"
+      ],
+      "movement_mm": 7.159
+    },
+    {
+      "ref": "C7",
+      "preferred": [
+        24.700000000000003,
+        98.94999999999999,
+        180,
+        "B"
+      ],
+      "actual": [
+        24.2,
+        98.95,
+        270,
+        "B"
+      ],
+      "movement_mm": 0.5
+    },
+    {
+      "ref": "C8",
+      "preferred": [
+        24.700000000000003,
+        104.94999999999999,
+        180,
+        "B"
+      ],
+      "actual": [
+        24.2,
+        104.95,
+        270,
+        "B"
+      ],
+      "movement_mm": 0.5
+    },
+    {
+      "ref": "R18",
+      "preferred": [
+        32.5,
+        97.0,
+        90,
+        "B"
+      ],
+      "actual": [
+        32.0,
+        95.5,
+        180,
+        "B"
+      ],
+      "movement_mm": 1.581
+    },
+    {
+      "ref": "D220",
+      "preferred": [
+        21,
+        75,
+        0,
+        "B"
+      ],
+      "actual": [
+        17.5,
+        77.5,
+        0,
+        "B"
+      ],
+      "movement_mm": 4.301
+    },
+    {
+      "ref": "D221",
+      "preferred": [
+        44,
+        75,
+        0,
+        "B"
+      ],
+      "actual": [
+        40.5,
+        72.5,
+        0,
+        "B"
+      ],
+      "movement_mm": 4.301
+    }
+  ],
+  "native_drc_performed": false,
+  "routing_performed": false,
+  "input_footprint_files": {
+    "J1": {
+      "path": ".tools/quipus-footprints/power/Quipus_GCT_USB4105_GF_A_SHARED_CONTACTS.kicad_mod",
+      "sha256": "1abc239f3da3aeb61941fe166ebb4d97c0bcb7a896fc957036125dca58550c9d"
+    },
+    "F1": {
+      "path": ".tools/quipus-footprints/power/Fuse_0603_1608Metric.kicad_mod",
+      "sha256": "bbaa4c30a6628f88e6bd1ac15447438fb611fd5bcdba54314de58466b7374d58"
+    },
+    "U2": {
+      "path": ".tools/quipus-footprints/power/Quipus_TI_RGT0016C_BQ24074.kicad_mod",
+      "sha256": "060116a0316bf703f6b4c0914ce10054d978b0121f3027c1714e24fc7cf9097f"
+    },
+    "R1": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R2": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R3": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R4": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R5": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "C1": {
+      "path": ".tools/quipus-footprints/power/C_0805_2012Metric.kicad_mod",
+      "sha256": "99fff2e6692af4126feb9f9ebdfd454834bf414b13d04be0d075dffc23cfbd02"
+    },
+    "C2": {
+      "path": ".tools/quipus-footprints/power/C_0805_2012Metric.kicad_mod",
+      "sha256": "99fff2e6692af4126feb9f9ebdfd454834bf414b13d04be0d075dffc23cfbd02"
+    },
+    "C3": {
+      "path": ".tools/quipus-footprints/power/C_0805_2012Metric.kicad_mod",
+      "sha256": "99fff2e6692af4126feb9f9ebdfd454834bf414b13d04be0d075dffc23cfbd02"
+    },
+    "J2": {
+      "path": ".tools/quipus-footprints/power/JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal.kicad_mod",
+      "sha256": "0d7dc0833316219446f7e94b0c9a28178288562956e76d0d09c34924942af135"
+    },
+    "J3": {
+      "path": ".tools/quipus-footprints/power/JST_SH_SM03B-SRSS-TB_1x03-1MP_P1.00mm_Horizontal.kicad_mod",
+      "sha256": "eb8b63f665e247d1ea395672979e7b5a5c0358e9df1f240d7172d7f80fe796ef"
+    },
+    "U3": {
+      "path": ".tools/quipus-footprints/power/Quipus_TI_RWB0012A_TUSB320LAI.kicad_mod",
+      "sha256": "a028f715a9071d24f935db8a00eb226fa2b445ed6eb101a6a04cf32b28f7bbc1"
+    },
+    "R6": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R7": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "C4": {
+      "path": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4"
+    },
+    "U4": {
+      "path": ".tools/quipus-footprints/power/SOT-23-5.kicad_mod",
+      "sha256": "559f4c60fd9a2f3b575b5c4efb9bcb51863ea2c8e3837c27504059c8fa704827"
+    },
+    "C5": {
+      "path": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4"
+    },
+    "C6": {
+      "path": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4"
+    },
+    "U5": {
+      "path": ".tools/quipus-footprints/power/SOT-23-5.kicad_mod",
+      "sha256": "559f4c60fd9a2f3b575b5c4efb9bcb51863ea2c8e3837c27504059c8fa704827"
+    },
+    "U6": {
+      "path": ".tools/quipus-footprints/power/SOT-23-5.kicad_mod",
+      "sha256": "559f4c60fd9a2f3b575b5c4efb9bcb51863ea2c8e3837c27504059c8fa704827"
+    },
+    "U7": {
+      "path": ".tools/quipus-footprints/power/SOT-23-5.kicad_mod",
+      "sha256": "559f4c60fd9a2f3b575b5c4efb9bcb51863ea2c8e3837c27504059c8fa704827"
+    },
+    "U8": {
+      "path": ".tools/quipus-footprints/power/SOT-23-5.kicad_mod",
+      "sha256": "559f4c60fd9a2f3b575b5c4efb9bcb51863ea2c8e3837c27504059c8fa704827"
+    },
+    "R8": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R9": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R10": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R11": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "C7": {
+      "path": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4"
+    },
+    "C8": {
+      "path": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4"
+    },
+    "C9": {
+      "path": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4"
+    },
+    "C10": {
+      "path": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4"
+    },
+    "U9": {
+      "path": ".tools/quipus-footprints/power/TSOT-23-8.kicad_mod",
+      "sha256": "05a2119ad9ad5ff843888326728598dd613e7692fe024385b711192c07a19658"
+    },
+    "SW1": {
+      "path": ".tools/quipus-footprints/controller/Quipus_Omron_B3U-1000P.kicad_mod",
+      "sha256": "09042f8256c5c2cd97c38089029089b67984c41ce52f53da7c0a1e98f46c6243"
+    },
+    "C11": {
+      "path": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4"
+    },
+    "C12": {
+      "path": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4"
+    },
+    "C13": {
+      "path": ".tools/quipus-footprints/power/C_0805_2012Metric.kicad_mod",
+      "sha256": "99fff2e6692af4126feb9f9ebdfd454834bf414b13d04be0d075dffc23cfbd02"
+    },
+    "R12": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R13": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R14": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "U10": {
+      "path": ".tools/quipus-footprints/power/SOT-23-6.kicad_mod",
+      "sha256": "fa43b3b798136815af9733d3fe45e1547111765e49c0274d86c8ea7942f8e63b"
+    },
+    "C14": {
+      "path": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4"
+    },
+    "C15": {
+      "path": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4"
+    },
+    "R15": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "U11": {
+      "path": ".tools/quipus-footprints/power/Quipus_TI_DLA0010A_TPS63802.kicad_mod",
+      "sha256": "6d47c15447ebbdbf7e5093e58b726b4f264d857474b669ad13fad787c9077223"
+    },
+    "L1": {
+      "path": ".tools/quipus-footprints/power/Quipus_Coilcraft_XFL4015.kicad_mod",
+      "sha256": "7d44482fcf855d7298ef79474b554d2a5305dc79ffd4a0da6e993f4a8a5e44c9"
+    },
+    "R16": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R17": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R18": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "C16": {
+      "path": ".tools/quipus-footprints/power/C_0805_2012Metric.kicad_mod",
+      "sha256": "99fff2e6692af4126feb9f9ebdfd454834bf414b13d04be0d075dffc23cfbd02"
+    },
+    "C17": {
+      "path": ".tools/quipus-footprints/power/C_0805_2012Metric.kicad_mod",
+      "sha256": "99fff2e6692af4126feb9f9ebdfd454834bf414b13d04be0d075dffc23cfbd02"
+    },
+    "C18": {
+      "path": ".tools/quipus-footprints/power/C_0805_2012Metric.kicad_mod",
+      "sha256": "99fff2e6692af4126feb9f9ebdfd454834bf414b13d04be0d075dffc23cfbd02"
+    },
+    "C19": {
+      "path": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4"
+    },
+    "U12": {
+      "path": ".tools/quipus-footprints/power/Quipus_TI_DRZ0012A_BQ27441.kicad_mod",
+      "sha256": "71d43a83de0d418ee281706edb6b27a0388216302a6af449c760a52af866fc1f"
+    },
+    "R19": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "R20": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R21": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R22": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R23": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R24": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R25": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "R26": {
+      "path": ".tools/quipus-footprints/power/R_0603_1608Metric.kicad_mod",
+      "sha256": "effcae403a15810b3a1947b8664576270d6781e7cd525e97c47d48be0fdae8ce"
+    },
+    "C20": {
+      "path": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4"
+    },
+    "C21": {
+      "path": ".tools/quipus-footprints/power/C_0603_1608Metric.kicad_mod",
+      "sha256": "341de40ed02527c21b097661d4c2411c604c253ca12041f5eb4521bde00a8db4"
+    },
+    "U13": {
+      "path": ".tools/quipus-footprints/controller/Texas_DRT-3.kicad_mod",
+      "sha256": "15cde3ee13da0e0426038a0a17ee16c50edc6d100b64582166b4263d4e7cae17"
+    },
+    "D1": {
+      "path": ".tools/quipus-footprints/power/Quipus_TI_DYA0002A_TPD1E10B06.kicad_mod",
+      "sha256": "5e2918d75e76c754d5f86108703bdcb2730cea5cefc63583e754af50e70fd14c"
+    },
+    "U1": {
+      "path": ".tools/quipus-footprints/controller/ESP32-S3-WROOM-1.kicad_mod",
+      "sha256": "d0cfbb31fef0c47396c0d061ec5a3bff60f0567d8d4ea8dd4769c84f52bd656f"
+    },
+    "U30": {
+      "path": ".tools/quipus-footprints/controller/MicroCrystal_C7_SON-8_1.5x3.2mm_P0.9mm.kicad_mod",
+      "sha256": "dcf8e98d380a1d7fc711a4e15333c968f6a6a963ad3dd69c987c06e9942adbd1"
+    },
+    "U31": {
+      "path": ".tools/quipus-footprints/controller/SOIC-8_3.9x4.9mm_P1.27mm.kicad_mod",
+      "sha256": "074ecb2092b24fa4b4b9cdd7c926fc587b0d7d6d21e7341e57935fd42d36894f"
+    },
+    "U34": {
+      "path": ".tools/quipus-footprints/controller/Texas_UQFN-10_1.5x2mm_P0.5mm.kicad_mod",
+      "sha256": "eae5151d8b2db32ac48501c8561535e4af101c986a3eee10974db85f3fc0adb0"
+    },
+    "U35": {
+      "path": ".tools/quipus-footprints/controller/Texas_DRT-3.kicad_mod",
+      "sha256": "15cde3ee13da0e0426038a0a17ee16c50edc6d100b64582166b4263d4e7cae17"
+    },
+    "J6": {
+      "path": ".tools/quipus-footprints/controller/Quipus_Hirose_DM3AT-SF-PEJM5_AB.kicad_mod",
+      "sha256": "887ebfa2dc509964fc1f137e7c7b613a99394d9a94ceb72244480740ff5a7d11"
+    },
+    "J7": {
+      "path": ".tools/quipus-footprints/controller/JST_PH_B8B-PH-K_1x08_P2.00mm_Vertical.kicad_mod",
+      "sha256": "60f9bbf117276534d542e8f31e032cb1bb5f93f3b9b2c078336df356244aa86f"
+    },
+    "R300": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "C300": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "C301": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "C302": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "R301": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "R302": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "R303": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "C303": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "C304": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "R304": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "R305": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "R306": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "R307": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "C305": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "C306": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "R310": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "R311": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "R312": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "R313": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "R314": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "R315": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "R316": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "C310": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "C311": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "C312": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "R320": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "R321": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "C320": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "C321": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "C330": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "R330": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "C331": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "R331": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "C332": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "R332": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "C333": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "R333": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "C334": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "C340": {
+      "path": ".tools/quipus-footprints/controller/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405"
+    },
+    "R341": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "R342": {
+      "path": ".tools/quipus-footprints/controller/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23"
+    },
+    "SW300": {
+      "path": ".tools/quipus-footprints/controller/Quipus_Omron_B3U-1000P.kicad_mod",
+      "sha256": "09042f8256c5c2cd97c38089029089b67984c41ce52f53da7c0a1e98f46c6243"
+    },
+    "SW301": {
+      "path": ".tools/quipus-footprints/controller/Quipus_Omron_B3U-1000P.kicad_mod",
+      "sha256": "09042f8256c5c2cd97c38089029089b67984c41ce52f53da7c0a1e98f46c6243"
+    },
+    "SW302": {
+      "path": ".tools/quipus-footprints/controller/Quipus_Omron_B3U-1000P.kicad_mod",
+      "sha256": "09042f8256c5c2cd97c38089029089b67984c41ce52f53da7c0a1e98f46c6243"
+    },
+    "SW303": {
+      "path": ".tools/quipus-footprints/controller/Quipus_Omron_B3U-1000P.kicad_mod",
+      "sha256": "09042f8256c5c2cd97c38089029089b67984c41ce52f53da7c0a1e98f46c6243"
+    },
+    "SW304": {
+      "path": ".tools/quipus-footprints/controller/Quipus_Omron_B3U-1000P.kicad_mod",
+      "sha256": "09042f8256c5c2cd97c38089029089b67984c41ce52f53da7c0a1e98f46c6243"
+    },
+    "SW305": {
+      "path": ".tools/quipus-footprints/controller/Quipus_Omron_B3U-1000P.kicad_mod",
+      "sha256": "09042f8256c5c2cd97c38089029089b67984c41ce52f53da7c0a1e98f46c6243"
+    },
+    "U20": {
+      "path": ".tools/quipus-footprints/audio/Infineon_IM69D128SV01_PG-TLGA-5-2_2.65x3.50mm_NPTH0.60.kicad_mod",
+      "sha256": "18289563cd29d2f77e11121af724e66f2e6c68e8e6bca0b31e12a27b63e864fc"
+    },
+    "U21": {
+      "path": ".tools/quipus-footprints/audio/Infineon_IM69D128SV01_PG-TLGA-5-2_2.65x3.50mm_NPTH0.60.kicad_mod",
+      "sha256": "18289563cd29d2f77e11121af724e66f2e6c68e8e6bca0b31e12a27b63e864fc"
+    },
+    "R201": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "R202": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "R203": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "R204": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "C200": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C201": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C202": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C203": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C204": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "U22": {
+      "path": ".tools/quipus-footprints/audio/MAX98357AETE_T1633-4_3x3mm_P0.5_EP1.23_90-0031C.kicad_mod",
+      "sha256": "f860f24f755f7ee0b7bfa3175db15730a530d4e0ee7d5e9ca807b7425f7bc47f"
+    },
+    "R207": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "R208": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "R209": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "R210": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "R211": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "C205": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C206": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C207": {
+      "path": ".tools/quipus-footprints/audio/C_1210_3225Metric.kicad_mod",
+      "sha256": "e1dae516e079b70c4736d001fb81bfb4ef5f9c2a37c8175223a44f83a04ff75f"
+    },
+    "J5": {
+      "path": ".tools/quipus-footprints/audio/JST_SH_SM02B-SRSS-TB_1x02-1MP_P1.00mm_Horizontal.kicad_mod",
+      "sha256": "9990af7ee96e3d1c8a5c4d4f522e102048830449531e45bf5789d4c640bf2553"
+    },
+    "U23": {
+      "path": "hardware/quipus-pcb/rev-b/audio-footprints/Quipus_TI_RTW0024A_TLV320ADC5140.kicad_mod",
+      "sha256": "6329c105f2f2a1826f620512cbb742f634ed3669ef0a775ad1a875600b1ac49d"
+    },
+    "U24": {
+      "path": "hardware/quipus-pcb/rev-b/audio-footprints/Quipus_TI_DBV0005A_SN74LVC1G17.kicad_mod",
+      "sha256": "d6c114dc18ce767896d9f41927e2de7fada09fe8d6c6656346d01990840e0213"
+    },
+    "FB220": {
+      "path": "hardware/quipus-pcb/rev-b/audio-footprints/Quipus_Murata_BLM21PG221SN1D.kicad_mod",
+      "sha256": "266fb1f10b4456284f6601fb4656485a4bd63cac935eda518af68809abb59d60"
+    },
+    "R220": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "R221": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "R222": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "R223": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "R224": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "C220": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C221": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C222": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C223": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C224": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C225": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C226": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C227": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C228": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C229": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C230": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C231": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C232": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "J8": {
+      "path": "hardware/quipus-pcb/rev-b/audio-footprints/Quipus_SameSky_SJ1-3533NG.kicad_mod",
+      "sha256": "0c47d1156a1fd1da030ba29f3c8561f742352296411a93aea0e6b4272592ed3c"
+    },
+    "R230": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "R231": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "R232": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "C233": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C234": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C235": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C236": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "D220": {
+      "path": ".tools/quipus-footprints/power/Quipus_TI_DYA0002A_TPD1E10B06.kicad_mod",
+      "sha256": "5e2918d75e76c754d5f86108703bdcb2730cea5cefc63583e754af50e70fd14c"
+    },
+    "J9": {
+      "path": "hardware/quipus-pcb/rev-b/audio-footprints/Quipus_SameSky_SJ1-3533NG.kicad_mod",
+      "sha256": "0c47d1156a1fd1da030ba29f3c8561f742352296411a93aea0e6b4272592ed3c"
+    },
+    "R235": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "R236": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "R237": {
+      "path": ".tools/quipus-footprints/power/R_0805_2012Metric.kicad_mod",
+      "sha256": "34ef5a7238e8aa2622071b1ded0ce1aaaf9fd5fd2fa2d5e9914f8ee250ac3f7c"
+    },
+    "C238": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C239": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C240": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "C241": {
+      "path": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb"
+    },
+    "D221": {
+      "path": ".tools/quipus-footprints/power/Quipus_TI_DYA0002A_TPD1E10B06.kicad_mod",
+      "sha256": "5e2918d75e76c754d5f86108703bdcb2730cea5cefc63583e754af50e70fd14c"
+    }
+  }
+}

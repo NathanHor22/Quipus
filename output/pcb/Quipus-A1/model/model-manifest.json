@@ -1,0 +1,232 @@
+{
+  "status": "PLACEMENT STUDY \u2014 NOT FOR FABRICATION",
+  "units": "mm",
+  "origin": "top-left of PCB; +y down the face; +z toward front/screen",
+  "board_mm": [
+    65,
+    105,
+    1.6
+  ],
+  "mounting_holes": {
+    "diameter_mm": 2.8,
+    "centres_mm": [
+      [
+        5,
+        19
+      ],
+      [
+        60,
+        19
+      ],
+      [
+        5,
+        99
+      ],
+      [
+        60,
+        99
+      ]
+    ]
+  },
+  "no_battery_envelope": "Battery dimensions are not known. No battery or case fit is implied.",
+  "parts": [
+    {
+      "name": "PCB_65x105x1p6",
+      "color": [
+        28,
+        108,
+        86
+      ],
+      "description": "Unrouted 65 x 105 x 1.6 board study; no fabricated copper or pad geometry."
+    },
+    {
+      "name": "MIC_1_ENVELOPE",
+      "color": [
+        201,
+        170,
+        77
+      ],
+      "description": "Rear mounted microphone envelope; bottom port faces through the 0.6 mm board hole toward the front. No footprint implied."
+    },
+    {
+      "name": "MIC_2_ENVELOPE",
+      "color": [
+        201,
+        170,
+        77
+      ],
+      "description": "Rear mounted microphone envelope; bottom port faces through the 0.6 mm board hole toward the front. No footprint implied."
+    },
+    {
+      "name": "ESP32_MODULE_ENVELOPE",
+      "color": [
+        156,
+        166,
+        178
+      ],
+      "description": "WROOM-1 18 x 25.5 mm outline; body height envelope 3.2 mm; final drawing and tolerance need audit."
+    },
+    {
+      "name": "ANTENNA_REGION_INDICATOR",
+      "color": [
+        46,
+        54,
+        68
+      ],
+      "description": "Antenna end at top board edge. Illustration only: enforce full manufacturer keepout during layout."
+    },
+    {
+      "name": "LCD_MODULE_ENVELOPE",
+      "color": [
+        36,
+        46,
+        64
+      ],
+      "description": "Waveshare 1.3-inch module 45 x 31 mm board envelope. The 2 mm thickness is provisional; actual connectors and glass stack require measurement."
+    },
+    {
+      "name": "DISPLAY_GLASS_INDICATOR",
+      "color": [
+        89,
+        185,
+        167
+      ],
+      "description": "Illustrative screen surface, not an asserted display mechanical drawing."
+    },
+    {
+      "name": "BUTTON_START_BODY",
+      "color": [
+        58,
+        69,
+        81
+      ],
+      "description": "Omron B3U-1000P approximate body envelope; no vendor-qualified land pattern or actuator travel implied."
+    },
+    {
+      "name": "BUTTON_START_CAP",
+      "color": [
+        194,
+        202,
+        214
+      ],
+      "description": "Provisional 6 mm case-actuator envelope over the B3U switch; final case travel and retention not designed."
+    },
+    {
+      "name": "BUTTON_STOP_BODY",
+      "color": [
+        58,
+        69,
+        81
+      ],
+      "description": "Omron B3U-1000P approximate body envelope; no vendor-qualified land pattern or actuator travel implied."
+    },
+    {
+      "name": "BUTTON_STOP_CAP",
+      "color": [
+        194,
+        202,
+        214
+      ],
+      "description": "Provisional 6 mm case-actuator envelope over the B3U switch; final case travel and retention not designed."
+    },
+    {
+      "name": "BUTTON_UP_BODY",
+      "color": [
+        58,
+        69,
+        81
+      ],
+      "description": "Omron B3U-1000P approximate body envelope; no vendor-qualified land pattern or actuator travel implied."
+    },
+    {
+      "name": "BUTTON_UP_CAP",
+      "color": [
+        194,
+        202,
+        214
+      ],
+      "description": "Provisional 6 mm case-actuator envelope over the B3U switch; final case travel and retention not designed."
+    },
+    {
+      "name": "BUTTON_DOWN_BODY",
+      "color": [
+        58,
+        69,
+        81
+      ],
+      "description": "Omron B3U-1000P approximate body envelope; no vendor-qualified land pattern or actuator travel implied."
+    },
+    {
+      "name": "BUTTON_DOWN_CAP",
+      "color": [
+        194,
+        202,
+        214
+      ],
+      "description": "Provisional 6 mm case-actuator envelope over the B3U switch; final case travel and retention not designed."
+    },
+    {
+      "name": "POWER_BUTTON_ENVELOPE",
+      "color": [
+        225,
+        154,
+        71
+      ],
+      "description": "Provisional left-edge case power-actuator envelope over B3U switch; final mechanical lever and travel pending."
+    },
+    {
+      "name": "USB_C_ENVELOPE",
+      "color": [
+        190,
+        198,
+        208
+      ],
+      "description": "Simplified envelope for selected GCT USB4105-GF-A; not a vendor-qualified model. Shown extending through bottom edge; exact mechanical drawing takes priority."
+    },
+    {
+      "name": "MICRO_SD_ENVELOPE",
+      "color": [
+        163,
+        178,
+        191
+      ],
+      "description": "Approximate socket envelope, right-edge ejection; exact Hirose land/slot/ejection travel not modelled."
+    },
+    {
+      "name": "MIC_EXPANSION_CONNECTOR_ENVELOPE",
+      "color": [
+        229,
+        227,
+        213
+      ],
+      "description": "Approximate four-pin JST SH connector envelope; shifted to y26 to clear the mounting hole at (60,19). Cable clearance and pin orientation pending."
+    },
+    {
+      "name": "SPEAKER_CONNECTOR_ENVELOPE",
+      "color": [
+        229,
+        227,
+        213
+      ],
+      "description": "Approximate two-pin JST SH connector envelope; speaker is off-board."
+    },
+    {
+      "name": "BATTERY_CONNECTOR_ENVELOPE",
+      "color": [
+        229,
+        227,
+        213
+      ],
+      "description": "Proposed JST PH battery connector zone; no battery dimensions assumed."
+    },
+    {
+      "name": "NTC_3PIN_CONNECTOR_ENVELOPE",
+      "color": [
+        229,
+        227,
+        213
+      ],
+      "description": "Three-pin JST SH thermistor connector envelope; does not accept the two-pin speaker plug. Exact cable bend clearance pending."
+    }
+  ]
+}

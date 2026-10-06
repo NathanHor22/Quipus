@@ -1,0 +1,142 @@
+{
+  "base": "http://127.0.0.1:3007",
+  "createdAt": "2026-10-06T12:01:29.815Z",
+  "checks": [
+    {
+      "name": "Uploading displays only actual byte progress and no premature playback",
+      "pass": true,
+      "result": {
+        "viewport": 1440,
+        "document": 1440
+      }
+    },
+    {
+      "name": "Progress is a framed glass surface with a proper button system",
+      "pass": true,
+      "result": {
+        "padding": "24px",
+        "border": "1px",
+        "background": "linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.72))",
+        "blur": "blur(16px)",
+        "radius": "3px"
+      }
+    },
+    {
+      "name": "100% byte upload waits for archive confirmation",
+      "pass": true,
+      "result": {
+        "percent": "100"
+      }
+    },
+    {
+      "name": "Archived audio is available before transcription and opens the Audio tab",
+      "pass": true,
+      "result": {
+        "duration": 20,
+        "source": "http://127.0.0.1:3007/__flow-audio.wav"
+      }
+    },
+    {
+      "name": "Transcript and report stages remain explicit without AI percentages",
+      "pass": true,
+      "result": {
+        "stages": [
+          "transcribing",
+          "consolidating",
+          "researching"
+        ]
+      }
+    },
+    {
+      "name": "Failed recording remains replayable and failed retry reports an actionable error",
+      "pass": true,
+      "result": {
+        "originalAudioRetained": true
+      }
+    },
+    {
+      "name": "Accepted retry sends one empty-body POST and refreshes to queued audio",
+      "pass": true,
+      "result": {
+        "method": "POST",
+        "path": "/api/recordings/12345678-1234-4123-8123-123456789012/retry",
+        "body": null,
+        "status": 202
+      }
+    },
+    {
+      "name": "Journal failed-recording playback shortcut selects Audio",
+      "pass": true
+    },
+    {
+      "name": "Ready report supersedes delayed session metadata and removes retry",
+      "pass": true,
+      "result": {
+        "viewport": 1440,
+        "document": 1440
+      }
+    },
+    {
+      "name": "Unconfirmed capture duration is honest and original WAV metadata wins over calendar placeholders",
+      "pass": true,
+      "result": {
+        "pending": "Not confirmed",
+        "confirmed": "20 sec"
+      }
+    },
+    {
+      "name": "Processing and recovery remain usable at 320px",
+      "pass": true,
+      "result": {
+        "width": 320
+      }
+    },
+    {
+      "name": "No unexpected application runtime errors",
+      "pass": true
+    },
+    {
+      "name": "Removed motion control stays absent and OS reduced motion is respected",
+      "pass": true,
+      "result": {
+        "visibleToggle": false,
+        "respectsOS": true
+      }
+    },
+    {
+      "name": "Normal decorative motion pauses when the page is hidden without exposing controls",
+      "pass": true,
+      "result": {
+        "hidden": "paused",
+        "visible": "running"
+      }
+    }
+  ],
+  "errors": [],
+  "blockedRequests": [],
+  "retryRequests": [
+    {
+      "method": "POST",
+      "path": "/api/recordings/12345678-1234-4123-8123-123456789012/retry",
+      "body": null,
+      "status": 503
+    },
+    {
+      "method": "POST",
+      "path": "/api/recordings/12345678-1234-4123-8123-123456789012/retry",
+      "body": null,
+      "status": 202
+    }
+  ],
+  "screenshots": [
+    "uploading-desktop.png",
+    "audio-available-desktop.png",
+    "report-processing-desktop.png",
+    "failed-retry-desktop.png",
+    "failed-audio-desktop.png",
+    "confirmed-wav-duration-desktop.png",
+    "processing-uploading-mobile-320.png",
+    "processing-transcribing-mobile-320.png",
+    "processing-failed-mobile-320.png"
+  ]
+}

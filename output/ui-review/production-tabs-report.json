@@ -1,0 +1,50 @@
+{
+  "checks": [
+    {
+      "name": "Detail has exactly four accessible tabs and one visible panel",
+      "pass": true,
+      "result": {
+        "viewport": 1440,
+        "document": 1440
+      }
+    },
+    {
+      "name": "Detail tab arrow, Home and End keys move selection and focus",
+      "pass": true,
+      "result": {
+        "wrapping": true,
+        "home": true,
+        "end": true
+      }
+    },
+    {
+      "name": "Transcript search survives summary and audio tab changes",
+      "pass": true
+    },
+    {
+      "name": "Detail mobile tabs and panels avoid horizontal overflow",
+      "pass": true,
+      "result": {
+        "widths": [
+          390,
+          320
+        ]
+      }
+    },
+    {
+      "name": "Detail test has no runtime errors",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    "production-detail-summary-desktop.png",
+    "production-detail-actions-desktop.png",
+    "production-detail-transcript-desktop.png",
+    "production-detail-audio-desktop.png",
+    "production-detail-summary-mobile.png",
+    "production-detail-actions-mobile.png",
+    "production-detail-transcript-mobile.png",
+    "production-detail-audio-mobile.png"
+  ]
+}

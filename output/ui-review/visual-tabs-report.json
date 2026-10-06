@@ -1,0 +1,71 @@
+{
+  "checks": [
+    {
+      "name": "Detail has exactly four accessible tabs and one visible panel",
+      "pass": true,
+      "result": {
+        "viewport": 1440,
+        "document": 1440
+      }
+    },
+    {
+      "name": "Detail tab arrow, Home and End keys move selection and focus",
+      "pass": true,
+      "result": {
+        "wrapping": true,
+        "home": true,
+        "end": true
+      }
+    },
+    {
+      "name": "Transcript search survives summary and audio tab changes",
+      "pass": true
+    },
+    {
+      "name": "Detail mobile tabs and panels avoid horizontal overflow",
+      "pass": true,
+      "result": {
+        "widths": [
+          390,
+          320
+        ]
+      }
+    },
+    {
+      "name": "Local fixture playback position, speed and media element persist across tabs",
+      "pass": true,
+      "result": {
+        "sameElement": true,
+        "time": 7,
+        "speed": 1.5,
+        "duration": 20
+      }
+    },
+    {
+      "name": "Transcript controls playback and hiding replay pauses without losing progress",
+      "pass": true,
+      "result": {
+        "startedAt": 7.168453,
+        "pausedAt": 7.734081,
+        "sameElement": true
+      }
+    },
+    {
+      "name": "Detail test has no runtime errors",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    "visual-detail-summary-desktop.png",
+    "visual-detail-actions-desktop.png",
+    "visual-detail-transcript-desktop.png",
+    "visual-detail-audio-desktop.png",
+    "visual-detail-summary-mobile.png",
+    "visual-detail-actions-mobile.png",
+    "visual-detail-transcript-mobile.png",
+    "visual-detail-audio-mobile.png",
+    "visual-detail-local-fixture-audio.png",
+    "visual-detail-local-fixture-transcript.png"
+  ]
+}

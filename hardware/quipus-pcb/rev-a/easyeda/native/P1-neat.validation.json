@@ -1,0 +1,387 @@
+{
+  "status": "pass",
+  "native_component_refs": [
+    "C340",
+    "R341",
+    "R342",
+    "SW300",
+    "SW301",
+    "SW302",
+    "SW303",
+    "SW304",
+    "SW305"
+  ],
+  "components": 9,
+  "wire_count": 18,
+  "pin_count": 18,
+  "net_count": 10,
+  "columns": 1,
+  "sheet": "A3",
+  "usable_bounds": [
+    55.0,
+    -1060.0,
+    1599.0,
+    -210.0
+  ],
+  "translations": [
+    {
+      "refs": [
+        "C340"
+      ],
+      "dx": -402.0289799999999,
+      "dy": 419.55906000000004
+    },
+    {
+      "refs": [
+        "R341"
+      ],
+      "dx": -384.7489799999999,
+      "dy": 407.18898212598424
+    },
+    {
+      "refs": [
+        "R342"
+      ],
+      "dx": -384.7489799999999,
+      "dy": 394.8189002362201
+    },
+    {
+      "refs": [
+        "SW300"
+      ],
+      "dx": -404.90897999999993,
+      "dy": 382.44882433070825
+    },
+    {
+      "refs": [
+        "SW301"
+      ],
+      "dx": -390.5089799999999,
+      "dy": 370.07874440944806
+    },
+    {
+      "refs": [
+        "SW302"
+      ],
+      "dx": -393.3889799999999,
+      "dy": 357.7086704724402
+    },
+    {
+      "refs": [
+        "SW303"
+      ],
+      "dx": -399.1489799999999,
+      "dy": 345.33859251968397
+    },
+    {
+      "refs": [
+        "SW304"
+      ],
+      "dx": -393.3889799999999,
+      "dy": 332.96851055117986
+    },
+    {
+      "refs": [
+        "SW305"
+      ],
+      "dx": -404.90897999999993,
+      "dy": 320.59843456692806
+    }
+  ],
+  "all_pin_nets_match_source": true,
+  "source_electrical_signature_sha256": "2e8b2a9a32ad330f10817dd1fe607d49db9ea9e48d3828c6be7a743d246585f2",
+  "component_unique_ids": {
+    "C340": "087ebd91ebabcca3",
+    "R341": "a1618c9f4fafc2ab",
+    "R342": "04808f98041c3aa8",
+    "SW300": "9211d20193292539",
+    "SW301": "89504b01c403125b",
+    "SW302": "d50efb9261273cb1",
+    "SW303": "856ed774ac2db9df",
+    "SW304": "c39d7585293d0b14",
+    "SW305": "272f72898b93e4d7"
+  },
+  "pins": [
+    {
+      "ref": "C340",
+      "number": "1",
+      "x": 101.15999637795284,
+      "y": -1019.3779478740157,
+      "expected_net": "3V3_SYS",
+      "actual_page_wire_nets": [
+        "3V3_SYS"
+      ],
+      "wire_ids": [
+        "3a2ab887c90c4375"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "C340",
+      "number": "2",
+      "x": 101.15999637795284,
+      "y": -1009.3779478740157,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "e73ec5a94a03c389"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R341",
+      "number": "1",
+      "x": 118.43999637795281,
+      "y": -938.7558997637798,
+      "expected_net": "USB_UNUSED_DP",
+      "actual_page_wire_nets": [
+        "USB_UNUSED_DP"
+      ],
+      "wire_ids": [
+        "c9a241cca323c291"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R341",
+      "number": "2",
+      "x": 118.43999637795281,
+      "y": -928.7558997637798,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "7ec90174aab17c95"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R342",
+      "number": "1",
+      "x": 118.43999637795281,
+      "y": -858.1338556692917,
+      "expected_net": "USB_UNUSED_DM",
+      "actual_page_wire_nets": [
+        "USB_UNUSED_DM"
+      ],
+      "wire_ids": [
+        "fa840c17be604238"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "R342",
+      "number": "2",
+      "x": 118.43999637795281,
+      "y": -848.1338556692917,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "e9ac935bb6dd052f"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "SW300",
+      "number": "1",
+      "x": 98.27999637795278,
+      "y": -777.5118055905518,
+      "expected_net": "BOOT_N",
+      "actual_page_wire_nets": [
+        "BOOT_N"
+      ],
+      "wire_ids": [
+        "1d8b45c8c1972a2c"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "SW300",
+      "number": "2",
+      "x": 98.27999637795278,
+      "y": -767.5118055905518,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "c480c4ef86578be2"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "SW301",
+      "number": "1",
+      "x": 112.67999637795282,
+      "y": -696.8897595275598,
+      "expected_net": "BTN_START_N",
+      "actual_page_wire_nets": [
+        "BTN_START_N"
+      ],
+      "wire_ids": [
+        "203c7fbcce509ec7"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "SW301",
+      "number": "2",
+      "x": 112.67999637795282,
+      "y": -686.8897595275598,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "826edf5263f4c304"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "SW302",
+      "number": "1",
+      "x": 109.79999637795282,
+      "y": -616.267707480316,
+      "expected_net": "BTN_STOP_N",
+      "actual_page_wire_nets": [
+        "BTN_STOP_N"
+      ],
+      "wire_ids": [
+        "acb9a94ae30c32cf"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "SW302",
+      "number": "2",
+      "x": 109.79999637795282,
+      "y": -606.267707480316,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "058d5af4823adbbe"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "SW303",
+      "number": "1",
+      "x": 104.03999637795283,
+      "y": -535.64565944882,
+      "expected_net": "BTN_UP_N",
+      "actual_page_wire_nets": [
+        "BTN_UP_N"
+      ],
+      "wire_ids": [
+        "f101c6fc942adf5d"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "SW303",
+      "number": "2",
+      "x": 104.03999637795283,
+      "y": -525.64565944882,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "864e862be4d7851c"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "SW304",
+      "number": "1",
+      "x": 109.79999637795282,
+      "y": -455.0236154330719,
+      "expected_net": "BTN_DOWN_N",
+      "actual_page_wire_nets": [
+        "BTN_DOWN_N"
+      ],
+      "wire_ids": [
+        "02dad919f8fcf62a"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "SW304",
+      "number": "2",
+      "x": 109.79999637795282,
+      "y": -445.0236154330719,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "e859bfa404be41bc"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "SW305",
+      "number": "1",
+      "x": 98.27999637795278,
+      "y": -374.40156543307194,
+      "expected_net": "ESP_EN",
+      "actual_page_wire_nets": [
+        "ESP_EN"
+      ],
+      "wire_ids": [
+        "0457098efc281c4e"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    },
+    {
+      "ref": "SW305",
+      "number": "2",
+      "x": 98.27999637795278,
+      "y": -364.40156543307194,
+      "expected_net": "GND",
+      "actual_page_wire_nets": [
+        "GND"
+      ],
+      "wire_ids": [
+        "9fa7e52359a9831a"
+      ],
+      "no_connect_attr_ids": [],
+      "match": true
+    }
+  ],
+  "errors": [],
+  "limitations": [
+    "Pin locations are reconstructed from imported KiCad symbol geometry; native library PIN records were not captured.",
+    "Native project export must independently verify all 144 refs, 92 nets and 471 pins after all pages are moved.",
+    "Unrouted engineering draft; no native ERC, DRC or fabrication approval."
+  ],
+  "imported_non_electrical_frame_replaced": false,
+  "source_file": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-a\\easyeda\\native\\P1-before.esource",
+  "output_file": "C:\\Users\\damna\\Documents\\GitHub\\Roxanne\\hardware\\quipus-pcb\\rev-a\\easyeda\\native\\P1-neat.esource",
+  "source_sha256": "ebf5bd660e4c0fa79eba7643235a3170b9c2f68c4f6cdc1c16beb71133e55c74",
+  "output_sha256": "514f838e13b212e85e36f6a88bc7c7b65c975e1705d014ed8166c5ccda7095be"
+}

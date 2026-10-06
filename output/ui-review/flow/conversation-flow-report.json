@@ -1,0 +1,76 @@
+{
+  "base": "http://127.0.0.1:3007",
+  "checks": [
+    {
+      "name": "Home approval opens review without creating an event or sending a request",
+      "pass": true
+    },
+    {
+      "name": "Every calendar rail approval opens review first",
+      "pass": true,
+      "result": {
+        "approvalsReviewed": 2
+      }
+    },
+    {
+      "name": "Calendar recording popup has the shared four tabs and preserves month/date on close",
+      "pass": true,
+      "result": {
+        "month": "October 2026",
+        "date": "Tuesday, 6 Oct 2026"
+      }
+    },
+    {
+      "name": "Full conversation approval reviews and Back restores the filtered history",
+      "pass": true
+    },
+    {
+      "name": "Final sample approval creates one event and persistent confirmation opens that event",
+      "pass": true,
+      "result": {
+        "eventId": "sample:event:sample:approval:chung"
+      }
+    },
+    {
+      "name": "Client profile shows every prior meeting and Back restores client and search",
+      "pass": true,
+      "result": {
+        "priorMeetings": 3
+      }
+    },
+    {
+      "name": "Contact correction opens directly, saves across history and stays closed",
+      "pass": true
+    },
+    {
+      "name": "A secondary participant correction selects that person rather than the first participant",
+      "pass": true
+    },
+    {
+      "name": "Mobile calendar popup retains four tabs without overflow",
+      "pass": true
+    },
+    {
+      "name": "A mismatched contact ID never opens another personâ€™s correction form",
+      "pass": true
+    },
+    {
+      "name": "All sample flow operations stayed local and produced no runtime errors",
+      "pass": true
+    }
+  ],
+  "mutations": [],
+  "externalRequests": [],
+  "runtimeErrors": [],
+  "screenshots": [
+    "home-review.png",
+    "calendar-popup-review.png",
+    "calendar-popup-summary.png",
+    "approval-confirmation.png",
+    "approved-calendar-event.png",
+    "client-history.png",
+    "client-correction-saved.png",
+    "secondary-contact-correction.png",
+    "calendar-popup-mobile.png"
+  ]
+}

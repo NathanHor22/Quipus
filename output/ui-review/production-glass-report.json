@@ -1,0 +1,142 @@
+{
+  "checks": [
+    {
+      "name": "Public sample with angular glass and compact history",
+      "pass": true,
+      "result": {
+        "viewport": 1440,
+        "document": 1440
+      }
+    },
+    {
+      "name": "Header is a single desktop row with text navigation",
+      "pass": true,
+      "result": {
+        "height": 84,
+        "display": "grid",
+        "navSvg": 0
+      }
+    },
+    {
+      "name": "Reset sample and all secondary home actions have button frames",
+      "pass": true
+    },
+    {
+      "name": "Decorative motion has no user-facing toggle and persists across routes",
+      "pass": true
+    },
+    {
+      "name": "Search and date remain after opening and returning from a report",
+      "pass": true
+    },
+    {
+      "name": "Calendar and report popup use matching panels",
+      "pass": true,
+      "result": {
+        "viewport": 1440,
+        "document": 1440
+      }
+    },
+    {
+      "name": "Settings uses framed controls and aligned panels",
+      "pass": true,
+      "result": {
+        "viewport": 1440,
+        "document": 1440
+      }
+    },
+    {
+      "name": "Optional dark workspace stays readable",
+      "pass": true
+    },
+    {
+      "name": "Sign-in group is centred and logo loaded",
+      "pass": true,
+      "result": {
+        "viewport": 1440,
+        "document": 1440
+      }
+    },
+    {
+      "name": "Mobile 390 workspace screens fit",
+      "pass": true,
+      "result": {
+        "viewport": 390,
+        "document": 390
+      }
+    },
+    {
+      "name": "Mobile 390 all report tabs fit",
+      "pass": true
+    },
+    {
+      "name": "Mobile 390 centred sign-in fits",
+      "pass": true,
+      "result": {
+        "viewport": 390,
+        "document": 390
+      }
+    },
+    {
+      "name": "Mobile 320 workspace screens fit",
+      "pass": true,
+      "result": {
+        "viewport": 320,
+        "document": 320
+      }
+    },
+    {
+      "name": "Mobile 320 all report tabs fit",
+      "pass": true
+    },
+    {
+      "name": "Mobile 320 centred sign-in fits",
+      "pass": true,
+      "result": {
+        "viewport": 320,
+        "document": 320
+      }
+    },
+    {
+      "name": "System reduced motion is respected without a toggle",
+      "pass": true
+    },
+    {
+      "name": "No runtime exceptions",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    "production-glass-home-desktop.png",
+    "production-glass-detail-desktop.png",
+    "production-glass-devices-desktop.png",
+    "production-glass-calendar-desktop.png",
+    "production-glass-popup-summary.png",
+    "production-glass-popup-actions.png",
+    "production-glass-popup-transcript.png",
+    "production-glass-popup-audio.png",
+    "production-glass-settings-desktop.png",
+    "production-glass-home-dark.png",
+    "production-glass-login-desktop.png",
+    "production-glass-home-390.png",
+    "production-glass-calendar-390.png",
+    "production-glass-devices-390.png",
+    "production-glass-conversations-390.png",
+    "production-glass-detail-summary-390.png",
+    "production-glass-detail-actions-390.png",
+    "production-glass-detail-transcript-390.png",
+    "production-glass-detail-audio-390.png",
+    "production-glass-login-390.png",
+    "production-glass-home-320.png",
+    "production-glass-calendar-320.png",
+    "production-glass-devices-320.png",
+    "production-glass-conversations-320.png",
+    "production-glass-detail-summary-320.png",
+    "production-glass-detail-actions-320.png",
+    "production-glass-detail-transcript-320.png",
+    "production-glass-detail-audio-320.png",
+    "production-glass-login-320.png",
+    "production-glass-reduced-motion.png"
+  ]
+}

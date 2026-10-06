@@ -1,0 +1,1520 @@
+[
+  {
+    "ref": "R202",
+    "desired": [
+      56,
+      94.3,
+      0,
+      "B"
+    ],
+    "before": {
+      "Designator": "R202",
+      "Unique ID": "40fb7b9b4e324695",
+      "attr-rotation": "0",
+      "attr-x": "2204.7mil",
+      "attr-y": "-3712.6mil"
+    },
+    "after": {
+      "Designator": "R202",
+      "Unique ID": "40fb7b9b4e324695",
+      "attr-rotation": "0",
+      "attr-x": "2204.8mil",
+      "attr-y": "-3712.6mil"
+    }
+  },
+  {
+    "ref": "C202",
+    "desired": [
+      62.8,
+      91.2,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "C202",
+      "Unique ID": "4aa36c1967dcda89",
+      "attr-rotation": "180",
+      "attr-x": "2472.4mil",
+      "attr-y": "-3590.5mil"
+    },
+    "after": {
+      "Designator": "C202",
+      "Unique ID": "4aa36c1967dcda89",
+      "attr-rotation": "180",
+      "attr-x": "2472.4mil",
+      "attr-y": "-3590.5mil"
+    }
+  },
+  {
+    "ref": "C203",
+    "desired": [
+      62.8,
+      93.7,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "C203",
+      "Unique ID": "f12fe595d5b8dadc",
+      "attr-rotation": "0",
+      "attr-x": "2185mil",
+      "attr-y": "-590.6mil"
+    },
+    "after": {
+      "Designator": "C203",
+      "Unique ID": "f12fe595d5b8dadc",
+      "attr-rotation": "180",
+      "attr-x": "2472.5mil",
+      "attr-y": "-3688.9mil"
+    }
+  },
+  {
+    "ref": "U21",
+    "desired": [
+      59.25,
+      93,
+      0,
+      "B"
+    ],
+    "before": {
+      "Designator": "U21",
+      "Unique ID": "2c27b242a2875aaf",
+      "attr-rotation": "0",
+      "attr-x": "2332.7mil",
+      "attr-y": "-3661.4mil"
+    },
+    "after": {
+      "Designator": "U21",
+      "Unique ID": "2c27b242a2875aaf",
+      "attr-rotation": "0",
+      "attr-x": "2332.7mil",
+      "attr-y": "-3661.4mil"
+    }
+  },
+  {
+    "ref": "R202",
+    "desired": [
+      56,
+      94.3,
+      0,
+      "B"
+    ],
+    "before": {
+      "Designator": "R202",
+      "Unique ID": "40fb7b9b4e324695",
+      "attr-rotation": "0",
+      "attr-x": "2204.8mil",
+      "attr-y": "-3712.6mil"
+    },
+    "after": {
+      "Designator": "R202",
+      "Unique ID": "40fb7b9b4e324695",
+      "attr-rotation": "0",
+      "attr-x": "2204.8mil",
+      "attr-y": "-3712.6mil"
+    }
+  },
+  {
+    "ref": "U2",
+    "desired": [
+      49.5,
+      96,
+      0,
+      "F"
+    ],
+    "before": {
+      "Designator": "U2",
+      "Unique ID": "48f0ae2437312dae",
+      "attr-rotation": "0",
+      "attr-x": "1692.9mil",
+      "attr-y": "-3346.5mil"
+    },
+    "after": {
+      "Designator": "U2",
+      "Unique ID": "48f0ae2437312dae",
+      "attr-rotation": "0",
+      "attr-x": "1948.8mil",
+      "attr-y": "-3779.5mil"
+    }
+  },
+  {
+    "ref": "F1",
+    "desired": [
+      43.8,
+      99,
+      180,
+      "F"
+    ],
+    "before": {
+      "Designator": "F1",
+      "Unique ID": "09f31a4987c8a883",
+      "attr-rotation": "0",
+      "attr-x": "1692.9mil",
+      "attr-y": "-3858.3mil"
+    },
+    "after": {
+      "Designator": "F1",
+      "Unique ID": "09f31a4987c8a883",
+      "attr-rotation": "180",
+      "attr-x": "1724.4mil",
+      "attr-y": "-3897.6mil"
+    }
+  },
+  {
+    "ref": "D1",
+    "desired": [
+      46.5,
+      101.2,
+      0,
+      "F"
+    ],
+    "before": {
+      "Designator": "D1",
+      "Unique ID": "6eb2f7ba7a12821c",
+      "attr-rotation": "0",
+      "attr-x": "1692.9mil",
+      "attr-y": "-3779.5mil"
+    },
+    "after": {
+      "Designator": "D1",
+      "Unique ID": "6eb2f7ba7a12821c",
+      "attr-rotation": "0",
+      "attr-x": "1830.7mil",
+      "attr-y": "-3984.3mil"
+    }
+  },
+  {
+    "ref": "C1",
+    "desired": [
+      53.3,
+      93.5,
+      0,
+      "F"
+    ],
+    "before": {
+      "Designator": "C1",
+      "Unique ID": "b4693cfd16d534cd",
+      "attr-rotation": "90",
+      "attr-x": "1574.8mil",
+      "attr-y": "-3456.7mil"
+    },
+    "after": {
+      "Designator": "C1",
+      "Unique ID": "b4693cfd16d534cd",
+      "attr-rotation": "0",
+      "attr-x": "2098.4mil",
+      "attr-y": "-3681.1mil"
+    }
+  },
+  {
+    "ref": "C2",
+    "desired": [
+      45.5,
+      96.5,
+      180,
+      "F"
+    ],
+    "before": {
+      "Designator": "C2",
+      "Unique ID": "a2c5d49bc5dde298",
+      "attr-rotation": "0",
+      "attr-x": "1889.8mil",
+      "attr-y": "-3425.2mil"
+    },
+    "after": {
+      "Designator": "C2",
+      "Unique ID": "a2c5d49bc5dde298",
+      "attr-rotation": "180",
+      "attr-x": "1791.3mil",
+      "attr-y": "-3799.2mil"
+    }
+  },
+  {
+    "ref": "C3",
+    "desired": [
+      54.2,
+      96,
+      0,
+      "F"
+    ],
+    "before": {
+      "Designator": "C3",
+      "Unique ID": "cc82bf2c2e22e605",
+      "attr-rotation": "0",
+      "attr-x": "1889.8mil",
+      "attr-y": "-3208.7mil"
+    },
+    "after": {
+      "Designator": "C3",
+      "Unique ID": "cc82bf2c2e22e605",
+      "attr-rotation": "0",
+      "attr-x": "2133.8mil",
+      "attr-y": "-3779.5mil"
+    }
+  },
+  {
+    "ref": "R1",
+    "desired": [
+      52.4,
+      99,
+      270,
+      "F"
+    ],
+    "before": {
+      "Designator": "R1",
+      "Unique ID": "353b166cc2dee846",
+      "attr-rotation": "90",
+      "attr-x": "1653.5mil",
+      "attr-y": "-3503.9mil"
+    },
+    "after": {
+      "Designator": "R1",
+      "Unique ID": "353b166cc2dee846",
+      "attr-rotation": "270",
+      "attr-x": "2063mil",
+      "attr-y": "-3897.7mil"
+    }
+  },
+  {
+    "ref": "R2",
+    "desired": [
+      47.5,
+      91,
+      90,
+      "F"
+    ],
+    "before": {
+      "Designator": "R2",
+      "Unique ID": "6f63fc6711cfa315",
+      "attr-rotation": "90",
+      "attr-x": "1870.1mil",
+      "attr-y": "-3582.7mil"
+    },
+    "after": {
+      "Designator": "R2",
+      "Unique ID": "6f63fc6711cfa315",
+      "attr-rotation": "90",
+      "attr-x": "1870.1mil",
+      "attr-y": "-3582.7mil"
+    }
+  },
+  {
+    "ref": "R3",
+    "desired": [
+      50,
+      91,
+      90,
+      "F"
+    ],
+    "before": {
+      "Designator": "R3",
+      "Unique ID": "fe89d0632cfce75f",
+      "attr-rotation": "90",
+      "attr-x": "1456.7mil",
+      "attr-y": "-3326.8mil"
+    },
+    "after": {
+      "Designator": "R3",
+      "Unique ID": "fe89d0632cfce75f",
+      "attr-rotation": "90",
+      "attr-x": "1968.5mil",
+      "attr-y": "-3582.6mil"
+    }
+  },
+  {
+    "ref": "R4",
+    "desired": [
+      56.8,
+      93.3,
+      0,
+      "F"
+    ],
+    "before": {
+      "Designator": "R4",
+      "Unique ID": "fdc86a4b576d9e98",
+      "attr-rotation": "0",
+      "attr-x": "2066.9mil",
+      "attr-y": "-3346.5mil"
+    },
+    "after": {
+      "Designator": "R4",
+      "Unique ID": "fdc86a4b576d9e98",
+      "attr-rotation": "0",
+      "attr-x": "2236.2mil",
+      "attr-y": "-3673.2mil"
+    }
+  },
+  {
+    "ref": "R5",
+    "desired": [
+      48.7,
+      101,
+      270,
+      "F"
+    ],
+    "before": {
+      "Designator": "R5",
+      "Unique ID": "9cdd622c9eeecfe7",
+      "attr-rotation": "0",
+      "attr-x": "2066.9mil",
+      "attr-y": "-3464.6mil"
+    },
+    "after": {
+      "Designator": "R5",
+      "Unique ID": "9cdd622c9eeecfe7",
+      "attr-rotation": "270",
+      "attr-x": "1917.4mil",
+      "attr-y": "-3976.3mil"
+    }
+  },
+  {
+    "ref": "U3",
+    "desired": [
+      24,
+      96,
+      0,
+      "F"
+    ],
+    "before": {
+      "Designator": "U3",
+      "Unique ID": "66797bcd97f4f6c2",
+      "attr-rotation": "0",
+      "attr-x": "885.8mil",
+      "attr-y": "-3523.6mil"
+    },
+    "after": {
+      "Designator": "U3",
+      "Unique ID": "66797bcd97f4f6c2",
+      "attr-rotation": "0",
+      "attr-x": "944.9mil",
+      "attr-y": "-3779.5mil"
+    }
+  },
+  {
+    "ref": "C4",
+    "desired": [
+      21,
+      96,
+      180,
+      "F"
+    ],
+    "before": {
+      "Designator": "C4",
+      "Unique ID": "3a68d3ddabf48558",
+      "attr-rotation": "0",
+      "attr-x": "885.8mil",
+      "attr-y": "-3405.5mil"
+    },
+    "after": {
+      "Designator": "C4",
+      "Unique ID": "3a68d3ddabf48558",
+      "attr-rotation": "180",
+      "attr-x": "826.8mil",
+      "attr-y": "-3779.5mil"
+    }
+  },
+  {
+    "ref": "R6",
+    "desired": [
+      23.5,
+      99,
+      180,
+      "F"
+    ],
+    "before": {
+      "Designator": "R6",
+      "Unique ID": "e06ccd13940482ac",
+      "attr-rotation": "0",
+      "attr-x": "885.8mil",
+      "attr-y": "-3858.3mil"
+    },
+    "after": {
+      "Designator": "R6",
+      "Unique ID": "e06ccd13940482ac",
+      "attr-rotation": "180",
+      "attr-x": "925.2mil",
+      "attr-y": "-3897.6mil"
+    }
+  },
+  {
+    "ref": "R7",
+    "desired": [
+      26,
+      96,
+      270,
+      "F"
+    ],
+    "before": {
+      "Designator": "R7",
+      "Unique ID": "ba2c6d155e7fd301",
+      "attr-rotation": "90",
+      "attr-x": "728.3mil",
+      "attr-y": "-3523.6mil"
+    },
+    "after": {
+      "Designator": "R7",
+      "Unique ID": "ba2c6d155e7fd301",
+      "attr-rotation": "270",
+      "attr-x": "1023.7mil",
+      "attr-y": "-3779.5mil"
+    }
+  },
+  {
+    "ref": "U13",
+    "desired": [
+      28.3,
+      95.2,
+      0,
+      "F"
+    ],
+    "before": {
+      "Designator": "U13",
+      "Unique ID": "95e557ff5ab9d76b",
+      "attr-rotation": "0",
+      "attr-x": "1063mil",
+      "attr-y": "-3740.2mil"
+    },
+    "after": {
+      "Designator": "U13",
+      "Unique ID": "95e557ff5ab9d76b",
+      "attr-rotation": "0",
+      "attr-x": "1114.2mil",
+      "attr-y": "-3748mil"
+    }
+  },
+  {
+    "ref": "U4",
+    "desired": [
+      23,
+      94,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "U4",
+      "Unique ID": "bac468049775df37",
+      "attr-rotation": "180",
+      "attr-x": "551.2mil",
+      "attr-y": "-3523.6mil"
+    },
+    "after": {
+      "Designator": "U4",
+      "Unique ID": "bac468049775df37",
+      "attr-rotation": "180",
+      "attr-x": "905.5mil",
+      "attr-y": "-3700.8mil"
+    }
+  },
+  {
+    "ref": "C5",
+    "desired": [
+      19.3,
+      94.95,
+      0,
+      "B"
+    ],
+    "before": {
+      "Designator": "C5",
+      "Unique ID": "ddba3c46cf8b8e66",
+      "attr-rotation": "180",
+      "attr-x": "551.2mil",
+      "attr-y": "-3661.4mil"
+    },
+    "after": {
+      "Designator": "C5",
+      "Unique ID": "ddba3c46cf8b8e66",
+      "attr-rotation": "0",
+      "attr-x": "759.8mil",
+      "attr-y": "-3738.2mil"
+    }
+  },
+  {
+    "ref": "C6",
+    "desired": [
+      26.7,
+      94.95,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "C6",
+      "Unique ID": "ab4a8fe24fad9fe4",
+      "attr-rotation": "90",
+      "attr-x": "413.4mil",
+      "attr-y": "-3523.6mil"
+    },
+    "after": {
+      "Designator": "C6",
+      "Unique ID": "ab4a8fe24fad9fe4",
+      "attr-rotation": "180",
+      "attr-x": "1051.2mil",
+      "attr-y": "-3738.2mil"
+    }
+  },
+  {
+    "ref": "U5",
+    "desired": [
+      14,
+      82.5,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "U5",
+      "Unique ID": "adf583383e4d69d4",
+      "attr-rotation": "0",
+      "attr-x": "984.3mil",
+      "attr-y": "-1259.8mil"
+    },
+    "after": {
+      "Designator": "U5",
+      "Unique ID": "adf583383e4d69d4",
+      "attr-rotation": "180",
+      "attr-x": "551.1mil",
+      "attr-y": "-3248.1mil"
+    }
+  },
+  {
+    "ref": "U6",
+    "desired": [
+      14,
+      88,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "U6",
+      "Unique ID": "124c013cfc851acc",
+      "attr-rotation": "0",
+      "attr-x": "984.3mil",
+      "attr-y": "-1574.8mil"
+    },
+    "after": {
+      "Designator": "U6",
+      "Unique ID": "124c013cfc851acc",
+      "attr-rotation": "180",
+      "attr-x": "551.1mil",
+      "attr-y": "-3464.6mil"
+    }
+  },
+  {
+    "ref": "U7",
+    "desired": [
+      23,
+      82.5,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "U7",
+      "Unique ID": "4ec783ed4741de1f",
+      "attr-rotation": "0",
+      "attr-x": "1299.2mil",
+      "attr-y": "-1259.8mil"
+    },
+    "after": {
+      "Designator": "U7",
+      "Unique ID": "4ec783ed4741de1f",
+      "attr-rotation": "180",
+      "attr-x": "905.5mil",
+      "attr-y": "-3248.1mil"
+    }
+  },
+  {
+    "ref": "U8",
+    "desired": [
+      23,
+      88,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "U8",
+      "Unique ID": "484e3008dca2bfa8",
+      "attr-rotation": "0",
+      "attr-x": "1299.2mil",
+      "attr-y": "-1574.8mil"
+    },
+    "after": {
+      "Designator": "U8",
+      "Unique ID": "484e3008dca2bfa8",
+      "attr-rotation": "180",
+      "attr-x": "905.5mil",
+      "attr-y": "-3464.6mil"
+    }
+  },
+  {
+    "ref": "C7",
+    "desired": [
+      17.7,
+      83.45,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "C7",
+      "Unique ID": "48d2dd422533522c",
+      "attr-rotation": "0",
+      "attr-x": "984.3mil",
+      "attr-y": "-1141.7mil"
+    },
+    "after": {
+      "Designator": "C7",
+      "Unique ID": "48d2dd422533522c",
+      "attr-rotation": "180",
+      "attr-x": "696.8mil",
+      "attr-y": "-3285.5mil"
+    }
+  },
+  {
+    "ref": "C8",
+    "desired": [
+      17.7,
+      88.95,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "C8",
+      "Unique ID": "80f3708378e3d903",
+      "attr-rotation": "0",
+      "attr-x": "984.3mil",
+      "attr-y": "-1456.7mil"
+    },
+    "after": {
+      "Designator": "C8",
+      "Unique ID": "80f3708378e3d903",
+      "attr-rotation": "180",
+      "attr-x": "696.8mil",
+      "attr-y": "-3502mil"
+    }
+  },
+  {
+    "ref": "C9",
+    "desired": [
+      26.7,
+      83.45,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "C9",
+      "Unique ID": "7ddfd2f632a8b17d",
+      "attr-rotation": "0",
+      "attr-x": "1299.2mil",
+      "attr-y": "-1141.7mil"
+    },
+    "after": {
+      "Designator": "C9",
+      "Unique ID": "7ddfd2f632a8b17d",
+      "attr-rotation": "180",
+      "attr-x": "1051.2mil",
+      "attr-y": "-3285.5mil"
+    }
+  },
+  {
+    "ref": "C10",
+    "desired": [
+      26.7,
+      88.95,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "C10",
+      "Unique ID": "3e75135af30e0f04",
+      "attr-rotation": "0",
+      "attr-x": "1299.2mil",
+      "attr-y": "-1456.7mil"
+    },
+    "after": {
+      "Designator": "C10",
+      "Unique ID": "3e75135af30e0f04",
+      "attr-rotation": "180",
+      "attr-x": "1051.2mil",
+      "attr-y": "-3502mil"
+    }
+  },
+  {
+    "ref": "R8",
+    "desired": [
+      10.3,
+      88.5,
+      270,
+      "B"
+    ],
+    "before": {
+      "Designator": "R8",
+      "Unique ID": "86d447fa2a9c8586",
+      "attr-rotation": "90",
+      "attr-x": "846.5mil",
+      "attr-y": "-1338.6mil"
+    },
+    "after": {
+      "Designator": "R8",
+      "Unique ID": "86d447fa2a9c8586",
+      "attr-rotation": "270",
+      "attr-x": "405.5mil",
+      "attr-y": "-3484.2mil"
+    }
+  },
+  {
+    "ref": "R9",
+    "desired": [
+      19.4,
+      79.8,
+      0,
+      "B"
+    ],
+    "before": {
+      "Designator": "R9",
+      "Unique ID": "1e1ffada38203b9e",
+      "attr-rotation": "90",
+      "attr-x": "1437mil",
+      "attr-y": "-1259.8mil"
+    },
+    "after": {
+      "Designator": "R9",
+      "Unique ID": "1e1ffada38203b9e",
+      "attr-rotation": "0",
+      "attr-x": "763.8mil",
+      "attr-y": "-3141.8mil"
+    }
+  },
+  {
+    "ref": "R10",
+    "desired": [
+      26.7,
+      81.55,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "R10",
+      "Unique ID": "41bc0941336b1513",
+      "attr-rotation": "90",
+      "attr-x": "1437mil",
+      "attr-y": "-1574.8mil"
+    },
+    "after": {
+      "Designator": "R10",
+      "Unique ID": "41bc0941336b1513",
+      "attr-rotation": "180",
+      "attr-x": "1051.2mil",
+      "attr-y": "-3210.6mil"
+    }
+  },
+  {
+    "ref": "R11",
+    "desired": [
+      19.4,
+      85.5,
+      0,
+      "B"
+    ],
+    "before": {
+      "Designator": "R11",
+      "Unique ID": "763cf8d5648cb4fd",
+      "attr-rotation": "90",
+      "attr-x": "1437mil",
+      "attr-y": "-1732.3mil"
+    },
+    "after": {
+      "Designator": "R11",
+      "Unique ID": "763cf8d5648cb4fd",
+      "attr-rotation": "0",
+      "attr-x": "763.8mil",
+      "attr-y": "-3366.1mil"
+    }
+  },
+  {
+    "ref": "U10",
+    "desired": [
+      30.5,
+      85,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "U10",
+      "Unique ID": "c69de7c088414df5",
+      "attr-rotation": "180",
+      "attr-x": "1023.6mil",
+      "attr-y": "-2874mil"
+    },
+    "after": {
+      "Designator": "U10",
+      "Unique ID": "c69de7c088414df5",
+      "attr-rotation": "180",
+      "attr-x": "1200.8mil",
+      "attr-y": "-3346.5mil"
+    }
+  },
+  {
+    "ref": "C14",
+    "desired": [
+      26.7,
+      85.95,
+      0,
+      "B"
+    ],
+    "before": {
+      "Designator": "C14",
+      "Unique ID": "00361082df9d4549",
+      "attr-rotation": "180",
+      "attr-x": "905.5mil",
+      "attr-y": "-2755.9mil"
+    },
+    "after": {
+      "Designator": "C14",
+      "Unique ID": "00361082df9d4549",
+      "attr-rotation": "0",
+      "attr-x": "1051.2mil",
+      "attr-y": "-3383.9mil"
+    }
+  },
+  {
+    "ref": "C15",
+    "desired": [
+      30.1,
+      82.25,
+      0,
+      "B"
+    ],
+    "before": {
+      "Designator": "C15",
+      "Unique ID": "86bb77bda672094d",
+      "attr-rotation": "180",
+      "attr-x": "944.9mil",
+      "attr-y": "-3011.8mil"
+    },
+    "after": {
+      "Designator": "C15",
+      "Unique ID": "86bb77bda672094d",
+      "attr-rotation": "0",
+      "attr-x": "1185mil",
+      "attr-y": "-3238.2mil"
+    }
+  },
+  {
+    "ref": "R15",
+    "desired": [
+      31.4,
+      88,
+      0,
+      "B"
+    ],
+    "before": {
+      "Designator": "R15",
+      "Unique ID": "feece054417b9159",
+      "attr-rotation": "90",
+      "attr-x": "1161.4mil",
+      "attr-y": "-2913.4mil"
+    },
+    "after": {
+      "Designator": "R15",
+      "Unique ID": "feece054417b9159",
+      "attr-rotation": "0",
+      "attr-x": "1236.2mil",
+      "attr-y": "-3464.6mil"
+    }
+  },
+  {
+    "ref": "U11",
+    "desired": [
+      39,
+      85,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "U11",
+      "Unique ID": "2fd166bdb6936536",
+      "attr-rotation": "180",
+      "attr-x": "1417.3mil",
+      "attr-y": "-2834.6mil"
+    },
+    "after": {
+      "Designator": "U11",
+      "Unique ID": "2fd166bdb6936536",
+      "attr-rotation": "180",
+      "attr-x": "1535.5mil",
+      "attr-y": "-3346.5mil"
+    }
+  },
+  {
+    "ref": "L1",
+    "desired": [
+      42.9,
+      85,
+      270,
+      "B"
+    ],
+    "before": {
+      "Designator": "L1",
+      "Unique ID": "d450ceac7adb81c3",
+      "attr-rotation": "180",
+      "attr-x": "1594.5mil",
+      "attr-y": "-2834.6mil"
+    },
+    "after": {
+      "Designator": "L1",
+      "Unique ID": "d450ceac7adb81c3",
+      "attr-rotation": "270",
+      "attr-x": "1689mil",
+      "attr-y": "-3346.5mil"
+    }
+  },
+  {
+    "ref": "C16",
+    "desired": [
+      39.1,
+      88.7,
+      90,
+      "B"
+    ],
+    "before": {
+      "Designator": "C16",
+      "Unique ID": "c8e923f96b539988",
+      "attr-rotation": "180",
+      "attr-x": "1555.1mil",
+      "attr-y": "-2637.8mil"
+    },
+    "after": {
+      "Designator": "C16",
+      "Unique ID": "c8e923f96b539988",
+      "attr-rotation": "90",
+      "attr-x": "1539.4mil",
+      "attr-y": "-3492.1mil"
+    }
+  },
+  {
+    "ref": "C17",
+    "desired": [
+      39.1,
+      81.3,
+      270,
+      "B"
+    ],
+    "before": {
+      "Designator": "C17",
+      "Unique ID": "48700c84863a802e",
+      "attr-rotation": "180",
+      "attr-x": "1417.3mil",
+      "attr-y": "-3031.5mil"
+    },
+    "after": {
+      "Designator": "C17",
+      "Unique ID": "48700c84863a802e",
+      "attr-rotation": "270",
+      "attr-x": "1539.4mil",
+      "attr-y": "-3200.8mil"
+    }
+  },
+  {
+    "ref": "C18",
+    "desired": [
+      35.4,
+      81.6,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "C18",
+      "Unique ID": "d9d0285421fe3ef0",
+      "attr-rotation": "180",
+      "attr-x": "1417.3mil",
+      "attr-y": "-3169.3mil"
+    },
+    "after": {
+      "Designator": "C18",
+      "Unique ID": "d9d0285421fe3ef0",
+      "attr-rotation": "180",
+      "attr-x": "1393.7mil",
+      "attr-y": "-3212.6mil"
+    }
+  },
+  {
+    "ref": "C19",
+    "desired": [
+      35.4,
+      79.2,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "C19",
+      "Unique ID": "9b75bd895f0e39d2",
+      "attr-rotation": "90",
+      "attr-x": "1279.5mil",
+      "attr-y": "-2834.6mil"
+    },
+    "after": {
+      "Designator": "C19",
+      "Unique ID": "9b75bd895f0e39d2",
+      "attr-rotation": "180",
+      "attr-x": "1393.7mil",
+      "attr-y": "-3118.2mil"
+    }
+  },
+  {
+    "ref": "R16",
+    "desired": [
+      35.9,
+      84.1,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "R16",
+      "Unique ID": "3c543c7c58e1cc80",
+      "attr-rotation": "90",
+      "attr-x": "1279.5mil",
+      "attr-y": "-2972.4mil"
+    },
+    "after": {
+      "Designator": "R16",
+      "Unique ID": "3c543c7c58e1cc80",
+      "attr-rotation": "180",
+      "attr-x": "1413.4mil",
+      "attr-y": "-3311.1mil"
+    }
+  },
+  {
+    "ref": "R17",
+    "desired": [
+      35.9,
+      85.9,
+      0,
+      "B"
+    ],
+    "before": {
+      "Designator": "R17",
+      "Unique ID": "6346d187b4e0bc9c",
+      "attr-rotation": "180",
+      "attr-x": "1141.7mil",
+      "attr-y": "-2755.9mil"
+    },
+    "after": {
+      "Designator": "R17",
+      "Unique ID": "6346d187b4e0bc9c",
+      "attr-rotation": "0",
+      "attr-x": "1413.4mil",
+      "attr-y": "-3381.9mil"
+    }
+  },
+  {
+    "ref": "R18",
+    "desired": [
+      32.5,
+      81,
+      90,
+      "B"
+    ],
+    "before": {
+      "Designator": "R18",
+      "Unique ID": "5f673669f0d56d8f",
+      "attr-rotation": "180",
+      "attr-x": "1279.5mil",
+      "attr-y": "-2716.5mil"
+    },
+    "after": {
+      "Designator": "R18",
+      "Unique ID": "5f673669f0d56d8f",
+      "attr-rotation": "90",
+      "attr-x": "1279.5mil",
+      "attr-y": "-3189mil"
+    }
+  },
+  {
+    "ref": "C11",
+    "desired": [
+      6.3,
+      83.5,
+      180,
+      "F"
+    ],
+    "before": {
+      "Designator": "C11",
+      "Unique ID": "20764de07767b3a1",
+      "attr-rotation": "90",
+      "attr-x": "236.2mil",
+      "attr-y": "-3346.5mil"
+    },
+    "after": {
+      "Designator": "C11",
+      "Unique ID": "20764de07767b3a1",
+      "attr-rotation": "180",
+      "attr-x": "248.1mil",
+      "attr-y": "-3287.4mil"
+    }
+  },
+  {
+    "ref": "C12",
+    "desired": [
+      13.7,
+      84.2,
+      0,
+      "F"
+    ],
+    "before": {
+      "Designator": "C12",
+      "Unique ID": "26a39bcafcc8ce7c",
+      "attr-rotation": "0",
+      "attr-x": "354.3mil",
+      "attr-y": "-2992.1mil"
+    },
+    "after": {
+      "Designator": "C12",
+      "Unique ID": "26a39bcafcc8ce7c",
+      "attr-rotation": "0",
+      "attr-x": "539.4mil",
+      "attr-y": "-3315mil"
+    }
+  },
+  {
+    "ref": "C13",
+    "desired": [
+      6,
+      86,
+      180,
+      "F"
+    ],
+    "before": {
+      "Designator": "C13",
+      "Unique ID": "e7ba3aba9f9889c8",
+      "attr-rotation": "90",
+      "attr-x": "511.8mil",
+      "attr-y": "-3189mil"
+    },
+    "after": {
+      "Designator": "C13",
+      "Unique ID": "e7ba3aba9f9889c8",
+      "attr-rotation": "180",
+      "attr-x": "236.2mil",
+      "attr-y": "-3385.8mil"
+    }
+  },
+  {
+    "ref": "R12",
+    "desired": [
+      13.7,
+      88,
+      0,
+      "F"
+    ],
+    "before": {
+      "Designator": "R12",
+      "Unique ID": "15ac9218146e0f4b",
+      "attr-rotation": "90",
+      "attr-x": "629.9mil",
+      "attr-y": "-3326.8mil"
+    },
+    "after": {
+      "Designator": "R12",
+      "Unique ID": "15ac9218146e0f4b",
+      "attr-rotation": "0",
+      "attr-x": "539.4mil",
+      "attr-y": "-3464.5mil"
+    }
+  },
+  {
+    "ref": "R13",
+    "desired": [
+      13.7,
+      86,
+      0,
+      "F"
+    ],
+    "before": {
+      "Designator": "R13",
+      "Unique ID": "ff4077a9ca69db92",
+      "attr-rotation": "90",
+      "attr-x": "629.9mil",
+      "attr-y": "-3090.6mil"
+    },
+    "after": {
+      "Designator": "R13",
+      "Unique ID": "ff4077a9ca69db92",
+      "attr-rotation": "0",
+      "attr-x": "539.4mil",
+      "attr-y": "-3385.8mil"
+    }
+  },
+  {
+    "ref": "R14",
+    "desired": [
+      13.7,
+      82.3,
+      0,
+      "F"
+    ],
+    "before": {
+      "Designator": "R14",
+      "Unique ID": "8b54177fc4d64d35",
+      "attr-rotation": "90",
+      "attr-x": "629.9mil",
+      "attr-y": "-3208.7mil"
+    },
+    "after": {
+      "Designator": "R14",
+      "Unique ID": "8b54177fc4d64d35",
+      "attr-rotation": "0",
+      "attr-x": "539.4mil",
+      "attr-y": "-3240.1mil"
+    }
+  },
+  {
+    "ref": "J2",
+    "desired": [
+      7,
+      65.5,
+      270,
+      "B"
+    ],
+    "before": {
+      "Designator": "J2",
+      "Unique ID": "1fb9863844ab5169",
+      "attr-rotation": "0",
+      "attr-x": "433.1mil",
+      "attr-y": "-2578.7mil"
+    },
+    "after": {
+      "Designator": "J2",
+      "Unique ID": "1fb9863844ab5169",
+      "attr-rotation": "270",
+      "attr-x": "275.6mil",
+      "attr-y": "-2578.7mil"
+    }
+  },
+  {
+    "ref": "J3",
+    "desired": [
+      7,
+      76,
+      270,
+      "B"
+    ],
+    "before": {
+      "Designator": "J3",
+      "Unique ID": "bd3ee0abdb58119f",
+      "attr-rotation": "180",
+      "attr-x": "354.3mil",
+      "attr-y": "-2952.8mil"
+    },
+    "after": {
+      "Designator": "J3",
+      "Unique ID": "bd3ee0abdb58119f",
+      "attr-rotation": "270",
+      "attr-x": "275.6mil",
+      "attr-y": "-2992.1mil"
+    }
+  },
+  {
+    "ref": "U12",
+    "desired": [
+      15,
+      62.8,
+      90,
+      "B"
+    ],
+    "before": {
+      "Designator": "U12",
+      "Unique ID": "b6112465b0588c80",
+      "attr-rotation": "0",
+      "attr-x": "472.4mil",
+      "attr-y": "-2086.6mil"
+    },
+    "after": {
+      "Designator": "U12",
+      "Unique ID": "b6112465b0588c80",
+      "attr-rotation": "90",
+      "attr-x": "590.6mil",
+      "attr-y": "-2472.5mil"
+    }
+  },
+  {
+    "ref": "R19",
+    "desired": [
+      15,
+      66.5,
+      180,
+      "B"
+    ],
+    "before": {
+      "Designator": "R19",
+      "Unique ID": "a32210a39874d8f8",
+      "attr-rotation": "0",
+      "attr-x": "472.4mil",
+      "attr-y": "-2224.4mil"
+    },
+    "after": {
+      "Designator": "R19",
+      "Unique ID": "a32210a39874d8f8",
+      "attr-rotation": "180",
+      "attr-x": "590.6mil",
+      "attr-y": "-2618.1mil"
+    }
+  },
+  {
+    "ref": "C20",
+    "desired": [
+      18.5,
+      60.9,
+      90,
+      "B"
+    ],
+    "before": {
+      "Designator": "C20",
+      "Unique ID": "97d7532320e593d5",
+      "attr-rotation": "90",
+      "attr-x": "629.9mil",
+      "attr-y": "-2086.6mil"
+    },
+    "after": {
+      "Designator": "C20",
+      "Unique ID": "97d7532320e593d5",
+      "attr-rotation": "90",
+      "attr-x": "728.4mil",
+      "attr-y": "-2397.7mil"
+    }
+  },
+  {
+    "ref": "C21",
+    "desired": [
+      14.5,
+      58.5,
+      0,
+      "B"
+    ],
+    "before": {
+      "Designator": "C21",
+      "Unique ID": "0259cc883dd91c7a",
+      "attr-rotation": "90",
+      "attr-x": "334.6mil",
+      "attr-y": "-2086.6mil"
+    },
+    "after": {
+      "Designator": "C21",
+      "Unique ID": "0259cc883dd91c7a",
+      "attr-rotation": "0",
+      "attr-x": "570.9mil",
+      "attr-y": "-2303.2mil"
+    }
+  },
+  {
+    "ref": "R20",
+    "desired": [
+      18.5,
+      64.4,
+      270,
+      "B"
+    ],
+    "before": {
+      "Designator": "R20",
+      "Unique ID": "13e77c54ede4b306",
+      "attr-rotation": "0",
+      "attr-x": "472.4mil",
+      "attr-y": "-1929.1mil"
+    },
+    "after": {
+      "Designator": "R20",
+      "Unique ID": "13e77c54ede4b306",
+      "attr-rotation": "270",
+      "attr-x": "728.4mil",
+      "attr-y": "-2535.5mil"
+    }
+  },
+  {
+    "ref": "R25",
+    "desired": [
+      15,
+      68.8,
+      0,
+      "B"
+    ],
+    "before": {
+      "Designator": "R25",
+      "Unique ID": "6f4c4beafd605d3e",
+      "attr-rotation": "90",
+      "attr-x": "708.7mil",
+      "attr-y": "-2224.4mil"
+    },
+    "after": {
+      "Designator": "R25",
+      "Unique ID": "6f4c4beafd605d3e",
+      "attr-rotation": "0",
+      "attr-x": "590.5mil",
+      "attr-y": "-2708.7mil"
+    }
+  },
+  {
+    "ref": "R26",
+    "desired": [
+      18.2,
+      71,
+      90,
+      "B"
+    ],
+    "before": {
+      "Designator": "R26",
+      "Unique ID": "09b823a69019dbbf",
+      "attr-rotation": "90",
+      "attr-x": "708.7mil",
+      "attr-y": "-2362.2mil"
+    },
+    "after": {
+      "Designator": "R26",
+      "Unique ID": "09b823a69019dbbf",
+      "attr-rotation": "90",
+      "attr-x": "716.5mil",
+      "attr-y": "-2795.3mil"
+    }
+  },
+  {
+    "ref": "R332",
+    "desired": [
+      21,
+      91.3,
+      0,
+      "B"
+    ],
+    "before": {
+      "Designator": "R332",
+      "Unique ID": "100f06097adaa9be",
+      "attr-rotation": "0",
+      "attr-x": "866.1mil",
+      "attr-y": "-3543.3mil"
+    },
+    "after": {
+      "Designator": "R332",
+      "Unique ID": "100f06097adaa9be",
+      "attr-rotation": "0",
+      "attr-x": "826.8mil",
+      "attr-y": "-3594.5mil"
+    }
+  },
+  {
+    "ref": "C333",
+    "desired": [
+      27,
+      91.3,
+      0,
+      "B"
+    ],
+    "before": {
+      "Designator": "C333",
+      "Unique ID": "52911db041e21dba",
+      "attr-rotation": "0",
+      "attr-x": "1063mil",
+      "attr-y": "-3543.3mil"
+    },
+    "after": {
+      "Designator": "C333",
+      "Unique ID": "52911db041e21dba",
+      "attr-rotation": "0",
+      "attr-x": "1063mil",
+      "attr-y": "-3594.5mil"
+    }
+  }
+]

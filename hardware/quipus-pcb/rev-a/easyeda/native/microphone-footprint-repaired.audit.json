@@ -1,0 +1,1189 @@
+{
+  "status": "LOCAL_GEOMETRY_CHECKED_NATIVE_IMPORT_DRC_AND_GERBERS_REQUIRED",
+  "before_sha256": "9531670063536d9adbdc0dc0cd02f356bad16c3a70933dfd7fd4b2b2dfcb14f8",
+  "after_sha256": "a458118bb599912f6e257bc47d5282daffa7ec63361ea0199151303998baa8e4",
+  "source_footprint_sha256": "18289563cd29d2f77e11121af724e66f2e6c68e8e6bca0b31e12a27b63e864fc",
+  "record_count": 162,
+  "changed_record_count": 13,
+  "changes": [
+    {
+      "type": "PAD",
+      "id": "ie10",
+      "num": "1",
+      "fields": [
+        "topPasteExpansion",
+        "bottomPasteExpansion"
+      ],
+      "reasons": [
+        "Suppress automatic copper-size paste; preserve independent manufacturer apertures."
+      ],
+      "before": {
+        "topPasteExpansion": 0,
+        "bottomPasteExpansion": 0
+      },
+      "after": {
+        "topPasteExpansion": -1000,
+        "bottomPasteExpansion": -1000
+      }
+    },
+    {
+      "type": "PAD",
+      "id": "ie12",
+      "num": "2",
+      "fields": [
+        "topPasteExpansion",
+        "bottomPasteExpansion"
+      ],
+      "reasons": [
+        "Suppress automatic copper-size paste; preserve independent manufacturer apertures."
+      ],
+      "before": {
+        "topPasteExpansion": 0,
+        "bottomPasteExpansion": 0
+      },
+      "after": {
+        "topPasteExpansion": -1000,
+        "bottomPasteExpansion": -1000
+      }
+    },
+    {
+      "type": "PAD",
+      "id": "ie14",
+      "num": "3",
+      "fields": [
+        "topPasteExpansion",
+        "bottomPasteExpansion"
+      ],
+      "reasons": [
+        "Suppress automatic copper-size paste; preserve independent manufacturer apertures."
+      ],
+      "before": {
+        "topPasteExpansion": 0,
+        "bottomPasteExpansion": 0
+      },
+      "after": {
+        "topPasteExpansion": -1000,
+        "bottomPasteExpansion": -1000
+      }
+    },
+    {
+      "type": "PAD",
+      "id": "ie16",
+      "num": "4",
+      "fields": [
+        "topPasteExpansion",
+        "bottomPasteExpansion"
+      ],
+      "reasons": [
+        "Suppress automatic copper-size paste; preserve independent manufacturer apertures."
+      ],
+      "before": {
+        "topPasteExpansion": 0,
+        "bottomPasteExpansion": 0
+      },
+      "after": {
+        "topPasteExpansion": -1000,
+        "bottomPasteExpansion": -1000
+      }
+    },
+    {
+      "type": "PAD",
+      "id": "ie18",
+      "num": "5",
+      "fields": [
+        "centerX",
+        "defaultPad",
+        "topPasteExpansion",
+        "bottomPasteExpansion"
+      ],
+      "reasons": [
+        "Suppress automatic copper-size paste; preserve independent manufacturer apertures.",
+        "Normalize pin5 origin to NPTH centre and replace filled centreline disk with OD1.725/ID0.985 annulus."
+      ],
+      "before": {
+        "centerX": -26.6732,
+        "defaultPad": {
+          "padType": "POLYGON",
+          "path": [
+            0,
+            -1.2795,
+            "ARC",
+            -90,
+            26.6732,
+            -27.9528,
+            "ARC",
+            -90,
+            0,
+            -54.626,
+            "ARC",
+            -85.7706,
+            -26.6006,
+            -29.9199,
+            "ARC",
+            -90,
+            -26.6732,
+            -29.9213,
+            "ARC",
+            -90,
+            -28.6417,
+            -27.9528,
+            "ARC",
+            -90,
+            -26.6732,
+            -25.9842,
+            "ARC",
+            -90,
+            -26.6006,
+            -25.9856,
+            "ARC",
+            -85.7706,
+            0,
+            -1.2795
+          ]
+        },
+        "topPasteExpansion": 0,
+        "bottomPasteExpansion": 0
+      },
+      "after": {
+        "centerX": 0,
+        "defaultPad": {
+          "padType": "POLYGON",
+          "path": [
+            [
+              "CIRCLE",
+              0,
+              0,
+              33.956692913386,
+              0
+            ],
+            [
+              "CIRCLE",
+              0,
+              0,
+              19.389763779528,
+              1
+            ]
+          ]
+        },
+        "topPasteExpansion": -1000,
+        "bottomPasteExpansion": -1000
+      }
+    },
+    {
+      "type": "POLY",
+      "id": "ie19",
+      "num": null,
+      "fields": [
+        "width",
+        "path"
+      ],
+      "reasons": [
+        "Normalize existing concentric mask ring to exact OD1.825/ID0.885; same centre as NPTH."
+      ],
+      "before": {
+        "width": 18.5039,
+        "path": [
+          26.6732,
+          -27.9528,
+          "ARC",
+          -180,
+          -26.6732,
+          -27.9528,
+          "ARC",
+          -180,
+          26.6732,
+          -27.9528
+        ]
+      },
+      "after": {
+        "width": 18.503937007874,
+        "path": [
+          26.673228346457,
+          -27.9528,
+          "ARC",
+          -180,
+          -26.673228346457,
+          -27.9528,
+          "ARC",
+          -180,
+          26.673228346457,
+          -27.9528
+        ]
+      }
+    },
+    {
+      "type": "FILL",
+      "id": "ie11",
+      "num": null,
+      "fields": [
+        "width"
+      ],
+      "reasons": [
+        "Remove importer-added 0.2mil boundary stroke so stencil dimensions stay nominal."
+      ],
+      "before": {
+        "width": 0.2
+      },
+      "after": {
+        "width": 0
+      }
+    },
+    {
+      "type": "FILL",
+      "id": "ie13",
+      "num": null,
+      "fields": [
+        "width"
+      ],
+      "reasons": [
+        "Remove importer-added 0.2mil boundary stroke so stencil dimensions stay nominal."
+      ],
+      "before": {
+        "width": 0.2
+      },
+      "after": {
+        "width": 0
+      }
+    },
+    {
+      "type": "FILL",
+      "id": "ie15",
+      "num": null,
+      "fields": [
+        "width"
+      ],
+      "reasons": [
+        "Remove importer-added 0.2mil boundary stroke so stencil dimensions stay nominal."
+      ],
+      "before": {
+        "width": 0.2
+      },
+      "after": {
+        "width": 0
+      }
+    },
+    {
+      "type": "FILL",
+      "id": "ie17",
+      "num": null,
+      "fields": [
+        "width"
+      ],
+      "reasons": [
+        "Remove importer-added 0.2mil boundary stroke so stencil dimensions stay nominal."
+      ],
+      "before": {
+        "width": 0.2
+      },
+      "after": {
+        "width": 0
+      }
+    },
+    {
+      "type": "FILL",
+      "id": "ie20",
+      "num": null,
+      "fields": [
+        "width",
+        "path"
+      ],
+      "reasons": [
+        "Remove importer-added 0.2mil boundary stroke so stencil dimensions stay nominal.",
+        "Restore ground-paste centre/orientation, radii0.54/0.83 and original110/100/100 degree segmentation as exact arcs."
+      ],
+      "before": {
+        "width": 0.2,
+        "path": [
+          [
+            26.7676,
+            46.6956,
+            "L",
+            17.415,
+            40.1469,
+            16.9135,
+            40.8335,
+            16.3849,
+            41.4995,
+            15.8301,
+            42.1439,
+            15.25,
+            42.7655,
+            14.6455,
+            43.3635,
+            14.0176,
+            43.9368,
+            13.3672,
+            44.4845,
+            12.6955,
+            45.0058,
+            12.0035,
+            45.4998,
+            11.2922,
+            45.9657,
+            10.5629,
+            46.4029,
+            9.8167,
+            46.8105,
+            9.0548,
+            47.1879,
+            8.2784,
+            47.5346,
+            7.4888,
+            47.85,
+            6.6872,
+            48.1335,
+            5.8749,
+            48.3848,
+            5.0532,
+            48.6033,
+            4.2234,
+            48.7889,
+            3.3868,
+            48.9411,
+            2.5449,
+            49.0597,
+            1.6989,
+            49.1446,
+            0.8501,
+            49.1956,
+            0,
+            49.2126,
+            -0.8501,
+            49.1956,
+            -1.6988,
+            49.1446,
+            -2.5449,
+            49.0597,
+            -3.3868,
+            48.9411,
+            -4.2234,
+            48.7889,
+            -5.0532,
+            48.6033,
+            -5.8749,
+            48.3848,
+            -6.6872,
+            48.1335,
+            -7.4888,
+            47.85,
+            -8.2784,
+            47.5346,
+            -9.0548,
+            47.1879,
+            -9.8167,
+            46.8105,
+            -10.5629,
+            46.4029,
+            -11.2922,
+            45.9657,
+            -12.0034,
+            45.4998,
+            -12.6955,
+            45.0058,
+            -13.3672,
+            44.4845,
+            -14.0176,
+            43.9368,
+            -14.6455,
+            43.3635,
+            -15.25,
+            42.7655,
+            -15.8301,
+            42.1439,
+            -16.3849,
+            41.4995,
+            -16.9135,
+            40.8335,
+            -17.415,
+            40.1469,
+            -26.7676,
+            46.6956,
+            -25.9967,
+            47.751,
+            -25.1842,
+            48.7746,
+            -24.3315,
+            49.765,
+            -23.4398,
+            50.7205,
+            -22.5107,
+            51.6396,
+            -21.5455,
+            52.5208,
+            -20.5459,
+            53.3626,
+            -19.5134,
+            54.1639,
+            -18.4497,
+            54.9232,
+            -17.3565,
+            55.6394,
+            -16.2356,
+            56.3112,
+            -15.0886,
+            56.9378,
+            -13.9176,
+            57.5179,
+            -12.7242,
+            58.0508,
+            -11.5105,
+            58.5355,
+            -10.2784,
+            58.9713,
+            -9.0299,
+            59.3575,
+            -7.7669,
+            59.6935,
+            -6.4915,
+            59.9787,
+            -5.2057,
+            60.2126,
+            -3.9116,
+            60.395,
+            -2.6112,
+            60.5254,
+            -1.3066,
+            60.6038,
+            0,
+            60.6299,
+            1.3067,
+            60.6038,
+            2.6112,
+            60.5254,
+            3.9116,
+            60.395,
+            5.2057,
+            60.2126,
+            6.4915,
+            59.9787,
+            7.7669,
+            59.6935,
+            9.0299,
+            59.3575,
+            10.2784,
+            58.9713,
+            11.5105,
+            58.5355,
+            12.7242,
+            58.0508,
+            13.9176,
+            57.5179,
+            15.0886,
+            56.9378,
+            16.2356,
+            56.3112,
+            17.3566,
+            55.6394,
+            18.4498,
+            54.9232,
+            19.5135,
+            54.1639,
+            20.5459,
+            53.3626,
+            21.5456,
+            52.5208,
+            22.5107,
+            51.6396,
+            23.4399,
+            50.7205,
+            24.3315,
+            49.765,
+            25.1843,
+            48.7746,
+            25.9967,
+            47.751,
+            26.7676,
+            46.6956
+          ]
+        ]
+      },
+      "after": {
+        "width": 0,
+        "path": [
+          [
+            26.76756680157,
+            -46.695652053991,
+            "ARC",
+            -110,
+            -26.76756680157,
+            -46.695652053991,
+            "L",
+            -17.415043461262,
+            -40.146944709825,
+            "ARC",
+            110,
+            17.415043461262,
+            -40.146944709825,
+            "L",
+            26.76756680157,
+            -46.695652053991
+          ]
+        ]
+      }
+    },
+    {
+      "type": "FILL",
+      "id": "ie21",
+      "num": null,
+      "fields": [
+        "width",
+        "path"
+      ],
+      "reasons": [
+        "Remove importer-added 0.2mil boundary stroke so stencil dimensions stay nominal.",
+        "Restore ground-paste centre/orientation, radii0.54/0.83 and original110/100/100 degree segmentation as exact arcs."
+      ],
+      "before": {
+        "width": 0.2,
+        "path": [
+          [
+            -30.7065,
+            39.129,
+            "L",
+            -19.9777,
+            35.2241,
+            -20.2288,
+            34.493,
+            -20.4532,
+            33.7533,
+            -20.6506,
+            33.0059,
+            -20.8206,
+            32.2519,
+            -20.9631,
+            31.4921,
+            -21.078,
+            30.7277,
+            -21.1649,
+            29.9596,
+            -21.2239,
+            29.1889,
+            -21.2548,
+            28.4165,
+            -21.2576,
+            27.6436,
+            -21.2323,
+            26.871,
+            -21.1789,
+            26.0998,
+            -21.0976,
+            25.3312,
+            -20.9883,
+            24.5659,
+            -20.8513,
+            23.8052,
+            -20.6868,
+            23.0499,
+            -20.4949,
+            22.3011,
+            -20.2759,
+            21.5598,
+            -20.0301,
+            20.8269,
+            -19.7578,
+            20.1035,
+            -19.4594,
+            19.3904,
+            -19.1352,
+            18.6887,
+            -18.7858,
+            17.9992,
+            -18.4116,
+            17.3228,
+            -18.013,
+            16.6605,
+            -17.5905,
+            16.0132,
+            -17.1449,
+            15.3816,
+            -16.6766,
+            14.7667,
+            -16.1862,
+            14.1691,
+            -15.6744,
+            13.5898,
+            -15.1419,
+            13.0295,
+            -14.5894,
+            12.4889,
+            -14.0176,
+            11.9688,
+            -13.4273,
+            11.4697,
+            -12.8192,
+            10.9925,
+            -12.1941,
+            10.5377,
+            -11.553,
+            10.1059,
+            -10.8966,
+            9.6977,
+            -10.2257,
+            9.3137,
+            -9.5414,
+            8.9543,
+            -8.8444,
+            8.62,
+            -8.1358,
+            8.3112,
+            -7.4164,
+            8.0284,
+            -6.6872,
+            7.772,
+            -5.9491,
+            7.5423,
+            -5.2032,
+            7.3395,
+            -4.4504,
+            7.1639,
+            -3.6917,
+            7.0159,
+            -5.6743,
+            -4.228,
+            -6.8404,
+            -4.0004,
+            -7.9975,
+            -3.7306,
+            -9.144,
+            -3.4189,
+            -10.2784,
+            -3.0658,
+            -11.3993,
+            -2.6716,
+            -12.505,
+            -2.237,
+            -13.5942,
+            -1.7625,
+            -14.6655,
+            -1.2486,
+            -15.7173,
+            -0.6962,
+            -16.7484,
+            -0.1059,
+            -17.7574,
+            0.5215,
+            -18.7428,
+            1.1852,
+            -19.7035,
+            1.8842,
+            -20.6382,
+            2.6178,
+            -21.5455,
+            3.3848,
+            -22.4244,
+            4.1843,
+            -23.2737,
+            5.0152,
+            -24.0921,
+            5.8764,
+            -24.8787,
+            6.7668,
+            -25.6325,
+            7.6852,
+            -26.3523,
+            8.6304,
+            -27.0373,
+            9.6012,
+            -27.6866,
+            10.5962,
+            -28.2993,
+            11.6142,
+            -28.8745,
+            12.6537,
+            -29.4116,
+            13.7135,
+            -29.9098,
+            14.7921,
+            -30.3684,
+            15.8882,
+            -30.7869,
+            17.0001,
+            -31.1648,
+            18.1265,
+            -31.5014,
+            19.266,
+            -31.7963,
+            20.4169,
+            -32.0493,
+            21.5778,
+            -32.2598,
+            22.7471,
+            -32.4278,
+            23.9232,
+            -32.5528,
+            25.1048,
+            -32.6348,
+            26.29,
+            -32.6737,
+            27.4775,
+            -32.6694,
+            28.6656,
+            -32.6219,
+            29.8528,
+            -32.5312,
+            31.0374,
+            -32.3976,
+            32.218,
+            -32.2211,
+            33.3929,
+            -32.0021,
+            34.5607,
+            -31.7407,
+            35.7197,
+            -31.4374,
+            36.8684,
+            -31.0925,
+            38.0053,
+            -30.7065,
+            39.129
+          ]
+        ]
+      },
+      "after": {
+        "width": 0,
+        "path": [
+          [
+            -30.706491151666,
+            -39.129048777965,
+            "ARC",
+            -100,
+            -5.674330215101,
+            4.227925787407,
+            "L",
+            -3.691732911029,
+            -7.015942258796,
+            "ARC",
+            100,
+            -19.977717134818,
+            -35.224094385664,
+            "L",
+            -30.706491151666,
+            -39.129048777965
+          ]
+        ]
+      }
+    },
+    {
+      "type": "FILL",
+      "id": "ie22",
+      "num": null,
+      "fields": [
+        "width",
+        "path"
+      ],
+      "reasons": [
+        "Remove importer-added 0.2mil boundary stroke so stencil dimensions stay nominal.",
+        "Restore ground-paste centre/orientation, radii0.54/0.83 and original110/100/100 degree segmentation as exact arcs."
+      ],
+      "before": {
+        "width": 0.2,
+        "path": [
+          [
+            5.6743,
+            -4.228,
+            "L",
+            3.6917,
+            7.0159,
+            4.4504,
+            7.1639,
+            5.2032,
+            7.3395,
+            5.9491,
+            7.5423,
+            6.6872,
+            7.772,
+            7.4164,
+            8.0284,
+            8.1358,
+            8.3112,
+            8.8444,
+            8.62,
+            9.5414,
+            8.9543,
+            10.2257,
+            9.3137,
+            10.8966,
+            9.6977,
+            11.553,
+            10.1059,
+            12.1942,
+            10.5377,
+            12.8192,
+            10.9925,
+            13.4273,
+            11.4697,
+            14.0176,
+            11.9688,
+            14.5894,
+            12.4889,
+            15.1419,
+            13.0295,
+            15.6744,
+            13.5898,
+            16.1862,
+            14.1691,
+            16.6766,
+            14.7667,
+            17.1449,
+            15.3816,
+            17.5906,
+            16.0132,
+            18.013,
+            16.6605,
+            18.4116,
+            17.3228,
+            18.7858,
+            17.9992,
+            19.1353,
+            18.6887,
+            19.4594,
+            19.3904,
+            19.7578,
+            20.1035,
+            20.0301,
+            20.8269,
+            20.2759,
+            21.5598,
+            20.4949,
+            22.3011,
+            20.6868,
+            23.0499,
+            20.8513,
+            23.8052,
+            20.9883,
+            24.5659,
+            21.0976,
+            25.3312,
+            21.1789,
+            26.0998,
+            21.2323,
+            26.871,
+            21.2576,
+            27.6436,
+            21.2548,
+            28.4165,
+            21.2239,
+            29.1889,
+            21.1649,
+            29.9596,
+            21.078,
+            30.7277,
+            20.9632,
+            31.4921,
+            20.8206,
+            32.2519,
+            20.6506,
+            33.0059,
+            20.4532,
+            33.7533,
+            20.2289,
+            34.493,
+            19.9777,
+            35.2241,
+            30.7065,
+            39.129,
+            31.0925,
+            38.0053,
+            31.4374,
+            36.8684,
+            31.7407,
+            35.7197,
+            32.0021,
+            34.5607,
+            32.2211,
+            33.3929,
+            32.3976,
+            32.218,
+            32.5313,
+            31.0374,
+            32.6219,
+            29.8528,
+            32.6694,
+            28.6656,
+            32.6737,
+            27.4775,
+            32.6348,
+            26.29,
+            32.5528,
+            25.1048,
+            32.4278,
+            23.9232,
+            32.2599,
+            22.7471,
+            32.0493,
+            21.5778,
+            31.7964,
+            20.4169,
+            31.5014,
+            19.266,
+            31.1648,
+            18.1265,
+            30.787,
+            17.0001,
+            30.3684,
+            15.8882,
+            29.9098,
+            14.7921,
+            29.4116,
+            13.7135,
+            28.8745,
+            12.6537,
+            28.2993,
+            11.6142,
+            27.6866,
+            10.5962,
+            27.0373,
+            9.6012,
+            26.3523,
+            8.6304,
+            25.6325,
+            7.6852,
+            24.8788,
+            6.7668,
+            24.0921,
+            5.8764,
+            23.2737,
+            5.0152,
+            22.4244,
+            4.1843,
+            21.5456,
+            3.3848,
+            20.6382,
+            2.6178,
+            19.7035,
+            1.8842,
+            18.7429,
+            1.1852,
+            17.7574,
+            0.5215,
+            16.7484,
+            -0.1059,
+            15.7174,
+            -0.6962,
+            14.6655,
+            -1.2486,
+            13.5942,
+            -1.7625,
+            12.505,
+            -2.237,
+            11.3993,
+            -2.6716,
+            10.2784,
+            -3.0658,
+            9.144,
+            -3.4189,
+            7.9975,
+            -3.7306,
+            6.8404,
+            -4.0004,
+            5.6743,
+            -4.228
+          ]
+        ]
+      },
+      "after": {
+        "width": 0,
+        "path": [
+          [
+            5.674330215101,
+            4.227925787407,
+            "ARC",
+            -100,
+            30.706491151666,
+            -39.129048777965,
+            "L",
+            19.977717134818,
+            -35.224094385664,
+            "ARC",
+            100,
+            3.691732911029,
+            -7.015942258796,
+            "L",
+            5.674330215101,
+            4.227925787407
+          ]
+        ]
+      }
+    }
+  ],
+  "sources": {
+    "manufacturer": "https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d128s-datasheet-en.pdf",
+    "pad_relative_polygon": "https://prodocs.easyeda.com/en/format/pcb/pad_via/",
+    "current_pad_object": "https://raw.githubusercontent.com/easyeda/easyeda-pro-format-skill/main/primitives/PCB/pad.md",
+    "complex_polygon_winding": "https://raw.githubusercontent.com/easyeda/easyeda-pro-file-format-v2/main/docs/en/pcb/polygon-system/complex-polygon.md",
+    "circle_encoding": "https://raw.githubusercontent.com/easyeda/easyeda-pro-file-format-v2/main/docs/en/pcb/polygon-system/single-polygon.md",
+    "paste_suppression": "https://prodocs.easyeda.com/en/faq/pcb/"
+  },
+  "units": "mil; displayed dimensions in mm",
+  "pad_1_4_checks": [
+    {
+      "num": "1",
+      "id": "ie10",
+      "expected_center_mm": [
+        0.838,
+        1.364
+      ],
+      "actual_center_mm": [
+        0.83799934,
+        1.36400032
+      ],
+      "error_mm": 7.334848327493142e-07,
+      "copper_size_mm": [
+        0.75,
+        0.54
+      ],
+      "unchanged": true
+    },
+    {
+      "num": "2",
+      "id": "ie12",
+      "expected_center_mm": [
+        0.838,
+        0.542
+      ],
+      "actual_center_mm": [
+        0.83799934,
+        0.5420004399999999
+      ],
+      "error_mm": 7.932212805232735e-07,
+      "copper_size_mm": [
+        0.75,
+        0.54
+      ],
+      "unchanged": true
+    },
+    {
+      "num": "3",
+      "id": "ie14",
+      "expected_center_mm": [
+        -0.838,
+        1.364
+      ],
+      "actual_center_mm": [
+        -0.83799934,
+        1.36400032
+      ],
+      "error_mm": 7.334848327493142e-07,
+      "copper_size_mm": [
+        0.75,
+        0.54
+      ],
+      "unchanged": true
+    },
+    {
+      "num": "4",
+      "id": "ie16",
+      "expected_center_mm": [
+        -0.838,
+        0.542
+      ],
+      "actual_center_mm": [
+        -0.83799934,
+        0.5420004399999999
+      ],
+      "error_mm": 7.932212805232735e-07,
+      "copper_size_mm": [
+        0.75,
+        0.54
+      ],
+      "unchanged": true
+    }
+  ],
+  "pad5": {
+    "native_id": "ie18",
+    "electrical_pin": "5 GND",
+    "old_origin_mm": [
+      -0.67749928,
+      -0.7100011199999999
+    ],
+    "new_origin_mm": [
+      0.0,
+      -0.7100011199999999
+    ],
+    "origin_change_reason": "Native polygon has relative coordinates and no compulsory filled anchor; normalize origin to acoustic centre.",
+    "copper_od_mm": 1.725,
+    "copper_id_mm": 0.985,
+    "empty_center": true,
+    "outer_winding": "clockwise",
+    "inner_winding": "counterclockwise"
+  },
+  "npth": {
+    "native_id": "ie23",
+    "entire_record_unchanged": true,
+    "center_mm": [
+      0.0,
+      -0.7100011199999999
+    ],
+    "diameter_mm": 0.6000013399999999,
+    "plated": false
+  },
+  "mask": {
+    "center_mm": [
+      0.0,
+      -0.7100011199999999
+    ],
+    "outer_diameter_mm": 1.825,
+    "inner_diameter_mm": 0.885,
+    "signal_expansion_mm": 0.05
+  },
+  "paste": {
+    "signal_aperture_count": 4,
+    "signal_aperture_size_mm": [
+      0.63,
+      0.47
+    ],
+    "ground_sector_count": 3,
+    "original_ground_sector_centers_mm": {
+      "ie20": [
+        0,
+        0.71
+      ],
+      "ie21": [
+        0,
+        0.71
+      ],
+      "ie22": [
+        0,
+        0.71
+      ]
+    },
+    "corrected_center_mm": [
+      0.0,
+      -0.7100011199999999
+    ],
+    "inner_radius_mm": 0.54,
+    "outer_radius_mm": 0.83,
+    "sector_spans_deg": [
+      110,
+      100,
+      100
+    ],
+    "gaps_deg": [
+      15,
+      20,
+      15
+    ],
+    "minimum_gap_at_inner_radius_mm": 0.1409682875976557,
+    "automatic_paste_suppressed": true,
+    "boundary_stroke_mm": 0
+  },
+  "checks": {
+    "pin_nums_nets_layers_ids_tickets_unchanged": true,
+    "signal_copper_pad_positions_shapes_unchanged": true,
+    "npth_record_unchanged": true,
+    "copper_to_npth_nominal_clearance_mm": 0.1925,
+    "copper_to_npth_actual_clearance_mm": 0.19249933000000002,
+    "no_added_or_removed_records": true
+  },
+  "native_validation": {
+    "import": "pending",
+    "visual_center_alignment": "pending",
+    "drc": "pending",
+    "paste_and_mask_gerber": "pending"
+  },
+  "notes": [
+    "Parent applies this document to the native library and refreshes both U20/U21 instances.",
+    "Do not release fabrication until native copper/hole DRC and stencil/NPTH Gerber inspection pass.",
+    "All blank nets are intentionally preserved because this is a library footprint, not a PCB instance."
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "baseURL": "http://127.0.0.1:3007",
+  "createdAt": "2026-10-06T11:16:02.495Z",
+  "checks": [
+    {
+      "name": "Public sample renders before sign-in",
+      "status": "pass",
+      "result": {
+        "rows": 3
+      }
+    },
+    {
+      "name": "Initial heading reveal scrambles then settles without resizing",
+      "status": "pass",
+      "result": {
+        "frames": 19,
+        "heights": [
+          59.359375
+        ],
+        "sample": [
+          {
+            "time": 238.09999990463257,
+            "text": "Keep every conversation moving.DK1T GEE8W 81H660IHHNAQ N6UYKU.",
+            "height": 59.359375
+          },
+          {
+            "time": 245.29999995231628,
+            "text": "Keep every conversation moving.DK1T GEE8W 81H660IHHNAQ N6UYKU.",
+            "height": 59.359375
+          },
+          {
+            "time": 264.09999990463257,
+            "text": "Keep every conversation moving.DK1T GEE8W 81H660IHHNAQ N6UYKU.",
+            "height": 59.359375
+          }
+        ]
+      }
+    },
+    {
+      "name": "Desktop header stays in one grid row",
+      "status": "pass",
+      "result": {
+        "display": "grid",
+        "height": 95,
+        "padding": "22px 44px",
+        "width": 1360
+      }
+    },
+    {
+      "name": "Desktop home has no document overflow",
+      "status": "pass",
+      "result": {
+        "viewport": 1440,
+        "document": 1440,
+        "body": 1440
+      }
+    },
+    {
+      "name": "History is compact and background persists across tabs",
+      "status": "pass",
+      "result": {
+        "rows": 3,
+        "rowHeight": 64
+      }
+    },
+    {
+      "name": "Search persists through tabs and conversation details",
+      "status": "pass",
+      "result": {
+        "retainedQuery": "Mr",
+        "retainedDate": "2026-10-06"
+      }
+    },
+    {
+      "name": "Motion pause stops decorations and persists across routes",
+      "status": "pass",
+      "result": {
+        "pausedState": "paused"
+      }
+    },
+    {
+      "name": "Optional dark theme remains readable and avoids overflow",
+      "status": "pass"
+    },
+    {
+      "name": "Login desktop retains supplied logo and sample access",
+      "status": "pass",
+      "result": {
+        "viewport": 1440,
+        "document": 1440,
+        "body": 1440
+      }
+    },
+    {
+      "name": "Login inherits dark theme through client navigation with readable logo and text",
+      "status": "pass",
+      "result": {
+        "theme": "dark",
+        "text": "rgb(245, 243, 237)",
+        "background": "rgb(11, 22, 37)",
+        "logoBacking": "rgb(245, 243, 237)"
+      }
+    },
+    {
+      "name": "Mobile 390px home and navigation avoid overflow",
+      "status": "pass"
+    },
+    {
+      "name": "Mobile 390px login avoids overflow",
+      "status": "pass",
+      "result": {
+        "viewport": 390,
+        "document": 390,
+        "body": 390
+      }
+    },
+    {
+      "name": "Mobile 320px home and navigation avoid overflow",
+      "status": "pass"
+    },
+    {
+      "name": "Mobile 320px login avoids overflow",
+      "status": "pass",
+      "result": {
+        "viewport": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    {
+      "name": "Reduced-motion preference shows static decorations and immediate headings",
+      "status": "pass",
+      "result": {
+        "animationName": "none"
+      }
+    },
+    {
+      "name": "No application runtime exceptions",
+      "status": "pass"
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "screenshots": [
+    "home-heading-reveal.png",
+    "home-desktop.png",
+    "calendar-desktop.png",
+    "conversation-desktop.png",
+    "devices-desktop.png",
+    "home-dark-desktop.png",
+    "login-desktop.png",
+    "login-dark-desktop.png",
+    "home-mobile-390.png",
+    "history-mobile-390.png",
+    "login-mobile-390.png",
+    "home-mobile-320.png",
+    "history-mobile-320.png",
+    "login-mobile-320.png",
+    "home-reduced-motion.png"
+  ]
+}

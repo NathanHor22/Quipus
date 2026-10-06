@@ -1,0 +1,2381 @@
+{
+  "schema_version": 1,
+  "revision": "A1 footprint review 2026-10-01",
+  "status": "Engineering review; not fabrication release",
+  "units": "mm",
+  "part_count": 24,
+  "footprint_format": "Custom footprints KiCad20221018; upstream KiCad20260206 needs importer normalization",
+  "components": [
+    {
+      "ref": "U20",
+      "value": "IM69D128SV01XTMA1",
+      "footprint_file": ".tools/quipus-footprints/audio/Infineon_IM69D128SV01_PG-TLGA-5-2_2.65x3.50mm_NPTH0.60.kicad_mod",
+      "library_name": "Quipus_Audio:Infineon_IM69D128SV01_PG-TLGA-5-2_2.65x3.50mm_NPTH0.60",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5"
+      },
+      "sha256": "18289563cd29d2f77e11121af724e66f2e6c68e8e6bca0b31e12a27b63e864fc",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.838,
+            1.364
+          ],
+          "size_mm": [
+            0.75,
+            0.54
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.838,
+            1.364
+          ],
+          "size_mm": [
+            0.63,
+            0.47
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.838,
+            0.542
+          ],
+          "size_mm": [
+            0.75,
+            0.54
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.838,
+            0.542
+          ],
+          "size_mm": [
+            0.63,
+            0.47
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.838,
+            1.364
+          ],
+          "size_mm": [
+            0.75,
+            0.54
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.838,
+            1.364
+          ],
+          "size_mm": [
+            0.63,
+            0.47
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.838,
+            0.542
+          ],
+          "size_mm": [
+            0.75,
+            0.54
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.838,
+            0.542
+          ],
+          "size_mm": [
+            0.63,
+            0.47
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "custom",
+          "at_mm": [
+            0.6775,
+            -0.71
+          ],
+          "size_mm": [
+            0.1,
+            0.1
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu"
+          ],
+          "custom_primitives": [
+            [
+              "gr_circle",
+              [
+                "center",
+                "-0.6775",
+                "0"
+              ],
+              [
+                "end",
+                "0",
+                "0"
+              ],
+              [
+                "width",
+                "0.37"
+              ],
+              [
+                "fill",
+                "no"
+              ]
+            ]
+          ]
+        },
+        {
+          "number": "",
+          "type": "np_thru_hole",
+          "shape": "circle",
+          "at_mm": [
+            0.0,
+            -0.71
+          ],
+          "size_mm": [
+            0.6,
+            0.6
+          ],
+          "drill_mm": [
+            0.6
+          ],
+          "layers": [
+            "*.Cu",
+            "*.Mask"
+          ]
+        }
+      ],
+      "sources": [
+        "https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d128s-datasheet-en.pdf"
+      ],
+      "issues": [
+        "EasyEDA conversion must preserve custom annular pad5, separate F.Mask annulus, F.Paste arcs and 0.60 mm NPTH. Inspect imported copper/mask/paste; do not flatten to a solid disk.",
+        "Figure13 stencil radii0.54/0.83 and top110deg sector are retained. Two100deg lower sectors give minimum0.141mm open gaps. Assembler must approve the final stencil aperture segmentation/registration.",
+        "Acoustic hole edge to ground copper is 0.1925 mm. Confirm fab NPTH-to-copper capability and preserve port opening on all inner layers/case.",
+        "Orient these PCB-top-view pad numbers before flipping to PCB rear. Pin1 is bottom left in footprint, mirrored from manufacturer's bottom-view diagram."
+      ],
+      "populate": true,
+      "package_mm": [
+        2.65,
+        3.5,
+        0.98
+      ],
+      "acoustic_port": {
+        "at_mm": [
+          0,
+          -0.71
+        ],
+        "npth_mm": 0.6,
+        "ground_land_outer_mm": 1.725,
+        "ground_land_inner_mm": 0.985,
+        "mask_outer_mm": 1.825,
+        "mask_inner_mm": 0.885
+      }
+    },
+    {
+      "ref": "U21",
+      "value": "IM69D128SV01XTMA1",
+      "footprint_file": ".tools/quipus-footprints/audio/Infineon_IM69D128SV01_PG-TLGA-5-2_2.65x3.50mm_NPTH0.60.kicad_mod",
+      "library_name": "Quipus_Audio:Infineon_IM69D128SV01_PG-TLGA-5-2_2.65x3.50mm_NPTH0.60",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5"
+      },
+      "sha256": "18289563cd29d2f77e11121af724e66f2e6c68e8e6bca0b31e12a27b63e864fc",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.838,
+            1.364
+          ],
+          "size_mm": [
+            0.75,
+            0.54
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.838,
+            1.364
+          ],
+          "size_mm": [
+            0.63,
+            0.47
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.838,
+            0.542
+          ],
+          "size_mm": [
+            0.75,
+            0.54
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.838,
+            0.542
+          ],
+          "size_mm": [
+            0.63,
+            0.47
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.838,
+            1.364
+          ],
+          "size_mm": [
+            0.75,
+            0.54
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.838,
+            1.364
+          ],
+          "size_mm": [
+            0.63,
+            0.47
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.838,
+            0.542
+          ],
+          "size_mm": [
+            0.75,
+            0.54
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.838,
+            0.542
+          ],
+          "size_mm": [
+            0.63,
+            0.47
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "custom",
+          "at_mm": [
+            0.6775,
+            -0.71
+          ],
+          "size_mm": [
+            0.1,
+            0.1
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu"
+          ],
+          "custom_primitives": [
+            [
+              "gr_circle",
+              [
+                "center",
+                "-0.6775",
+                "0"
+              ],
+              [
+                "end",
+                "0",
+                "0"
+              ],
+              [
+                "width",
+                "0.37"
+              ],
+              [
+                "fill",
+                "no"
+              ]
+            ]
+          ]
+        },
+        {
+          "number": "",
+          "type": "np_thru_hole",
+          "shape": "circle",
+          "at_mm": [
+            0.0,
+            -0.71
+          ],
+          "size_mm": [
+            0.6,
+            0.6
+          ],
+          "drill_mm": [
+            0.6
+          ],
+          "layers": [
+            "*.Cu",
+            "*.Mask"
+          ]
+        }
+      ],
+      "sources": [
+        "https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d128s-datasheet-en.pdf"
+      ],
+      "issues": [
+        "EasyEDA conversion must preserve custom annular pad5, separate F.Mask annulus, F.Paste arcs and 0.60 mm NPTH. Inspect imported copper/mask/paste; do not flatten to a solid disk.",
+        "Figure13 stencil radii0.54/0.83 and top110deg sector are retained. Two100deg lower sectors give minimum0.141mm open gaps. Assembler must approve the final stencil aperture segmentation/registration.",
+        "Acoustic hole edge to ground copper is 0.1925 mm. Confirm fab NPTH-to-copper capability and preserve port opening on all inner layers/case.",
+        "Orient these PCB-top-view pad numbers before flipping to PCB rear. Pin1 is bottom left in footprint, mirrored from manufacturer's bottom-view diagram."
+      ],
+      "populate": true,
+      "package_mm": [
+        2.65,
+        3.5,
+        0.98
+      ],
+      "acoustic_port": {
+        "at_mm": [
+          0,
+          -0.71
+        ],
+        "npth_mm": 0.6,
+        "ground_land_outer_mm": 1.725,
+        "ground_land_inner_mm": 0.985,
+        "mask_outer_mm": 1.825,
+        "mask_inner_mm": 0.885
+      }
+    },
+    {
+      "ref": "R201",
+      "value": "100 ohm 1%",
+      "footprint_file": ".tools/quipus-footprints/audio/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic 0603 land selected. Exact resistor MPN and manufacturer 1% rating need final BOM selection."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "R202",
+      "value": "100 ohm 1%",
+      "footprint_file": ".tools/quipus-footprints/audio/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic 0603 land selected. Exact resistor MPN and manufacturer 1% rating need final BOM selection."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "R203",
+      "value": "33 ohm 1%",
+      "footprint_file": ".tools/quipus-footprints/audio/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic 0603 land selected. Exact resistor MPN and manufacturer 1% rating need final BOM selection."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "R204",
+      "value": "0 ohm",
+      "footprint_file": ".tools/quipus-footprints/audio/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic 0603 land selected. Exact resistor MPN and manufacturer 1% rating need final BOM selection."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "R205",
+      "value": "33 ohm 1%",
+      "footprint_file": ".tools/quipus-footprints/audio/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic 0603 land selected. Exact resistor MPN and manufacturer 1% rating need final BOM selection."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "R206",
+      "value": "100k 1%",
+      "footprint_file": ".tools/quipus-footprints/audio/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic 0603 land selected. Exact resistor MPN and manufacturer 1% rating need final BOM selection."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "C200",
+      "value": "1uF X7R 10V",
+      "footprint_file": ".tools/quipus-footprints/audio/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic metric MLCC land selected. Exact capacitor MPN, effective capacitance under DC bias, voltage/temperature rating and supplier assembly availability need BOM completion."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "C201",
+      "value": "100nF X7R 10V",
+      "footprint_file": ".tools/quipus-footprints/audio/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic metric MLCC land selected. Exact capacitor MPN, effective capacitance under DC bias, voltage/temperature rating and supplier assembly availability need BOM completion."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "C202",
+      "value": "1uF X7R 10V",
+      "footprint_file": ".tools/quipus-footprints/audio/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic metric MLCC land selected. Exact capacitor MPN, effective capacitance under DC bias, voltage/temperature rating and supplier assembly availability need BOM completion."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "C203",
+      "value": "100nF X7R 10V",
+      "footprint_file": ".tools/quipus-footprints/audio/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic metric MLCC land selected. Exact capacitor MPN, effective capacitance under DC bias, voltage/temperature rating and supplier assembly availability need BOM completion."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "C204",
+      "value": "4.7uF X7R 10V",
+      "footprint_file": ".tools/quipus-footprints/audio/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic metric MLCC land selected. Exact capacitor MPN, effective capacitance under DC bias, voltage/temperature rating and supplier assembly availability need BOM completion."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "J4",
+      "value": "SM04B-SRSS-TB",
+      "footprint_file": ".tools/quipus-footprints/audio/JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal.kicad_mod",
+      "library_name": "Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4"
+      },
+      "sha256": "fcf75d7a8c7a92e3748de7972eac2adc2bf2ea1adc2d10942df5f1be542d1320",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -1.5,
+            -2.0
+          ],
+          "size_mm": [
+            0.6,
+            1.55
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.5,
+            -2.0
+          ],
+          "size_mm": [
+            0.6,
+            1.55
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.5,
+            -2.0
+          ],
+          "size_mm": [
+            0.6,
+            1.55
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            1.5,
+            -2.0
+          ],
+          "size_mm": [
+            0.6,
+            1.55
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "MP",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -2.8,
+            1.875
+          ],
+          "size_mm": [
+            1.2,
+            1.8
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "MP",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            2.8,
+            1.875
+          ],
+          "size_mm": [
+            1.2,
+            1.8
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Connector_JST.pretty/JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal.kicad_mod",
+        "https://www.jst-mfg.com/product/pdf/eng/eSH.pdf"
+      ],
+      "issues": [
+        "MP pads are mechanical hold-downs with no schematic net; keep unconnected unless manufacturer confirms an electrical role. Verify cable pin1 view; Quipus wiring is not a standard audio pinout."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "U22",
+      "value": "MAX98357AETE+",
+      "footprint_file": ".tools/quipus-footprints/audio/MAX98357AETE_T1633-4_3x3mm_P0.5_EP1.23_90-0031C.kicad_mod",
+      "library_name": "Quipus_Audio:MAX98357AETE_T1633-4_3x3mm_P0.5_EP1.23_90-0031C",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
+        "7": "7",
+        "8": "8",
+        "9": "9",
+        "10": "10",
+        "11": "11",
+        "12": "12",
+        "13": "13",
+        "14": "14",
+        "15": "15",
+        "16": "16",
+        "17": "17"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
+        "7": "7",
+        "8": "8",
+        "9": "9",
+        "10": "10",
+        "11": "11",
+        "12": "12",
+        "13": "13",
+        "14": "14",
+        "15": "15",
+        "16": "16",
+        "17": "17"
+      },
+      "sha256": "f860f24f755f7ee0b7bfa3175db15730a530d4e0ee7d5e9ca807b7425f7bc47f",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -1.425,
+            -0.75
+          ],
+          "size_mm": [
+            0.8,
+            0.3
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Paste",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.75,
+            1.425
+          ],
+          "size_mm": [
+            0.3,
+            0.8
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Paste",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "9",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            1.425,
+            0.75
+          ],
+          "size_mm": [
+            0.8,
+            0.3
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Paste",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "13",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.75,
+            -1.425
+          ],
+          "size_mm": [
+            0.3,
+            0.8
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Paste",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -1.425,
+            -0.25
+          ],
+          "size_mm": [
+            0.8,
+            0.3
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Paste",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "6",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.25,
+            1.425
+          ],
+          "size_mm": [
+            0.3,
+            0.8
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Paste",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "10",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            1.425,
+            0.25
+          ],
+          "size_mm": [
+            0.8,
+            0.3
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Paste",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "14",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.25,
+            -1.425
+          ],
+          "size_mm": [
+            0.3,
+            0.8
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Paste",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -1.425,
+            0.25
+          ],
+          "size_mm": [
+            0.8,
+            0.3
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Paste",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "7",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.25,
+            1.425
+          ],
+          "size_mm": [
+            0.3,
+            0.8
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Paste",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "11",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            1.425,
+            -0.25
+          ],
+          "size_mm": [
+            0.8,
+            0.3
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Paste",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "15",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.25,
+            -1.425
+          ],
+          "size_mm": [
+            0.3,
+            0.8
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Paste",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -1.425,
+            0.75
+          ],
+          "size_mm": [
+            0.8,
+            0.3
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Paste",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "8",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.75,
+            1.425
+          ],
+          "size_mm": [
+            0.3,
+            0.8
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Paste",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "12",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            1.425,
+            -0.75
+          ],
+          "size_mm": [
+            0.8,
+            0.3
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Paste",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "16",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.75,
+            -1.425
+          ],
+          "size_mm": [
+            0.3,
+            0.8
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Paste",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "17",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.0,
+            0.0
+          ],
+          "size_mm": [
+            1.23,
+            1.23
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.3075,
+            -0.3075
+          ],
+          "size_mm": [
+            0.49,
+            0.49
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            -0.3075,
+            0.3075
+          ],
+          "size_mm": [
+            0.49,
+            0.49
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.3075,
+            -0.3075
+          ],
+          "size_mm": [
+            0.49,
+            0.49
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "",
+          "type": "smd",
+          "shape": "rect",
+          "at_mm": [
+            0.3075,
+            0.3075
+          ],
+          "size_mm": [
+            0.49,
+            0.49
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://www.analog.com/media/en/technical-documentation/data-sheets/max98357a-max98357b.pdf",
+        "https://mds.analog.com/api/public/content/90-0031.pdf"
+      ],
+      "issues": [
+        "EP17 must connect to solid GND with board-layout thermal vias; perimeter pads and EP land follow 90-0031C, paste split follows 4-window 63.5% coverage choice needing assembler review."
+      ],
+      "populate": true,
+      "package_mm": [
+        3,
+        3,
+        0.8
+      ],
+      "copper_land_source": "90-0031C: pad 0.80 x 0.30, pitch0.50, opposite-row centre span2.85, exposed land1.23 x1.23"
+    },
+    {
+      "ref": "R207",
+      "value": "33 ohm 1%",
+      "footprint_file": ".tools/quipus-footprints/audio/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic 0603 land selected. Exact resistor MPN and manufacturer 1% rating need final BOM selection."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "R208",
+      "value": "100k 1%",
+      "footprint_file": ".tools/quipus-footprints/audio/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic 0603 land selected. Exact resistor MPN and manufacturer 1% rating need final BOM selection."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "R209",
+      "value": "100k 1%",
+      "footprint_file": ".tools/quipus-footprints/audio/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic 0603 land selected. Exact resistor MPN and manufacturer 1% rating need final BOM selection."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "R210",
+      "value": "33 ohm 1%",
+      "footprint_file": ".tools/quipus-footprints/audio/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic 0603 land selected. Exact resistor MPN and manufacturer 1% rating need final BOM selection."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "R211",
+      "value": "33 ohm 1%",
+      "footprint_file": ".tools/quipus-footprints/audio/R_0603_1608Metric.kicad_mod",
+      "library_name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.825,
+            0.0
+          ],
+          "size_mm": [
+            0.8,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic 0603 land selected. Exact resistor MPN and manufacturer 1% rating need final BOM selection."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "C205",
+      "value": "100nF X7R 10V",
+      "footprint_file": ".tools/quipus-footprints/audio/C_0603_1608Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.775,
+            0.0
+          ],
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic metric MLCC land selected. Exact capacitor MPN, effective capacitance under DC bias, voltage/temperature rating and supplier assembly availability need BOM completion."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "C206",
+      "value": "10uF X7R 10V",
+      "footprint_file": ".tools/quipus-footprints/audio/C_0805_2012Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_0805_2012Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "62775a51fe74ba7f1b572de327bdbd3fc92582721b2abcaa47787865590d89cb",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.95,
+            0.0
+          ],
+          "size_mm": [
+            1.0,
+            1.45
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.95,
+            0.0
+          ],
+          "size_mm": [
+            1.0,
+            1.45
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic metric MLCC land selected. Exact capacitor MPN, effective capacitance under DC bias, voltage/temperature rating and supplier assembly availability need BOM completion."
+      ],
+      "populate": true
+    },
+    {
+      "ref": "C207",
+      "value": "47uF X7R 10V DNP",
+      "footprint_file": ".tools/quipus-footprints/audio/C_1210_3225Metric.kicad_mod",
+      "library_name": "Capacitor_SMD:C_1210_3225Metric",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "e1dae516e079b70c4736d001fb81bfb4ef5f9c2a37c8175223a44f83a04ff75f",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -1.475,
+            0.0
+          ],
+          "size_mm": [
+            1.15,
+            2.7
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            1.475,
+            0.0
+          ],
+          "size_mm": [
+            1.15,
+            2.7
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Capacitor_SMD.pretty/C_1210_3225Metric.kicad_mod"
+      ],
+      "issues": [
+        "Generic metric MLCC land selected. Exact capacitor MPN, effective capacitance under DC bias, voltage/temperature rating and supplier assembly availability need BOM completion."
+      ],
+      "populate": false
+    },
+    {
+      "ref": "J5",
+      "value": "SM02B-SRSS-TB",
+      "footprint_file": ".tools/quipus-footprints/audio/JST_SH_SM02B-SRSS-TB_1x02-1MP_P1.00mm_Horizontal.kicad_mod",
+      "library_name": "Connector_JST:JST_SH_SM02B-SRSS-TB_1x02-1MP_P1.00mm_Horizontal",
+      "pad_mapping": {
+        "1": "1",
+        "2": "2"
+      },
+      "padmap": {
+        "1": "1",
+        "2": "2"
+      },
+      "sha256": "9990af7ee96e3d1c8a5c4d4f522e102048830449531e45bf5789d4c640bf2553",
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -0.5,
+            -2.0
+          ],
+          "size_mm": [
+            0.6,
+            1.55
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            0.5,
+            -2.0
+          ],
+          "size_mm": [
+            0.6,
+            1.55
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "MP",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            -1.8,
+            1.875
+          ],
+          "size_mm": [
+            1.2,
+            1.8
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        },
+        {
+          "number": "MP",
+          "type": "smd",
+          "shape": "roundrect",
+          "at_mm": [
+            1.8,
+            1.875
+          ],
+          "size_mm": [
+            1.2,
+            1.8
+          ],
+          "drill_mm": [],
+          "layers": [
+            "F.Cu",
+            "F.Mask",
+            "F.Paste"
+          ]
+        }
+      ],
+      "sources": [
+        "https://gitlab.com/kicad/libraries/kicad-footprints/-/raw/master/Connector_JST.pretty/JST_SH_SM02B-SRSS-TB_1x02-1MP_P1.00mm_Horizontal.kicad_mod",
+        "https://www.jst-mfg.com/product/pdf/eng/eSH.pdf"
+      ],
+      "issues": [
+        "MP pads are mechanical hold-downs with no schematic net; keep unconnected unless manufacturer confirms an electrical role. Verify cable pin1 view; Quipus wiring is not a standard audio pinout."
+      ],
+      "populate": true
+    }
+  ]
+}

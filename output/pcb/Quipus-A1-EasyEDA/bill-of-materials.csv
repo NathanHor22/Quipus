@@ -1,0 +1,145 @@
+﻿Reference,Part/value,Package,Notes,Manufacturer reference
+J1,GCT USB4105-GF-A,"GCT USB4105 PCB-top-mount USB2 receptacle, 0.95 mm shell stakes","Sixteen mating contacts map to twelve solder tails: A1/B12, A4/B9, B4/A9, B1/A12 share pads. Four shield stakes connect to ground. Pad names below explicitly combine shared contacts; verify the imported CAD footprint uses the same mapping. No external CC Rd resistors.",https://gct.co/files/drawings/usb4105.pdf
+F1,Littelfuse 0467002.NRHF 2 A,0603 fuse,"Candidate fast-acting input fuse; verify current and temperature derating, inrush, and fault coordination on the PCB. The charger, not this fuse, controls USB current entitlement.",https://www.littelfuse.com/assetdocs/fuse-467-datasheet?assetguid=4a59f034-1cca-460e-a5ba-e1e66247c76d
+U2,BQ24074RGTR,VQFN16 RGT0016 + exposed pad,Standard 4.2 V Li-ion chemistry. Temperature sensing must match the actual cell. ITERM intentionally unconnected for default termination.,https://www.ti.com/lit/ds/symlink/bq24074.pdf
+R1,1.24k 1%,0603,,
+R2,2.00k 1%,0603,,
+R3,68.0k 1%,0603,,
+R4,100k,0603,,
+R5,100k,0603,,
+C1,4.7uF 16V X7R,0805,,
+C2,10uF 10V X7R,0805,,
+C3,22uF 10V X7R,0805,,
+J2,JST S2B-PH-SM4-TB(LF)(SN) battery,JST PH 2mm 2-position right angle SMT,"Board-defined pin 1 is positive. Verify pack polarity physically. Protected 1S 2000 mAh pack, standard 4.2 V charge, at least 2 A discharge capability. Swap with device off and USB unplugged.",https://www.jst-mfg.com/product/pdf/eng/ePH.pdf
+J3,3-pin keyed NTC connector - JST SH family candidate,1mm SH 3pin exact drawing pending,Three positions prevent swapping with the two-position speaker connector. A 10 kOhm 103AT-2 thermistor must be thermally attached to the cell. Do not populate a fixed bypass resistor.,https://www.ti.com/lit/ds/symlink/bq24074.pdf
+U3,TUSB320LAIRWBR,X2QFN12 RWB 1.6x1.6mm,Sink only; ADDR floating selects GPIO mode. OUT1 high means default current; low means 1.5 A or 3 A advertised. No external CC pull-down resistors.,https://www.ti.com/lit/ds/symlink/tusb320lai.pdf
+R6,887k 1%,0603,,
+R7,10k,0603,,
+C4,100nF 10V,0603,,
+U4,TLV75533PDBVR,SOT23-5 DBV,"Always-on control LDO, nominal 3.3 V on USB. At low battery it follows SYS_RAW minus dropout. Device off does not mean zero battery current.",https://www.ti.com/lit/ds/symlink/tlv755p.pdf
+C5,1uF 10V X7R,0603,,
+C6,1uF 10V X7R,0603,,
+U5,SN74LVC1G04DBVR,SOT23-5 DBV,Y=!OUT1,https://www.ti.com/document-viewer/SN74LVC1G04/datasheet/GUID-047EF317-EC05-483E-B17F-7CDF4F4C03DB
+U6,SN74LVC1G08DBVR,SOT23-5 DBV,Y=USB_ENUM_500 AND OUT1,https://www.ti.com/lit/ds/symlink/sn74lvc1g08.pdf
+U7,SN74LVC1G32DBVR,SOT23-5 DBV,EN1=SUSPEND OR (ENUM500 AND OUT1),https://www.ti.com/lit/ds/symlink/sn74lvc1g32.pdf
+U8,SN74LVC1G32DBVR,SOT23-5 DBV,EN2=SUSPEND OR NOT OUT1,https://www.ti.com/lit/ds/symlink/sn74lvc1g32.pdf
+R8,100k,0603,,
+R9,100k,0603,,
+R10,100k,0603,,
+R11,100k,0603,,
+C7,100nF 10V,0603,,
+C8,100nF 10V,0603,,
+C9,100nF 10V,0603,,
+C10,100nF 10V,0603,,
+U9,LTC2951ITS8-1#TRPBF,TSOT23-8 TS8,Use the -1 variant with active-high enable. Pull KILL up to switched 3V3 so startup does not depend on firmware responding within 512 ms.,https://www.analog.com/media/en/technical-documentation/data-sheets/295112fb.pdf
+SW1,POWER momentary normally-open,physical switch footprint pending,On press: at least 128 ms. Off request: nominal 674 ms hold. Forced off approximately 6.54 s after the shutdown interrupt.,
+C11,100nF 10V,0603,,
+C12,100nF 10V,0603,Nominal total off-button debounce approximately 674 ms.,
+C13,1uF 10V lowleakage X7R,0805,Nominal 6.54 s shutdown grace period after interrupt; verify capacitance tolerance and timing on the bench.,
+R12,100k,0603,,
+R13,10k,0603,,
+R14,100k,0603,,
+U10,TPS22918DBVR,SOT23-6 DBV,Rated 2 A main load switch. Target normal system peak below 1.5 A at this node. Both amplifier and buck-boost supply are downstream. Do not inject external power into SYS_SW.,https://www.ti.com/lit/ds/symlink/tps22918.pdf
+C14,1uF 10V X7R,0603,,
+C15,10nF 25V X7R,0603,Slew approximately 5.53 ms/V; rise approximately 24 ms at 4.4 V. Verify loaded startup.,
+R15,100ohm,0603,Limits output discharge current. QOD must not connect to an independently powered rail.,
+U11,TPS63802DLAR,VSON/HotRod DLA10 1.4x2.3mm,MODE low selects power saving. The board cannot draw 2 A from 3V3 plus speaker power simultaneously through a 2 A battery connector.,https://www.ti.com/lit/ds/symlink/tps63802.pdf
+L1,0.47uH Coilcraft XFL4015-471ME,Coilcraft XFL4015,Datasheet candidate: 5.4 A saturation current and 7.6 mOhm DCR. Verify exact supplier land pattern and available revision.,
+R16,511k 1%,0603,,
+R17,91.0k 1%,0603,,
+R18,100k,0603,,
+C16,10uF 10V X7R,0805,,
+C17,22uF 10V X7R,0805,,
+C18,22uF 10V X7R,0805,,
+C19,100nF 10V,0603,,
+U12,BQ27441DRZR-G1A,VSON12 DRZ0012A 2.5x4 mm + exposed pad,I2C address 0x55. This gauge does not replace cell protection. All charger and external battery loads connect downstream of R19. VDD must not supply other circuits.,https://www.ti.com/lit/ds/symlink/bq27441-g1.pdf
+R19,0.010ohm 1% lowTCR 0.25W,0805 sense resistor,Kelvin sense from both resistor pads. At 2 A: 20 mV drop and 40 mW dissipation.,
+R20,10k,0603,Defined for cold battery replacement; not automatic hot-swap insertion detection.,
+R21,10k,0603,,
+R22,10k,0603,,
+R23,1M,0603,,
+R24,1M,0603,,
+R25,10k,0603,,
+R26,1M,0603,Prevents a floating input with main power off. Local test net unless an MCU GPIO is assigned.,
+C20,1uF 10V X7R,0603,,
+C21,470nF 6.3V X7R,0603,,
+U13,TPD2EUSB30DRTR,DRT 3-pin,"CC1/CC2 protection, close to USB connector. Verify transient clamping with layout.",https://www.ti.com/lit/ds/symlink/tpd2eusb30.pdf
+D1,TPD1E10B06DYAR,DYA SOD-523,VBUS ESD clamp. Does not provide sustained overvoltage protection. Verify chosen package and protection coordination.,https://www.ti.com/lit/ds/symlink/tpd1e10b06.pdf
+U1,ESP32-S3-WROOM-1-N16R8,"Espressif WROOM-1 18.0x25.5mm module, 40 castellated pads plus GND pad 41","Exact N16R8 ordering code only. GPIO35-37 are reserved for internal Octal PSRAM; leave disconnected. GPIO3/45/46 left unused. GPIO42 is spare; GPIO7 is Start/Enter and RTC-domain wake input. GPIO43 is UART0 TX at ROM boot: LCD_CS_N external pull-up prevents interpreting ROM transitions. Native USB is the service interface; LCD uses SPI2_HOST, not the flash SPI1 bus. GPIO47/48 are valid 3.3V for N16R8; do not silently substitute N16R16VA.",https://documentation.espressif.com/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf
+U30,RV-3028-C7-TA-QC,Micro Crystal C7 3.2x1.5x0.8mm,"I2C address 0x52. Factory-program EEPROM backup BSM=11 (LSM), TCE=0 and disable CLKOUT. Backup switchover is disabled on new parts; unconfigured part does not preserve time after main rail off. Backup uses protected BAT_P; no time guarantee if LiPo removed or protection trips. I2C pull-ups reside on switched 3V3 power sheet.",https://www.microcrystal.com/fileadmin/Media/Products/RTC/App.Manual/RV-3028-C7_App-Manual.pdf
+U31,PCA9536DR,"TI D SOIC-8 4.9x3.91mm, 1.27mm pitch","I2C address 0x41. Stop/Back, Up and Down only; Start/Enter connects directly to RTC GPIO7. P0 is unused and held high by the expander internal weak pull-up; configure as input and mask out its reading. Configure 0x03=0x0F explicitly; input register 0x00; active-low switches. Poll approximately 10ms while UI is active, 20ms debounce; stop polling in deep sleep and use direct Start button to wake. Powered off with ESP. Hardware power/BOOT/RESET bypass expander.",https://www.ti.com/lit/ds/symlink/pca9536.pdf
+U34,TS3USB221ARSER,TI RSE UQFN-10 2.0x1.5mm,Power-off-protected USB data switch. S=0/OE_N=0 selects port1 only while powered. Main-off VCC=0 has specified Ioff <=2uA per I/O (not zero). D+/D- remain isolated from unpowered ESP when USB charging remains active. Fit unused-port 49.9ohm terminations per manufacturer recommendation. Validate full-speed eye/edge waveform after adding switch plus series damping.,https://www.ti.com/lit/ds/symlink/ts3usb221a.pdf
+U35,TPD2EUSB30DRTR,TI DRT SOT-3 1.0x0.6mm,"USB ESD array placed immediately beside USB-C connector, before isolation switch. No supply pin and no diode injection into switched 3V3 rail. Power sheet owns VBUS and CC protection. Ground return short to ground plane.",https://www.ti.com/lit/ds/symlink/tpd2eusb30.pdf
+J6,DM3AT-SF-PEJM5,Hirose DM3AT push-push microSD top mount,"Native 1-bit SDMMC. DAT1/2/3 have 10k pull-ups even though not routed to ESP. Hirose drawing names separate detect contacts A/B, not 9/10; CAD footprint must map those named pads explicitly. Symbol SH represents all shell solder stakes; do not short detect-A to shell through a generic footprint. Detect closes A-B with card inserted. Enclosure must allow ejection travel.",https://www.hirose.com/product/download/?distributor=chip1&lang=en&num=DM3AT-SF-PEJM5&type=2d
+J7,B8B-PH-K-S(LF)(SN),JST PH 8-position 2.0mm vertical through-hole,"Custom Quipus connector numbering matches Waveshare SKU15867 MODULE J2 PH2.0, not its reversed J1 header. Vendor schematic J2:1BL,2RST,3DC,4CS,5SCK,6DIN,7GND,8VCC. Match signals by continuity, do not assume supplied cable colors/orientation. External module 45x31mm includes ST7789 240x240 and NPN backlight driver; no direct LED-current drive from GPIO.",https://files.waveshare.com/upload/0/0c/1.3inch_LCD_Module_Schematic.pdf
+R300,10k,"0603 metric1608, 1%, 0.1W",Power-up RC pull-up; short EN trace.,engineering selection; validate during prototype
+C300,1uF,"0603 metric1608 X7R (except marked C0G), 10V minimum",10ms nominal RC; verify regulator startup and brownout recovery.,engineering selection; validate during prototype
+C301,10uF,"0603 metric1608 X7R (except marked C0G), 10V minimum",ESP module local bulk; effective capacitance under DC bias matters.,engineering selection; validate during prototype
+C302,100nF,"0603 metric1608 X7R (except marked C0G), 10V minimum",ESP module pin2 local bypass.,engineering selection; validate during prototype
+R301,10k,"0603 metric1608, 1%, 0.1W",External boot strap pull-up. No capacitor on BOOT_N.,engineering selection; validate during prototype
+R302,22ohm,"0603 metric1608, 1%, 0.1W",Near module; initial damping value. Tune from waveform.,engineering selection; validate during prototype
+R303,22ohm,"0603 metric1608, 1%, 0.1W",Near module; match R302.,engineering selection; validate during prototype
+C303,DNP / C0G tuning footprint,"0603 metric1608 X7R (except marked C0G), 10V minimum",Leave unpopulated; no guessed capacitance.,engineering selection; validate during prototype
+C304,DNP / C0G tuning footprint,"0603 metric1608 X7R (except marked C0G), 10V minimum",Leave unpopulated; no guessed capacitance.,engineering selection; validate during prototype
+R304,10k,"0603 metric1608, 1%, 0.1W",Holds display unselected during ROM serial TX on GPIO43.,engineering selection; validate during prototype
+R305,10k,"0603 metric1608, 1%, 0.1W",Deasserted default; firmware drives low reset pulse before initialization.,engineering selection; validate during prototype
+R306,33ohm,"0603 metric1608, 1%, 0.1W",Source damping; initialize SPI2 at conservative clock for cable.,engineering selection; validate during prototype
+R307,33ohm,"0603 metric1608, 1%, 0.1W",Source damping.,engineering selection; validate during prototype
+C305,10uF,"0603 metric1608 X7R (except marked C0G), 10V minimum",At J7 display connector.,engineering selection; validate during prototype
+C306,100nF,"0603 metric1608 X7R (except marked C0G), 10V minimum",At J7.,engineering selection; validate during prototype
+R310,10k,"0603 metric1608, 1%, 0.1W","SD external pull-up, including unused data contacts.",engineering selection; validate during prototype
+R311,10k,"0603 metric1608, 1%, 0.1W","SD external pull-up, including unused data contacts.",engineering selection; validate during prototype
+R312,10k,"0603 metric1608, 1%, 0.1W","SD external pull-up, including unused data contacts.",engineering selection; validate during prototype
+R313,10k,"0603 metric1608, 1%, 0.1W","SD external pull-up, including unused data contacts.",engineering selection; validate during prototype
+R314,10k,"0603 metric1608, 1%, 0.1W","SD external pull-up, including unused data contacts.",engineering selection; validate during prototype
+R315,22ohm,"0603 metric1608, 1%, 0.1W","At ESP source; SDMMC initialize400kHz, validate20MHz1bit before40MHz.",engineering selection; validate during prototype
+R316,100k,"0603 metric1608, 1%, 0.1W",Card detector only; card inserted closes switch to GND.,engineering selection; validate during prototype
+C310,10uF,"0603 metric1608 X7R (except marked C0G), 10V minimum",At SD socket power contacts.,engineering selection; validate during prototype
+C311,100nF,"0603 metric1608 X7R (except marked C0G), 10V minimum",At SD socket.,engineering selection; validate during prototype
+C312,10nF,"0603 metric1608 X7R (except marked C0G), 10V minimum",1ms nominal CD RC; debounce and unmount in firmware.,engineering selection; validate during prototype
+R320,330ohm,"0603 metric1608, 1%, 0.1W",Protect RTC backup supply; NOT raw unprotected cell; RTC trickle disabled.,engineering selection; validate during prototype
+R321,10k,"0603 metric1608, 1%, 0.1W",Never float EVI. External-event feature disabled.,engineering selection; validate during prototype
+C320,100nF,"0603 metric1608 X7R (except marked C0G), 10V minimum",At RV3028 VDD.,engineering selection; validate during prototype
+C321,100nF,"0603 metric1608 X7R (except marked C0G), 10V minimum",At RV3028 backup pin.,engineering selection; validate during prototype
+C330,100nF,"0603 metric1608 X7R (except marked C0G), 10V minimum",At PCA9536 VCC.,engineering selection; validate during prototype
+R330,47k,"0603 metric1608, 1%, 0.1W",External pull-up for direct GPIO7 Start/Enter wake input; remains defined during deep sleep.,engineering selection; validate during prototype
+C331,10nF,"0603 metric1608 X7R (except marked C0G), 10V minimum",Noise filter; software debounce remains required.,engineering selection; validate during prototype
+R331,47k,"0603 metric1608, 1%, 0.1W",External pull-up supplements expander weak pull-up.,engineering selection; validate during prototype
+C332,10nF,"0603 metric1608 X7R (except marked C0G), 10V minimum",Noise filter; software debounce remains required.,engineering selection; validate during prototype
+R332,47k,"0603 metric1608, 1%, 0.1W",External pull-up supplements expander weak pull-up.,engineering selection; validate during prototype
+C333,10nF,"0603 metric1608 X7R (except marked C0G), 10V minimum",Noise filter; software debounce remains required.,engineering selection; validate during prototype
+R333,47k,"0603 metric1608, 1%, 0.1W",External pull-up supplements expander weak pull-up.,engineering selection; validate during prototype
+C334,10nF,"0603 metric1608 X7R (except marked C0G), 10V minimum",Noise filter; software debounce remains required.,engineering selection; validate during prototype
+C340,100nF,"0603 metric1608 X7R (except marked C0G), 10V minimum",At TS3USB221A VCC.,engineering selection; validate during prototype
+R341,49.9ohm,"0603 metric1608, 1%, 0.1W",Unused USB switch port termination per TI guidance.,engineering selection; validate during prototype
+R342,49.9ohm,"0603 metric1608, 1%, 0.1W",Unused USB switch port termination per TI guidance.,engineering selection; validate during prototype
+SW300,B3U-1000P,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",BOOT; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.,https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf
+SW301,B3U-1000P,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",START_ENTER; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.,https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf
+SW302,B3U-1000P,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",STOP_BACK; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.,https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf
+SW303,B3U-1000P,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",UP; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.,https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf
+SW304,B3U-1000P,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",DOWN; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.,https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf
+SW305,B3U-1000P,"Omron B3U 3.0x2.5mm, top-actuated 2-terminal SMD, no ground terminal or boss",RESET; normally-open momentary. Verified two-terminal SPST from manufacturer terminal drawing. Mechanical case button height not frozen.,https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf
+U20,IM69D128SV01XTMA1,"Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port",3.3 V supply is within the 1.62â€“3.60 V operating range. Use exact datasheet Figures 12/13 land pattern and 0.6 mm nonplated acoustic hole. Two mics share opposite-edge slots. Do not use IM69D130 footprint.,https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d128s-datasheet-en.pdf
+U21,IM69D128SV01XTMA1,"Infineon PG-TLGA-5-2, 3.50x2.65mm, bottom acoustic port",3.3 V supply is within the 1.62â€“3.60 V operating range. Use exact datasheet Figures 12/13 land pattern and 0.6 mm nonplated acoustic hole. Two mics share opposite-edge slots. Do not use IM69D130 footprint.,https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d128s-datasheet-en.pdf
+R201,100 ohm 1%,0603,At U20 DATA output.,Quipus engineering selection; see audio-design.md
+R202,100 ohm 1%,0603,At U21 DATA output.,Quipus engineering selection; see audio-design.md
+R203,33 ohm 1%,0603,Source termination near ESP32. Tune after scope validation.,Quipus engineering selection; see audio-design.md
+R204,0 ohm,0603,Microphone-rail measurement link. Not a load switch.,Quipus engineering selection; see audio-design.md
+R205,33 ohm 1%,0603,Source termination for short external clock branch. Tune after scope validation.,Quipus engineering selection; see audio-design.md
+R206,100k 1%,0603,Defines undriven external input; disable external firmware channel when absent.,Quipus engineering selection; see audio-design.md
+C200,1uF X7R 10V,0603,Place at U20 VDD.,Quipus engineering selection; see audio-design.md
+C201,100nF X7R 10V,0603,Place at U20 VDD.,Quipus engineering selection; see audio-design.md
+C202,1uF X7R 10V,0603,Place at U21 VDD.,Quipus engineering selection; see audio-design.md
+C203,100nF X7R 10V,0603,Place at U21 VDD.,Quipus engineering selection; see audio-design.md
+C204,4.7uF X7R 10V,0603,Local mic-rail reservoir.,Quipus engineering selection; see audio-design.md
+J4,SM04B-SRSS-TB,JST SH 1.0mm 1x4 right-angle SMD,"Mates SHR-04V-S with SSH-003T-P0.2-H contacts. Internal digital PDM accessory with an initial cable target of 50 mm or less; not USB, TRRS or analog. Accessory needs local mic bypass and a 100 ohm DATA series resistor. Pin assignment is Quipus-specific; verify cable orientation.",https://www.jst.com/products/crimp-style-connectors-wire-to-board-type/sh-connector
+U22,MAX98357AETE+,TQFN16 3x3mm exposed-pad T1633+4; 21-0136/90-0031,Exposed pad is modelled as 17: cross-check CAD package convention. A version uses I2S; B version is not a substitute. SD_MODE high selects left channel; low shuts down. Supply 2.5â€“5.5 V; 3.3 V GPIO compatible. Speaker outputs are differential; neither is GND.,https://www.analog.com/media/en/technical-documentation/data-sheets/max98357a-max98357b.pdf
+R207,33 ohm 1%,0603,At ESP32 I2S1 DATA source.,Quipus engineering selection; see audio-design.md
+R208,100k 1%,0603,"Selects 3 dB gain. Connect to SYS_SW, the amplifier supply, rather than 3V3.",Quipus engineering selection; see audio-design.md
+R209,100k 1%,0603,Keep amplifier shut down during reset.,Quipus engineering selection; see audio-design.md
+R210,33 ohm 1%,0603,At ESP32 I2S1 WS source.,Quipus engineering selection; see audio-design.md
+R211,33 ohm 1%,0603,At ESP32 I2S1 BCLK source.,Quipus engineering selection; see audio-design.md
+C205,100nF X7R 10V,0603,"At U22 pins 7 and 8, with short ground return.",Quipus engineering selection; see audio-design.md
+C206,10uF X7R 10V,0805,At U22 pins 7 and 8; verify effective capacitance at 4.4 V.,Quipus engineering selection; see audio-design.md
+C207,47uF X7R 10V DNP,1210,Optional reservoir. Initially not populated; populate following supply transient test.,Quipus engineering selection; see audio-design.md
+J5,SM02B-SRSS-TB,JST SH 1.0mm 1x2 right-angle SMD,"Mates SHR-02V-S. Neither pin is ground. Short twisted pair to 8 ohm, 2 W nominal dynamic speaker; exact speaker part pending. Speaker connector intentionally differs from battery series.",https://www.jst.com/products/crimp-style-connectors-wire-to-board-type/sh-connector
