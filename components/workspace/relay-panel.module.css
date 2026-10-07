@@ -69,7 +69,7 @@
 .empty > svg { width: 29px; height: 29px; color: var(--q-accent); }
 .empty h3 { margin: 5px 0 0; font: 600 24px "Segoe UI", Arial, sans-serif; }
 .empty button { min-height: 39px; margin-top: 12px; }
-.dialogBackdrop { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 20px; background: var(--q-overlay); backdrop-filter: blur(5px); }
+.dialogBackdrop { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 20px; background: var(--q-overlay);  }
 .dialog { position: relative; width: min(100%, 500px); max-height: calc(100vh - 40px); overflow-y: auto; padding: 31px; border: 1px solid var(--q-line); border-radius: 14px; background: var(--q-surface); box-shadow: var(--q-shadow-modal); }
 .dialogClose { position: absolute; top: 17px; right: 17px; display: grid; place-items: center; padding: 5px; border: 0; background: none; color: var(--q-muted-strong); }
 .dialogIcon { display: grid; width: 42px; height: 42px; place-items: center; margin-bottom: 18px; border-radius: 50%; background: var(--q-pale); color: var(--q-accent); }
@@ -96,7 +96,7 @@
 @media (max-width: 680px) { .eventBar, .toolbar { align-items: stretch; flex-direction: column; } .venue { padding-left: 20px; } .stats { grid-template-columns: 1fr; } .providerState { grid-column: auto; } .toolbar { gap: 15px; } .runButton { width: 100%; } .fitEvidence { grid-template-columns: 1fr; } .dialog { padding: 25px 20px; } }
 @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
 /* Angular glass surfaces share the workspace frame and crimson edge language. */
-.eventBar, .stats article, .providerState, .matchCard, .peoplePair, .fitEvidence > div, .loading, .empty, .dialog { border-radius: var(--q-radius); background: var(--q-panel-gradient); box-shadow: var(--q-shadow); -webkit-backdrop-filter: blur(var(--q-glass-blur)); backdrop-filter: blur(var(--q-glass-blur)); }
+.eventBar, .stats article, .providerState, .matchCard, .peoplePair, .fitEvidence > div, .loading, .empty, .dialog { border-radius: var(--q-radius); background: var(--q-panel-gradient); box-shadow: var(--q-shadow);   }
 .eventBar { position: relative; }
 .eventBar::before { content: ""; position: absolute; left: -1px; top: -1px; bottom: -1px; width: 2px; background: var(--q-red); }
 .matchCard { position: relative; }
@@ -125,7 +125,7 @@
 .dialog h2 { margin-top: 14px; padding-right: 45px; }
 .attendees > span, .dialog input, .dialog select { border-radius: var(--q-radius); background: var(--q-glass-strong); }
 .attendees i { border-radius: var(--q-radius); }
-.dialogBackdrop { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.dialogBackdrop {   }
 .runButton:focus-visible, .empty button:focus-visible, .approve:focus-visible, .dismiss:focus-visible, .error button:focus-visible, .dialogClose:focus-visible, .dialogActions button:focus-visible { outline: 2px solid var(--q-red); outline-offset: 3px; }
 @media (max-width: 680px) { .peoplePair { grid-template-columns: minmax(0,1fr) 26px minmax(0,1fr); gap: 5px; } .peoplePair button { padding: 8px 5px; } .matchCard { padding: 18px; } .matchCard::before { left: 18px; } }
 @media (prefers-reduced-motion: reduce) { .peoplePair button, .runButton, .empty button, .approve, .dismiss, .error button, .dialogClose, .dialogActions button { transition: none; } }

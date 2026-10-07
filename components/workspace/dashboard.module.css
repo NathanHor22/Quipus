@@ -1,0 +1,20 @@
+
+.frame {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 34px;
+  max-width: 1480px;
+  min-height: calc(100vh - 108px);
+  margin: 0 auto;
+  padding: 30px 52px 32px;
+}
+.frame[data-docked="true"] { grid-template-columns: minmax(0, 1fr) minmax(380px, 440px); }
+.content { min-width: 0; width: 100%; container-type: inline-size; container-name: workspace; }
+.dock { position: sticky; top: 26px; min-width: 0; max-height: calc(100dvh - 52px); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; background: #fff; box-shadow: 8px 12px 22px #25334214; border-left: 3px solid var(--q-red); scrollbar-width: thin; }
+.inlinePanel { min-width: 0; margin-top: 20px; border-left: 3px solid var(--q-red); background: #fff; box-shadow: 5px 8px 18px #25334212; }
+@media (min-width:1600px) { .frame { max-width:1580px; padding-inline:64px; } .frame[data-docked="true"] { grid-template-columns:minmax(0,1fr) 460px; gap:46px; } }
+@media (max-width:1099px) { .frame { padding:26px 32px; } }
+@media (max-width:760px) { .frame { padding:20px 22px 24px; min-height:calc(100vh - 146px); } .inlinePanel { margin-inline:-2px; } }
+@media (max-width:380px) { .frame { padding-inline:16px; } }
+@media (prefers-reduced-motion:reduce) { .dock { scroll-behavior:auto; } }

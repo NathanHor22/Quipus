@@ -122,12 +122,12 @@ export function ConversationDetail({
 
       <header className={styles.hero}>
         <div className={styles.heroIdentity}>
-          <span className={styles.heroAvatar}>
+          {!compact && <span className={styles.heroAvatar}>
             {initials(contact?.name || conversation.title)}
-          </span>
+          </span>}
           <div>
             <div className={styles.heroMeta}>
-              <span className={styles.status}>{conversation.status}</span>
+              {!compact && conversation.status !== "ready" && <span className={styles.status}>{conversation.status}</span>}
               <span>{dateLabel(conversation.startAt, { year: "numeric" })}</span>
               <span>{timeLabel(conversation.startAt)}</span>
             </div>
@@ -138,11 +138,11 @@ export function ConversationDetail({
             </p>
           </div>
         </div>
-        <dl className={styles.heroFacts}>
+        {!compact && <dl className={styles.heroFacts}>
           <div><dt>Duration</dt><dd>{recordingDurationLabel(conversation)}</dd></div>
           <div><dt>Source</dt><dd>{conversation.source === "hardware" ? "Quipus" : conversation.source}</dd></div>
           <div><dt>Transcript</dt><dd>{conversation.transcript?.length || 0} segments</dd></div>
-        </dl>
+        </dl>}
       </header>
 
       {error && <p className={styles.pageError} role="alert">{error}</p>}
@@ -185,12 +185,12 @@ export function ConversationDetail({
               </header>
               {insight ? (
                 <div className={styles.brief}>
-                  {insight.executiveSummary && <p className={styles.executiveSummary}>{insight.executiveSummary}</p>}
-                  {insight.dealStage && insight.dealStage !== "unknown" && <span className={styles.dealStage}>{insight.dealStage.replace("_", " ")}</span>}
-                  <ul>{(insight.keyPoints.length ? insight.keyPoints : [insight.wants]).map((point, index) => <li key={index}>{point}</li>)}</ul>
+                  {insight.executiveSummary && (!compact || !insight.keyPoints.some(point => point.trim())) && <p className={styles.executiveSummary}>{insight.executiveSummary}</p>}
+                  {!compact && insight.dealStage && insight.dealStage !== "unknown" && <span className={styles.dealStage}>{insight.dealStage.replace("_", " ")}</span>}
+                  <ul>{(insight.keyPoints.length ? insight.keyPoints : [insight.wants]).filter(Boolean).map((point, index) => <li key={index}>{point}</li>)}</ul>
                   {insight.concern && <div className={styles.concern}><strong>Keep in mind</strong><p>{insight.concern}</p></div>}
                   {insight.promised && <div><strong>You promised</strong><p>{insight.promised}</p></div>}
-                  {insight.next && <div><strong>Recommended next step</strong><p>{insight.next}</p></div>}
+                  {!compact && insight.next && <div><strong>Recommended next step</strong><p>{insight.next}</p></div>}
                 </div>
               ) : (
                 <div className={styles.emptyCard}><strong>{conversation.status === "processing" ? "Preparing the brief" : "No brief available"}</strong><p>{conversation.transcript?.length ? "The original transcript is still available." : conversation.recordingId ? "The original recording is still available." : "No recording or transcript is available."}</p></div>
@@ -198,6 +198,8 @@ export function ConversationDetail({
             </section>
 
             {Boolean(conversation.evidence?.length) && (
+              <details className={styles.sourceDetails} open={!compact}>
+                <summary>Source excerpts</summary>
               <section className={styles.contextCard}>
                 <header className={styles.cardHeader}>
                   <div><span className={styles.kicker}>SOURCE EVIDENCE</span><h3>Source excerpts</h3></div>
@@ -213,9 +215,12 @@ export function ConversationDetail({
                   ))}
                 </div>
               </section>
+              </details>
             )}
 
             {Boolean(conversation.research?.length) && (
+              <details className={styles.sourceDetails} open={!compact}>
+                <summary>Company research</summary>
               <section className={styles.contextCard}>
                 <header className={styles.cardHeader}>
                   <div><span className={styles.kicker}>PUBLIC CONTEXT · UNVERIFIED</span><h3>Company research</h3></div>
@@ -232,6 +237,7 @@ export function ConversationDetail({
                   ))}
                 </div>
               </section>
+              </details>
             )}
 
           </div>
@@ -249,7 +255,7 @@ export function ConversationDetail({
                       <strong>{approval.title}</strong>
                       <p>{approval.details.startAt ? `${dateLabel(approval.details.startAt, { weekday: "short" })} at ${timeLabel(approval.details.startAt)}` : "Date and time need review"}</p>
                       <button disabled={Boolean(working)} onClick={() => onEditApproval(approval)}>
-                        Review meeting details
+                        Awaiting your approval
                       </button>
                     </article>
                   );
@@ -335,12 +341,12 @@ export function ConversationDetail({
             ) : (
               <div className={styles.contactDetails}>
                 <span className={styles.contactAvatar}>{initials(contact.name)}</span>
-                <div><strong>{contact.name}</strong><p>{contact.role || "Role not confirmed"}</p></div>
+                <div><strong>{contact.name}</strong>{(!compact || contact.role) && <p>{contact.role || "Role not confirmed"}</p>}</div>
                 <dl>
-                  <div><dt>Company</dt><dd>{contact.company || "Not confirmed"}</dd></div>
-                  <div><dt>Email</dt><dd>{contact.email || "Not confirmed"}</dd></div>
+                  {(!compact || contact.company) && <div><dt>Company</dt><dd>{contact.company || "Not confirmed"}</dd></div>}
+                  {(!compact || contact.email) && <div><dt>Email</dt><dd>{contact.email || "Not confirmed"}</dd></div>}
                 </dl>
-                <p className={styles.verifyNote}>Review these details before sending a follow-up.</p>
+                {!compact && <p className={styles.verifyNote}>Review these details before sending a follow-up.</p>}
                 {onOpenContact && <button type="button" className={styles.contactHistoryLink} onClick={() => onOpenContact(contact.id)}>View client history</button>}
               </div>
             ) : (

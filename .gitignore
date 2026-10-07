@@ -1,35 +1,57 @@
-# dependencies
-/node_modules
-/worker/node_modules
+# Installed dependencies and package-manager caches (all subprojects)
+node_modules/
+.npm/
+.npm-cache/
+.pnpm-store/
+.pnp.*
+.cache/
 
-# Next.js
-/.next
-/out
-/worker/dist
-/.vercel
-/supabase/.temp
+# Next.js and generated web/worker builds
+.next/
+out/
+dist/
+.vercel/
+.supabase/.temp/
+/supabase/.temp/
 
-# local configuration and secrets
+# Local environment and credentials; keep shareable templates
 .env
-.env.local
-.env.*.local
+.env.*
+!.env*.example
+!.env*.template
+/.aws/
 
-# test and build output
-/coverage
-/test-results
+# Test reports, temporary output and compiler caches
+coverage/
+test-results/
+playwright-report/
+blob-report/
 /tmp/
-/playwright-report
 *.tsbuildinfo
 
-# OS/editor
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python caches and local virtual environments used by hardware scripts
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# OS and local editor settings
 .DS_Store
 Thumbs.db
-.vscode
-.idea
+Desktop.ini
+.vscode/
+.idea/
 
-.vercel
-
-# embedded firmware toolchains, generated SDKs, secrets, and factory backups
+# Embedded firmware toolchains, generated SDKs, secrets and factory backups
 /.tools/
 /.tmp-*/
 /hardware/firmware/build/

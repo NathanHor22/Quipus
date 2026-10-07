@@ -2,21 +2,21 @@
 .authShell { display: grid; width: min(100%, 470px); justify-items: center; gap: 29px; }
 .brandLockup { display: block; padding: 0; text-decoration: none; }
 .logo { display: block; width: 152px; height: auto; }
-.card { width: 100%; padding: 36px 38px 27px; border: 1px solid var(--q-line); border-radius: var(--q-radius); background: var(--q-panel-gradient); box-shadow: var(--q-shadow); backdrop-filter: blur(var(--q-glass-blur)); text-align: center; }
+.card { width: 100%; padding: 36px 38px 27px; border: 1px solid var(--q-line); border-radius: 2px; background: #fff; box-shadow: var(--q-shadow); text-align: center; }
 .cardKicker { margin: 0 0 19px; color: var(--q-red); font-size: 9px; font-weight: 700; line-height: 1.5; letter-spacing: .16em; }
 .heading { margin: 0; color: var(--q-text); font: 400 clamp(32px, 4vw, 38px)/1.12 Georgia, "Times New Roman", serif; letter-spacing: -.035em; }
 .description { margin: 17px auto 29px; max-width: 290px; color: var(--q-muted-strong); font-size: 12px; line-height: 1.75; }
 .signInTitle { margin: 0 0 15px; color: var(--q-text); font-size: 12px; font-weight: 600; }
-.googleButton { display: flex; width: 100%; min-height: 48px; align-items: center; justify-content: center; gap: 11px; padding: 10px 16px; border: 1px solid var(--q-button-bg); border-radius: var(--q-radius); background: var(--q-button-bg); color: var(--q-button-text); font-size: 12px; font-weight: 650; transition: border-color 150ms ease, box-shadow 150ms ease; }
+.googleButton { display: flex; width: 100%; min-height: 48px; align-items: center; justify-content: center; gap: 11px; padding: 10px 16px; border: 1px solid var(--q-button-bg); border-radius: 2px; background: var(--q-button-bg); color: var(--q-button-text); font-size: 12px; font-weight: 650; transition: border-color 150ms ease, box-shadow 150ms ease; }
 .googleButton:hover:not(:disabled) { border-color: var(--q-red); box-shadow: 0 0 0 1px var(--q-red); }
 .googleButton:disabled { cursor: wait; opacity: .65; }
 .googleMark { display: grid; width: 22px; height: 22px; place-items: center; border-radius: 2px; background: #fff; color: #0b2239; font: 700 13px Arial, sans-serif; }
 .googleButton:focus-visible, .page a:focus-visible { outline: 2px solid var(--q-red); outline-offset: 4px; }
-.notice, .error { margin: 0 0 18px; padding: 11px 13px; border: 1px solid var(--q-danger); border-radius: var(--q-radius); background: var(--q-danger-soft); color: var(--q-danger); font-size: 12px; line-height: 1.5; }
+.notice, .error { margin: 0 0 18px; padding: 11px 13px; border: 1px solid var(--q-danger); border-radius: 2px; background: var(--q-danger-soft); color: var(--q-danger); font-size: 12px; line-height: 1.5; }
 .error { margin: 14px 0 0; }
-.localNotice { display: grid; gap: 7px; padding: 17px 15px; border: 1px solid var(--q-line); border-radius: var(--q-radius); background: var(--q-glass); color: var(--q-muted-strong); font-size: 12px; line-height: 1.6; }
+.localNotice { display: grid; gap: 7px; padding: 17px 15px; border: 1px solid var(--q-line); border-radius: 2px; background: #fff; color: var(--q-muted-strong); font-size: 12px; line-height: 1.6; }
 .localNotice strong { color: var(--q-text); font-weight: 600; }
-.localNotice a, .demoSection a { display: flex; min-height: 42px; align-items: center; justify-content: center; padding: 9px 12px; border: 1px solid var(--q-line-strong); border-radius: var(--q-radius); background: var(--q-glass-strong); color: var(--q-text); font-size: 11px; font-weight: 600; line-height: 1.5; text-decoration: none; }
+.localNotice a, .demoSection a { display: flex; min-height: 42px; align-items: center; justify-content: center; padding: 9px 12px; border: 1px solid var(--q-line-strong); border-radius: 2px; background: #fff; color: var(--q-text); font-size: 11px; font-weight: 600; line-height: 1.5; text-decoration: none; }
 .localNotice a { margin-top: 8px; }
 .localNotice a:hover, .demoSection a:hover { border-color: var(--q-red); }
 .footnote { margin: 17px 0 0; color: var(--q-muted-strong); font-size: 10px; line-height: 1.7; }
@@ -26,7 +26,24 @@
 .legalLinks a { color: var(--q-muted-strong); text-decoration: none; }
 .legalLinks a:hover { color: var(--q-text); text-decoration: underline; }
 .pageFooter { margin: 28px 0 0; color: var(--q-muted-strong); font-size: 9px; line-height: 1.6; text-align: center; }
-:global([data-theme="dark"]) .cardKicker { color: var(--q-red-rose); }
-:global([data-theme="dark"]) .brandLockup { padding: 12px 17px; border: 1px solid var(--q-line); border-radius: var(--q-radius); background: #f5f3ed; }
 @media (max-width: 480px) { .page { padding: 32px 20px 25px; }.authShell { gap: 25px; }.logo { width: 128px; }.card { padding: 29px 24px 24px; }.heading { font-size: 32px; }.description { margin-bottom: 25px; }.pageFooter { margin-top: 24px; } }
 @media (prefers-reduced-motion: reduce) { .googleButton { transition: none; } }
+
+/* Solid architectural surfaces and readable supporting information. */
+.authShell { width: min(100%, 500px); }
+.card { background: #fff; border-radius: 2px; box-shadow: 9px 12px 0 #252a3106, 0 3px 16px #252a3108; }
+.heading { font-family: var(--q-display-font, "Arial Narrow", "Segoe UI", sans-serif); font-size: clamp(36px, 4.5vw, 44px); font-weight: 600; line-height: 1.05; letter-spacing: -.03em; }
+.cardKicker { font-size: 13px; letter-spacing: .12em; }
+.description { max-width: 33ch; font-size: 16px; line-height: 1.65; }
+.signInTitle { font-size: 17px; font-weight: 600; }
+.googleButton { min-height: 48px; font-size: 16px; transition: border-color 120ms, box-shadow 120ms; }
+.googleMark { font-size: 15px; }
+.notice, .error, .localNotice { font-size: 15px; line-height: 1.6; }
+.localNotice { background: #f5f6f7; }
+.localNotice a, .demoSection a { min-height: 44px; font-size: 15px; background: #fff; transition: border-color 120ms; }
+.footnote, .demoSection > span, .legalLinks, .pageFooter { font-size: 14px; line-height: 1.6; }
+@media (max-width: 480px) {
+  .card { padding: 29px 23px 25px; }
+  .heading { font-size: 36px; }
+}
+@media (prefers-reduced-motion: reduce) { .googleButton, .localNotice a, .demoSection a { transition: none; } }

@@ -1,6 +1,14 @@
 import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
 import { QuipusExperience } from "@/components/experience/QuipusExperience";
 import "./globals.css";
+
+const geist = localFont({
+  src: "./fonts/Geist.woff2",
+  variable: "--font-geist",
+  weight: "100 900",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   applicationName: "Quipus",
@@ -15,13 +23,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  colorScheme: "light dark",
-  themeColor: "#F5F3ED",
+  colorScheme: "light",
+  themeColor: "#FFFFFF",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-theme="light" suppressHydrationWarning>
+    <html lang="en" className={geist.variable}>
       <body><QuipusExperience>{children}</QuipusExperience></body>
     </html>
   );

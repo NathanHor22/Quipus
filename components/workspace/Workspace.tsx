@@ -3,9 +3,9 @@ import { WhatsAppDelivery } from "./WhatsAppDelivery";
 
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, LoaderCircle } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, LoaderCircle, RotateCcw } from "lucide-react";
 import { getMonthGrid } from "@/lib/calendar";
 import { workspaceTime } from "@/lib/workspace-time";
 import type { Meeting } from "@/lib/types";
@@ -18,7 +18,7 @@ import {
 } from "@/lib/workspace/model";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { RevealHeading, useQuipusMotion } from "@/components/experience/QuipusExperience";
-import { personalGreeting, validTimezone } from "@/lib/quipus-profile";
+import { validTimezone } from "@/lib/quipus-profile";
 import { QuipusHeader, viewPaths } from "./QuipusHeader";
 import { ConversationJournal } from "./ConversationJournal";
 import { ConversationDetail } from "./ConversationDetail";
@@ -27,13 +27,13 @@ import { ClientHistory } from "./ClientHistory";
 import { WorkspaceSetup } from "./WorkspaceSetup";
 import { RecordingProgress } from "./RecordingProgress";
 import { getRecordingProgress } from "@/lib/workspace/recording-progress";
-import { hasRecentHeartbeat } from "@/lib/workspace/setup";
 import { ApprovalReceiptNotice } from "./ApprovalReceiptNotice";
 import flow from "./flow.module.css";
 import { ProfileSettings } from "./ProfileSettings";
 import { CalendarConnection } from "./CalendarConnection";
 import { WorkspaceTimezone } from "./WorkspaceTime";
 import q from "./quipus.module.css";
+import d from "./dashboard.module.css";
 import { useWorkspace } from "./useWorkspace";
 import { initials } from "./ConversationPanel";
 import { ApprovalDialog } from "./ApprovalDialog";
@@ -77,22 +77,12 @@ export function Workspace({
   const pathname = usePathname();
   const params = useSearchParams();
   const reducedMotion = useReducedMotion();
-  const { enabled: motionEnabled } = useQuipusMotion();
+  const { enabled: motionEnabled, setScene } = useQuipusMotion();
   const [account, setAccount] = useState(initialAccount);
-  const [theme, setTheme] = useState<"dark" | "light">("light");
   const [journalFilters, setJournalFilters] = useState({ query: "", date: "" });
   const timezone = validTimezone(account?.timezone);
   const { dateKey: formatDateKey, dateLabel, timeLabel } = workspaceTime(timezone);
   useEffect(() => { setAccount(initialAccount); }, [initialAccount]);
-  useEffect(() => {
-    try { if (localStorage.getItem("quipus:theme") === "dark") setTheme("dark"); } catch {}
-  }, []);
-  useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
-  const toggleTheme = () => {
-    const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    try { localStorage.setItem("quipus:theme", next); } catch {}
-  };
   const workspace = useWorkspace(initialMode, initialAccount?.email || null);
   const {
     meetings,
@@ -110,6 +100,7 @@ export function Workspace({
     ? validViews.includes(requestedView) ? requestedView : initialView
     : pathname.includes("/conversations") ? "conversations"
     : (Object.entries(viewPaths).find(([key, path]) => key !== "overview" && path === pathname)?.[0] as WorkspaceView) || initialView;
+  useEffect(() => { setScene(view); }, [view, setScene]);
   const detailId = pathname.startsWith("/dashboard/conversations/")
     ? decodeURIComponent(pathname.split("/").at(-1) || "")
     : mode === "sample" ? params.get("conversation") : initialConversationId;
@@ -142,16 +133,31 @@ export function Workspace({
   const [layout, setLayout] = useState<"month" | "agenda">("month");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditing] = useState<MeetingApproval | null>(null);
+  const [selectedTab, setSelectedTab] = useState<"Summary" | "Actions" | "Transcript" | "Audio">("Summary");
+  const [desktopDock, setDesktopDock] = useState(false);
+  const [panelOrigin, setPanelOrigin] = useState<"journal" | "next" | "approval" | "calendar" | "recording" | "other">("journal");
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 1100px)");
+    const update = () => setDesktopDock(query.matches);
+    update();
+    if (window.matchMedia("(max-width: 760px)").matches) setLayout("agenda");
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  const reviewApproval = (approval: MeetingApproval) => {
+    if (detailId) setPanelOrigin("other");
+    setEditing(approval);
+  };
   const [search, setSearch] = useState("");
   const [approvalFilter, setApprovalFilter] = useState<"pending" | "dismissed">(
     "pending",
   );
   const [recordingOpen, setRecordingOpen] = useState(false);
   const now = new Date();
-  const deviceOnline = Boolean(device && device.status === "online" && hasRecentHeartbeat(device.last_seen_at, now.getTime()));
   const today = formatDateKey(now);
   const approvals = useMemo(() => getApprovals(meetings), [meetings]);
-  const pending = approvals.filter((approval) => approval.status === "pending");
+  const pending = approvals.filter((approval) => approval.status === "pending")
+    .sort((a, b) => (a.details.startAt ? Date.parse(a.details.startAt) : Infinity) - (b.details.startAt ? Date.parse(b.details.startAt) : Infinity));
   const conversations = useMemo(
     () =>
       meetings
@@ -188,9 +194,6 @@ export function Workspace({
         item.status !== "completed" &&
       item.status !== "dismissed",
     );
-  const todayConversations = conversations.filter(
-    (meeting) => formatDateKey(meeting.startAt) === today,
-  );
   const selectedMeeting =
     meetings.find((meeting) => meeting.id === selectedId) || null;
   const grid = getMonthGrid(visibleMonth, { today });
@@ -200,16 +203,10 @@ export function Workspace({
     timeZone: "UTC",
   }).format(new Date(`${visibleMonth}-15T12:00:00Z`));
   const normalizedSearch = search.trim().toLowerCase();
-  const accountName =
-    account?.displayName || account?.email.split("@")[0] || "Google account";
-  const accountInitials = account
-    ? initials(accountName).toUpperCase() ||
-      account.email[0]?.toUpperCase() ||
-      "ME"
-    : "?";
 
   const navigate = (next: WorkspaceView) => {
     setSelectedId(null);
+    setEditing(null);
     if (mode === "live") router.push(viewPaths[next]);
     else {
       const url = new URL(window.location.href);
@@ -220,6 +217,7 @@ export function Workspace({
   const openDetail = (id: string, tab: "Summary" | "Actions" | "Transcript" | "Audio" = "Summary", editContact = false, contactId?: string) => {
     detailOrigin.current = { href: window.location.pathname + window.location.search, scroll: window.scrollY };
     setSelectedId(null);
+    setEditing(null);
     const details = new URLSearchParams();
     if (tab !== "Summary") details.set("tab", tab);
     if (editContact) details.set("edit", "contact");
@@ -243,6 +241,7 @@ export function Workspace({
   };
   const openClient = (id: string) => {
     setSelectedId(null);
+    setEditing(null);
     const url = mode === "live" ? new URL(viewPaths.people, window.location.origin) : new URL(window.location.href);
     if (mode === "sample") { url.searchParams.set("view", "people"); url.searchParams.delete("conversation"); url.searchParams.delete("tab"); url.searchParams.delete("edit"); url.searchParams.delete("contact"); }
     url.searchParams.set("client", id);
@@ -264,43 +263,58 @@ export function Workspace({
     setVisibleMonth(formatDateKey(receipt.startAt).slice(0, 7));
     setSelectedDate(formatDateKey(receipt.startAt));
     navigate("calendar");
+    setPanelOrigin("calendar");
     setSelectedId(receipt.meetingId);
   };
   const receiptNotice = workspace.approvalReceipt && <ApprovalReceiptNotice receipt={workspace.approvalReceipt} onView={viewApprovedEvent} onDismiss={workspace.dismissApprovalReceipt} />;
-  const openConversation = (id: string) => {
-    if (meetings.some((meeting) => meeting.id === id)) setSelectedId(id);
+  const openConversation = (id: string, tab: "Summary" | "Actions" | "Transcript" | "Audio" = "Summary", origin: typeof panelOrigin = "journal") => {
+    if (!meetings.some((meeting) => meeting.id === id)) return;
+    setEditing(null);
+    setSelectedTab(tab);
+    setPanelOrigin(origin);
+    setSelectedId(id);
+  };
+  const nextSource = nextMeeting?.sourceConversationId
+    ? conversations.find(meeting => meeting.id === nextMeeting.sourceConversationId)
+    : nextMeeting;
+  const nextPurpose = nextSource?.insight?.promised || nextSource?.insight?.intent;
+  const panel = editing ? <ApprovalDialog
+    key={editing.id} approval={editing} mode={mode} working={Boolean(working)} executionError={error}
+    onClose={() => setEditing(null)} onApprove={approve}
+  /> : selectedMeeting ? <ConversationModal
+    key={selectedMeeting.id}
+    meeting={selectedMeeting} meetings={meetings} initialTab={selectedTab}
+    onClose={() => setSelectedId(null)} onOpenFull={openDetail}
+    onOpenContact={openClient} onEditApproval={reviewApproval}
+    onUpdateContact={workspace.patchContact}
+    onRetryAccepted={() => void workspace.loadLive(false, true)}
+    mode={mode} receipt={receiptNotice}
+    onTask={(id, completed) => void workspace.patchFollowUp(id, { status: completed ? "completed" : "pending" })}
+    working={working} error={error}
+  /> : null;
+  const journalPanel = !desktopDock && panelOrigin === "journal" ? panel : undefined;
+  const resetSample = () => {
+    setSelectedId(null); setEditing(null); setJournalFilters({ query: "", date: "" }); setSearch("");
+    navigate("overview"); workspace.loadSample(true);
   };
   return (
     <WorkspaceTimezone.Provider value={timezone}>
-    <div className={styles.shell} data-theme={theme}>
+    <div className={styles.shell} data-theme="light">
       <a className={styles.skipLink} href="#main-content">Skip to content</a>
-      <QuipusHeader view={view} sample={mode === "sample"} account={account} navigate={navigate} theme={theme} onTheme={toggleTheme} />
-      <main className={styles.main} id="main-content" tabIndex={-1}>
-        <AnimatePresence mode="wait" initial={false}>
-        <motion.div className={styles.content} key={`${view}:${detailId || ""}`}
-          initial={reducedMotion || !motionEnabled ? false : { opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
-          exit={reducedMotion || !motionEnabled ? { opacity: 1 } : { opacity: 0, y: -3 }} transition={{ duration: .14 }}>
+      <QuipusHeader view={view} sample={mode === "sample"} account={account} navigate={navigate} />
+      <main className={d.frame} data-docked={desktopDock && Boolean(panel)} id="main-content" tabIndex={-1}>
+        <motion.div className={d.content} key={`${view}:${detailId || ""}`}
+          initial={reducedMotion || !motionEnabled ? false : { opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: .32, ease: [0.2, 0.8, 0.2, 1] }}>
 
-          {mode === "sample" && <div className={q.sampleNote}>
-            <span><span className={q.sampleBadge}>DEMO</span> Sample meetings. Approvals stay in this demo.</span>
-            <button disabled={Boolean(working)} onClick={() => { setSelectedId(null); setEditing(null); setJournalFilters({ query: "", date: "" }); setSearch(""); navigate("overview"); workspace.loadSample(true); }}> Reset sample</button>
-          </div>}
-          {!detailId && (view === "overview" ? <header className={q.welcome}>
+          {!detailId && <header className={q.welcome}>
             <div className={q.welcomeCopy}>
-              <div className={q.dateLine}><span>YOUR WORKSPACE</span><span className={q.dateDivider} />{new Intl.DateTimeFormat("en-MY", { weekday: "long", month: "long", day: "numeric", timeZone: timezone }).format(now)}</div>
-              <RevealHeading text={mode === "sample" ? "Keep every conversation moving." : personalGreeting(account?.displayName, now, timezone)} replayKey={view} />
-              <p>{mode === "sample" ? "Record meetings. Review the details. Follow up." : pending.length ? `${pending.length} follow-up${pending.length === 1 ? "" : "s"} need${pending.length === 1 ? "s" : ""} your approval.` : "Your meetings and next steps, in one place."}</p>
+              {view !== "overview" && <p className={q.kicker}>YOUR WORKSPACE</p>}
+              <RevealHeading text={view === "overview" ? "YOUR WORKSPACE" : viewLabel[view]} replayKey={view} />
+              {view === "overview" && <p className={q.dateLine}>{new Intl.DateTimeFormat("en-GB", { weekday: "long", timeZone: timezone }).format(now) + ", " + new Intl.DateTimeFormat("en-GB", { month: "long", day: "numeric", timeZone: timezone }).format(now)}</p>}
             </div>
-            <div className={q.welcomeMetrics} aria-label="Workspace overview">
-              <div><strong>{conversations.length.toString().padStart(2, "0")}</strong><span>Conversations</span></div>
-              <div><strong>{pending.length.toString().padStart(2, "0")}</strong><span>To approve</span></div>
-            </div>
-          </header> : <header className={styles.pageHeader}>
-            <div><p className={styles.eyebrow}>YOUR WORKSPACE</p>
-              <RevealHeading text={viewLabel[view]} replayKey={view} />
-              <p>{view === "conversations" ? "Find a meeting. Review what matters." : view === "calendar" ? "Select a meeting to see its conversation and next steps." : view === "device" ? "Connection, battery and storage." : view === "people" ? "Your clients, companies and meeting history." : "Your profile and connected accounts."}</p>
-            </div>
-          </header>)}
+            {mode === "sample" && <button className={q.resetSample} disabled={Boolean(working)} onClick={resetSample}><RotateCcw aria-hidden="true" />Reset sample data</button>}
+          </header>}
           {error && (
             <div className={styles.errorBanner} role="alert">
               <span>{error}</span>
@@ -330,34 +344,41 @@ export function Workspace({
                 backLabel={detailOrigin.current?.href.includes("view=people") || detailOrigin.current?.href.includes("/people") ? "Back to client history" : detailOrigin.current?.href.includes("view=calendar") || detailOrigin.current?.href.includes("/calendar") ? "Back to calendar" : detailOrigin.current?.href === "/dashboard" || detailOrigin.current?.href.includes("view=overview") || detailOrigin.current?.href === "/" ? "Back to home" : "Back to conversations"}
                 onBack={backFromDetail}
                 onTask={(id, completed) => void workspace.patchFollowUp(id, { status: completed ? "completed" : "pending" })}
-                onEditApproval={setEditing} onUpdateContact={workspace.patchContact} onOpenContact={openClient} onRetryAccepted={() => void workspace.loadLive(false, true)}
+                onEditApproval={reviewApproval} onUpdateContact={workspace.patchContact} onOpenContact={openClient} onRetryAccepted={() => void workspace.loadLive(false, true)}
               /> : <div className={styles.emptyInline}><h3>Conversation unavailable.</h3><p>It may still be processing, or it isn’t in this workspace.</p><button className={q.textLink} onClick={() => navigate("conversations")}>Back to conversations</button></div>) : null}
+              {!desktopDock && detailId && editing && <div className={d.inlinePanel}>{panel}</div>}
               {view === "overview" && <>
                 {activeRecordings.length > 0 && <section className={flow.progressList} aria-label="Recordings in progress">
                   <div className={flow.progressHeading}><h2>Recordings in progress</h2></div>
-                  {activeRecordings.map(meeting => <div key={meeting.id} className={flow.progressEntry}><h3>{meeting.title}</h3><RecordingProgress meeting={meeting} mode={mode} onOpenAudio={() => openDetail(meeting.id, "Audio")} onRetryAccepted={() => workspace.loadLive(false, true)} /></div>)}
+                  {activeRecordings.map(meeting => <div key={meeting.id} className={flow.progressEntry}><h3>{meeting.title}</h3><RecordingProgress meeting={meeting} mode={mode} onOpenAudio={() => openConversation(meeting.id, "Audio", "recording")} onRetryAccepted={() => workspace.loadLive(false, true)} />{!desktopDock && panelOrigin === "recording" && selectedId === meeting.id && <div className={d.inlinePanel}>{panel}</div>}</div>)}
                 </section>}
                 <div className={q.dailyBrief}>
-                  <section className={q.nextAction} aria-label="Next approval">
-                    <div className={q.briefHeading}><span className={q.kicker}>FOLLOW-UPS</span><span className={q.approvalCount}>{pending.length} to approve</span></div>
-                    <h2>{pending[0]?.title || "No pending approvals"}</h2>
-                    <p>{pending[0] ? `${pending[0].contact?.name || "Your client"}${pending[0].contact?.company ? ` · ${pending[0].contact.company}` : ""}${pending[0].details.startAt ? ` · ${dateLabel(pending[0].details.startAt)} at ${timeLabel(pending[0].details.startAt)}` : " · Confirm the meeting details"}` : "New follow-ups will appear here after your meetings."}</p>
-                    <div className={q.briefBottom}>
-                      <span className={q.smallPeople}><span>{pending[0] ? initials(pending[0].contact?.name || "Client") : null}</span>{pending[0] ? "Awaiting your approval" : "All caught up"}</span>
-                      <button className={q.actionButton} onClick={() => pending[0] ? setEditing(pending[0]) : navigate("conversations")}>{pending[0] ? "Review follow-up" : "Conversations"}</button>
-                    </div>
+                  <section className={q.nextMeeting} aria-labelledby="next-meeting-heading">
+                    <h2 id="next-meeting-heading">Next meeting</h2>
+                    {nextMeeting ? <>
+                      <p className={q.meetingDate}>{dateLabel(nextMeeting.startAt, { weekday: "long" })}</p>
+                      <p className={q.meetingTime}>{timeLabel(nextMeeting.startAt)}</p>
+                      <h3>{nextMeeting.title}</h3>
+                      {nextMeeting.contacts.length > 0 && <p className={q.meetingPeople}>{nextMeeting.contacts.map(contact => contact.name).join(", ")}{nextMeeting.contacts[0]?.company ? " · " + nextMeeting.contacts[0].company : ""}</p>}
+                      {nextPurpose && nextPurpose !== nextMeeting.title && <p className={q.meetingPurpose}>{nextPurpose}</p>}
+                      <button className={q.meetingAction} onClick={() => openConversation(nextMeeting.id, "Summary", "next")}>View meeting brief<ArrowRight aria-hidden="true" /></button>
+                      {!desktopDock && panelOrigin === "next" && panel && <div className={d.inlinePanel}>{panel}</div>}
+                    </> : <p className={q.emptyBrief}>No upcoming meetings.</p>}
                   </section>
-                  <section className={q.nextMeeting} aria-label="Next meeting">
-                    <div className={q.briefHeading}><span className={q.kicker}>NEXT MEETING</span></div>
-                    <h2>{nextMeeting?.title || "No upcoming meetings"}</h2>
-                    <p>{nextMeeting ? `${dateLabel(nextMeeting.startAt, { weekday: "short" })} · ${timeLabel(nextMeeting.startAt)}${nextMeeting.contacts[0]?.company ? ` · ${nextMeeting.contacts[0].company}` : ""}` : "Your upcoming meetings will appear here once your calendar is connected."}</p>
-                    <div className={q.briefBottom}><span className={q.smallPeople}>{nextMeeting?.contacts.length ? `${nextMeeting.contacts.length} participant${nextMeeting.contacts.length > 1 ? "s" : ""}` : nextMeeting ? "View meeting details" : "Your schedule, in view"}</span><button className={q.textLink} onClick={() => navigate("calendar")}>Open calendar </button></div>
+                  <section className={q.followUps} aria-labelledby="followups-heading">
+                    <h2 id="followups-heading">Follow-ups</h2>
+                    {pending.length ? <div className={q.approvalList}>{pending.slice(0, 3).map(approval => <article key={approval.id} className={q.pendingItem} data-selected={editing?.id === approval.id}>
+                      <h3>{approval.title}</h3>
+                      <p>{approval.contact?.company || approval.contact?.name || "Meeting invitation"}{approval.details.startAt ? " · " + dateLabel(approval.details.startAt) + " · " + timeLabel(approval.details.startAt) : " · Date to confirm"}</p>
+                      <button className={q.approvalButton} disabled={Boolean(working)} onClick={() => { setSelectedId(null); setPanelOrigin("approval"); reviewApproval(approval); }}>Awaiting your approval<ArrowRight aria-hidden="true" /></button>
+                      {!desktopDock && panelOrigin === "approval" && editing?.id === approval.id && <div className={d.inlinePanel}>{panel}</div>}
+                    </article>)}</div> : <p className={q.emptyBrief}>No approvals waiting.</p>}
+                    {pending.length > 3 && <button className={q.textLink} onClick={() => navigate("calendar")}>All follow-ups<ArrowRight aria-hidden="true" /></button>}
                   </section>
                 </div>
-                <ConversationJournal meetings={conversations} mode={mode} compact onOpen={openDetail} onAll={() => navigate("conversations")} filters={journalFilters} onFiltersChange={setJournalFilters} onRetryAccepted={() => void workspace.loadLive(false, true)} />
-                <div className={q.workspaceNote}><span>Conversation intelligence for your next step.</span><button className={q.deviceStatus} onClick={() => navigate("device")}><i data-offline={!deviceOnline} />{mode === "sample" ? "View sample device" : device ? `${device.name} · ${deviceOnline ? "Connected" : "No recent connection"}` : workspace.deviceStatusLoaded ? "Connect your Quipus" : "View device status"}</button></div>
+                <ConversationJournal meetings={conversations} mode={mode} compact onOpen={openConversation} onAll={() => navigate("conversations")} filters={journalFilters} onFiltersChange={setJournalFilters} onRetryAccepted={() => void workspace.loadLive(false, true)} selectedId={selectedId} inlineDetails={journalPanel} />
               </>}
-              {view === "conversations" && !detailId && <ConversationJournal meetings={conversations} mode={mode} onOpen={openDetail} onPeople={() => navigate("people")} filters={journalFilters} onFiltersChange={setJournalFilters} onRetryAccepted={() => void workspace.loadLive(false, true)} />}
+              {view === "conversations" && !detailId && <ConversationJournal meetings={conversations} mode={mode} onOpen={openConversation} onPeople={() => navigate("people")} filters={journalFilters} onFiltersChange={setJournalFilters} onRetryAccepted={() => void workspace.loadLive(false, true)} selectedId={selectedId} inlineDetails={journalPanel} />}
               {view === "calendar" && (
                 <>
                   <div className={styles.calendarLayout}>
@@ -462,7 +483,7 @@ export function Workspace({
                                         key={meeting.id}
                                         className={`${styles.eventChip} ${meeting.source === "calendar" || meeting.status === "upcoming" ? styles.scheduledChip : styles.conversationChip}`}
                                         onClick={() =>
-                                          openConversation(meeting.id)
+                                          openConversation(meeting.id, "Summary", "calendar")
                                         }
                                         title={meeting.title}
                                       >
@@ -515,7 +536,7 @@ export function Workspace({
                               <button
                                 className={styles.agendaRow}
                                 key={meeting.id}
-                                onClick={() => openConversation(meeting.id)}
+                                onClick={() => openConversation(meeting.id, "Summary", "calendar")}
                               >
                                 <span className={styles.agendaDate}>
                                   {dateLabel(meeting.startAt, {
@@ -558,22 +579,14 @@ export function Workspace({
                       <header>
                         <div>
                           <span className={styles.eyebrow}>
-                            READY FOR YOUR GO-AHEAD
+                            CALENDAR
                           </span>
                           <h2>
-                            Approvals{" "}
-                            <span className={styles.count}>
-                              {pending.length}
-                            </span>
+                            Follow-ups
                           </h2>
                         </div>
 
                       </header>
-                      <p className={styles.railIntro}>
-                        You agreed on the next step.
-                        <br />
-                        One approval makes it official.
-                      </p>
                       {(approvalFilter === "dismissed" ||
                         approvals.some(
                           (approval) => approval.status === "dismissed",
@@ -615,9 +628,7 @@ export function Workspace({
                               className={styles.approvalCard}
                             >
                               <div className={styles.approvalIdentity}>
-                                <span className={styles.smallAvatar}>
-                                  {initials(approval.contact?.name || "Client")}
-                                </span>
+
                                 <span>
                                   <strong>
                                     {approval.contact?.name || "Client meeting"}
@@ -629,7 +640,7 @@ export function Workspace({
                                 </span>
                                 <button
                                   className={styles.iconButton}
-                                  onClick={() => setEditing(approval)}
+                                  onClick={() => { setPanelOrigin("calendar"); reviewApproval(approval); }}
                                   aria-label={`Edit meeting with ${approval.contact?.name || "client"}`}
                                   disabled={
                                     Boolean(working) ||
@@ -679,7 +690,7 @@ export function Workspace({
                               <button
                                 className={styles.sourceLink}
                                 onClick={() =>
-                                  openConversation(approval.conversationId)
+                                  openConversation(approval.conversationId, "Summary", "calendar")
                                 }
                               >
                                 View conversation
@@ -699,18 +710,16 @@ export function Workspace({
                               ) : (
                                 <div className={styles.approvalActions}>
                                   <button
-                                    className={styles.primaryButton}
+                                    className={q.approvalButton}
                                     disabled={Boolean(working)}
-                                    onClick={() => setEditing(approval)}
+                                    onClick={() => { setPanelOrigin("calendar"); reviewApproval(approval); }}
                                   >
                                     {working === approval.id ? (
                                       <LoaderCircle className={styles.spin} />
                                     ) : null}
                                     {working === approval.id
                                       ? "Adding…"
-                                      : missing.length
-                                        ? "Complete details"
-                                        : "Review invitation"}
+                                      : "Awaiting your approval"}
                                   </button>
                                   <button
                                     className={styles.dismissButton}
@@ -753,6 +762,7 @@ export function Workspace({
                       </p>
                     </aside>
                   </div>
+                  {!desktopDock && panelOrigin === "calendar" && panel && <div className={d.inlinePanel}>{panel}</div>}
                 </>
               )}
 
@@ -934,39 +944,11 @@ export function Workspace({
             <span className={styles.footerLinks}>
               <Link href="/privacy">Privacy</Link>
               <Link href="/terms">Terms</Link>
-              <span>Listen. Understand. Follow through.</span>
             </span>
           </footer>
         </motion.div>
-        </AnimatePresence>
+        {desktopDock && panel && <motion.aside className={d.dock} aria-label={editing ? "Review approval" : "Conversation details"} initial={motionEnabled && !reducedMotion ? { opacity: 0, x: 20 } : false} animate={{ opacity: 1, x: 0 }} transition={{ duration: .2, ease: [0.2, 0.8, 0.2, 1] }}>{panel}</motion.aside>}
       </main>
-      <ConversationModal
-        meeting={selectedMeeting}
-        meetings={meetings}
-        onClose={() => setSelectedId(null)}
-        onOpenFull={openDetail}
-        onOpenContact={openClient}
-        onEditApproval={setEditing}
-        onUpdateContact={workspace.patchContact}
-        onRetryAccepted={() => void workspace.loadLive(false, true)}
-        mode={mode}
-        receipt={receiptNotice}
-        onTask={(id, completed) =>
-          void workspace.patchFollowUp(id, {
-            status: completed ? "completed" : "pending",
-          })
-        }
-        working={working}
-        error={error}
-      />
-      <ApprovalDialog
-        approval={editing}
-        mode={mode}
-        working={Boolean(working)}
-        executionError={error}
-        onClose={() => setEditing(null)}
-        onApprove={approve}
-      />
       {mode === "live" && (
         <RecordingDialog
           open={recordingOpen}

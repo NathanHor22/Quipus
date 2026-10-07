@@ -1,14 +1,14 @@
 .deviceLoading { display: grid; min-height: 260px; place-content: center; color: var(--q-muted-strong); }
 .deviceLoading p { margin: 0; }
 .kicker { color: var(--q-muted-strong); font-size: 11px; font-weight: 750; letter-spacing: .13em; }
-.pairingLayout { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(270px, .75fr) minmax(0, 1.25fr); overflow: hidden; border: 1px solid var(--q-line-strong); border-radius: 3px; background: var(--q-glass); box-shadow: var(--q-shadow); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
-.pairingIntro { display: flex; flex-direction: column; align-items: flex-start; padding: 34px; border-right: 1px solid var(--q-line); background: color-mix(in srgb, var(--q-surface-raised) 64%, transparent); }
+.pairingLayout { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(270px, .75fr) minmax(0, 1.25fr); overflow: hidden; border: 1px solid var(--q-line-strong); border-radius: 2px; background: #fff; box-shadow: var(--q-shadow); }
+.pairingIntro { display: flex; flex-direction: column; align-items: flex-start; padding: 34px; border-right: 1px solid var(--q-line); background: var(--q-surface-raised); }
 .pairingIntro h2, .sampleSetup h2 { margin: 12px 0 15px; font-size: clamp(28px, 3vw, 38px); line-height: 1.1; letter-spacing: -.04em; }
 .pairingIntro p, .sampleSetup p { margin: 0 0 24px; color: var(--q-muted-strong); font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
 .pairingIntro .networkNote { margin: 24px 0 0; font-size: 12px; }
-.pairingPrimary, .secondaryAction, .wifiAction, .dangerAction { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 11px 15px; border: 1px solid var(--q-line-strong); border-radius: 2px; font: inherit; font-size: 12px; font-weight: 700; line-height: 1.35; text-align: center; text-decoration: none; cursor: pointer; transition: background-color .16s, border-color .16s, box-shadow .16s, transform .12s; }
+.pairingPrimary, .secondaryAction, .wifiAction, .dangerAction { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 11px 15px; border: 1px solid var(--q-line-strong); border-radius: 2px; font: inherit; font-size: 12px; font-weight: 700; line-height: 1.35; text-align: center; text-decoration: none; cursor: pointer; transition: background-color 120ms, border-color 120ms, box-shadow 120ms, transform 100ms; }
 .pairingPrimary, .wifiAction { background: var(--q-button-bg); border-color: var(--q-button-bg); border-bottom: 2px solid var(--q-red); color: var(--q-button-text); }
-.secondaryAction { background: color-mix(in srgb, var(--q-surface-raised) 56%, transparent); color: var(--q-text); }
+.secondaryAction { background: var(--q-surface-raised); color: var(--q-text); }
 .dangerAction { background: var(--q-danger); border-color: var(--q-danger); color: var(--q-on-accent); }
 .pairingPrimary:hover, .wifiAction:hover { box-shadow: inset 0 -2px var(--q-red); }
 .secondaryAction:hover { border-color: var(--q-text); background: var(--q-surface-raised); }
@@ -16,14 +16,14 @@
 .pairingPrimary:active:not(:disabled), .secondaryAction:active:not(:disabled), .wifiAction:active:not(:disabled), .dangerAction:active:not(:disabled) { transform: translateY(1px); }
 .pairingPrimary:focus-visible, .secondaryAction:focus-visible, .wifiAction:focus-visible, .dangerAction:focus-visible, .stepNavigation button:focus-visible, .help summary:focus-visible, .deviceDangerZone button:focus-visible { outline: 2px solid var(--q-red); outline-offset: 3px; }
 .pairingPrimary:disabled, .secondaryAction:disabled, .dangerAction:disabled, .deviceDangerZone button:disabled { opacity: .55; cursor: wait; }
-.activePairingCode { display: grid; align-self: stretch; gap: 9px; margin-bottom: 12px; padding: 19px; border: 1px solid var(--q-line-strong); border-top: 2px solid var(--q-red); border-radius: 2px; background: color-mix(in srgb, var(--q-surface) 90%, transparent); }
+.activePairingCode { display: grid; align-self: stretch; gap: 9px; margin-bottom: 12px; padding: 19px; border: 1px solid var(--q-line-strong); border-top: 2px solid var(--q-red); border-radius: 2px; background: #fff; }
 .activePairingCode span { font-size: 10px; font-weight: 750; letter-spacing: .12em; color: var(--q-muted-strong); }
 .activePairingCode strong { font-size: clamp(20px, 2.6vw, 27px); letter-spacing: .09em; overflow-wrap: anywhere; }
 .activePairingCode small { color: var(--q-muted-strong); font-size: 12px; line-height: 1.5; }
 .setupSteps { padding: 28px; min-width: 0; }
 .stepNavigation { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; margin: 0 0 28px; padding: 0; list-style: none; }
-.stepNavigation button { display: flex; align-items: flex-start; gap: 6px; width: 100%; min-height: 55px; padding: 10px 8px; border: 1px solid var(--q-line-strong); border-top-width: 2px; border-radius: 2px; background: color-mix(in srgb, var(--q-surface-raised) 60%, transparent); color: var(--q-text); font: inherit; font-size: 11px; line-height: 1.5; text-align: left; cursor: pointer; }
-.stepNavigation button[aria-current="step"] { border-top-color: var(--q-red); background: color-mix(in srgb, var(--q-surface) 82%, transparent); font-weight: 750; }
+.stepNavigation button { display: flex; align-items: flex-start; gap: 6px; width: 100%; min-height: 55px; padding: 10px 8px; border: 1px solid var(--q-line-strong); border-top-width: 2px; border-radius: 2px; background: var(--q-surface-raised); color: var(--q-text); font: inherit; font-size: 11px; line-height: 1.5; text-align: left; cursor: pointer; }
+.stepNavigation button[aria-current="step"] { border-top-color: var(--q-red); background: #fff; font-weight: 750; }
 .stepNavigation button:disabled { color: var(--q-muted-strong); cursor: default; }
 .stepNavigation button span { font-size: 10px; font-weight: 750; }
 .stepPanel { min-height: 320px; }
@@ -38,9 +38,9 @@
 .deviceError { background: var(--q-danger-soft); color: var(--q-danger); }
 .deviceError p { margin: 0 0 10px; }
 .deviceNotice { background: var(--q-surface-raised); color: var(--q-muted-strong); }
-.sampleSetup { position: relative; max-width: 720px; padding: 36px; border: 1px solid var(--q-line-strong); border-radius: 3px; background: var(--q-glass); box-shadow: var(--q-shadow); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+.sampleSetup { position: relative; max-width: 720px; padding: 36px; border: 1px solid var(--q-line-strong); border-radius: 2px; background: #fff; box-shadow: var(--q-shadow); }
 .healthLayout { display: grid; gap: 20px; }
-.healthHero { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 25px; border: 1px solid var(--q-line-strong); border-left: 3px solid var(--q-red); border-radius: 3px; background: var(--q-glass); box-shadow: var(--q-shadow); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+.healthHero { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 25px; border: 1px solid var(--q-line-strong); border-left: 3px solid var(--q-red); border-radius: 2px; background: #fff; box-shadow: var(--q-shadow); }
 .deviceIdentity { min-width: 0; }
 .deviceIdentity h2 { margin: 6px 0; font-size: 28px; letter-spacing: -.035em; }
 .deviceIdentity p { margin: 0; color: var(--q-muted-strong); font-size: 12px; overflow-wrap: anywhere; }
@@ -48,18 +48,18 @@
 .onlineBadge { background: var(--q-success-soft); color: var(--q-success); }
 .attentionBadge { background: var(--q-warning-soft); color: var(--q-warning); }
 .healthLayout > .deviceNotice, .healthLayout > .deviceError { margin-top: 0; }
-.healthStats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: hidden; border: 1px solid var(--q-line-strong); border-radius: 3px; background: var(--q-glass); box-shadow: var(--q-shadow); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.healthStats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: hidden; border: 1px solid var(--q-line-strong); border-radius: 2px; background: #fff; box-shadow: var(--q-shadow); }
 .healthStats article { min-width: 0; padding: 20px; border-right: 1px solid var(--q-line); }
 .healthStats article:last-child { border-right: 0; }
 .healthStats article > span { display: grid; gap: 5px; }
 .healthStats strong { overflow: hidden; font-size: 18px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; text-transform: capitalize; }
 .healthStats small { color: var(--q-muted-strong); font-size: 11px; line-height: 1.5; }
-.firstTest { padding: 24px; border: 1px solid var(--q-line-strong); border-radius: 3px; background: var(--q-glass); box-shadow: var(--q-shadow); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.firstTest { padding: 24px; border: 1px solid var(--q-line-strong); border-radius: 2px; background: #fff; box-shadow: var(--q-shadow); }
 .firstTest h3 { margin: 7px 0 16px; font-size: 21px; letter-spacing: -.025em; }
 .firstTest ol { display: grid; gap: 7px; margin: 0; padding-left: 20px; color: var(--q-muted-strong); font-size: 12px; line-height: 1.7; }
 .firstTest strong { color: var(--q-text); }
 .healthGrid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .8fr); gap: 20px; }
-.deviceDetails, .connectionCard { padding: 24px; border: 1px solid var(--q-line-strong); border-radius: 3px; background: var(--q-glass); box-shadow: var(--q-shadow); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+.deviceDetails, .connectionCard { padding: 24px; border: 1px solid var(--q-line-strong); border-radius: 2px; background: #fff; box-shadow: var(--q-shadow); }
 .deviceDetails > header { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding-bottom: 17px; border-bottom: 1px solid var(--q-line); }
 .deviceDetails h3, .connectionCard h3 { margin: 6px 0 0; font-size: 21px; letter-spacing: -.025em; }
 .deviceDetails dl { margin: 0; }
@@ -74,12 +74,12 @@
 .connectionCard ul { margin: 20px 0 0; padding: 0; border-top: 1px solid var(--q-line); list-style: none; }
 .connectionCard li { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--q-line); font-size: 11px; line-height: 1.6; color: var(--q-muted-strong); }
 .connectionCard li strong { flex-shrink: 0; color: var(--q-text); }
-.deviceDangerZone { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px; border: 1px solid var(--q-line-strong); border-radius: 3px; background: var(--q-glass); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.deviceDangerZone { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px; border: 1px solid var(--q-line-strong); border-radius: 2px; background: #fff; }
 .deviceDangerZone strong { font-size: 13px; }
 .deviceDangerZone p { margin: 6px 0 0; color: var(--q-muted-strong); font-size: 12px; line-height: 1.6; }
-.deviceDangerZone button { flex-shrink: 0; min-height: 42px; padding: 10px 14px; border: 1px solid var(--q-danger); border-radius: 2px; background: color-mix(in srgb, var(--q-surface) 62%, transparent); color: var(--q-danger); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
-.revokeDialog { width: min(520px, calc(100% - 36px)); max-height: calc(100dvh - 40px); padding: 28px; border: 1px solid var(--q-line-strong); border-top: 3px solid var(--q-red); border-radius: 3px; background: var(--q-glass-strong); color: var(--q-text); box-shadow: var(--q-shadow-modal); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
-.revokeDialog::backdrop { background: var(--q-overlay); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.deviceDangerZone button { flex-shrink: 0; min-height: 42px; padding: 10px 14px; border: 1px solid var(--q-danger); border-radius: 2px; background: #fff; color: var(--q-danger); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.revokeDialog { width: min(520px, calc(100% - 36px)); max-height: calc(100dvh - 40px); padding: 28px; border: 1px solid var(--q-line-strong); border-top: 3px solid var(--q-red); border-radius: 2px; background: #fff; color: var(--q-text); box-shadow: var(--q-shadow-modal); }
+.revokeDialog::backdrop { background: var(--q-overlay); }
 .revokeDialog h2 { margin: 0 0 14px; font-size: 24px; letter-spacing: -.035em; }
 .revokeDialog p { color: var(--q-muted-strong); font-size: 13px; line-height: 1.65; }
 .dialogActions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
@@ -89,3 +89,24 @@
 .pairingLayout::before, .sampleSetup::before { position: absolute; top: -1px; left: -1px; width: 96px; height: 3px; background: var(--q-red); content: ""; }
 .healthHero::after { position: absolute; top: -1px; right: 24px; width: 42px; height: 3px; transform: skewX(-35deg); background: var(--q-red-deep); content: ""; }
 @media (prefers-reduced-motion: reduce) { .pairingPrimary, .secondaryAction, .wifiAction, .dangerAction { transition: none; } }
+
+/* Device setup and health use solid planes, with readable essential status. */
+.pairingLayout, .sampleSetup, .healthHero, .healthStats, .firstTest, .deviceDetails, .connectionCard, .deviceDangerZone, .revokeDialog { background: #fff; border-radius: 2px; }
+.pairingIntro { background: #f5f6f7; }
+.activePairingCode { background: #fff; }
+.kicker, .activePairingCode span { font-size: 13px; letter-spacing: .1em; }
+.pairingIntro p, .sampleSetup p, .stepPanel > p, .firstTest ol, .connectionCard > p, .revokeDialog p { font-size: 16px; line-height: 1.65; }
+.pairingIntro .networkNote, .activePairingCode small, .help summary, .help p, .deviceError, .deviceNotice, .deviceIdentity p, .healthStats small, .lastError, .deviceDangerZone p { font-size: 14px; line-height: 1.6; }
+.pairingPrimary, .secondaryAction, .wifiAction, .dangerAction, .deviceDangerZone button { min-height: 44px; font-size: 15px; border-radius: 2px; transition: background-color 120ms, border-color 120ms, box-shadow 120ms, transform 100ms; }
+.secondaryAction, .deviceDangerZone button { background: #fff; }
+.activePairingCode strong { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
+.stepNavigation button { min-height: 65px; font-size: 14px; line-height: 1.5; background: #f5f6f7; transition: background-color 120ms, border-color 120ms; }
+.stepNavigation button[aria-current="step"] { background: #fff; }
+.stepNavigation button span { font-size: 14px; }
+.onlineBadge, .attentionBadge { font-size: 14px; }
+.healthStats strong { font-size: 22px; line-height: 1.35; }
+.deviceDetails dl > div { font-size: 15px; line-height: 1.5; }
+.connectionCard li { flex-wrap: wrap; gap: 6px 18px; font-size: 14px; }
+.deviceDangerZone strong { font-size: 17px; }
+@media (max-width: 600px) { .healthStats strong { font-size: 20px; } }
+@media (prefers-reduced-motion: reduce) { .pairingPrimary, .secondaryAction, .wifiAction, .dangerAction, .deviceDangerZone button, .stepNavigation button { transition: none; } }

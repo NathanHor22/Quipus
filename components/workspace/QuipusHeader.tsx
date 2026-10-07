@@ -13,9 +13,9 @@ export const viewPaths: Record<WorkspaceView, string> = {
   overview: "/dashboard", conversations: "/dashboard/conversations", calendar: "/dashboard/calendar",
   people: "/dashboard/people", device: "/dashboard/devices", settings: "/dashboard/settings",
 };
-export function QuipusHeader({ view, sample, account, navigate, theme, onTheme }: {
+export function QuipusHeader({ view, sample, account, navigate }: {
   view: WorkspaceView; sample: boolean; account: WorkspaceAccount | null;
-  navigate: (view: WorkspaceView) => void; theme: "dark" | "light"; onTheme: () => void;
+  navigate: (view: WorkspaceView) => void;
 }) {
   const { enabled } = useQuipusMotion();
   const [open, setOpen] = useState(false);
@@ -28,19 +28,18 @@ export function QuipusHeader({ view, sample, account, navigate, theme, onTheme }
   }, [open]);
   const name = account?.displayName || account?.email || "Your account";
   return <header className={styles.header}>
-    <Link href={sample ? "/" : "/dashboard"} className={styles.brand} aria-label="Quipus home"><QuipusMark /><span>QUIPUS<small>CONVERSATION INTELLIGENCE</small></span></Link>
+    <Link href={sample ? "/" : "/dashboard"} className={styles.brand} aria-label="Quipus home"><QuipusMark /><span>QUIPUS</span></Link>
     <nav className={styles.navigation} aria-label="Main navigation">
       {([{ id: "overview", label: "Home" }, { id: "conversations", label: "Conversations" },
         { id: "calendar", label: "Calendar" }, { id: "device", label: "Devices" }] as const).map(({ id, label }) =>
         <Link key={id} href={sample ? `/?mode=sample&view=${id}` : viewPaths[id]} aria-current={view === id ? "page" : undefined}
           className={`${styles.navLink} ${view === id ? styles.navSelected : ""}`}
           onClick={e => { if (!e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) { e.preventDefault(); navigate(id); } }}>
-          {view === id && <motion.span className={styles.navHighlight} layoutId="quipus-active-tab" transition={{ duration: enabled ? .24 : 0, ease: "easeOut" }} />}
+          {view === id && <motion.span className={styles.navHighlight} layoutId="quipus-active-tab" transition={{ duration: enabled ? .12 : 0, ease: "easeOut" }} />}
           <span>{label}</span>
         </Link>)}
     </nav>
     <div className={styles.headerActions}>
-      <button className={styles.themeButton} onClick={onTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}>{theme === "dark" ? "Light" : "Dark"}</button>
       {account ? <div className={styles.profile} ref={menu}>
         <button className={styles.profileTrigger} aria-expanded={open} aria-controls="quipus-profile-menu" onClick={() => setOpen(!open)}>
           <span className={styles.profileAvatar}>{initials(name)}</span><span>{name.split(" ")[0]}</span><span className={styles.profileCaret} aria-hidden="true" />
