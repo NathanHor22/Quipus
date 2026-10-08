@@ -2,10 +2,10 @@
 import { WhatsAppDelivery } from "./WhatsAppDelivery";
 
 import Link from "next/link";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight, LoaderCircle, RotateCcw } from "lucide-react";
+
 import { getMonthGrid } from "@/lib/calendar";
 import { workspaceTime } from "@/lib/workspace-time";
 import type { Meeting } from "@/lib/types";
@@ -19,6 +19,8 @@ import {
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { RevealHeading, useQuipusMotion } from "@/components/experience/QuipusExperience";
 import { validTimezone } from "@/lib/quipus-profile";
+import { workspaceGreeting } from "@/lib/workspace-greeting";
+import { isWorkspaceHref, resolveWorkspaceRoute } from "@/lib/workspace-navigation";
 import { QuipusHeader, viewPaths } from "./QuipusHeader";
 import { ConversationJournal } from "./ConversationJournal";
 import { ConversationDetail } from "./ConversationDetail";
@@ -60,26 +62,29 @@ type WorkspaceProps = {
   initialMode: WorkspaceMode;
   initialView?: WorkspaceView;
   initialConversationId?: string;
+  initialNow?: string;
 };
 
 const viewLabel: Record<WorkspaceView, string> = {
   overview: "Home", conversations: "Conversations", calendar: "Calendar", people: "People", device: "Devices", settings: "Settings",
 };
-const validViews = Object.keys(viewLabel) as WorkspaceView[];
 
 export function Workspace({
   account: initialAccount,
   initialMode,
   initialView = "overview",
-  initialConversationId,
+  initialNow,
 }: WorkspaceProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
   const reducedMotion = useReducedMotion();
   const { enabled: motionEnabled, setScene } = useQuipusMotion();
   const [account, setAccount] = useState(initialAccount);
   const [journalFilters, setJournalFilters] = useState({ query: "", date: "" });
+  const [clock, setClock] = useState(() => {
+    const snapshot = new Date(initialNow || Date.now());
+    return Number.isFinite(snapshot.getTime()) ? snapshot : new Date();
+  });
   const timezone = validTimezone(account?.timezone);
   const { dateKey: formatDateKey, dateLabel, timeLabel } = workspaceTime(timezone);
   useEffect(() => { setAccount(initialAccount); }, [initialAccount]);
@@ -95,26 +100,21 @@ export function Workspace({
     device,
   } =
     workspace;
-  const requestedView = params.get("view") as WorkspaceView;
-  const view: WorkspaceView = mode === "sample"
-    ? validViews.includes(requestedView) ? requestedView : initialView
-    : pathname.includes("/conversations") ? "conversations"
-    : (Object.entries(viewPaths).find(([key, path]) => key !== "overview" && path === pathname)?.[0] as WorkspaceView) || initialView;
+  const { view, detailId } = resolveWorkspaceRoute(pathname, new URLSearchParams(params.toString()), mode, initialView);
   useEffect(() => { setScene(view); }, [view, setScene]);
-  const detailId = pathname.startsWith("/dashboard/conversations/")
-    ? decodeURIComponent(pathname.split("/").at(-1) || "")
-    : mode === "sample" ? params.get("conversation") : initialConversationId;
   const detailMeeting = detailId ? meetings.find(m => m.id === detailId) : null;
   const requestedTab = params.get("tab");
   const detailTab = requestedTab === "Audio" || requestedTab === "Transcript" || requestedTab === "Actions" ? requestedTab : "Summary";
   const detailOrigin = useRef<{ href: string; scroll: number } | null>(null);
   const pendingScroll = useRef<number | null>(null);
-  const previousPage = useRef(`${view}:${detailId || ""}`);
+  const [historyEpoch, setHistoryEpoch] = useState(0);
+  const pageIdentity = `${view}:${detailId || ""}:${params.get("client") || ""}`;
+  const previousPage = useRef(pageIdentity);
   useEffect(() => {
-    const nextPage = `${view}:${detailId || ""}`;
+    const nextPage = pageIdentity;
     if (previousPage.current !== nextPage) document.getElementById("main-content")?.focus({ preventScroll: true });
     previousPage.current = nextPage;
-  }, [view, detailId]);
+  }, [pageIdentity]);
   useEffect(() => {
     if (loading || pendingScroll.current === null) return;
     const position = pendingScroll.current;
@@ -123,12 +123,12 @@ export function Workspace({
       pendingScroll.current = null;
     }, reducedMotion || !motionEnabled ? 0 : 180);
     return () => window.clearTimeout(timer);
-  }, [view, detailId, loading, motionEnabled, reducedMotion]);
+  }, [pageIdentity, historyEpoch, loading, motionEnabled, reducedMotion]);
   const [visibleMonth, setVisibleMonth] = useState(() =>
-    formatDateKey(new Date()).slice(0, 7),
+    formatDateKey(clock).slice(0, 7),
   );
   const [selectedDate, setSelectedDate] = useState(() =>
-    formatDateKey(new Date()),
+    formatDateKey(clock),
   );
   const [layout, setLayout] = useState<"month" | "agenda">("month");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -153,7 +153,15 @@ export function Workspace({
     "pending",
   );
   const [recordingOpen, setRecordingOpen] = useState(false);
-  const now = new Date();
+  useEffect(() => {
+    // Refresh on return to the app, rather than running an animation-time clock.
+    const refresh = () => { if (!document.hidden) setClock(new Date()); };
+    refresh();
+    const timer = window.setInterval(refresh, 60_000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", refresh); };
+  }, []);
+  const now = clock;
   const today = formatDateKey(now);
   const approvals = useMemo(() => getApprovals(meetings), [meetings]);
   const pending = approvals.filter((approval) => approval.status === "pending")
@@ -186,6 +194,10 @@ export function Workspace({
     .filter((meeting) => Date.parse(meeting.endAt) > now.getTime())
     .sort((a, b) => Date.parse(a.startAt) - Date.parse(b.startAt));
   const nextMeeting = upcoming[0] || null;
+  const greeting = workspaceGreeting({
+    displayName: account?.displayName, date: now, timezone, meetings,
+    pendingCount: pending.length, sample: mode === "sample", loading,
+  });
   const tasks = conversations
     .flatMap((meeting) => meeting.followUps || [])
     .filter(
@@ -204,49 +216,73 @@ export function Workspace({
   }).format(new Date(`${visibleMonth}-15T12:00:00Z`));
   const normalizedSearch = search.trim().toLowerCase();
 
+  const scrollPositions = useRef(new Map<string, number>());
+  const locationKey = () => window.location.pathname + window.location.search;
+  const rememberScroll = () => scrollPositions.current.set(locationKey(), window.scrollY);
+  const switchUrl = (href: string, scroll: number = 0) => {
+    if (!isWorkspaceHref(href, mode)) return;
+    rememberScroll();
+    pendingScroll.current = scroll;
+    if (locationKey() !== href) window.history.pushState(null, "", href);
+    else window.scrollTo({ top: scroll, behavior: "instant" });
+  };
+  useEffect(() => {
+    const previousRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    // Store positions without rendering React on scroll.
+    const remember = () => scrollPositions.current.set(locationKey(), window.scrollY);
+    const restore = () => {
+      setSelectedId(null);
+      setEditing(null);
+      pendingScroll.current = scrollPositions.current.get(locationKey()) ?? 0;
+      setHistoryEpoch(epoch => epoch + 1);
+    };
+    window.addEventListener("scroll", remember, { passive: true });
+    window.addEventListener("popstate", restore);
+    return () => {
+      window.removeEventListener("scroll", remember);
+      window.removeEventListener("popstate", restore);
+      window.history.scrollRestoration = previousRestoration;
+    };
+  }, []);
   const navigate = (next: WorkspaceView) => {
     setSelectedId(null);
     setEditing(null);
-    if (mode === "live") router.push(viewPaths[next]);
+    if (mode === "live") switchUrl(viewPaths[next]);
     else {
-      const url = new URL(window.location.href);
-      url.searchParams.set("view", next); url.searchParams.delete("conversation"); url.searchParams.delete("client"); url.searchParams.delete("tab"); url.searchParams.delete("edit"); url.searchParams.delete("contact");
-      window.history.pushState({}, "", url);
+      const url = new URL("/", window.location.origin);
+      url.searchParams.set("mode", "sample"); url.searchParams.set("view", next);
+      switchUrl(url.pathname + url.search);
     }
   };
   const openDetail = (id: string, tab: "Summary" | "Actions" | "Transcript" | "Audio" = "Summary", editContact = false, contactId?: string) => {
-    detailOrigin.current = { href: window.location.pathname + window.location.search, scroll: window.scrollY };
+    detailOrigin.current = { href: locationKey(), scroll: window.scrollY };
     setSelectedId(null);
     setEditing(null);
     const details = new URLSearchParams();
     if (tab !== "Summary") details.set("tab", tab);
     if (editContact) details.set("edit", "contact");
     if (contactId) details.set("contact", contactId);
-    if (mode === "live") router.push(`/dashboard/conversations/${encodeURIComponent(id)}${details.size ? `?${details}` : ""}`);
+    if (mode === "live") switchUrl(`/dashboard/conversations/${encodeURIComponent(id)}${details.size ? `?${details}` : ""}`);
     else {
-      const url = new URL(window.location.href);
-      url.searchParams.set("view", "conversations"); url.searchParams.set("conversation", id);
-      url.searchParams.delete("client"); url.searchParams.delete("tab"); url.searchParams.delete("edit"); url.searchParams.delete("contact");
+      const url = new URL("/", window.location.origin);
+      url.searchParams.set("mode", "sample"); url.searchParams.set("view", "conversations"); url.searchParams.set("conversation", id);
       details.forEach((value, key) => url.searchParams.set(key, value));
-      window.history.pushState({}, "", url);
-      window.scrollTo({ top: 0, behavior: "instant" });
+      switchUrl(url.pathname + url.search);
     }
   };
   const backFromDetail = () => {
     const origin = detailOrigin.current;
-    if (!origin || !origin.href.startsWith("/") || origin.href.startsWith("//")) { navigate("conversations"); return; }
-    pendingScroll.current = origin.scroll;
-    if (mode === "live") router.push(origin.href, { scroll: false });
-    else window.history.pushState({}, "", origin.href);
+    if (!origin || !isWorkspaceHref(origin.href, mode)) { navigate("conversations"); return; }
+    switchUrl(origin.href, origin.scroll);
   };
   const openClient = (id: string) => {
     setSelectedId(null);
     setEditing(null);
-    const url = mode === "live" ? new URL(viewPaths.people, window.location.origin) : new URL(window.location.href);
-    if (mode === "sample") { url.searchParams.set("view", "people"); url.searchParams.delete("conversation"); url.searchParams.delete("tab"); url.searchParams.delete("edit"); url.searchParams.delete("contact"); }
+    const url = new URL(mode === "live" ? viewPaths.people : "/", window.location.origin);
+    if (mode === "sample") { url.searchParams.set("mode", "sample"); url.searchParams.set("view", "people"); }
     url.searchParams.set("client", id);
-    if (mode === "live") router.push(url.pathname + url.search);
-    else { window.history.pushState({}, "", url); window.scrollTo({ top: 0, behavior: "instant" }); }
+    switchUrl(url.pathname + url.search);
   };
   const changeMonth = (amount: number) => {
     const date = new Date(`${visibleMonth}-15T12:00:00Z`);
@@ -299,21 +335,21 @@ export function Workspace({
   };
   return (
     <WorkspaceTimezone.Provider value={timezone}>
-    <div className={styles.shell} data-theme="light">
+    <div className={styles.shell} data-theme="light" data-workspace-view={view}>
       <a className={styles.skipLink} href="#main-content">Skip to content</a>
       <QuipusHeader view={view} sample={mode === "sample"} account={account} navigate={navigate} />
       <main className={d.frame} data-docked={desktopDock && Boolean(panel)} id="main-content" tabIndex={-1}>
         <motion.div className={d.content} key={`${view}:${detailId || ""}`}
-          initial={reducedMotion || !motionEnabled ? false : { opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: .32, ease: [0.2, 0.8, 0.2, 1] }}>
+          initial={reducedMotion || !motionEnabled ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: .4, ease: [0.2, 0.8, 0.2, 1] }}>
 
           {!detailId && <header className={q.welcome}>
             <div className={q.welcomeCopy}>
-              {view !== "overview" && <p className={q.kicker}>YOUR WORKSPACE</p>}
-              <RevealHeading text={view === "overview" ? "YOUR WORKSPACE" : viewLabel[view]} replayKey={view} />
-              {view === "overview" && <p className={q.dateLine}>{new Intl.DateTimeFormat("en-GB", { weekday: "long", timeZone: timezone }).format(now) + ", " + new Intl.DateTimeFormat("en-GB", { month: "long", day: "numeric", timeZone: timezone }).format(now)}</p>}
+              <p className={q.kicker}>{mode === "sample" ? "QUIPUS / SAMPLE WORKSPACE" : view === "overview" ? "YOUR DAY, IN FOCUS" : "QUIPUS / WORKSPACE"}</p>
+              {view === "overview" ? <h1>{greeting.title}</h1> : <RevealHeading text={viewLabel[view]} replayKey={view} />}
+              {view === "overview" && <><p className={q.greetingContext}>{greeting.detail}</p><p className={q.dateLine}>{new Intl.DateTimeFormat("en-GB", { weekday: "long", timeZone: timezone }).format(now) + ", " + new Intl.DateTimeFormat("en-GB", { month: "long", day: "numeric", timeZone: timezone }).format(now)}</p></>}
             </div>
-            {mode === "sample" && <button className={q.resetSample} disabled={Boolean(working)} onClick={resetSample}><RotateCcw aria-hidden="true" />Reset sample data</button>}
+            {mode === "sample" && <button className={q.resetSample} disabled={Boolean(working)} onClick={resetSample}>Reset sample data</button>}
           </header>}
           {error && (
             <div className={styles.errorBanner} role="alert">
@@ -337,7 +373,7 @@ export function Workspace({
             <>
               {!selectedId && receiptNotice}
               {mode === "live" && account && view === "overview" && <WorkspaceSetup account={account} calendarConnected={integrations.google} devicePaired={workspace.deviceStatusLoaded ? Boolean(device) : undefined} hasRecording={hasFirstUpload} onPair={() => navigate("device")} onFirstRecording={() => navigate("device")} />}
-              {mode === "live" && account && view === "calendar" && <CalendarConnection email={account.email} connected={integrations.google} />}
+              {mode === "live" && account && view === "calendar" && integrations.google !== undefined && <CalendarConnection email={account.email} connected={integrations.google} />}
               {detailId ? (detailMeeting ? <ConversationDetail
                 conversation={detailMeeting} mode={mode} working={working} error={error}
                 initialTab={detailTab} initialContactEditing={params.get("edit") === "contact"} initialContactId={params.get("contact")}
@@ -353,27 +389,29 @@ export function Workspace({
                   {activeRecordings.map(meeting => <div key={meeting.id} className={flow.progressEntry}><h3>{meeting.title}</h3><RecordingProgress meeting={meeting} mode={mode} onOpenAudio={() => openConversation(meeting.id, "Audio", "recording")} onRetryAccepted={() => workspace.loadLive(false, true)} />{!desktopDock && panelOrigin === "recording" && selectedId === meeting.id && <div className={d.inlinePanel}>{panel}</div>}</div>)}
                 </section>}
                 <div className={q.dailyBrief}>
+                  <section className={q.followUps} aria-labelledby="followups-heading">
+                    <div className={q.sectionHeading}><h2 id="followups-heading">Ready for review</h2><span className={q.sectionCount} aria-label={`${pending.length} pending follow-ups`}>{pending.length}</span></div>
+                    <p className={q.sectionIntro}>Your next steps. Your approval.</p>
+                    {pending.length ? <div className={q.approvalList}>{pending.slice(0, 3).map(approval => <article key={approval.id} className={q.pendingItem} data-selected={editing?.id === approval.id}>
+                      <div className={q.pendingCopy}><h3>{approval.title}</h3>
+                        <p>{approval.contact?.company || approval.contact?.name || "Meeting invitation"}{approval.details.startAt ? " \u00b7 " + dateLabel(approval.details.startAt) + " \u00b7 " + timeLabel(approval.details.startAt) : " \u00b7 Date to confirm"}</p>
+                      </div>
+                      <button className={q.approvalButton} disabled={Boolean(working)} onClick={() => { setSelectedId(null); setPanelOrigin("approval"); reviewApproval(approval); }}>Review invitation</button>
+                      {!desktopDock && panelOrigin === "approval" && editing?.id === approval.id && <div className={d.inlinePanel}>{panel}</div>}
+                    </article>)}</div> : <div className={q.emptyState}><h3>You're up to date.</h3><p>Agreed follow-ups will appear here when a conversation is ready.</p></div>}
+                    {pending.length > 3 && <button className={q.textLink} onClick={() => navigate("calendar")}>View all follow-ups</button>}
+                  </section>
                   <section className={q.nextMeeting} aria-labelledby="next-meeting-heading">
-                    <h2 id="next-meeting-heading">Next meeting</h2>
+                    <div className={q.sectionHeading}><h2 id="next-meeting-heading">Up next</h2><span className={q.sectionLabel}>ON YOUR CALENDAR</span></div>
                     {nextMeeting ? <>
                       <p className={q.meetingDate}>{dateLabel(nextMeeting.startAt, { weekday: "long" })}</p>
                       <p className={q.meetingTime}>{timeLabel(nextMeeting.startAt)}</p>
                       <h3>{nextMeeting.title}</h3>
-                      {nextMeeting.contacts.length > 0 && <p className={q.meetingPeople}>{nextMeeting.contacts.map(contact => contact.name).join(", ")}{nextMeeting.contacts[0]?.company ? " · " + nextMeeting.contacts[0].company : ""}</p>}
+                      {nextMeeting.contacts.length > 0 && <p className={q.meetingPeople}>{nextMeeting.contacts.map(contact => contact.name).join(", ")}{nextMeeting.contacts[0]?.company ? " \u00b7 " + nextMeeting.contacts[0].company : ""}</p>}
                       {nextPurpose && nextPurpose !== nextMeeting.title && <p className={q.meetingPurpose}>{nextPurpose}</p>}
-                      <button className={q.meetingAction} onClick={() => openConversation(nextMeeting.id, "Summary", "next")}>View meeting brief<ArrowRight aria-hidden="true" /></button>
+                      <button className={q.meetingAction} onClick={() => openConversation(nextMeeting.id, "Summary", "next")}>View meeting details</button>
                       {!desktopDock && panelOrigin === "next" && panel && <div className={d.inlinePanel}>{panel}</div>}
-                    </> : <p className={q.emptyBrief}>No upcoming meetings.</p>}
-                  </section>
-                  <section className={q.followUps} aria-labelledby="followups-heading">
-                    <h2 id="followups-heading">Follow-ups</h2>
-                    {pending.length ? <div className={q.approvalList}>{pending.slice(0, 3).map(approval => <article key={approval.id} className={q.pendingItem} data-selected={editing?.id === approval.id}>
-                      <h3>{approval.title}</h3>
-                      <p>{approval.contact?.company || approval.contact?.name || "Meeting invitation"}{approval.details.startAt ? " · " + dateLabel(approval.details.startAt) + " · " + timeLabel(approval.details.startAt) : " · Date to confirm"}</p>
-                      <button className={q.approvalButton} disabled={Boolean(working)} onClick={() => { setSelectedId(null); setPanelOrigin("approval"); reviewApproval(approval); }}>Awaiting your approval<ArrowRight aria-hidden="true" /></button>
-                      {!desktopDock && panelOrigin === "approval" && editing?.id === approval.id && <div className={d.inlinePanel}>{panel}</div>}
-                    </article>)}</div> : <p className={q.emptyBrief}>No approvals waiting.</p>}
-                    {pending.length > 3 && <button className={q.textLink} onClick={() => navigate("calendar")}>All follow-ups<ArrowRight aria-hidden="true" /></button>}
+                    </> : <div className={q.emptyState}><h3>A little breathing room.</h3><p>No upcoming meetings on your connected calendar.</p><button className={q.meetingAction} onClick={() => navigate("calendar")}>Open calendar</button></div>}
                   </section>
                 </div>
                 <ConversationJournal meetings={conversations} mode={mode} compact onOpen={openConversation} onAll={() => navigate("conversations")} filters={journalFilters} onFiltersChange={setJournalFilters} onRetryAccepted={() => void workspace.loadLive(false, true)} selectedId={selectedId} inlineDetails={journalPanel} />
@@ -394,14 +432,14 @@ export function Workspace({
                             onClick={() => changeMonth(-1)}
                             aria-label="Previous month"
                           >
-                            <ChevronLeft />
+                            Previous
                           </button>
                           <button
                             className={styles.iconButton}
                             onClick={() => changeMonth(1)}
                             aria-label="Next month"
                           >
-                            <ChevronRight />
+                            Next
                           </button>
                           <button
                             className={styles.todayButton}
@@ -714,12 +752,9 @@ export function Workspace({
                                     disabled={Boolean(working)}
                                     onClick={() => { setPanelOrigin("calendar"); reviewApproval(approval); }}
                                   >
-                                    {working === approval.id ? (
-                                      <LoaderCircle className={styles.spin} />
-                                    ) : null}
                                     {working === approval.id
-                                      ? "Adding…"
-                                      : "Awaiting your approval"}
+                                      ? "Sending invitation…"
+                                      : "Review invitation"}
                                   </button>
                                   <button
                                     className={styles.dismissButton}
@@ -892,7 +927,7 @@ export function Workspace({
                     <p>
                       Choose your language preference for supported controls and processing requests. Quipus’s new navigation currently uses English.
                     </p>
-                    <LanguageSwitcher />
+                    <LanguageSwitcher className={styles.languageControl} showLabel />
                     <div className={styles.region}>
                       <span>Timezone</span>
                       <strong>{timezone}</strong>

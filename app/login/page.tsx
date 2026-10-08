@@ -35,7 +35,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <p className={styles.cardKicker}>WELCOME TO QUIPUS</p>
           <RevealHeading
             as="h1"
-            text="Keep every conversation moving."
+            text="Your conversations. Your next move."
             className={styles.heading}
           />
           <p className={styles.description}>
@@ -56,7 +56,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           )}
 
           <p className={styles.footnote}>
-            Each account has its own workspace. You choose what happens next.
+            Your meetings stay private. You approve every follow-up.
           </p>
 
           {configured && <div className={styles.demoSection}>
@@ -69,7 +69,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </p>
         </section>
       </div>
-      <p className={styles.pageFooter}>A clear record. A considered next step.</p>
+      <p className={styles.pageFooter}>Your partner in sales and business development.</p>
     </main>
   );
 }

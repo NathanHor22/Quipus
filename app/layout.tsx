@@ -10,6 +10,14 @@ const geist = localFont({
   display: "swap",
 });
 
+const michroma = localFont({
+  src: "./fonts/Michroma-Regular.ttf",
+  variable: "--font-michroma",
+  weight: "400",
+  display: "swap",
+  preload: false,
+});
+
 export const metadata: Metadata = {
   applicationName: "Quipus",
   title: {
@@ -24,12 +32,12 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: "light",
-  themeColor: "#FFFFFF",
+  themeColor: "#F5F6F8",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={geist.variable}>
+    <html lang="en" className={[geist.variable, michroma.variable].join(" ")}>
       <body><QuipusExperience>{children}</QuipusExperience></body>
     </html>
   );

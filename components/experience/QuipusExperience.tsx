@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -24,69 +25,141 @@ export type QuipusMotion = {
 };
 
 type MotionContext = QuipusMotion & { ready: boolean; visible: boolean };
-
-const STORAGE_KEY = "quipus-motion";
 const MotionContext = createContext<MotionContext | null>(null);
-
 type SceneStyle = CSSProperties & { "--scene-x": string; "--scene-y": string };
 
-/** Broad architectural planes, with one red ribbon at the page edge. */
+/** Architectural depth stays at the edges so reports remain quiet and readable. */
 function ArchitectureBackdrop({ active, scene }: { active: boolean; scene: string }) {
+  const backdrop = useRef<HTMLDivElement>(null);
+  const gradientId = useId();
   const scenes = ["overview", "conversations", "calendar", "people", "device", "settings"];
   const position = Math.max(0, scenes.indexOf(scene));
   const sceneStyle: SceneStyle = {
-    "--scene-x": position * -9 + "px",
-    "--scene-y": (position % 2 === 0 ? 0 : 15) + "px",
+    "--scene-x": position * -5 + "px",
+    "--scene-y": (position % 2 === 0 ? 0 : 8) + "px",
   };
 
+  useEffect(() => {
+    const element = backdrop.current;
+    if (!active || !element) return;
+    const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+    let animationFrame = 0;
+    let targetX = 0;
+    let targetY = 0;
+    const update = () => {
+      animationFrame = 0;
+      element.style.setProperty("--pointer-x", `${targetX.toFixed(2)}px`);
+      element.style.setProperty("--pointer-y", `${targetY.toFixed(2)}px`);
+    };
+    const reset = () => {
+      targetX = 0;
+      targetY = 0;
+      if (!animationFrame) animationFrame = window.requestAnimationFrame(update);
+    };
+    const onMove = (event: PointerEvent) => {
+      if (!finePointer.matches || event.pointerType === "touch") return;
+      targetX = (event.clientX / Math.max(1, window.innerWidth) - .5) * 16;
+      targetY = (event.clientY / Math.max(1, window.innerHeight) - .5) * 10;
+      if (!animationFrame) animationFrame = window.requestAnimationFrame(update);
+    };
+    const onExit = (event: PointerEvent) => { if (event.relatedTarget === null) reset(); };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerout", onExit, { passive: true });
+    window.addEventListener("blur", reset);
+    finePointer.addEventListener("change", reset);
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerout", onExit);
+      window.removeEventListener("blur", reset);
+      finePointer.removeEventListener("change", reset);
+      element.style.setProperty("--pointer-x", "0px");
+      element.style.setProperty("--pointer-y", "0px");
+    };
+  }, [active]);
+
   return (
-    <div className={styles.backdrop} aria-hidden="true" data-active={active} style={sceneStyle}>
-      <svg className={styles.architecture} viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" fill="none">
-        <g className={styles.upperPlanes}>
-          <path d="M960-90h680v265L1390 313H960Z" fill="#E8EBEE" />
-          <path d="M960-110h680v265l-250 138H960Z" fill="#F6F7F9" />
-          <path d="m1390 293 250-138v20l-250 138Z" fill="#DCE0E5" />
-          <path d="M1050-95h490v190l-145 80h-345Z" fill="#FFF" />
-          <path d="m1395 175 145-80v15l-145 80Z" fill="#E3E6EA" />
-        </g>
-        <g className={styles.lowerPlanes}>
-          <path d="M-180 715h500l210 132v190H-180Z" fill="#EEF0F3" />
-          <path d="M-180 690h500l210 132v190H-180Z" fill="#FAFBFC" />
-          <path d="M320 690v25l210 132v-25Z" fill="#DDE2E7" />
-          <path d="M-120 786h312l119 76v175h-431Z" fill="#FFF" />
-          <path d="M192 786v19l119 76v-19Z" fill="#E4E8EC" />
-        </g>
-        <g className={styles.redRibbon}>
-          <path d="m1535-150 185 9-242 439 157 308-60 37-190-346Z" fill="#929AA6" fillOpacity=".15" transform="translate(19 25)" />
-          <path d="m1518-150 175 9-244 439 158 308-60 37-189-345Z" fill="#F0162F" />
-          <path d="m1449 298 158 308-60 37-14-26 45-27-154-301Z" fill="#A70820" />
-          <path d="m1518-150 175 9-24 18-150-7-245 434-16-6Z" fill="#FF3A4B" />
-        </g>
-      </svg>
-      <svg className={styles.mobileArchitecture} viewBox="0 0 390 900" preserveAspectRatio="xMaxYMin slice" fill="none">
-        <g className={styles.upperPlanes}>
-          <path d="M236-80h210v209l-81 43H236Z" fill="#E9EDF1" />
-          <path d="M236-94h210v209l-81 43H236Z" fill="#F8F9FB" />
-          <path d="M278-70h132V58l-47 25h-85Z" fill="#FFF" />
-          <path d="m363 83 47-25v13l-47 25Z" fill="#E0E5EB" />
-        </g>
-        <g className={styles.lowerPlanes}>
-          <path d="M-85 734H49l85 54v160H-85Z" fill="#E9EDF1" />
-          <path d="M-85 718H49l85 54v160H-85Z" fill="#FAFBFC" />
-          <path d="m49 718 85 54v16l-85-54Z" fill="#DEE3E9" />
-        </g>
-        <g className={styles.redRibbon}><g transform="translate(38 -70)">
-          <path d="m373-88 70 2-99 270 68 129-26 16-80-142Z" fill="#939CAA" fillOpacity=".15" transform="translate(8 12)" />
-          <path d="m368-88 70 2-99 270 68 129-26 16-80-142Z" fill="#F0162F" />
-          <path d="m339 184 68 129-26 16-9-16 20-12-65-118Z" fill="#A70820" />
-        </g></g>
-      </svg>
+    <div ref={backdrop} className={styles.backdrop} aria-hidden="true" data-active={active} style={sceneStyle}>
+      <div className={styles.architecturalField}>
+        <svg className={styles.architecture} viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" fill="none" focusable="false">
+          <defs>
+            <linearGradient id={`${gradientId}-crimson`} x1="1320" y1="0" x2="1600" y2="760" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#FE0000" stopOpacity=".68" />
+              <stop offset=".56" stopColor="#C40000" stopOpacity=".78" />
+              <stop offset="1" stopColor="#9B0000" stopOpacity=".83" />
+            </linearGradient>
+            <linearGradient id={`${gradientId}-paper`} x1="950" y1="-80" x2="1400" y2="300" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#FFFFFF" /><stop offset="1" stopColor="#E8ECF1" />
+            </linearGradient>
+          </defs>
+          <g className={styles.upperPlanes}>
+            <path d="M920-100h760v210l-218 131H920Z" fill="#DFE5EC" fillOpacity=".64" />
+            <path d="M920-120h760v210l-218 131H920Z" fill={`url(#${gradientId}-paper)`} />
+            <path d="m1462 221 218-131v20l-218 131Z" fill="#D5DCE6" />
+            <path d="M1090-115h495v150l-139 81h-356Z" fill="#FFF" fillOpacity=".9" />
+            <path d="m1446 116 139-81v13l-139 81Z" fill="#E2E7EE" />
+            <path d="M920 221h370m-310-23h311m-200-18h131" stroke="#CAD2DD" strokeOpacity=".36" />
+          </g>
+          <g className={styles.lowerPlanes}>
+            <path d="M-180 725h465l222 142v185H-180Z" fill="#DDE4EC" fillOpacity=".56" />
+            <path d="M-180 704h465l222 142v185H-180Z" fill="#FDFEFF" />
+            <path d="m285 704 222 142v21L285 725Z" fill="#DCE3EC" />
+            <path d="M-100 810h264l128 80v156H-100Z" fill="#FFF" />
+            <path d="m164 810 128 80v13l-128-80Z" fill="#E4E9F0" />
+            <path d="M-160 704h390m-330 18h230" stroke="#D1D9E3" strokeOpacity=".48" />
+          </g>
+          <g className={styles.redPosition}>
+            <g className={styles.redPlanes}>
+              <path d="m1519-145 203 16-202 325 125 281-70 42-151-325Z" fill="#C4CCD8" fillOpacity=".2" transform="translate(16 16)" />
+              <path d="m1498-145 203 16-202 325 125 281-70 42-151-325Z" fill={`url(#${gradientId}-crimson)`} />
+              <path d="m1499 196 125 281-70 42-13-28 48-27-121-267Z" fill="#9B0000" fillOpacity=".58" />
+              <path d="m1498-145 203 16-26 20-175-12-196 326-1-11Z" fill="#FF8989" fillOpacity=".48" />
+              <path d="m1552-105 186 32-157 276 127 222-34 19-142-242Z" fill="#D53842" fillOpacity=".26" />
+              <g className={styles.contourLines} stroke="#790C21" strokeOpacity=".18">
+                <path d="m1530-50-95 190 109 248m18-408-93 179 109 248m18-408-92 179 109 248m18-408-93 179 110 248" />
+                <path d="m1540-20-91 165 85 191m28-339-85 164 88 192" />
+              </g>
+            </g>
+          </g>
+          <g stroke="#D1636B" strokeWidth="1" strokeOpacity=".34">
+            <path className={styles.connectionOne} d="m1320 65 68 66 71-45 77 61" />
+            <path className={styles.connectionTwo} d="m119 680 81 44 101-35 77 59" />
+            <path className={styles.connectionThree} d="m1363 799 47-64 85 27 99-88" />
+          </g>
+          <g>
+            <g className={`${styles.fragment} ${styles.fragmentOne}`}><path d="m1305 54 43 15-34 15Z" fill="#C40000" fillOpacity=".68" /><path d="m1314 84 34-15-21 27Z" fill="#9B0000" fillOpacity=".78" /></g>
+            <g className={`${styles.fragment} ${styles.fragmentTwo}`}><path d="m1448 611 42 20-31 17Z" fill="#FE0000" fillOpacity=".71" /><path d="m1459 648 31-17-13 31Z" fill="#B1202F" fillOpacity=".78" /></g>
+            <g className={`${styles.fragment} ${styles.fragmentThree}`}><path d="m1397 777 39-21-8 44Z" fill="#C40000" fillOpacity=".44" /><path d="m1428 800 8-44 13 25Z" fill="#DE656C" fillOpacity=".56" /></g>
+            <g className={`${styles.fragment} ${styles.fragmentFour}`}><path d="m167 702 34 19-39 11Z" fill="#C40000" fillOpacity=".44" /><path d="m162 732 39-11-19 24Z" fill="#9B0000" fillOpacity=".6" /></g>
+            <g className={`${styles.fragment} ${styles.fragmentFive}`}><path d="m75 842 28-17 4 35Z" fill="#DD6971" fillOpacity=".65" /><path d="m107 860-4-35 12 17Z" fill="#B21B2E" fillOpacity=".68" /></g>
+            <g className={`${styles.fragment} ${styles.fragmentSix}`}><path d="m1518 902 30-18-2 37Z" fill="#9B0000" fillOpacity=".56" /><path d="m1546 921 2-37 11 20Z" fill="#E24F5A" fillOpacity=".62" /></g>
+          </g>
+        </svg>
+        <svg className={styles.mobileArchitecture} viewBox="0 0 390 900" preserveAspectRatio="xMaxYMin slice" fill="none" focusable="false">
+          <g className={styles.upperPlanes}>
+            <path d="M256-70h195v160l-68 40H256Z" fill="#E1E7EF" /><path d="M256-82h195V78l-68 40H256Z" fill="#FCFDFF" />
+            <path d="M293-70h134v88l-42 25h-92Z" fill="#FFF" /><path d="m385 43 42-25v10l-42 25Z" fill="#E0E6EF" />
+          </g>
+          <g className={styles.lowerPlanes}>
+            <path d="M-90 757H29l97 57v150H-90Z" fill="#DCE3EC" /><path d="M-90 742H29l97 57v150H-90Z" fill="#FBFCFE" />
+          </g>
+          <g className={styles.redPosition}><g className={styles.redPlanes}>
+            <path d="m377-89 73 9-68 189 47 102-27 16-55-121Z" fill="#C40000" fillOpacity=".71" />
+            <path d="m382 109 47 102-27 16-6-14 17-10-45-92Z" fill="#9B0000" fillOpacity=".64" />
+            <path d="m377-89 73 9-12 9-60-4-63 181-8-1Z" fill="#FF7979" fillOpacity=".5" />
+            <path className={styles.contourLines} d="m385-40-45 148 42 93m10-227-43 136 39 91" stroke="#790C21" strokeOpacity=".22" />
+          </g></g>
+          <path className={styles.connectionOne} d="m20 739 43 30 26-18 39 41" stroke="#D1636B" strokeOpacity=".32" />
+          <g className={`${styles.fragment} ${styles.fragmentOne}`}><path d="m307 68 24 8-18 11Z" fill="#C40000" fillOpacity=".58" /><path d="m313 87 18-11-8 20Z" fill="#9B0000" fillOpacity=".68" /></g>
+          <g className={`${styles.fragment} ${styles.fragmentFour}`}><path d="m17 758 25 15-29 7Z" fill="#D6535E" fillOpacity=".62" /><path d="m13 780 29-7-14 18Z" fill="#9B0000" fillOpacity=".54" /></g>
+        </svg>
+      </div>
+      <div className={styles.readingWash} />
     </div>
   );
 }
 
 export function QuipusExperience({ children }: { children: ReactNode }) {
-  const [preference, setPreferenceState] = useState<QuipusMotionPreference>("system");
   const [reducedMotion, setReducedMotion] = useState(true);
   const [ready, setReady] = useState(false);
   const [visible, setVisible] = useState(true);
@@ -98,42 +171,23 @@ export function QuipusExperience({ children }: { children: ReactNode }) {
     const updateVisibility = () => setVisible(document.visibilityState !== "hidden");
     updateMedia();
     updateVisibility();
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved === "on" || saved === "off" || saved === "system") setPreferenceState(saved);
-    } catch {
-      // The operating-system preference still works without local storage.
-    }
     setReady(true);
     media.addEventListener("change", updateMedia);
     document.addEventListener("visibilitychange", updateVisibility);
-    const updateStorage = (event: StorageEvent) => {
-      if (event.key !== STORAGE_KEY) return;
-      const next = event.newValue;
-      setPreferenceState(next === "on" || next === "off" ? next : "system");
-    };
-    window.addEventListener("storage", updateStorage);
     return () => {
       media.removeEventListener("change", updateMedia);
       document.removeEventListener("visibilitychange", updateVisibility);
-      window.removeEventListener("storage", updateStorage);
     };
   }, []);
 
-  const enabled = ready && !reducedMotion && preference !== "off";
-  const setPreference = useCallback((next: QuipusMotionPreference) => {
-    setPreferenceState(next);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // Keep the preference for this visit if local storage is unavailable.
-    }
-  }, []);
-  const toggle = useCallback(() => setPreference(enabled ? "off" : "on"), [enabled, setPreference]);
+  const enabled = ready && !reducedMotion;
+  // Preserve the context contract for existing consumers; the OS now owns this preference.
+  const setPreference = useCallback((_next: QuipusMotionPreference) => {}, []);
+  const toggle = useCallback(() => {}, []);
   const setScene = useCallback((next: string) => setSceneState((previous) => previous === next ? previous : next), []);
   const value = useMemo<MotionContext>(
-    () => ({ enabled, preference, setPreference, toggle, setScene, ready, visible }),
-    [enabled, preference, setPreference, toggle, setScene, ready, visible],
+    () => ({ enabled, preference: "system", setPreference, toggle, setScene, ready, visible }),
+    [enabled, setPreference, toggle, setScene, ready, visible],
   );
 
   return (
@@ -153,7 +207,7 @@ export function useQuipusMotion(): QuipusMotion {
   return { enabled, preference, setPreference, toggle, setScene };
 }
 
-/** Only a narrow band scrambles; settled and upcoming words stay readable. */
+/** Only a narrow band scrambles; the accessible text always remains final. */
 function scrambledText(text: string, progress: number, frame: number): string {
   const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   const characters = Array.from(text);
@@ -179,35 +233,35 @@ export function RevealHeading({ as: Heading = "h1", text, className, replayKey }
   const [revealing, setRevealing] = useState(false);
   const [displayText, setDisplayText] = useState(text);
   const revealedIdentity = useRef<string | null>(null);
-  const identity = text + "\u0000" + (replayKey ?? "");
+  // Text changes from polling/profile loading do not restart a page entrance.
+  const identity = replayKey === undefined ? "initial" : `page:${replayKey}`;
 
   useEffect(() => {
     if (!ready) return;
-    if (!enabled || !visible) {
+    if (!enabled || !visible || revealedIdentity.current === identity) {
       revealedIdentity.current = identity;
       setRevealing(false);
       setDisplayText(text);
       return;
     }
-    if (revealedIdentity.current === identity) return;
+    revealedIdentity.current = identity;
     setRevealing(true);
     setDisplayText(text);
     let animationFrame = 0;
     let start: number | null = null;
     let lastFrame = -1;
-    const duration = 600;
+    const duration = 220;
     const tick = (time: number) => {
       start ??= time;
       const elapsed = time - start;
       const progress = Math.min(1, elapsed / duration);
-      const frame = Math.floor(elapsed / 42);
+      const frame = Math.floor(elapsed / 36);
       if (frame !== lastFrame) {
         lastFrame = frame;
         setDisplayText(scrambledText(text, progress, frame));
       }
       if (progress < 1) animationFrame = window.requestAnimationFrame(tick);
       else {
-        revealedIdentity.current = identity;
         setDisplayText(text);
         setRevealing(false);
       }

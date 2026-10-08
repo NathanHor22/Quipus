@@ -90,23 +90,29 @@
 .healthHero::after { position: absolute; top: -1px; right: 24px; width: 42px; height: 3px; transform: skewX(-35deg); background: var(--q-red-deep); content: ""; }
 @media (prefers-reduced-motion: reduce) { .pairingPrimary, .secondaryAction, .wifiAction, .dangerAction { transition: none; } }
 
-/* Device setup and health use solid planes, with readable essential status. */
-.pairingLayout, .sampleSetup, .healthHero, .healthStats, .firstTest, .deviceDetails, .connectionCard, .deviceDangerZone, .revokeDialog { background: #fff; border-radius: 2px; }
-.pairingIntro { background: #f5f6f7; }
-.activePairingCode { background: #fff; }
-.kicker, .activePairingCode span { font-size: 13px; letter-spacing: .1em; }
-.pairingIntro p, .sampleSetup p, .stepPanel > p, .firstTest ol, .connectionCard > p, .revokeDialog p { font-size: 16px; line-height: 1.65; }
-.pairingIntro .networkNote, .activePairingCode small, .help summary, .help p, .deviceError, .deviceNotice, .deviceIdentity p, .healthStats small, .lastError, .deviceDangerZone p { font-size: 14px; line-height: 1.6; }
-.pairingPrimary, .secondaryAction, .wifiAction, .dangerAction, .deviceDangerZone button { min-height: 44px; font-size: 15px; border-radius: 2px; transition: background-color 120ms, border-color 120ms, box-shadow 120ms, transform 100ms; }
-.secondaryAction, .deviceDangerZone button { background: #fff; }
-.activePairingCode strong { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
-.stepNavigation button { min-height: 65px; font-size: 14px; line-height: 1.5; background: #f5f6f7; transition: background-color 120ms, border-color 120ms; }
-.stepNavigation button[aria-current="step"] { background: #fff; }
-.stepNavigation button span { font-size: 14px; }
-.onlineBadge, .attentionBadge { font-size: 14px; }
-.healthStats strong { font-size: 22px; line-height: 1.35; }
-.deviceDetails dl > div { font-size: 15px; line-height: 1.5; }
-.connectionCard li { flex-wrap: wrap; gap: 6px 18px; font-size: 14px; }
-.deviceDangerZone strong { font-size: 17px; }
-@media (max-width: 600px) { .healthStats strong { font-size: 20px; } }
-@media (prefers-reduced-motion: reduce) { .pairingPrimary, .secondaryAction, .wifiAction, .dangerAction, .deviceDangerZone button, .stepNavigation button { transition: none; } }
+
+/* Quipus shared glass surfaces and readable controls. */
+.pairingLayout,.sampleSetup,.healthHero,.healthStats,.firstTest,.deviceDetails,.connectionCard,.deviceDangerZone,.revokeDialog { background:var(--q-panel-gradient); border-radius:7px; border-color:rgba(255,255,255,.94); box-shadow:var(--q-shadow); }
+.pairingLayout,.healthHero,.healthStats,.deviceDetails,.connectionCard { backdrop-filter:blur(var(--q-glass-blur)); }
+.pairingIntro { background:rgba(228,234,242,.48); }
+.activePairingCode { background:var(--q-glass); border-radius:5px; }
+.kicker,.activePairingCode span { font-family:var(--q-font-heading); font-size:10px; font-weight:400; letter-spacing:.07em; }
+.pairingIntro p,.sampleSetup p,.stepPanel > p,.firstTest ol,.connectionCard > p,.revokeDialog p { font-size:15px; line-height:1.65; }
+.pairingIntro .networkNote,.activePairingCode small,.help summary,.help p,.deviceError,.deviceNotice,.deviceIdentity p,.healthStats small,.lastError,.deviceDangerZone p { font-size:13px; line-height:1.6; }
+.pairingPrimary,.secondaryAction,.wifiAction,.dangerAction,.deviceDangerZone button { min-height:44px; font-size:14px; border-radius:5px; transition:background 120ms,border-color 120ms; }
+.secondaryAction,.deviceDangerZone button { background:var(--q-glass); }
+.activePairingCode strong { font-family:ui-monospace,"Cascadia Code",Consolas,monospace; }
+.stepNavigation { gap:7px; }
+.stepNavigation button { min-height:56px; font-size:13px; line-height:1.5; border:1px solid var(--q-line); border-radius:5px; background:var(--q-glass); transition:background 120ms,border-color 120ms; }
+.stepNavigation button[aria-current="step"] { background:var(--q-glass-strong); border-color:var(--q-red); }
+.stepNavigation button span { font-size:13px; }
+.onlineBadge,.attentionBadge { font-size:13px; border-radius:5px; }
+.healthStats strong { font-size:23px; line-height:1.35; font-weight:500; }
+.deviceDetails dl > div { font-size:14px; line-height:1.5; }
+.connectionCard li { flex-wrap:wrap; gap:6px 18px; font-size:13px; }
+.deviceDangerZone strong { font-size:16px; }
+.deviceIdentity h2,.deviceDetails h3,.connectionCard h3,.firstTest h3,.stepPanel h3,.pairingIntro h2 { font-family:var(--q-font-body); font-weight:500; }
+.help summary { display:flex; width:fit-content; min-height:42px; align-items:center; margin:14px 0; padding:10px 13px; border:1px solid var(--q-line-strong); border-radius:5px; background:var(--q-glass); }
+.help summary:hover { border-color:var(--q-red); }
+@media (max-width:600px) { .healthStats strong { font-size:21px; } }
+@media (prefers-reduced-motion:reduce) { .pairingPrimary,.secondaryAction,.wifiAction,.dangerAction,.deviceDangerZone button,.stepNavigation button { transition:none; } }

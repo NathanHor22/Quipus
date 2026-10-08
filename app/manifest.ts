@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Record meetings. Review the details. Follow up.",
     start_url: "/dashboard",
     display: "standalone",
-    background_color: "#FFFFFF",
-    theme_color: "#FFFFFF",
+    background_color: "#F5F6F8",
+    theme_color: "#F5F6F8",
     icons: [
       {
         src: "/icon.svg",

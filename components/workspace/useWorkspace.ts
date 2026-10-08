@@ -46,7 +46,8 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
   const [working, setWorking] = useState<string | null>(null);
   const generation = useRef(0);
   const actionLock = useRef(false);
-  const liveRefreshRunning = useRef(false);
+  const liveRefreshRunning = useRef<symbol | null>(null);
+  const activeRequests = useRef(new Set<AbortController>());
   const metadataRefreshedAt = useRef(0);
   const devicePaired = useRef(false);
   const owner = useRef(accountIdentity);
@@ -54,6 +55,9 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
 
   const loadSample = useCallback((reset = false) => {
     generation.current++;
+    activeRequests.current.forEach(controller => controller.abort());
+    activeRequests.current.clear();
+    liveRefreshRunning.current = null;
     let data = createSampleWorkspace();
     try {
       if (!reset)
@@ -81,7 +85,12 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
   const loadLive = useCallback(
     async (allowSample = false, silent = false) => {
       if (silent && (liveRefreshRunning.current || actionLock.current)) return;
-      if (silent) liveRefreshRunning.current = true;
+      const refreshId = Symbol("workspace-refresh");
+      liveRefreshRunning.current = refreshId;
+      const controller = new AbortController();
+      activeRequests.current.add(controller);
+      let deadline = window.setTimeout(() => controller.abort(), 15_000);
+      let meetingsLoaded = false;
       const current = ++generation.current;
       const requestOwner = owner.current;
       if (!silent) {
@@ -97,7 +106,7 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
         window.history.replaceState({}, "", url);
       }
       try {
-        const response = await fetch("/api/meetings", { cache: "no-store" });
+        const response = await fetch("/api/meetings", { cache: "no-store", signal: controller.signal });
         const payload = await response.json();
         if (current !== generation.current || requestOwner !== owner.current) return;
         if (!response.ok)
@@ -114,46 +123,57 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
           );
         }
         setMeetings(payload.meetings || []);
+        meetingsLoaded = true;
+        // Optional account/device checks must not hold the meeting content behind a loader.
+        if (!silent) setLoading(false);
         if (!silent || Date.now() - metadataRefreshedAt.current >= (devicePaired.current ? 30_000 : 10_000)) {
+          window.clearTimeout(deadline);
+          deadline = window.setTimeout(() => controller.abort(), 8_000);
           const [integrationRequest, deviceRequest] = await Promise.allSettled([
-            fetch("/api/integrations", { cache: "no-store" }),
-            fetch("/api/devices", { cache: "no-store" }),
+            fetch("/api/integrations", { cache: "no-store", signal: controller.signal })
+              .then(async response => ({ response, payload: await response.json() })),
+            fetch("/api/devices", { cache: "no-store", signal: controller.signal })
+              .then(async response => ({ response, payload: await response.json() })),
           ]);
           if (
             integrationRequest.status === "fulfilled" &&
-            integrationRequest.value.ok &&
+            integrationRequest.value.response.ok &&
             current === generation.current
           ) {
-            const integrationPayload = await integrationRequest.value.json();
+            const integrationPayload = integrationRequest.value.payload;
             if (current !== generation.current || requestOwner !== owner.current) return;
-            setIntegrations(integrationPayload.integrations || {});
+            setIntegrations(integrationPayload?.integrations || {});
             metadataRefreshedAt.current = Date.now();
           }
           if (
             deviceRequest.status === "fulfilled" &&
-            deviceRequest.value.ok &&
+            deviceRequest.value.response.ok &&
             current === generation.current
           ) {
-            const devicePayload = (await deviceRequest.value.json()) as {
+            const devicePayload = deviceRequest.value.payload as {
               devices?: WorkspaceDeviceSummary[];
             };
             if (current !== generation.current || requestOwner !== owner.current) return;
-            setDevice(devicePayload.devices?.[0] || null);
+            setDevice(devicePayload?.devices?.[0] || null);
             setDeviceStatusLoaded(true);
-            devicePaired.current = Boolean(devicePayload.devices?.length);
+            devicePaired.current = Boolean(devicePayload?.devices?.length);
             metadataRefreshedAt.current = Date.now();
           }
         }
       } catch (cause) {
-        if (!silent && current === generation.current && requestOwner === owner.current)
+        if (!silent && !meetingsLoaded && current === generation.current && requestOwner === owner.current)
           setError(
-            cause instanceof Error
-              ? cause.message
-              : "Your workspace could not be loaded.",
+            controller.signal.aborted
+              ? "Your workspace took too long to load. Please try again."
+              : cause instanceof Error
+                ? cause.message
+                : "Your workspace could not be loaded.",
           );
       } finally {
         if (!silent && current === generation.current && requestOwner === owner.current) setLoading(false);
-        if (silent) liveRefreshRunning.current = false;
+        window.clearTimeout(deadline);
+        activeRequests.current.delete(controller);
+        if (liveRefreshRunning.current === refreshId) liveRefreshRunning.current = null;
       }
     },
     [loadSample],
@@ -168,12 +188,16 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
     else void loadLive(true);
     return () => {
       generation.current++;
+      activeRequests.current.forEach(controller => controller.abort());
+      activeRequests.current.clear();
     };
   }, [accountIdentity, initialMode, loadLive, loadSample]);
 
   useEffect(() => {
     if (mode !== "live" || loading) return;
-    const refresh = () => void loadLive(false, true);
+    const refresh = () => {
+      if (document.visibilityState === "visible") void loadLive(false, true);
+    };
     const supabase = getBrowserSupabase();
     let disposed = false;
     let channel: ReturnType<NonNullable<typeof supabase>["channel"]> | undefined;
@@ -187,12 +211,14 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
     }).catch(() => { /* The polling fallback remains active if realtime auth fails. */ });
     const interval = window.setInterval(refresh, 10_000);
     window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
     return () => {
       disposed = true;
       clearTimeout(debounce);
       if (channel) void supabase?.removeChannel(channel);
       window.clearInterval(interval);
       window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
     };
   }, [loading, loadLive, mode]);
 
@@ -230,7 +256,8 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
       if (mode === "sample") {
         const next = approveSample(meetings, approval);
         setMeetings(next);
-        setNotice("Added to your sample calendar. No invitation was sent.");
+        // The persistent receipt is the single approval confirmation.
+        setNotice(null);
         const created = (
           next.find((meeting) => meeting.sourceApprovalId === approval.id) ||
           null
@@ -271,7 +298,8 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
         ),
         created,
       ]);
-      setNotice("Meeting added to Google Calendar. Invitation sent.");
+      // The persistent receipt is the single approval confirmation.
+      setNotice(null);
       setApprovalReceipt({ meetingId: created.id, title: created.title, startAt: created.startAt, attendees: [...approval.details.attendees], mode });
       return created;
     } catch (cause) {

@@ -34,16 +34,18 @@
 @media (max-width: 560px) { .setup { padding: 19px; } .header { align-items: flex-start; flex-direction: column; gap: 14px; } .header h2 { font-size: 22px; } .progress { grid-template-columns: 1fr; gap: 0; } .progress li { padding: 12px 0; } .resume { align-items: flex-start; flex-direction: column; padding: 18px; } .actions { width: 100%; } .actions > * { flex: 1; } }
 @media (prefers-reduced-motion: reduce) { .primary, .secondary { transition: none; } }
 
-/* A clear setup sequence on opaque architectural surfaces. */
-.setup, .resume { background: #fff; border-radius: 2px; }
-.header h2 { font-size: 28px; line-height: 1.15; }
-.kicker { font-size: 13px; letter-spacing: .1em; }
-.progress li > span, .progress small, .progress em, .currentStep small { font-size: 14px; line-height: 1.55; }
-.progress strong { font-size: 17px; line-height: 1.4; }
-.currentStep p { font-size: 16px; line-height: 1.65; }
-.primary, .secondary { min-height: 44px; font-size: 15px; border-radius: 2px; transition: background-color 120ms, border-color 120ms, box-shadow 120ms, transform 100ms; }
-.secondary { background: #fff; }
-.resume strong { font-size: 17px; }
-.resume span { font-size: 15px; line-height: 1.5; }
-@media (max-width: 560px) { .header h2 { font-size: 26px; } }
-@media (prefers-reduced-motion: reduce) { .primary, .secondary { transition: none; } }
+
+/* Quipus shared glass surfaces and readable controls. */
+.setup,.resume { background:var(--q-panel-gradient); border-radius:7px; border-color:rgba(255,255,255,.93); backdrop-filter:blur(var(--q-glass-blur)); box-shadow:var(--q-shadow); }
+.header h2 { font:500 25px/1.25 var(--q-font-body); letter-spacing:-.02em; }
+.kicker { font-family:var(--q-font-heading); font-size:10px; font-weight:400; letter-spacing:.08em; }
+.progress li > span,.progress small,.progress em,.currentStep small { font-size:13px; line-height:1.55; }
+.progress strong { font-size:16px; line-height:1.4; }
+.currentStep p { font-size:15px; line-height:1.65; }
+.primary,.secondary { min-height:44px; font-size:14px; border-radius:5px; transition:background 120ms,border-color 120ms,box-shadow 120ms; }
+.primary { border-bottom-width:1px; background:linear-gradient(120deg,var(--q-red),var(--q-red-deep)); }
+.primary:hover { background:var(--q-red-deep); box-shadow:none; }
+.secondary { background:var(--q-glass); }
+.resume strong { font-size:16px; }
+.resume span { font-size:14px; line-height:1.5; }
+@media (prefers-reduced-motion:reduce) { .primary,.secondary { transition:none; } }

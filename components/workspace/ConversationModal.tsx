@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
-import { ArrowUpRight, X } from "lucide-react";
 import type { Meeting } from "@/lib/types";
 import { sourceConversation } from "@/lib/workspace/model";
 import { ConversationDetail } from "./ConversationDetail";
@@ -62,11 +61,11 @@ export function ConversationModal({ meeting, meetings, onClose, onOpenFull, rece
         <div className={styles.headerActions}>
           {conversation && (
             <button type="button" className={styles.fullPage} onClick={() => onOpenFull(conversation.id)} aria-label="Open full conversation">
-              <ArrowUpRight aria-hidden="true" />
+              Open full meeting
             </button>
           )}
           <button type="button" className={styles.close} onClick={closePanel} aria-label="Close meeting details">
-            <X aria-hidden="true" /><span>Close</span>
+            <span>Close</span>
           </button>
         </div>
       </header>

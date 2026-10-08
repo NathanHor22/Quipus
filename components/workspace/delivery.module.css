@@ -16,13 +16,15 @@
 @media (max-width: 520px) { .panel { padding: 17px; } .panel::before { left: 17px; } .panel button { min-height: 40px; padding: 9px 12px; } }
 @media (prefers-reduced-motion: reduce) { .panel button { transition: none; } }
 
-/* Delivery drafts stay clear and readable on opaque white. */
-.panel { background: #fff; border-radius: 2px; }
-.panel p { font-size: 16px; line-height: 1.65; }
-.panel button { min-height: 44px; border-radius: 2px; font-size: 15px; background: #fff; transition: border-color 120ms, filter 120ms; }
-.form label { font-size: 15px; }
-.form input:not([type="checkbox"]), .form textarea { border-radius: 2px; background: #fff; font-size: 16px; }
-.form .consent { background: #f7f8f9; font-size: 14px; line-height: 1.6; }
-.form button:first-of-type { background: var(--q-button-bg); color: var(--q-button-text); }
-@media (max-width: 520px) { .panel button { min-height: 44px; } }
-@media (prefers-reduced-motion: reduce) { .panel button { transition: none; } }
+
+/* Quipus shared glass surfaces and readable controls. */
+.panel { background:var(--q-panel-gradient); border-radius:6px; border-color:rgba(255,255,255,.92); box-shadow:var(--q-shadow); }
+.panel p { font-size:15px; line-height:1.65; }
+.panel button { min-height:44px; border-radius:5px; font-size:14px; background:var(--q-glass); transition:background 120ms,border-color 120ms; }
+.panel button:hover:enabled { background:var(--q-glass-strong); filter:none; }
+.form label { font-size:14px; }
+.form input:not([type="checkbox"]),.form textarea { border-radius:5px; background:var(--q-glass); font-size:16px; }
+.form .consent { background:var(--q-glass); border-radius:5px; font-size:13px; line-height:1.6; }
+.form button:first-of-type { background:var(--q-red); color:#fff; }
+.form button:first-of-type:hover:enabled { background:var(--q-red-deep); }
+@media (prefers-reduced-motion:reduce) { .panel button { transition:none; } }

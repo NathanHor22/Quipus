@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { ArrowRight, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import type { Meeting } from "@/lib/types";
-import type { WorkspaceMode } from "@/lib/workspace/model";
-import { getRecordingProgress } from "@/lib/workspace/recording-progress";
+import { getApprovals, type WorkspaceMode } from "@/lib/workspace/model";
+import { getRecordingProgress, recordingDurationLabel } from "@/lib/workspace/recording-progress";
 import { RecordingProgress } from "./RecordingProgress";
 import { useWorkspaceTime } from "./WorkspaceTime";
 import styles from "./journal.module.css";
 
-type JournalFilters = { query: string; date: string };
+type JournalFilters = { query: string; date: string; status?: "all" | "ready" | "processing" | "approval" };
 
 function calendarDate(key: string) {
   return new Date(key + "T12:00:00Z");
@@ -37,11 +36,6 @@ function moveMonth(key: string, amount: number) {
   const last = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0)).getUTCDate();
   date.setUTCDate(Math.min(day, last));
   return calendarKey(date);
-}
-
-function ordinal(day: number) {
-  const remainder = day % 100;
-  return String(day) + (remainder >= 11 && remainder <= 13 ? "th" : ({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[day % 10] || "th");
 }
 
 function DatePopover({ value, today, onChange }: { value: string; today: string; onChange: (value: string) => void }) {
@@ -128,13 +122,13 @@ function DatePopover({ value, today, onChange }: { value: string; today: string;
         requestFocus.current = true;
         setOpen(true);
       }}>
-      <CalendarDays aria-hidden="true" /><span>{selectedLabel}</span><ChevronDown aria-hidden="true" />
+      <span>{value ? selectedLabel : "Filter date"}</span>
     </button>
     {open && <div id={id} ref={calendarRef} className={styles.calendar} role="dialog" aria-label="Filter conversations by date">
       <header className={styles.calendarHeader}>
-        <button type="button" aria-label="Previous month" onClick={() => changeMonth(-1)}><ChevronLeft aria-hidden="true" /></button>
+        <button type="button" aria-label="Previous month" onClick={() => changeMonth(-1)}>Previous</button>
         <h3 id={id + "-month"} aria-live="polite">{monthLabel}</h3>
-        <button type="button" aria-label="Next month" onClick={() => changeMonth(1)}><ChevronRight aria-hidden="true" /></button>
+        <button type="button" aria-label="Next month" onClick={() => changeMonth(1)}>Next</button>
       </header>
       <div role="grid" aria-labelledby={id + "-month"} className={styles.calendarGrid}>
         <div role="row" className={styles.calendarWeek}>
@@ -175,73 +169,89 @@ export function ConversationJournal({ meetings, mode = "sample", compact = false
 }) {
   const { timezone, dateKey, timeLabel } = useWorkspaceTime();
   const [localFilters, setLocalFilters] = useState<JournalFilters>({ query: "", date: "" });
-  const { query, date } = filters || localFilters;
+  const { query, date, status = "all" } = filters || localFilters;
   const changeFilters = onFiltersChange || setLocalFilters;
   const today = dateKey(new Date());
   const matching = useMemo(() => meetings.filter(meeting => (!date || dateKey(meeting.startAt) === date) &&
+    (status === "all" || (status === "ready" && meeting.status === "ready") ||
+      (status === "processing" && meeting.status === "processing") ||
+      (status === "approval" && getApprovals([meeting]).some(approval => approval.status === "pending"))) &&
     (meeting.title + " " + meeting.contacts.map(contact => contact.name + " " + (contact.company || "")).join(" ") + " " + (meeting.insight?.intent || ""))
       .toLowerCase().includes(query.toLowerCase().trim()))
-    .sort((left, right) => Date.parse(right.startAt) - Date.parse(left.startAt)), [meetings, date, query, dateKey]);
+    .sort((left, right) => Date.parse(right.startAt) - Date.parse(left.startAt)), [meetings, date, query, status, dateKey]);
   const visible = compact ? matching.slice(0, 6) : matching;
   const dateFormat = useMemo(() => new Intl.DateTimeFormat("en-GB", {
-    timeZone: timezone, weekday: "long", day: "numeric", month: "short", year: "numeric",
-  }), [timezone]);
+    timeZone: timezone, weekday: compact ? undefined : "long", day: "numeric", month: "short", year: "numeric",
+  }), [timezone, compact]);
 
-  const dateStamp = (value: string) => {
-    const parts = dateFormat.formatToParts(new Date(value));
-    const field = (name: string) => parts.find(part => part.type === name)?.value || "";
-    return ordinal(Number(field("day"))) + " " + field("month") + " " + field("year") + ", " + field("weekday");
-  };
+  const dateStamp = (value: string) => dateFormat.format(new Date(value));
 
   return <section className={styles.journal} aria-label="Conversation history">
     <header className={styles.heading}>
-      <h2>{compact ? "Recent conversations" : "Meeting history"}</h2>
-      {compact && onAll ? <button type="button" className={styles.textLink} onClick={onAll}>View all <ArrowRight aria-hidden="true" /></button> :
-        onPeople && <button type="button" className={styles.textLink} onClick={onPeople}>People & companies <ArrowRight aria-hidden="true" /></button>}
+      <div><span className={styles.eyebrow}>CONVERSATIONS</span><h2>{compact ? "Recent conversations" : "Meeting history"}</h2></div>
+      {compact && onAll ? <button type="button" className={styles.textLink} onClick={onAll}>View all</button> :
+        onPeople && <button type="button" className={styles.textLink} onClick={onPeople}>People & companies</button>}
     </header>
     <div className={styles.filters}>
       <label className={styles.search}>
-        <Search aria-hidden="true" />
         <input type="search" aria-label="Search conversations" placeholder="Search conversations" value={query}
-          onChange={event => changeFilters({ query: event.target.value, date })} />
+          onChange={event => changeFilters({ query: event.target.value, date, status })} />
       </label>
-      <DatePopover value={date} today={today} onChange={next => changeFilters({ query, date: next })} />
-      {(query || date) && <button type="button" className={styles.clearFilters} onClick={() => changeFilters({ query: "", date: "" })}>Clear filters</button>}
+      <DatePopover value={date} today={today} onChange={next => changeFilters({ query, date: next, status })} />
+      {!compact && <select className={styles.statusFilter} aria-label="Filter conversations by status" value={status}
+        onChange={event => changeFilters({ query, date, status: event.target.value as JournalFilters["status"] })}>
+        <option value="all">All statuses</option><option value="ready">Reports ready</option>
+        <option value="processing">Processing</option><option value="approval">Awaiting approval</option>
+      </select>}
+      {(query || date || status !== "all") && <button type="button" className={styles.clearFilters} onClick={() => changeFilters({ query: "", date: "", status: "all" })}>Clear filters</button>}
     </div>
     <span className={styles.announcement} role="status">{matching.length} {matching.length === 1 ? "conversation" : "conversations"} found</span>
     <div className={styles.list}>
-      {visible.map(meeting => {
-        const person = meeting.contacts[0]?.name || meeting.title;
-        const tagline = meeting.insight?.intent?.trim() || (meeting.title !== person ? meeting.title : "");
+      {visible.map((meeting, index) => {
+        const contact = meeting.contacts[0];
+        const person = contact?.name || meeting.title;
+        const topic = meeting.insight?.intent?.trim() || (meeting.title !== person ? meeting.title : "Conversation");
         const progress = getRecordingProgress(meeting);
         const selected = selectedId === meeting.id;
-        return <article key={meeting.id} className={styles.entry} data-selected={selected}>
-          <div className={styles.row}>
-            <button type="button" className={styles.detailsButton} onClick={() => onOpen(meeting.id)}
-              aria-label={"Details for " + person} aria-expanded={selected}>
-              <span>Details</span><ArrowRight aria-hidden="true" />
-            </button>
-            <div className={styles.copy}>
-              <p className={styles.meetingLine}>
-                <time dateTime={meeting.startAt}>{dateStamp(meeting.startAt)} · {timeLabel(meeting.startAt).toLowerCase().replace(/\s+/g, "\u00a0")}</time>
-                <span aria-hidden="true"> · </span><strong>{person}</strong>
-              </p>
-              {tagline && <p className={styles.tagline}>{tagline}</p>}
-              {meeting.status === "processing" && progress.stage !== "failed" && <div className={styles.processing}>
-                <RecordingProgress meeting={meeting} mode={mode} compact />
-                {progress.audioAvailable && <button type="button" onClick={() => onOpen(meeting.id, "Audio")}>Play recording <ArrowRight aria-hidden="true" /></button>}
-              </div>}
+        const awaitingApproval = getApprovals([meeting]).some(approval => approval.status === "pending");
+        const hasOpenActions = (meeting.followUps || []).some(task => !["completed", "dismissed"].includes(task.status));
+        const statusLabel = meeting.status === "ready"
+          ? awaitingApproval ? "Awaiting approval" : hasOpenActions ? "Follow-up ready" : "Report ready"
+          : progress.label;
+        const newDate = !compact && (index === 0 || dateKey(visible[index - 1].startAt) !== dateKey(meeting.startAt));
+        return <div key={meeting.id} className={styles.entryGroup}>
+          {newDate && <h3 className={styles.dateHeading}>{dateStamp(meeting.startAt)}</h3>}
+          <article className={styles.entry} data-selected={selected}>
+            <div className={styles.row}>
+              <div className={styles.copy}>
+                <p className={styles.meetingLine}><strong>{person}</strong>{contact?.company && <span>{contact.company}</span>}</p>
+                <p className={styles.tagline}>{topic}</p>
+                <div className={styles.metadata}>
+                  <time dateTime={meeting.startAt}>{compact ? dateStamp(meeting.startAt) + " \u00b7 " : ""}{timeLabel(meeting.startAt)}</time>
+                  <span>{recordingDurationLabel(meeting)}</span>
+                  {meeting.contacts.length > 1 && <span>{meeting.contacts.length} contacts</span>}
+                </div>
+                {meeting.status === "processing" && progress.stage !== "failed" && <div className={styles.processing}>
+                  <RecordingProgress meeting={meeting} mode={mode} compact />
+                  {progress.audioAvailable && <button type="button" onClick={() => onOpen(meeting.id, "Audio")}>Play recording</button>}
+                </div>}
+              </div>
+              <div className={styles.rowActions}>
+                <span className={styles.statusBadge} data-state={progress.stage === "failed" ? "failed" : awaitingApproval ? "approval" : progress.stage}>{statusLabel}</span>
+                <button type="button" className={styles.detailsButton} onClick={() => onOpen(meeting.id)}
+                  aria-label={"Open meeting with " + person} aria-expanded={selected}>Open meeting</button>
+              </div>
             </div>
-          </div>
-          {progress.stage === "failed" && <div className={styles.recovery}>
-            <RecordingProgress meeting={meeting} mode={mode} onOpenAudio={() => onOpen(meeting.id, "Audio")} onRetryAccepted={onRetryAccepted} />
-          </div>}
-          {selected && inlineDetails && <div className={styles.inlineDetails}>{inlineDetails}</div>}
-        </article>;
+            {progress.stage === "failed" && <div className={styles.recovery}>
+              <RecordingProgress meeting={meeting} mode={mode} onOpenAudio={() => onOpen(meeting.id, "Audio")} onRetryAccepted={onRetryAccepted} />
+            </div>}
+            {selected && inlineDetails && <div className={styles.inlineDetails}>{inlineDetails}</div>}
+          </article>
+        </div>;
       })}
       {!visible.length && <div className={styles.empty}>
-        <h3>{query || date ? "No matching conversations" : "No conversations yet"}</h3>
-        <p>{query || date ? "Try a different search or date." : "Your recorded meetings will appear here."}</p>
+        <h3>{query || date || status !== "all" ? "No matching conversations" : "No conversations yet"}</h3>
+        <p>{query || date || status !== "all" ? "Try a different search, date or status." : "Your recorded meetings will appear here."}</p>
       </div>}
     </div>
   </section>;

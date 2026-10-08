@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { X } from "lucide-react";
 import type { MeetingApproval, WorkspaceMode } from "@/lib/workspace/model";
 import { scheduleDetailsSchema } from "@/lib/workspace/model";
 import styles from "./detail-dock.module.css";
@@ -84,9 +83,9 @@ export function ApprovalDialog({
       }}
     >
       <header className={styles.header}>
-        <h2 id={titleId}>Review meeting</h2>
+        <h2 id={titleId}>Review invitation</h2>
         <button type="button" className={styles.close} onClick={closePanel} disabled={busy} aria-label="Close approval">
-          <X aria-hidden="true" /><span>Close</span>
+          <span>Close</span>
         </button>
       </header>
       <p className={styles.reviewIntro}>{approval.contact?.name || "Meeting invitation"}{approval.contact?.company ? ` · ${approval.contact.company}` : ""}</p>
@@ -131,7 +130,7 @@ export function ApprovalDialog({
         <p className={styles.privateNote}>{mode === "sample" ? "This adds a sample event only. No invitation will be sent." : "Approval sends a calendar invitation. Your conversation recap stays private."}</p>
         <footer className={styles.formActions}>
           <button type="button" className={styles.cancel} onClick={closePanel} disabled={busy}>Cancel</button>
-          <button type="submit" className={styles.approve} disabled={busy}>{busy ? "Adding meeting…" : mode === "sample" ? "Approve sample meeting" : "Approve & send invitation"}</button>
+          <button type="submit" className={styles.approve} disabled={busy}>{busy ? mode === "sample" ? "Adding sample event…" : "Sending invitation…" : mode === "sample" ? "Approve sample meeting" : "Approve & send invitation"}</button>
         </footer>
       </form>
     </section>

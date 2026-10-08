@@ -19,6 +19,10 @@ import { useWorkspaceTime } from "./WorkspaceTime";
 import styles from "./conversation-detail.module.css";
 
 type EditableContact = Pick<Contact, "name" | "company" | "role" | "email">;
+function normalizedBriefText(text: string) {
+  return text.normalize("NFKC").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
 const detailTabs = ["Summary", "Actions", "Transcript", "Audio"] as const;
 export type DetailTab = (typeof detailTabs)[number];
 
@@ -70,6 +74,8 @@ export function ConversationDetail({
     ? conversation.contacts.find(person => person.id === initialContactId) || null
     : conversation.contacts[0] || null;
   const insight = conversation.insight;
+  const summaryRepeatsKeyPoints = normalizedBriefText(insight?.executiveSummary || "") ===
+    normalizedBriefText((insight?.keyPoints || []).filter(point => point.trim()).join(" "));
   const approvals = getApprovals([conversation]).filter(
     (approval) => approval.status === "pending",
   );
@@ -116,7 +122,7 @@ export function ConversationDetail({
 
   return (
     <div className={`${styles.detail} ${compact ? styles.compact : ""}`}>
-      {!compact && <button className={styles.back} onClick={onBack}>
+      {!compact && <button type="button" className={styles.back} onClick={onBack}>
         {backLabel}
       </button>}
 
@@ -130,6 +136,8 @@ export function ConversationDetail({
               {!compact && conversation.status !== "ready" && <span className={styles.status}>{conversation.status}</span>}
               <span>{dateLabel(conversation.startAt, { year: "numeric" })}</span>
               <span>{timeLabel(conversation.startAt)}</span>
+              {compact && <span>{recordingDurationLabel(conversation)}</span>}
+              {mode === "sample" && <span className={styles.status}>Sample</span>}
             </div>
             <h2>{contact?.name || conversation.title}</h2>
             <p>
@@ -185,7 +193,7 @@ export function ConversationDetail({
               </header>
               {insight ? (
                 <div className={styles.brief}>
-                  {insight.executiveSummary && (!compact || !insight.keyPoints.some(point => point.trim())) && <p className={styles.executiveSummary}>{insight.executiveSummary}</p>}
+                  {insight.executiveSummary && !summaryRepeatsKeyPoints && (!compact || !insight.keyPoints.some(point => point.trim())) && <p className={styles.executiveSummary}>{insight.executiveSummary}</p>}
                   {!compact && insight.dealStage && insight.dealStage !== "unknown" && <span className={styles.dealStage}>{insight.dealStage.replace("_", " ")}</span>}
                   <ul>{(insight.keyPoints.length ? insight.keyPoints : [insight.wants]).filter(Boolean).map((point, index) => <li key={index}>{point}</li>)}</ul>
                   {insight.concern && <div className={styles.concern}><strong>Keep in mind</strong><p>{insight.concern}</p></div>}
@@ -254,8 +262,8 @@ export function ConversationDetail({
                       <span>Calendar approval</span>
                       <strong>{approval.title}</strong>
                       <p>{approval.details.startAt ? `${dateLabel(approval.details.startAt, { weekday: "short" })} at ${timeLabel(approval.details.startAt)}` : "Date and time need review"}</p>
-                      <button disabled={Boolean(working)} onClick={() => onEditApproval(approval)}>
-                        Awaiting your approval
+                      <button type="button" disabled={Boolean(working)} onClick={() => onEditApproval(approval)}>
+                        Review invitation
                       </button>
                     </article>
                   );
@@ -316,8 +324,8 @@ export function ConversationDetail({
                 <h3>Contact details</h3>
               </div>
               {contact && !editingContact && (
-                <button onClick={() => setEditingContact(true)}>
-                  Correct
+                <button type="button" onClick={() => setEditingContact(true)}>
+                  Edit contact
                 </button>
               )}
             </header>

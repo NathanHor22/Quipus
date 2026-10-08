@@ -2,12 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  LoaderCircle,
   Pause,
   Play,
-  RotateCcw,
-  RotateCw,
-  X,
 } from "lucide-react";
 import type { Meeting } from "@/lib/types";
 import {
@@ -132,13 +128,14 @@ export function ConversationReplay({
   }, [recordingId]);
 
   useEffect(() => {
-    if (!conversation.recordingUrl && recordingId) void refreshAudio();
+    if (view === "hidden") return;
+    if (!source.url && !conversation.recordingUrl && recordingId) void refreshAudio();
     return () => {
       const current = request.current;
       request.current = null;
       current?.abort();
     };
-  }, [conversation.recordingUrl, recordingId, refreshAudio]);
+  }, [view, source.url, conversation.recordingUrl, recordingId, refreshAudio]);
 
   useEffect(() => {
     const player = audio.current;
@@ -237,7 +234,7 @@ export function ConversationReplay({
             <span className={styles.eyebrow}>ORIGINAL RECORDING</span>
             <h3>Original audio</h3>
             <p>{conversation.title}</p>
-            <p className={styles.duration}>Duration · {recordingDurationLabel(conversation)}</p>
+            <p className={styles.duration}>Duration · {duration ? formatAudioTime(duration) : recordingDurationLabel(conversation)}</p>
           </div>
         </header>
         <p className={styles.intro}>
@@ -249,7 +246,7 @@ export function ConversationReplay({
               key={`${source.url}:${source.revision}`}
               ref={audio}
               controls
-              preload="metadata"
+              preload={view === "hidden" ? "none" : "metadata"}
               src={source.url}
               className={styles.audio}
               aria-label={`Original recording of ${conversation.title}`}
@@ -297,8 +294,7 @@ export function ConversationReplay({
                   onClick={() => seek(position - 15)}
                   aria-label="Back 15 seconds"
                 >
-                  <RotateCcw />
-                  <span>15s</span>
+                  <span>Back 15 s</span>
                 </button>
                 <button
                   type="button"
@@ -306,8 +302,7 @@ export function ConversationReplay({
                   onClick={() => seek(position + 15)}
                   aria-label="Forward 15 seconds"
                 >
-                  <RotateCw />
-                  <span>15s</span>
+                  <span>Forward 15 s</span>
                 </button>
               </div>
               <label className={styles.speed}>
@@ -339,7 +334,7 @@ export function ConversationReplay({
         )}
         {loading && (
           <p className={styles.loading} role="status">
-            <LoaderCircle />
+            <span className={styles.loadingPulse} aria-hidden="true" />
             Opening your recording…
           </p>
         )}
@@ -366,7 +361,6 @@ export function ConversationReplay({
                 disabled={loading}
                 onClick={() => void refreshAudio()}
               >
-                <RotateCcw />
                 Reload recording
               </button>
             )}
@@ -385,16 +379,15 @@ export function ConversationReplay({
         {view === "transcript" && error && (
           <div className={styles.error} role="alert">
             <p>{error}</p>
-            {recordingId && <button type="button" disabled={loading} onClick={() => void refreshAudio()}><RotateCcw /> Reload recording</button>}
+            {recordingId && <button type="button" disabled={loading} onClick={() => void refreshAudio()}>Reload recording</button>}
           </div>
         )}
         <div className={styles.transcriptHeader}>
           <div>
             <h3>Transcript</h3>
             <p>
-              {source.url
-                ? `${speakerTones.size} speaker${speakerTones.size === 1 ? "" : "s"} detected · Select a timestamp to listen from that point.`
-                : "The original transcript, in the words captured."}
+              {speakerTones.size > 0 ? `${speakerTones.size} speaker label${speakerTones.size === 1 ? "" : "s"}. ` : ""}
+              {source.url ? "Select a timestamp to listen from that point." : "The transcript, in the words captured."}
             </p>
           </div>
           {view === "transcript" && source.url && (
@@ -423,7 +416,7 @@ export function ConversationReplay({
                 aria-label="Clear transcript search"
                 onClick={() => setSearch("")}
               >
-                <X aria-hidden="true" />
+                Clear
               </button>
             )}
           </label>
