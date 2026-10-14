@@ -53,10 +53,10 @@
   align-items: center;
   gap: 11px;
   padding: 8px 14px 8px 10px;
-  border: 1px solid rgba(14, 32, 58, 0.1);
+  border: 1px solid transparent;
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.66);
-  backdrop-filter: blur(12px);
+  background: transparent;
+  backdrop-filter: none;
   cursor: pointer;
 }
 .brand svg {
