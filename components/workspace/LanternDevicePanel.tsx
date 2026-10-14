@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { Dialog } from "@/components/ui/Dialog";
+import { useBrowserStorageSnapshot } from "@/components/hooks/useBrowserStorageSnapshot";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { lanternStateLabel, type LanternState } from "@/lib/lantern-state";
 import type { WorkspaceMode } from "@/lib/workspace/model";
@@ -47,53 +49,57 @@ function heapLabel(bytes: number | null) {
   return bytes == null ? "Not reported" : `${Math.max(0, bytes / 1024).toFixed(0)} KB`;
 }
 
-export function LanternDevicePanel({
-  mode,
-  integrations,
-  conversationCount,
-  accountEmail,
-  hasRecording,
-}: {
+type LanternDevicePanelProps = {
   mode: WorkspaceMode;
   integrations: Record<string, boolean>;
   conversationCount: number;
   accountEmail?: string | null;
   hasRecording?: boolean;
-}) {
+};
+
+export function LanternDevicePanel(props: LanternDevicePanelProps) {
+  return <DeviceSession key={JSON.stringify([props.mode, props.accountEmail?.trim().toLowerCase() || null])} {...props} />;
+}
+
+function DeviceSession({
+  mode,
+  integrations,
+  conversationCount,
+  accountEmail,
+  hasRecording,
+}: LanternDevicePanelProps) {
   const [devices, setDevices] = useState<DeviceRecord[]>([]);
   const [loading, setLoading] = useState(mode === "live");
   const [deviceError, setDeviceError] = useState<string | null>(null);
   const [deviceNotice, setDeviceNotice] = useState<string | null>(null);
   const [pairing, setPairing] = useState<PairingProgress | null>(null);
   const [step, setStep] = useState<PairingProgress["step"]>(0);
-  const [restoredKey, setRestoredKey] = useState<string | null>(null);
+  const [pairingRestored, setPairingRestored] = useState(mode !== "live");
   const [working, setWorking] = useState(false);
   const [checkingConnection, setCheckingConnection] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const [confirmingRevoke, setConfirmingRevoke] = useState(false);
   const request = useRef<AbortController | null>(null);
-  const revokeDialog = useRef<HTMLDialogElement>(null);
+  const actionRequest = useRef<AbortController | null>(null);
   const storageKey = accountEmail ? pairingStorageKey(accountEmail) : null;
   const codeActive = Boolean(pairing && pairingSecondsRemaining(pairing.expiresAt, now) > 0);
 
-  useEffect(() => {
-    let saved: PairingProgress | null = null;
-    if (mode === "live" && storageKey) {
-      try { saved = readPairingProgress(localStorage.getItem(storageKey)); } catch { /* Memory-only setup. */ }
-    }
+  const savedPairing = useBrowserStorageSnapshot(mode === "live" ? storageKey : null);
+  if (!pairingRestored && savedPairing !== null) {
+    const saved = readPairingProgress(savedPairing, now);
+    setPairingRestored(true);
     setPairing(saved);
     setStep(saved?.step || 0);
-    setRestoredKey(storageKey);
-  }, [mode, storageKey]);
+  }
 
   useEffect(() => {
-    if (mode !== "live" || !storageKey || restoredKey !== storageKey) return;
+    if (mode !== "live" || !storageKey || !pairingRestored) return;
     try {
       if (pairing && codeActive && devices.length === 0)
         localStorage.setItem(storageKey, JSON.stringify({ ...pairing, step }));
       else localStorage.removeItem(storageKey);
     } catch { /* Pairing remains usable in this tab. */ }
-  }, [codeActive, devices.length, mode, pairing, restoredKey, step, storageKey]);
+  }, [codeActive, devices.length, mode, pairing, pairingRestored, step, storageKey]);
 
   useEffect(() => {
     const update = () => { if (!document.hidden) setNow(Date.now()); };
@@ -102,39 +108,47 @@ export function LanternDevicePanel({
     return () => { window.clearInterval(interval); document.removeEventListener("visibilitychange", update); };
   }, [codeActive, devices.length]);
 
-  const loadDevices = useCallback(async (showLoading = false) => {
-    if (mode !== "live") { setDevices([]); setLoading(false); return; }
-    if (request.current) return;
+  const refreshDevices = useCallback(() => {
+    if (mode !== "live" || request.current || actionRequest.current) return;
     const controller = new AbortController();
     request.current = controller;
-    setCheckingConnection(true);
     const timeout = window.setTimeout(() => controller.abort("timeout"), 12_000);
-    if (showLoading) setLoading(true);
-    try {
-      const response = await fetch("/api/devices", { cache: "no-store", signal: controller.signal });
+    return fetch("/api/devices", { cache: "no-store", signal: controller.signal }).then(async response => {
       const payload = await response.json().catch(() => ({})) as { devices?: DeviceRecord[]; error?: string };
       if (!response.ok) throw new Error(payload.error || "Device status is unavailable.");
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted || request.current !== controller) return;
       setDevices(payload.devices || []);
       setDeviceError(null);
       setNow(Date.now());
       if (payload.devices?.length) { setPairing(null); setStep(0); }
-    } catch (cause) {
+    }).catch((cause: unknown) => {
       if (controller.signal.aborted && controller.signal.reason !== "timeout") return;
       setDeviceError(controller.signal.aborted
         ? "The connection check timed out. Return this phone or laptop to Wi-Fi with internet, then retry."
         : cause instanceof TypeError ? "This browser cannot reach the dashboard. Return this phone or laptop to Wi-Fi with internet, then retry."
         : cause instanceof Error ? cause.message : "Device status is unavailable. Return this phone or laptop to Wi-Fi with internet, then retry.");
-    } finally {
+    }).finally(() => {
       window.clearTimeout(timeout);
       if (request.current === controller) { request.current = null; setLoading(false); setCheckingConnection(false); }
-    }
+    });
   }, [mode]);
 
+  const loadDevices = useCallback((showLoading = false) => {
+    if (mode !== "live" || request.current || actionRequest.current) return;
+    setCheckingConnection(true);
+    if (showLoading) setLoading(true);
+    return refreshDevices();
+  }, [mode, refreshDevices]);
+
+  const abortRequests = useCallback(() => {
+    request.current?.abort("disposed");
+    request.current = null;
+    actionRequest.current?.abort("disposed");
+    actionRequest.current = null;
+  }, []);
+
   useEffect(() => {
-    setDevices([]);
-    setDeviceError(null);
-    void loadDevices(true);
+    void refreshDevices();
     if (mode !== "live") return;
     const refresh = () => { if (!document.hidden) void loadDevices(); };
     const interval = window.setInterval(refresh, 15_000);
@@ -144,55 +158,69 @@ export function LanternDevicePanel({
       window.clearInterval(interval);
       window.removeEventListener("focus", refresh);
       window.removeEventListener("online", refresh);
-      request.current?.abort("disposed");
-      request.current = null;
+      abortRequests();
     };
-  }, [accountEmail, loadDevices, mode]);
+  }, [abortRequests, loadDevices, mode, refreshDevices]);
 
-  useEffect(() => {
-    if (confirmingRevoke) revokeDialog.current?.showModal();
-    else revokeDialog.current?.close();
-  }, [confirmingRevoke]);
 
   const createPairing = async () => {
-    if (working) return;
+    if (working || actionRequest.current) return;
+    const controller = new AbortController();
+    actionRequest.current = controller;
+    request.current?.abort("action");
+    request.current = null;
+    setCheckingConnection(false);
     setWorking(true);
     setDeviceError(null);
     try {
       const response = await fetch("/api/devices/pairing", {
+        signal: controller.signal,
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ name: "My Quipus" }),
       });
       const payload = await response.json().catch(() => ({})) as { pairing?: { code: string; expiresAt: string }; error?: string };
+      if (controller.signal.aborted || actionRequest.current !== controller) return;
       if (!response.ok || !payload.pairing) throw new Error(payload.error || "Pairing could not begin.");
       setPairing({ version: 1, code: payload.pairing.code, expiresAt: payload.pairing.expiresAt, step: 1 });
       setStep(1);
       setNow(Date.now());
       setDeviceNotice("Code ready. Next, open Wi-Fi setup on the recorder. Creating a code does not turn on its setup network.");
     } catch (cause) {
+      if (controller.signal.aborted || actionRequest.current !== controller) return;
       setDeviceError(cause instanceof TypeError ? "Creating a code needs internet on this phone or laptop. Reconnect to your normal Wi-Fi, then retry." : cause instanceof Error ? cause.message : "Pairing could not begin.");
-    } finally { setWorking(false); }
+    } finally {
+      if (actionRequest.current === controller) { actionRequest.current = null; setWorking(false); }
+    }
   };
 
   const revokeDevice = async (deviceId: string) => {
-    if (working) return;
+    if (working || actionRequest.current) return;
+    const controller = new AbortController();
+    actionRequest.current = controller;
+    request.current?.abort("action");
+    request.current = null;
+    setCheckingConnection(false);
     setWorking(true);
     setDeviceError(null);
     try {
       const response = await fetch(`/api/devices/${encodeURIComponent(deviceId)}`, {
+        signal: controller.signal,
         method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "revoke" }),
       });
       const payload = await response.json().catch(() => ({})) as { revoked?: boolean; error?: string };
+      if (controller.signal.aborted || actionRequest.current !== controller) return;
       if (!response.ok || !payload.revoked) throw new Error(payload.error || "Quipus could not be revoked.");
-      revokeDialog.current?.close();
       setConfirmingRevoke(false);
       setDevices(current => current.filter(device => device.id !== deviceId));
       setPairing(null);
       setStep(0);
       setDeviceNotice("Access revoked. If the recorder is online, leave it powered on while it returns to setup. If it is offline, open Wi-Fi setup on the recorder to reconnect it.");
     } catch (cause) {
+      if (controller.signal.aborted || actionRequest.current !== controller) return;
       setDeviceError(cause instanceof Error ? cause.message : "Quipus could not be revoked.");
-    } finally { setWorking(false); }
+    } finally {
+      if (actionRequest.current === controller) { actionRequest.current = null; setWorking(false); }
+    }
   };
 
   const primaryDevice = devices[0] || null;
@@ -308,11 +336,12 @@ export function LanternDevicePanel({
       </aside>
     </div>
     <footer className={styles.deviceDangerZone}><div><strong>Remove this Quipus</strong><p>Stops this recorder uploading to your account. Recordings already in your workspace stay here.</p></div><button type="button" disabled={working} onClick={() => setConfirmingRevoke(true)}>Revoke device</button></footer>
-    <dialog ref={revokeDialog} className={styles.revokeDialog} aria-labelledby="revoke-device-title" onCancel={event => { if (working) event.preventDefault(); else setConfirmingRevoke(false); }} onClose={() => setConfirmingRevoke(false)}>
+    <Dialog open={confirmingRevoke} onClose={() => setConfirmingRevoke(false)} dismissDisabled={working}
+      className={styles.revokeDialog} aria-labelledby="revoke-device-title">
       <h2 id="revoke-device-title">Remove {primaryDevice.name}?</h2><p>It will no longer upload to this account. To use it again, you will need a new pairing code. Recordings already uploaded remain in your workspace.</p>
       <p>If the recorder is offline, it learns about revocation when it next contacts Quipus.</p>
       {deviceError && <p className={styles.deviceError} role="alert">{deviceError}</p>}
       <div className={styles.dialogActions}><button className={styles.secondaryAction} type="button" disabled={working} onClick={() => setConfirmingRevoke(false)}>Keep device</button><button className={styles.dangerAction} type="button" disabled={working} onClick={() => void revokeDevice(primaryDevice.id)}>{working ? "Removing…" : "Confirm revoke"}</button></div>
-    </dialog>
+    </Dialog>
   </section>;
 }

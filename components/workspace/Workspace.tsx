@@ -8,7 +8,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { getMonthGrid } from "@/lib/calendar";
 import { workspaceTime } from "@/lib/workspace-time";
-import type { Meeting } from "@/lib/types";
 import {
   getApprovals,
   isConversation,
@@ -20,7 +19,7 @@ import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { RevealHeading, useQuipusMotion } from "@/components/experience/QuipusExperience";
 import { validTimezone } from "@/lib/quipus-profile";
 import { workspaceGreeting } from "@/lib/workspace-greeting";
-import { isWorkspaceHref, resolveWorkspaceRoute } from "@/lib/workspace-navigation";
+import { isWorkspaceHref, resolveWorkspaceRoute, sampleWorkspacePath } from "@/lib/workspace-navigation";
 import { QuipusHeader, viewPaths } from "./QuipusHeader";
 import { ConversationJournal } from "./ConversationJournal";
 import { ConversationDetail } from "./ConversationDetail";
@@ -37,7 +36,8 @@ import { WorkspaceTimezone } from "./WorkspaceTime";
 import q from "./quipus.module.css";
 import d from "./dashboard.module.css";
 import { useWorkspace } from "./useWorkspace";
-import { initials } from "./ConversationPanel";
+import { initials } from "@/lib/workspace/contact-display";
+import { useMediaQuery } from "@/components/hooks/useMediaQuery";
 import { ApprovalDialog } from "./ApprovalDialog";
 import { RecordingDialog } from "./RecordingDialog";
 import { LanternDevicePanel } from "./LanternDevicePanel";
@@ -69,7 +69,11 @@ const viewLabel: Record<WorkspaceView, string> = {
   overview: "Home", conversations: "Conversations", calendar: "Calendar", people: "People", device: "Devices", settings: "Settings",
 };
 
-export function Workspace({
+export function Workspace(props: WorkspaceProps) {
+  return <WorkspaceSession key={JSON.stringify([props.initialMode, props.account?.email || null])} {...props} />;
+}
+
+function WorkspaceSession({
   account: initialAccount,
   initialMode,
   initialView = "overview",
@@ -80,6 +84,11 @@ export function Workspace({
   const reducedMotion = useReducedMotion();
   const { enabled: motionEnabled, setScene } = useQuipusMotion();
   const [account, setAccount] = useState(initialAccount);
+  const [previousAccount, setPreviousAccount] = useState(initialAccount);
+  if (previousAccount !== initialAccount) {
+    setPreviousAccount(initialAccount);
+    setAccount(initialAccount);
+  }
   const [journalFilters, setJournalFilters] = useState({ query: "", date: "" });
   const [clock, setClock] = useState(() => {
     const snapshot = new Date(initialNow || Date.now());
@@ -87,7 +96,6 @@ export function Workspace({
   });
   const timezone = validTimezone(account?.timezone);
   const { dateKey: formatDateKey, dateLabel, timeLabel } = workspaceTime(timezone);
-  useEffect(() => { setAccount(initialAccount); }, [initialAccount]);
   const workspace = useWorkspace(initialMode, initialAccount?.email || null);
   const {
     meetings,
@@ -105,7 +113,7 @@ export function Workspace({
   const detailMeeting = detailId ? meetings.find(m => m.id === detailId) : null;
   const requestedTab = params.get("tab");
   const detailTab = requestedTab === "Audio" || requestedTab === "Transcript" || requestedTab === "Actions" ? requestedTab : "Summary";
-  const detailOrigin = useRef<{ href: string; scroll: number } | null>(null);
+  const [detailOrigin, setDetailOrigin] = useState<{ href: string; scroll: number } | null>(null);
   const pendingScroll = useRef<number | null>(null);
   const [historyEpoch, setHistoryEpoch] = useState(0);
   const pageIdentity = `${view}:${detailId || ""}:${params.get("client") || ""}`;
@@ -130,20 +138,14 @@ export function Workspace({
   const [selectedDate, setSelectedDate] = useState(() =>
     formatDateKey(clock),
   );
-  const [layout, setLayout] = useState<"month" | "agenda">("month");
+  const [layoutChoice, setLayout] = useState<"month" | "agenda" | null>(null);
+  const smallScreen = useMediaQuery("(max-width: 760px)");
+  const layout = layoutChoice ?? (smallScreen ? "agenda" : "month");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditing] = useState<MeetingApproval | null>(null);
   const [selectedTab, setSelectedTab] = useState<"Summary" | "Actions" | "Transcript" | "Audio">("Summary");
-  const [desktopDock, setDesktopDock] = useState(false);
+  const desktopDock = useMediaQuery("(min-width: 1100px)");
   const [panelOrigin, setPanelOrigin] = useState<"journal" | "next" | "approval" | "calendar" | "recording" | "other">("journal");
-  useEffect(() => {
-    const query = window.matchMedia("(min-width: 1100px)");
-    const update = () => setDesktopDock(query.matches);
-    update();
-    if (window.matchMedia("(max-width: 760px)").matches) setLayout("agenda");
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
   const reviewApproval = (approval: MeetingApproval) => {
     if (detailId) setPanelOrigin("other");
     setEditing(approval);
@@ -198,14 +200,6 @@ export function Workspace({
     displayName: account?.displayName, date: now, timezone, meetings,
     pendingCount: pending.length, sample: mode === "sample", loading,
   });
-  const tasks = conversations
-    .flatMap((meeting) => meeting.followUps || [])
-    .filter(
-      (item) =>
-        item.type !== "schedule" &&
-        item.status !== "completed" &&
-      item.status !== "dismissed",
-    );
   const selectedMeeting =
     meetings.find((meeting) => meeting.id === selectedId) || null;
   const grid = getMonthGrid(visibleMonth, { today });
@@ -250,13 +244,13 @@ export function Workspace({
     setEditing(null);
     if (mode === "live") switchUrl(viewPaths[next]);
     else {
-      const url = new URL("/", window.location.origin);
+      const url = new URL(sampleWorkspacePath, window.location.origin);
       url.searchParams.set("mode", "sample"); url.searchParams.set("view", next);
       switchUrl(url.pathname + url.search);
     }
   };
   const openDetail = (id: string, tab: "Summary" | "Actions" | "Transcript" | "Audio" = "Summary", editContact = false, contactId?: string) => {
-    detailOrigin.current = { href: locationKey(), scroll: window.scrollY };
+    setDetailOrigin({ href: locationKey(), scroll: window.scrollY });
     setSelectedId(null);
     setEditing(null);
     const details = new URLSearchParams();
@@ -265,21 +259,21 @@ export function Workspace({
     if (contactId) details.set("contact", contactId);
     if (mode === "live") switchUrl(`/dashboard/conversations/${encodeURIComponent(id)}${details.size ? `?${details}` : ""}`);
     else {
-      const url = new URL("/", window.location.origin);
+      const url = new URL(sampleWorkspacePath, window.location.origin);
       url.searchParams.set("mode", "sample"); url.searchParams.set("view", "conversations"); url.searchParams.set("conversation", id);
       details.forEach((value, key) => url.searchParams.set(key, value));
       switchUrl(url.pathname + url.search);
     }
   };
   const backFromDetail = () => {
-    const origin = detailOrigin.current;
+    const origin = detailOrigin;
     if (!origin || !isWorkspaceHref(origin.href, mode)) { navigate("conversations"); return; }
     switchUrl(origin.href, origin.scroll);
   };
   const openClient = (id: string) => {
     setSelectedId(null);
     setEditing(null);
-    const url = new URL(mode === "live" ? viewPaths.people : "/", window.location.origin);
+    const url = new URL(mode === "live" ? viewPaths.people : sampleWorkspacePath, window.location.origin);
     if (mode === "sample") { url.searchParams.set("mode", "sample"); url.searchParams.set("view", "people"); }
     url.searchParams.set("client", id);
     switchUrl(url.pathname + url.search);
@@ -377,7 +371,7 @@ export function Workspace({
               {detailId ? (detailMeeting ? <ConversationDetail
                 conversation={detailMeeting} mode={mode} working={working} error={error}
                 initialTab={detailTab} initialContactEditing={params.get("edit") === "contact"} initialContactId={params.get("contact")}
-                backLabel={detailOrigin.current?.href.includes("view=people") || detailOrigin.current?.href.includes("/people") ? "Back to client history" : detailOrigin.current?.href.includes("view=calendar") || detailOrigin.current?.href.includes("/calendar") ? "Back to calendar" : detailOrigin.current?.href === "/dashboard" || detailOrigin.current?.href.includes("view=overview") || detailOrigin.current?.href === "/" ? "Back to home" : "Back to conversations"}
+                backLabel={detailOrigin?.href.includes("view=people") || detailOrigin?.href.includes("/people") ? "Back to client history" : detailOrigin?.href.includes("view=calendar") || detailOrigin?.href.includes("/calendar") ? "Back to calendar" : detailOrigin?.href === "/dashboard" || detailOrigin?.href.includes("view=overview") || detailOrigin?.href === sampleWorkspacePath || detailOrigin?.href === sampleWorkspacePath + "?mode=sample" ? "Back to home" : "Back to conversations"}
                 onBack={backFromDetail}
                 onTask={(id, completed) => void workspace.patchFollowUp(id, { status: completed ? "completed" : "pending" })}
                 onEditApproval={reviewApproval} onUpdateContact={workspace.patchContact} onOpenContact={openClient} onRetryAccepted={() => void workspace.loadLive(false, true)}
@@ -398,7 +392,7 @@ export function Workspace({
                       </div>
                       <button className={q.approvalButton} disabled={Boolean(working)} onClick={() => { setSelectedId(null); setPanelOrigin("approval"); reviewApproval(approval); }}>Review invitation</button>
                       {!desktopDock && panelOrigin === "approval" && editing?.id === approval.id && <div className={d.inlinePanel}>{panel}</div>}
-                    </article>)}</div> : <div className={q.emptyState}><h3>You're up to date.</h3><p>Agreed follow-ups will appear here when a conversation is ready.</p></div>}
+                    </article>)}</div> : <div className={q.emptyState}><h3>You&apos;re up to date.</h3><p>Agreed follow-ups will appear here when a conversation is ready.</p></div>}
                     {pending.length > 3 && <button className={q.textLink} onClick={() => navigate("calendar")}>View all follow-ups</button>}
                   </section>
                   <section className={q.nextMeeting} aria-labelledby="next-meeting-heading">

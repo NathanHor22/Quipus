@@ -30,16 +30,8 @@ function fromRow(row: RelayRow): RelayMatch {
 }
 
 function snapshot(match: RelayMatch) {
-  const {
-    id: _id,
-    pairKey: _pairKey,
-    status: _status,
-    provider: _provider,
-    model: _model,
-    createdAt: _createdAt,
-    ...safe
-  } = match;
-  return safe;
+  const metadata = new Set(["id", "pairKey", "status", "provider", "model", "createdAt"]);
+  return Object.fromEntries(Object.entries(match).filter(([field]) => !metadata.has(field)));
 }
 
 export async function loadRelayMatches(

@@ -4,20 +4,42 @@ import styles from "./workspace.module.css";
 import deliveryStyles from "./delivery.module.css";
 
 type Delivery = { id: string; phone: string; state: string; last_error?: string | null };
+type DeliveryState = { available: boolean; enabled: boolean; phone?: string; deliveries: Delivery[] };
+
+async function readDelivery(signal?: AbortSignal): Promise<DeliveryState> {
+  const response = await fetch("/api/whatsapp/delivery", { cache: "no-store", signal });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Connection unavailable.");
+  return data;
+}
+
 export function WhatsAppDelivery({ sample = false }: { sample?: boolean }) {
-  const [state, setState] = useState<{ available: boolean; enabled: boolean; phone?: string; deliveries: Delivery[] }>();
+  return <WhatsAppDeliverySession key={String(sample)} sample={sample} />;
+}
+
+function WhatsAppDeliverySession({ sample }: { sample: boolean }) {
+  const [state, setState] = useState<DeliveryState>();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [code, setCode] = useState("");
   const refresh = async () => {
     try {
-      const response = await fetch("/api/whatsapp/delivery", { cache: "no-store" });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-      setState(data);
+      setState(await readDelivery());
     } catch (error) { setError(error instanceof Error ? error.message : "Connection unavailable."); }
   };
-  useEffect(() => { if (!sample) void refresh(); }, [sample]);
+  useEffect(() => {
+    if (sample) return;
+    const controller = new AbortController();
+    void readDelivery(controller.signal)
+      .then((data) => {
+        if (!controller.signal.aborted) setState(data);
+      })
+      .catch((cause) => {
+        if (!controller.signal.aborted)
+          setError(cause instanceof Error ? cause.message : "Connection unavailable.");
+      });
+    return () => controller.abort();
+  }, [sample]);
   const perform = async (body: Record<string, unknown>, pair = false) => {
     setBusy(true); setError("");
     try {

@@ -5,6 +5,7 @@ import {
   authEnforcementMode,
   isLanternDevicePath,
   isPublicAuthPath,
+  isPublicContentPath,
   sanitizeAuthReturnTo,
 } from "../lib/auth-policy";
 
@@ -48,6 +49,7 @@ test("OAuth return path accepts only same-origin relative paths", () => {
 
 test("homepage, legal pages, login, auth callback and logout are public", () => {
   assert.equal(isPublicAuthPath("/"), true);
+  assert.equal(isPublicAuthPath("/demo"), true);
   assert.equal(isPublicAuthPath("/login"), true);
   assert.equal(isPublicAuthPath("/privacy"), true);
   assert.equal(isPublicAuthPath("/terms"), true);
@@ -91,4 +93,10 @@ test("only explicit Lantern routes bypass browser cookies for device authenticat
     ),
     false,
   );
+});
+
+
+test("public content bypass is exact and cannot include private dashboards or API paths", () => {
+  for (const path of ["/", "/demo", "/privacy", "/terms"]) assert.equal(isPublicContentPath(path), true, path);
+  for (const path of ["/demo/private", "/dashboard", "/api/meetings", "/api/processing/file.glb", "/login", "/auth/callback", "/api/auth/logout"]) assert.equal(isPublicContentPath(path), false, path);
 });

@@ -38,12 +38,15 @@ export function sanitizeAuthReturnTo(value: string | null | undefined): string {
   }
 }
 
+/** Public content never needs a session lookup; authenticated APIs stay protected. */
+export function isPublicContentPath(pathname: string): boolean {
+  return ["/", "/demo", "/privacy", "/terms"].includes(pathname);
+}
+
 export function isPublicAuthPath(pathname: string): boolean {
   return (
-    pathname === "/" ||
+    isPublicContentPath(pathname) ||
     pathname === "/login" ||
-    pathname === "/privacy" ||
-    pathname === "/terms" ||
     pathname === "/auth/callback" ||
     pathname === "/api/auth/logout"
   );

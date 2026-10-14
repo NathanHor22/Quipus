@@ -12,6 +12,8 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
+import { useMediaQuery } from "@/components/hooks/useMediaQuery";
+import { usePageVisibility } from "@/components/hooks/usePageVisibility";
 import styles from "./experience.module.css";
 
 export type QuipusMotionPreference = "system" | "on" | "off";
@@ -79,7 +81,7 @@ function ArchitectureBackdrop({ active, scene }: { active: boolean; scene: strin
   }, [active]);
 
   return (
-    <div ref={backdrop} className={styles.backdrop} aria-hidden="true" data-active={active} style={sceneStyle}>
+    <div ref={backdrop} className={styles.backdrop} aria-hidden="true" hidden={scene === "landing"} data-active={active} style={sceneStyle}>
       <div className={styles.architecturalField}>
         <svg className={styles.architecture} viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" fill="none" focusable="false">
           <defs>
@@ -160,29 +162,14 @@ function ArchitectureBackdrop({ active, scene }: { active: boolean; scene: strin
 }
 
 export function QuipusExperience({ children }: { children: ReactNode }) {
-  const [reducedMotion, setReducedMotion] = useState(true);
-  const [ready, setReady] = useState(false);
-  const [visible, setVisible] = useState(true);
+  const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)", null);
+  const ready = reducedMotion !== null;
+  const visible = usePageVisibility();
   const [scene, setSceneState] = useState("overview");
-
-  useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const updateMedia = () => setReducedMotion(media.matches);
-    const updateVisibility = () => setVisible(document.visibilityState !== "hidden");
-    updateMedia();
-    updateVisibility();
-    setReady(true);
-    media.addEventListener("change", updateMedia);
-    document.addEventListener("visibilitychange", updateVisibility);
-    return () => {
-      media.removeEventListener("change", updateMedia);
-      document.removeEventListener("visibilitychange", updateVisibility);
-    };
-  }, []);
 
   const enabled = ready && !reducedMotion;
   // Preserve the context contract for existing consumers; the OS now owns this preference.
-  const setPreference = useCallback((_next: QuipusMotionPreference) => {}, []);
+  const setPreference = useCallback<QuipusMotion["setPreference"]>(() => {}, []);
   const toggle = useCallback(() => {}, []);
   const setScene = useCallback((next: string) => setSceneState((previous) => previous === next ? previous : next), []);
   const value = useMemo<MotionContext>(
@@ -193,7 +180,7 @@ export function QuipusExperience({ children }: { children: ReactNode }) {
   return (
     <MotionContext.Provider value={value}>
       <div className={styles.experience} data-quipus-motion={enabled ? "on" : "off"} data-quipus-visibility={visible ? "visible" : "hidden"}>
-        <ArchitectureBackdrop active={enabled && visible} scene={scene} />
+        <ArchitectureBackdrop active={enabled && visible && scene !== "landing"} scene={scene} />
         <div className={styles.content}>{children}</div>
       </div>
     </MotionContext.Provider>
@@ -230,23 +217,30 @@ export function RevealHeading({ as: Heading = "h1", text, className, replayKey }
   const enabled = context?.enabled ?? false;
   const ready = context?.ready ?? true;
   const visible = context?.visible ?? true;
-  const [revealing, setRevealing] = useState(false);
-  const [displayText, setDisplayText] = useState(text);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const overlay = useRef<HTMLSpanElement>(null);
   const revealedIdentity = useRef<string | null>(null);
   // Text changes from polling/profile loading do not restart a page entrance.
-  const identity = replayKey === undefined ? "initial" : `page:${replayKey}`;
+  const identity = replayKey === undefined ? "initial" : "page:" + replayKey;
 
   useEffect(() => {
-    if (!ready) return;
+    const element = heading.current;
+    const scrambled = overlay.current;
+    if (!ready || !element || !scrambled) return;
+    const finish = () => {
+      element.dataset.revealing = "false";
+      scrambled.style.display = "none";
+      scrambled.textContent = "";
+    };
     if (!enabled || !visible || revealedIdentity.current === identity) {
       revealedIdentity.current = identity;
-      setRevealing(false);
-      setDisplayText(text);
+      finish();
       return;
     }
     revealedIdentity.current = identity;
-    setRevealing(true);
-    setDisplayText(text);
+    element.dataset.revealing = "true";
+    scrambled.style.removeProperty("display");
+    scrambled.textContent = text;
     let animationFrame = 0;
     let start: number | null = null;
     let lastFrame = -1;
@@ -258,23 +252,23 @@ export function RevealHeading({ as: Heading = "h1", text, className, replayKey }
       const frame = Math.floor(elapsed / 36);
       if (frame !== lastFrame) {
         lastFrame = frame;
-        setDisplayText(scrambledText(text, progress, frame));
+        scrambled.textContent = scrambledText(text, progress, frame);
       }
       if (progress < 1) animationFrame = window.requestAnimationFrame(tick);
-      else {
-        setDisplayText(text);
-        setRevealing(false);
-      }
+      else finish();
     };
     animationFrame = window.requestAnimationFrame(tick);
-    return () => window.cancelAnimationFrame(animationFrame);
-  }, [enabled, ready, visible, identity, text]);
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      finish();
+    };
+  }, [enabled, ready, visible, identity, text, Heading]);
 
   return (
-    <Heading className={[styles.heading, className].filter(Boolean).join(" ")} data-revealing={revealing}>
+    <Heading ref={heading} className={[styles.heading, className].filter(Boolean).join(" ")} data-revealing="false">
       <span className={styles.headingText}>
         <span className={styles.finalText}>{text}</span>
-        {revealing && <span className={styles.scrambleText} aria-hidden="true">{displayText}</span>}
+        <span ref={overlay} className={styles.scrambleText} aria-hidden="true" style={{ display: "none" }} />
       </span>
     </Heading>
   );

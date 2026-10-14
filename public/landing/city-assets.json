@@ -1,0 +1,31 @@
+{
+  "purpose": "Lightweight public landing-page scenery, not Quipus hardware CAD.",
+  "sources": [
+    "low-poly-spaceships.zip",
+    "low_poly_construction_site.glb"
+  ],
+  "shuttle": {
+    "file": "quipus-city-shuttle.glb",
+    "bytes": 24448,
+    "triangles": 354,
+    "vertices": 180,
+    "dimensions_gltf_xyz": [
+      3.22089291,
+      0.97982788,
+      2.84388638
+    ]
+  },
+  "construction": {
+    "file": "quipus-city-construction.glb",
+    "bytes": 41800,
+    "triangles": 754,
+    "vertices": 1415,
+    "dimensions_gltf_xyz": [
+      1,
+      0.67500186,
+      0.66666681
+    ]
+  },
+  "orientation": "glTF +Y up; shuttle nose +Z; construction ground Y=0, width X=1",
+  "changes": "Selected Box002 only; merged three opaque materials; white hull, graphite canopy, crimson tips. Separate source ground slab omitted; frame foundation retained."
+}

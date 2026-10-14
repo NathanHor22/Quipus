@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, MessageCircle, Sparkles, X } from "lucide-react";
 import type { Contact, FollowUp } from "@/lib/types";
@@ -18,46 +18,54 @@ interface FollowUpComposerProps {
   onSend: (followUp: FollowUp, body: string) => Promise<void>;
 }
 
-export function FollowUpComposer({ followUp, contact, onClose, onPrepare, onSend }: FollowUpComposerProps) {
+export function FollowUpComposer({ followUp, ...props }: FollowUpComposerProps) {
+  if (!followUp) return null;
+  const key = JSON.stringify([
+    followUp.id, followUp.draft, followUp.description,
+    props.contact?.id, props.contact?.name, props.contact?.company,
+  ]);
+  return <FollowUpDraft key={key} followUp={followUp} {...props} />;
+}
+
+function FollowUpDraft({ followUp, contact, onClose, onPrepare, onSend }: Omit<FollowUpComposerProps, "followUp"> & { followUp: FollowUp }) {
   const { dict } = useLanguage();
-  const [body, setBody] = useState("");
-  const [preparing, setPreparing] = useState(false);
-  const [preparationNote, setPreparationNote] = useState<string | null>(null);
+  const [body, setBody] = useState(() => followUp.draft || (
+    "Hi " + (contact?.name?.split(" ")[0] || "there") +
+    ", great speaking earlier. I'm following up on " +
+    (followUp.description.toLowerCase() || "our conversation") + "."
+  ));
+  const [preparing, setPreparing] = useState(true);
+  const [preparation, setPreparation] = useState<{ provider: "devin" | "fallback"; warning?: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const preparationNote = preparation?.warning ||
+    (preparation?.provider === "devin" ? dict.followUp.preparedByDevin : null);
+
+  const prepareDraft = useEffectEvent(async () => {
+    try {
+      return { proposal: await onPrepare(followUp, contact), error: null };
+    } catch (cause: unknown) {
+      return { proposal: null, error: cause instanceof Error ? cause.message : dict.errors.generic };
+    }
+  });
 
   useEffect(() => {
     let cancelled = false;
-    setBody(followUp?.draft || `Hi ${contact?.name?.split(" ")[0] || "there"}, great speaking earlier. I’m following up on ${followUp?.description.toLowerCase() || "our conversation"}.`);
-    setPreparationNote(null);
-    setError(null);
-    setSent(false);
-    if (!followUp) return () => { cancelled = true; };
-
-    setPreparing(true);
-    void onPrepare(followUp, contact)
-      .then((proposal) => {
+    void prepareDraft()
+      .then(({ proposal, error }) => {
         if (cancelled) return;
-        setBody(proposal.body);
-        setPreparationNote(
-          proposal.warning ||
-            (proposal.provider === "devin" ? dict.followUp.preparedByDevin : null),
-        );
-      })
-      .catch((cause: unknown) => {
-        if (!cancelled) {
-          setError(cause instanceof Error ? cause.message : dict.errors.generic);
-        }
+        if (proposal) {
+          setBody(proposal.body);
+          setPreparation({ provider: proposal.provider, warning: proposal.warning });
+        } else setError(error);
       })
       .finally(() => {
         if (!cancelled) setPreparing(false);
       });
-
     return () => { cancelled = true; };
-  }, [contact, dict.errors.generic, dict.followUp.preparedByDevin, followUp, onPrepare]);
+  }, []);
 
-  if (!followUp) return null;
   return (
     <AnimatePresence>
       <motion.div className="modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>

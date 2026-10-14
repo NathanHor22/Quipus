@@ -3,7 +3,7 @@
 import { useId, useMemo } from "react";
 import type { Contact, Meeting } from "@/lib/types";
 import { clientHistory } from "@/lib/workspace/client-history";
-import { initials } from "./ConversationPanel";
+import { initials } from "@/lib/workspace/contact-display";
 import { useWorkspaceTime } from "./WorkspaceTime";
 import styles from "./client-history.module.css";
 

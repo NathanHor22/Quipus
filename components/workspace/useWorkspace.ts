@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Contact, Meeting, ScheduleDetails } from "@/lib/types";
+import { useBrowserStorageSnapshot } from "@/components/hooks/useBrowserStorageSnapshot";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import {
   approveSample,
@@ -50,8 +51,34 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
   const activeRequests = useRef(new Set<AbortController>());
   const metadataRefreshedAt = useRef(0);
   const devicePaired = useRef(false);
-  const owner = useRef(accountIdentity);
-  owner.current = accountIdentity;
+  const owner = useRef<symbol | null>(null);
+  const storedSample = useBrowserStorageSnapshot(
+    initialMode === "sample" ? SAMPLE_STORAGE_KEY : null,
+    { fallbackKey: LEGACY_SAMPLE_STORAGE_KEY },
+  );
+  const [sampleRestored, setSampleRestored] = useState(initialMode !== "sample");
+  if (!sampleRestored && storedSample !== null) {
+    setSampleRestored(true);
+    setMeetings((readSampleWorkspace(storedSample) || createSampleWorkspace()).meetings);
+    setLoading(false);
+  }
+
+  const persistSample = useCallback((next: Meeting[]) => {
+    try {
+      localStorage.setItem(SAMPLE_STORAGE_KEY, JSON.stringify({ version: 1, meetings: next }));
+      localStorage.removeItem(LEGACY_SAMPLE_STORAGE_KEY);
+    } catch {
+      setNotice("Changes are available in this tab. Browser storage is unavailable.");
+    }
+  }, []);
+
+  const disposeRequests = useCallback(() => {
+    owner.current = null;
+    generation.current++;
+    activeRequests.current.forEach(controller => controller.abort());
+    activeRequests.current.clear();
+    liveRefreshRunning.current = null;
+  }, []);
 
   const loadSample = useCallback((reset = false) => {
     generation.current++;
@@ -80,10 +107,11 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
     url.searchParams.set("mode", "sample");
     window.history.replaceState({}, "", url);
     if (reset) setNotice("Sample workspace reset.");
-  }, []);
+    persistSample(data.meetings);
+  }, [persistSample]);
 
-  const loadLive = useCallback(
-    async (allowSample = false, silent = false) => {
+  const refreshLive = useCallback(
+    (allowSample = false, silent = false) => {
       if (silent && (liveRefreshRunning.current || actionLock.current)) return;
       const refreshId = Symbol("workspace-refresh");
       liveRefreshRunning.current = refreshId;
@@ -93,20 +121,7 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
       let meetingsLoaded = false;
       const current = ++generation.current;
       const requestOwner = owner.current;
-      if (!silent) {
-        setMode("live");
-        setMeetings([]);
-        setLoading(true);
-        setError(null);
-        setIntegrations({});
-        setDevice(null);
-        setDeviceStatusLoaded(false);
-        const url = new URL(window.location.href);
-        url.searchParams.delete("mode");
-        window.history.replaceState({}, "", url);
-      }
-      try {
-        const response = await fetch("/api/meetings", { cache: "no-store", signal: controller.signal });
+      return fetch("/api/meetings", { cache: "no-store", signal: controller.signal }).then(async response => {
         const payload = await response.json();
         if (current !== generation.current || requestOwner !== owner.current) return;
         if (!response.ok)
@@ -125,7 +140,7 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
         setMeetings(payload.meetings || []);
         meetingsLoaded = true;
         // Optional account/device checks must not hold the meeting content behind a loader.
-        if (!silent) setLoading(false);
+        setLoading(false);
         if (!silent || Date.now() - metadataRefreshedAt.current >= (devicePaired.current ? 30_000 : 10_000)) {
           window.clearTimeout(deadline);
           deadline = window.setTimeout(() => controller.abort(), 8_000);
@@ -160,7 +175,7 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
             metadataRefreshedAt.current = Date.now();
           }
         }
-      } catch (cause) {
+      }).catch((cause: unknown) => {
         if (!silent && !meetingsLoaded && current === generation.current && requestOwner === owner.current)
           setError(
             controller.signal.aborted
@@ -169,29 +184,39 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
                 ? cause.message
                 : "Your workspace could not be loaded.",
           );
-      } finally {
-        if (!silent && current === generation.current && requestOwner === owner.current) setLoading(false);
+      }).finally(() => {
+        if (current === generation.current && requestOwner === owner.current) setLoading(false);
         window.clearTimeout(deadline);
         activeRequests.current.delete(controller);
         if (liveRefreshRunning.current === refreshId) liveRefreshRunning.current = null;
-      }
+      });
     },
     [loadSample],
   );
 
+  const loadLive = useCallback((allowSample = false, silent = false) => {
+    if (!silent) {
+      setMode("live");
+      setMeetings([]);
+      setLoading(true);
+      setError(null);
+      setIntegrations({});
+      setDevice(null);
+      setDeviceStatusLoaded(false);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("mode");
+      window.history.replaceState({}, "", url);
+    }
+    return refreshLive(allowSample, silent);
+  }, [refreshLive]);
+
   useEffect(() => {
-    setApprovalReceipt(null);
-    setNotice(null);
+    owner.current = Symbol(accountIdentity || "sample-workspace");
     metadataRefreshedAt.current = 0;
     devicePaired.current = false;
-    if (initialMode === "sample") loadSample();
-    else void loadLive(true);
-    return () => {
-      generation.current++;
-      activeRequests.current.forEach(controller => controller.abort());
-      activeRequests.current.clear();
-    };
-  }, [accountIdentity, initialMode, loadLive, loadSample]);
+    if (initialMode === "live") void refreshLive(true);
+    return disposeRequests;
+  }, [accountIdentity, initialMode, refreshLive, disposeRequests]);
 
   useEffect(() => {
     if (mode !== "live" || loading) return;
@@ -223,21 +248,6 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
   }, [loading, loadLive, mode]);
 
   useEffect(() => {
-    if (mode !== "sample" || loading) return;
-    try {
-      localStorage.setItem(
-        SAMPLE_STORAGE_KEY,
-        JSON.stringify({ version: 1, meetings }),
-      );
-      localStorage.removeItem(LEGACY_SAMPLE_STORAGE_KEY);
-    } catch {
-      setNotice(
-        "Changes are available in this tab. Browser storage is unavailable.",
-      );
-    }
-  }, [mode, meetings, loading]);
-
-  useEffect(() => {
     if (!notice) return;
     const timeout = window.setTimeout(() => setNotice(null), 6000);
     return () => window.clearTimeout(timeout);
@@ -258,6 +268,7 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
         setMeetings(next);
         // The persistent receipt is the single approval confirmation.
         setNotice(null);
+        persistSample(next);
         const created = (
           next.find((meeting) => meeting.sourceApprovalId === approval.id) ||
           null
@@ -346,8 +357,14 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
         if (!response.ok || !payload.persisted)
           throw new Error(payload.error || "The change could not be saved.");
       }
-      setMeetings((current) => updateApproval(current, id, changes));
       if (changes.status === "dismissed") setNotice("Approval dismissed.");
+      if (mode === "sample") {
+        const next = updateApproval(meetings, id, changes);
+        setMeetings(next);
+        persistSample(next);
+      } else {
+        setMeetings((current) => updateApproval(current, id, changes));
+      }
       return true;
     } catch (cause) {
       if (actionOwner !== owner.current) return false;
@@ -392,15 +409,20 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
           throw new Error(payload.error || "The contact could not be updated.");
         saved = payload.contact;
       }
-      setMeetings((current) =>
-        current.map((meeting) => ({
-          ...meeting,
-          contacts: meeting.contacts.map((contact) =>
-            contact.id === id ? { ...contact, ...saved } : contact,
-          ),
-        })),
-      );
+      const updateContacts = (current: Meeting[]) => current.map((meeting) => ({
+        ...meeting,
+        contacts: meeting.contacts.map((contact) =>
+          contact.id === id ? { ...contact, ...saved } : contact,
+        ),
+      }));
       setNotice("Contact details updated.");
+      if (mode === "sample") {
+        const next = updateContacts(meetings);
+        setMeetings(next);
+        persistSample(next);
+      } else {
+        setMeetings(updateContacts);
+      }
       return true;
     } catch (cause) {
       if (actionOwner !== owner.current) return false;

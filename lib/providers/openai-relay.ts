@@ -91,7 +91,9 @@ export async function findRelayMatchesWithOpenAI(
         event: { name: eventName, venue },
         // Contact details stay in Quipus. Relay only needs stable IDs and
         // conversation evidence to reason about a possible introduction.
-        conversations: conversations.map(({ email: _email, ...conversation }) => conversation),
+        conversations: conversations.map((conversation) =>
+          Object.fromEntries(Object.entries(conversation).filter(([field]) => field !== "email")),
+        ),
         publicResearch: research,
       }),
       text: {

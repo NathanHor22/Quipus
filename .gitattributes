@@ -1,0 +1,2 @@
+# Keep stylesheet formatting stable on Windows and in CI.
+*.css text eol=lf

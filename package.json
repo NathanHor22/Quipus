@@ -14,7 +14,13 @@
     "worker:typecheck": "npm --prefix worker run typecheck",
     "worker:test": "npm --prefix worker run test",
     "worker:build": "npm --prefix worker run build",
-    "check": "npm run typecheck && npm run worker:typecheck && npm run test && npm run worker:test && npm run build && npm run worker:build"
+    "check": "npm run lint && npm run typecheck && npm run worker:typecheck && npm run test && npm run worker:test && npm run build && npm run worker:build",
+    "lint": "npm run lint:css && npm run format:css:check && npm run lint:js",
+    "lint:js": "eslint app components lib tests proxy.ts next.config.mjs eslint.config.mjs --max-warnings 0",
+    "lint:css": "stylelint \"{app,components}/**/*.css\"",
+    "lint:fix": "npm run lint:js -- --fix && npm run lint:css -- --fix && npm run format:css",
+    "format:css": "prettier --write \"{app,components}/**/*.css\"",
+    "format:css:check": "prettier --check \"{app,components}/**/*.css\""
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.0",
@@ -27,8 +33,9 @@
     "lucide-react": "^0.468.0",
     "motion": "^12.42.2",
     "next": "^16.3.2",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "three": "^0.186.1",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -36,7 +43,59 @@
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
+    "@types/three": "^0.186.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.2",
+    "prettier": "3.9.10",
+    "stylelint": "17.16.0",
+    "stylelint-config-recommended": "18.0.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
+  },
+  "stylelint": {
+    "extends": [
+      "stylelint-config-recommended"
+    ],
+    "rules": {
+      "selector-pseudo-class-no-unknown": [
+        true,
+        {
+          "ignorePseudoClasses": [
+            "global",
+            "local"
+          ]
+        }
+      ],
+      "property-no-unknown": [
+        true,
+        {
+          "ignoreProperties": [
+            "composes"
+          ]
+        }
+      ],
+      "no-descending-specificity": null
+    },
+    "overrides": [
+      {
+        "files": [
+          "components/workspace/client-history.module.css",
+          "components/workspace/delivery.module.css",
+          "components/workspace/lantern-device.module.css",
+          "components/workspace/recording-progress.module.css",
+          "components/workspace/relay-panel.module.css",
+          "components/workspace/setup.module.css"
+        ],
+        "rules": {
+          "no-duplicate-selectors": null
+        }
+      }
+    ]
+  },
+  "prettier": {
+    "tabWidth": 2,
+    "useTabs": false,
+    "printWidth": 100,
+    "endOfLine": "lf"
   }
 }

@@ -1,70 +1,50 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
+import { Dialog } from "@/components/ui/Dialog";
 import { FileText, Headphones, MessageSquare, X } from "lucide-react";
 import type { Meeting } from "@/lib/types";
 import { sourceConversation } from "@/lib/workspace/model";
 import styles from "./workspace.module.css";
 import { useWorkspaceTime } from "./WorkspaceTime";
+import { FollowUpChecklist } from "./FollowUpChecklist";
+import { MeetingKeyPoints } from "./MeetingKeyPoints";
+import { initials } from "@/lib/workspace/contact-display";
 import {
   ConversationReplay,
   type PlaybackProgress,
 } from "./ConversationReplay";
 
-export const dateLabel = (
-  value: string,
-  options: Intl.DateTimeFormatOptions = {},
-) =>
-  new Intl.DateTimeFormat("en-MY", {
-    timeZone: "Asia/Kuala_Lumpur",
-    day: "numeric",
-    month: "short",
-    ...options,
-  }).format(new Date(value));
-export const timeLabel = (value: string) =>
-  new Intl.DateTimeFormat("en-MY", {
-    timeZone: "Asia/Kuala_Lumpur",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).format(new Date(value));
-export const initials = (name: string) =>
-  name
-    .split(" ")
-    .filter((word) => !["Mr", "Ms", "Mrs"].includes(word))
-    .map((word) => word[0])
-    .slice(0, 2)
-    .join("");
-
-export function ConversationPanel({
-  meeting,
-  meetings,
-  onClose,
-  onTask,
-  working,
-  error,
-}: {
+type ConversationPanelProps = {
   meeting: Meeting | null;
   meetings: Meeting[];
   onClose: () => void;
   onTask: (id: string, completed: boolean) => void;
   working: string | null;
   error: string | null;
-}) {
+};
+
+export function ConversationPanel(props: ConversationPanelProps) {
+  const [playbackProgress, setPlaybackProgress] = useState(() => new Map<string, PlaybackProgress>());
+  const rememberProgress = useCallback((id: string, progress: PlaybackProgress) => {
+    setPlaybackProgress(current => {
+      const previous = current.get(id);
+      if (previous?.position === progress.position && previous.speed === progress.speed) return current;
+      return new Map(current).set(id, progress);
+    });
+  }, []);
+  return props.meeting ? <ConversationPanelSession key={props.meeting.id} {...props}
+    meeting={props.meeting} playbackProgress={playbackProgress} onProgress={rememberProgress} /> : null;
+}
+
+function ConversationPanelSession({ meeting, meetings, onClose, onTask, working, error, playbackProgress, onProgress }:
+  Omit<ConversationPanelProps, "meeting"> & { meeting: Meeting; playbackProgress: ReadonlyMap<string, PlaybackProgress>;
+    onProgress: (id: string, progress: PlaybackProgress) => void }) {
   const { dateLabel, timeLabel } = useWorkspaceTime();
-  const dialog = useRef<HTMLDialogElement>(null);
-  const playbackProgress = useRef(new Map<string, PlaybackProgress>());
   const [tab, setTab] = useState<"recap" | "replay">("recap");
   const conversation = meeting
     ? sourceConversation(meetings, meeting)
     : undefined;
-  useEffect(() => {
-    if (meeting) {
-      setTab("recap");
-      dialog.current?.showModal();
-    } else dialog.current?.close();
-  }, [meeting?.id]);
-  if (!meeting) return null;
   const contact = conversation?.contacts[0] || meeting.contacts[0];
   const insight = conversation?.insight;
   const tasks = (conversation?.followUps || []).filter(
@@ -77,11 +57,11 @@ export function ConversationPanel({
       )
     : 0;
   return (
-    <dialog
-      ref={dialog}
+    <Dialog
+      open
+      onClose={onClose}
       className={styles.drawer}
       aria-labelledby="conversation-title"
-      onCancel={onClose}
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -182,14 +162,7 @@ export function ConversationPanel({
                   <h3>
                     <FileText /> What you discussed
                   </h3>
-                  <ul className={styles.recapPoints}>
-                    {(insight.keyPoints.length
-                      ? insight.keyPoints
-                      : [insight.wants]
-                    ).map((point, index) => (
-                      <li key={index}>{point}</li>
-                    ))}
-                  </ul>
+                  <MeetingKeyPoints insight={insight} className={styles.recapPoints} />
                 </section>
                 <section className={styles.takeNote}>
                   <h3>Keep in mind</h3>
@@ -228,31 +201,13 @@ export function ConversationPanel({
                     /{tasks.length}
                   </span>
                 </h3>
-                <div className={styles.checklist}>
-                  {tasks.map((task) => (
-                    <label
-                      key={task.id}
-                      className={
-                        task.status === "completed" ? styles.completedTask : ""
-                      }
-                    >
-                      <input
-                        type="checkbox"
-                        checked={task.status === "completed"}
-                        disabled={Boolean(working)}
-                        onChange={(event) =>
-                          onTask(task.id, event.target.checked)
-                        }
-                      />
-                      <span>
-                        <strong>{task.description}</strong>
-                        {task.dueAt && (
-                          <small>Due {dateLabel(task.dueAt)}</small>
-                        )}
-                      </span>
-                    </label>
-                  ))}
-                </div>
+                <FollowUpChecklist
+                  tasks={tasks}
+                  disabled={Boolean(working)}
+                  onTask={onTask}
+                  className={styles.checklist}
+                  completedClassName={styles.completedTask}
+                />
               </section>
             )}
             {conversation && (
@@ -299,9 +254,9 @@ export function ConversationPanel({
           <ConversationReplay
             key={conversation.id}
             conversation={conversation}
-            initialProgress={playbackProgress.current.get(conversation.id)}
+            initialProgress={playbackProgress.get(conversation.id)}
             onProgress={(progress) =>
-              playbackProgress.current.set(conversation.id, progress)
+              onProgress(conversation.id, progress)
             }
           />
         ) : (
@@ -310,6 +265,6 @@ export function ConversationPanel({
           </p>
         )}
       </div>
-    </dialog>
+    </Dialog>
   );
 }

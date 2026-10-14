@@ -9,7 +9,17 @@ import type { AuthenticatedLantern } from "../lib/lantern-device-auth";
 
 const device: AuthenticatedLantern = { id: "device-a", userId: "owner-a", name: "Lantern", state: "ready", stateVersion: 1 };
 const token = "e53b28c1-8888-4444-8888-111111111111";
-type Row = Record<string, any>;
+type Row = Record<string, unknown>;
+type QueryResult = { data: Row | null; error: null };
+type Query = {
+  select: () => Query;
+  update: (values: Row) => Query;
+  eq: (key: string, value: unknown) => Query;
+  in: (key: string, values: unknown[]) => Query;
+  maybeSingle: () => Promise<QueryResult>;
+  single: () => Promise<QueryResult>;
+  then: (resolve: (value: QueryResult) => unknown) => Promise<unknown>;
+};
 /** In-memory query boundary: filters and conditional writes run atomically. No network calls. */
 function database(tables: Record<string, Row[]>) {
   let writes = 0;
@@ -21,12 +31,12 @@ function database(tables: Record<string, Row[]>) {
       if (changes) for (const row of rows) { Object.assign(row, changes); writes++; }
       return { data: structuredClone(rows[0] || null), error: null };
     };
-    const query: any = {
+    const query: Query = {
       select: () => query, update: (values: Row) => { changes = values; return query; },
       eq: (key: string, value: unknown) => { filters.push(row => row[key] === value); return query; },
       in: (key: string, values: unknown[]) => { filters.push(row => values.includes(row[key])); return query; },
       maybeSingle: async () => execute(), single: async () => execute(),
-      then: (resolve: (value: unknown) => unknown) => Promise.resolve(execute()).then(resolve),
+      then: (resolve: (value: QueryResult) => unknown) => Promise.resolve(execute()).then(resolve),
     };
     return query;
   } } as unknown as SupabaseClient;

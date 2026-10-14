@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { Dialog } from "@/components/ui/Dialog";
 import { LoaderCircle } from "lucide-react";
 import { LiveRecorder } from "@/components/Meeting/LiveRecorder";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
@@ -17,9 +18,9 @@ export function RecordingDialog({
   onClose: () => void;
   onProcessed: () => void;
 }) {
-  const dialog = useRef<HTMLDialogElement>(null);
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [previousOpen, setPreviousOpen] = useState(open);
   const [stage, setStage] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [capturedAt, setCapturedAt] = useState(() =>
@@ -27,12 +28,12 @@ export function RecordingDialog({
   );
   const [duration, setDuration] = useState("");
   const { locale } = useLanguage();
-  useEffect(() => {
-    if (open) {
-      setError(null);
-      dialog.current?.showModal();
-    } else dialog.current?.close();
-  }, [open]);
+  // Opening starts a new attempt without discarding the chosen file or timing.
+  // Adjust only this component's state before rendering the reopened dialog.
+  if (previousOpen !== open) {
+    setPreviousOpen(open);
+    if (open) setError(null);
+  }
   const upload = async (
     file: File,
     source: "upload" | "agora" = "upload",
@@ -128,14 +129,12 @@ export function RecordingDialog({
     }
   };
   return (
-    <dialog
-      ref={dialog}
+    <Dialog
+      open={open}
+      onClose={onClose}
+      dismissDisabled={working}
       className={styles.approvalDialog}
       aria-labelledby="recording-title"
-      onCancel={(event) => {
-        if (working) event.preventDefault();
-        else onClose();
-      }}
     >
       <div className={styles.recordingForm}>
         <header>
@@ -228,6 +227,6 @@ export function RecordingDialog({
           </p>
         )}
       </div>
-    </dialog>
+    </Dialog>
   );
 }

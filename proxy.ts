@@ -5,6 +5,7 @@ import {
   authEnforcementMode,
   isLanternDevicePath,
   isPublicAuthPath,
+  isPublicContentPath,
 } from "@/lib/auth-policy";
 
 function copyCookies(from: NextResponse, to: NextResponse): NextResponse {
@@ -35,6 +36,15 @@ function unauthenticatedResponse(
 }
 
 export async function proxy(request: NextRequest) {
+  // Public content does not depend on Google/Supabase latency.
+  if (isPublicContentPath(request.nextUrl.pathname)) {
+    if (request.nextUrl.pathname === "/" && request.nextUrl.searchParams.get("mode") === "sample") {
+      const destination = request.nextUrl.clone();
+      destination.pathname = "/demo";
+      return NextResponse.redirect(destination);
+    }
+    return NextResponse.next({ request });
+  }
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const mode = authEnforcementMode({
@@ -46,6 +56,9 @@ export async function proxy(request: NextRequest) {
   if (mode === "disabled") return NextResponse.next({ request });
 
   if (mode === "misconfigured") {
+    // Render the existing sign-in-unavailable card and public sample link.
+    // Private pages and APIs continue to fail closed below.
+    if (request.nextUrl.pathname === "/login") return NextResponse.next({ request });
     const message =
       "Quipus authentication is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.";
     if (request.nextUrl.pathname.startsWith("/api/")) {
@@ -108,6 +121,6 @@ export const config = {
     // API routes are always authenticated, including dynamic values that look
     // like static filenames (for example `/api/processing/example.js`).
     "/api/:path*",
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|map|woff|woff2|ttf)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|map|woff|woff2|ttf|glb|mp4|webm)$).*)",
   ],
 };

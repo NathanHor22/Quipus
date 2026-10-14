@@ -3,7 +3,8 @@ import { ShareMeetingWhatsApp } from "./WhatsAppDelivery";
 import { EmailFollowUp } from "./EmailFollowUp";
 import { RecordingProgress } from "./RecordingProgress";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useState } from "react";
+import { TabList } from "@/components/ui/TabList";
 
 import type { Contact, Meeting } from "@/lib/types";
 import {
@@ -11,10 +12,12 @@ import {
   type MeetingApproval,
   type WorkspaceMode,
 } from "@/lib/workspace/model";
-import { ConversationReplay, type PlaybackProgress } from "./ConversationReplay";
+import { ConversationReplay } from "./ConversationReplay";
+import { FollowUpChecklist } from "./FollowUpChecklist";
+import { MeetingKeyPoints } from "./MeetingKeyPoints";
 import { formatAudioTime } from "@/lib/workspace/playback";
 import { getRecordingProgress, recordingDurationLabel } from "@/lib/workspace/recording-progress";
-import { initials } from "./ConversationPanel";
+import { initials } from "@/lib/workspace/contact-display";
 import { useWorkspaceTime } from "./WorkspaceTime";
 import styles from "./conversation-detail.module.css";
 
@@ -46,7 +49,17 @@ export type ConversationDetailProps = {
   onRetryAccepted?: () => void | Promise<void>;
 };
 
-export function ConversationDetail({
+/** A new conversation or explicit open target gets fresh local UI state. */
+export function ConversationDetail(props: ConversationDetailProps) {
+  const contact = props.initialContactId != null
+    ? props.conversation.contacts.find(person => person.id === props.initialContactId)
+    : props.conversation.contacts[0];
+  const sessionKey = JSON.stringify([props.conversation.id, props.initialTab || "Summary",
+    props.initialContactEditing || false, props.initialContactId ?? null, contact?.id ?? null]);
+  return <ConversationDetailSession key={sessionKey} {...props} />;
+}
+
+function ConversationDetailSession({
   conversation,
   mode,
   working,
@@ -66,10 +79,8 @@ export function ConversationDetail({
   const { dateLabel, timeLabel } = useWorkspaceTime();
   const panelPrefix = useId();
   const [activeTab, setActiveTab] = useState<DetailTab>(initialTab);
-  const tabButtons = useRef<Array<HTMLButtonElement | null>>([]);
   const tabId = (tab: DetailTab) => `${panelPrefix}-tab-${tab.toLowerCase()}`;
   const panelId = (tab: DetailTab) => `${panelPrefix}-panel-${tab.toLowerCase()}`;
-  const playback = useRef<PlaybackProgress | undefined>(undefined);
   const contact = initialContactId != null
     ? conversation.contacts.find(person => person.id === initialContactId) || null
     : conversation.contacts[0] || null;
@@ -91,23 +102,17 @@ export function ConversationDetail({
     email: contact?.email || null,
   });
 
-  useEffect(() => {
-    setActiveTab(initialTab);
-    playback.current = undefined;
-  }, [conversation.id, initialTab]);
-
-  useEffect(() => {
-    setEditingContact(Boolean(initialContactEditing && contact?.id));
-  }, [conversation.id, initialContactEditing, initialContactId, contact?.id]);
-
-  useEffect(() => {
+  const editContact = () => {
+    // Take the latest confirmed contact when opening the editor. Once editing,
+    // polling must not overwrite a draft the user has already changed.
     setContactDraft({
       name: contact?.name || "",
       company: contact?.company || null,
       role: contact?.role || null,
       email: contact?.email || null,
     });
-  }, [contact?.name, contact?.company, contact?.role, contact?.email]);
+    setEditingContact(true);
+  };
 
   const saveContact = async () => {
     if (!contact || !contactDraft.name.trim()) return;
@@ -157,34 +162,18 @@ export function ConversationDetail({
       {getRecordingProgress(conversation).stage !== "ready" && <RecordingProgress meeting={conversation} mode={mode} onOpenAudio={() => setActiveTab("Audio")} onRetryAccepted={onRetryAccepted} />}
       <div className={styles.detailGrid}>
         <div className={styles.mainColumn}>
-          <div className={styles.tabs} role="tablist" aria-label="Conversation details">
-            {detailTabs.map((tab, index) => (
-              <button
-                key={tab}
-                ref={(button) => { tabButtons.current[index] = button; }}
-                type="button"
-                role="tab"
-                id={tabId(tab)}
-                aria-controls={panelId(tab)}
-                aria-selected={activeTab === tab}
-                tabIndex={activeTab === tab ? 0 : -1}
-                onClick={() => setActiveTab(tab)}
-                onKeyDown={(event) => {
-                  const nextIndex = event.key === "ArrowRight" ? (index + 1) % detailTabs.length
-                    : event.key === "ArrowLeft" ? (index + detailTabs.length - 1) % detailTabs.length
-                    : event.key === "Home" ? 0
-                    : event.key === "End" ? detailTabs.length - 1
-                    : null;
-                  if (nextIndex === null) return;
-                  event.preventDefault();
-                  setActiveTab(detailTabs[nextIndex]);
-                  tabButtons.current[nextIndex]?.focus();
-                }}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+          <TabList
+            className={styles.tabs}
+            aria-label="Conversation details"
+            tabs={detailTabs.map(tab => ({
+              value: tab,
+              label: tab,
+              id: tabId(tab),
+              panelId: panelId(tab),
+            }))}
+            value={activeTab}
+            onValueChange={setActiveTab}
+          />
 
           <div className={styles.pane} role="tabpanel" id={panelId("Summary")} aria-labelledby={tabId("Summary")} tabIndex={0} hidden={activeTab !== "Summary"}>
             <section className={styles.contextCard}>
@@ -195,7 +184,7 @@ export function ConversationDetail({
                 <div className={styles.brief}>
                   {insight.executiveSummary && !summaryRepeatsKeyPoints && (!compact || !insight.keyPoints.some(point => point.trim())) && <p className={styles.executiveSummary}>{insight.executiveSummary}</p>}
                   {!compact && insight.dealStage && insight.dealStage !== "unknown" && <span className={styles.dealStage}>{insight.dealStage.replace("_", " ")}</span>}
-                  <ul>{(insight.keyPoints.length ? insight.keyPoints : [insight.wants]).filter(Boolean).map((point, index) => <li key={index}>{point}</li>)}</ul>
+                  <MeetingKeyPoints insight={insight} omitEmpty />
                   {insight.concern && <div className={styles.concern}><strong>Keep in mind</strong><p>{insight.concern}</p></div>}
                   {insight.promised && <div><strong>You promised</strong><p>{insight.promised}</p></div>}
                   {!compact && insight.next && <div><strong>Recommended next step</strong><p>{insight.next}</p></div>}
@@ -268,19 +257,19 @@ export function ConversationDetail({
                     </article>
                   );
                 })}
-                <div className={styles.taskList}>
-                  {tasks.map((task) => (
-                    <label key={task.id} className={task.status === "completed" ? styles.taskComplete : ""}>
-                      <input type="checkbox" checked={task.status === "completed"} disabled={Boolean(working)} onChange={(event) => onTask(task.id, event.target.checked)} />
-                      <span><strong>{task.description}</strong>{task.dueAt && <small>Due {dateLabel(task.dueAt)}</small>}</span>
-                    </label>
-                  ))}
+                <FollowUpChecklist
+                  tasks={tasks}
+                  disabled={Boolean(working)}
+                  onTask={onTask}
+                  className={styles.taskList}
+                  completedClassName={styles.taskComplete}
+                >
                   {commitments.map((commitment, index) => (
                     <div className={styles.commitment} key={commitment.id || index}>
                       <span><strong>{commitment.description}</strong><small>{commitment.ownerType === "user" ? "Your commitment" : "Client commitment"}{commitment.dueAt ? ` · ${dateLabel(commitment.dueAt)}` : ""}</small></span>
                     </div>
                   ))}
-                </div>
+                </FollowUpChecklist>
                 {tasks.filter(task => task.type === "email" && task.status !== "completed").map(task => (
                   <EmailFollowUp key={task.id} task={task} sample={mode === "sample"}
                     recipient={conversation.contacts.find(person => person.id === task.contactId)?.email || ""}
@@ -308,10 +297,6 @@ export function ConversationDetail({
                 audio: { id: panelId("Audio"), labelledBy: tabId("Audio") },
                 transcript: { id: panelId("Transcript"), labelledBy: tabId("Transcript") },
               }}
-              initialProgress={playback.current}
-              onProgress={(progress) => {
-                playback.current = progress;
-              }}
             />
           </div>
         </div>
@@ -324,7 +309,7 @@ export function ConversationDetail({
                 <h3>Contact details</h3>
               </div>
               {contact && !editingContact && (
-                <button type="button" onClick={() => setEditingContact(true)}>
+                <button type="button" onClick={editContact}>
                   Edit contact
                 </button>
               )}

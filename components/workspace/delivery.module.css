@@ -1,30 +1,182 @@
-.panel { position: relative; margin: 12px 0; padding: 20px; border: 1px solid var(--q-line); border-radius: 2px; background: #fff; color: var(--q-text); box-shadow: var(--q-shadow); }
-.panel::before { content: ""; position: absolute; top: -1px; left: 20px; width: 42px; height: 2px; background: var(--q-red); }
-.panel p { font-size: 13px; line-height: 1.65; margin: 12px 0; color: var(--q-muted-strong); }
-.panel button { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 10px 15px; background: #fff; border: 1px solid var(--q-line-strong); border-radius: 2px; color: var(--q-text); cursor: pointer; text-align: center; font: inherit; font-size: 12px; font-weight: 600; box-shadow: inset 0 1px 0 var(--q-edge-highlight); transition: border-color 120ms, filter 120ms; }
-.panel button:hover:enabled { border-color: var(--q-red); filter: brightness(.97); }
-.panel button:disabled { opacity: .5; cursor: not-allowed; }
-.form { display: grid; gap: 16px; margin-top: 20px; }
-.form label { display: grid; gap: 8px; font-size: 12px; line-height: 1.6; font-weight: 600; color: var(--q-muted-strong); }
-.form input:not([type="checkbox"]), .form textarea { width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid var(--q-line-strong); border-radius: 2px; background: #fff; color: var(--q-text); padding: 11px 12px; font: inherit; font-size: 13px; line-height: 1.6; }
-.form textarea { resize: vertical; }
-.form button:first-of-type { background: var(--q-button-bg); color: var(--q-button-text); border-color: var(--q-button-bg); box-shadow: inset 0 1px 0 rgba(255,255,255,.09); }
-.form .consent { display: flex; gap: 10px; align-items: flex-start; padding: 13px; border: 1px solid var(--q-line); background: #fff; font-weight: 400; }
-.consent input { accent-color: var(--q-red); margin-top: 3px; flex-shrink: 0; }
-.actions { display: flex; flex-wrap: wrap; gap: 10px; }
-.form :focus-visible, .panel button:focus-visible { outline: 2px solid var(--q-red); outline-offset: 3px; }
-@media (max-width: 520px) { .panel { padding: 17px; } .panel::before { left: 17px; } .panel button { min-height: 40px; padding: 9px 12px; } }
-@media (prefers-reduced-motion: reduce) { .panel button { transition: none; } }
-
+.panel {
+  position: relative;
+  margin: 12px 0;
+  padding: 20px;
+  border: 1px solid var(--q-line);
+  border-radius: 2px;
+  background: #fff;
+  color: var(--q-text);
+  box-shadow: var(--q-shadow);
+}
+.panel::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 20px;
+  width: 42px;
+  height: 2px;
+  background: var(--q-red);
+}
+.panel p {
+  font-size: 13px;
+  line-height: 1.65;
+  margin: 12px 0;
+  color: var(--q-muted-strong);
+}
+.panel button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 15px;
+  background: #fff;
+  border: 1px solid var(--q-line-strong);
+  border-radius: 2px;
+  color: var(--q-text);
+  cursor: pointer;
+  text-align: center;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: inset 0 1px 0 var(--q-edge-highlight);
+  transition:
+    border-color 120ms,
+    filter 120ms;
+}
+.panel button:hover:enabled {
+  border-color: var(--q-red);
+  filter: brightness(0.97);
+}
+.panel button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.form {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+}
+.form label {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  font-weight: 600;
+  color: var(--q-muted-strong);
+}
+.form input:not([type="checkbox"]),
+.form textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--q-line-strong);
+  border-radius: 2px;
+  background: #fff;
+  color: var(--q-text);
+  padding: 11px 12px;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.form textarea {
+  resize: vertical;
+}
+.form button:first-of-type {
+  background: var(--q-button-bg);
+  color: var(--q-button-text);
+  border-color: var(--q-button-bg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+.form .consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 13px;
+  border: 1px solid var(--q-line);
+  background: #fff;
+  font-weight: 400;
+}
+.consent input {
+  accent-color: var(--q-red);
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.form :focus-visible,
+.panel button:focus-visible {
+  outline: 2px solid var(--q-red);
+  outline-offset: 3px;
+}
+@media (max-width: 520px) {
+  .panel {
+    padding: 17px;
+  }
+  .panel::before {
+    left: 17px;
+  }
+  .panel button {
+    min-height: 40px;
+    padding: 9px 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel button {
+    transition: none;
+  }
+}
 
 /* Quipus shared glass surfaces and readable controls. */
-.panel { background:var(--q-panel-gradient); border-radius:6px; border-color:rgba(255,255,255,.92); box-shadow:var(--q-shadow); }
-.panel p { font-size:15px; line-height:1.65; }
-.panel button { min-height:44px; border-radius:5px; font-size:14px; background:var(--q-glass); transition:background 120ms,border-color 120ms; }
-.panel button:hover:enabled { background:var(--q-glass-strong); filter:none; }
-.form label { font-size:14px; }
-.form input:not([type="checkbox"]),.form textarea { border-radius:5px; background:var(--q-glass); font-size:16px; }
-.form .consent { background:var(--q-glass); border-radius:5px; font-size:13px; line-height:1.6; }
-.form button:first-of-type { background:var(--q-red); color:#fff; }
-.form button:first-of-type:hover:enabled { background:var(--q-red-deep); }
-@media (prefers-reduced-motion:reduce) { .panel button { transition:none; } }
+.panel {
+  background: var(--q-panel-gradient);
+  border-radius: 6px;
+  border-color: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--q-shadow);
+}
+.panel p {
+  font-size: 15px;
+  line-height: 1.65;
+}
+.panel button {
+  min-height: 44px;
+  border-radius: 5px;
+  font-size: 14px;
+  background: var(--q-glass);
+  transition:
+    background 120ms,
+    border-color 120ms;
+}
+.panel button:hover:enabled {
+  background: var(--q-glass-strong);
+  filter: none;
+}
+.form label {
+  font-size: 14px;
+}
+.form input:not([type="checkbox"]),
+.form textarea {
+  border-radius: 5px;
+  background: var(--q-glass);
+  font-size: 16px;
+}
+.form .consent {
+  background: var(--q-glass);
+  border-radius: 5px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.form button:first-of-type {
+  background: var(--q-red);
+  color: #fff;
+}
+.form button:first-of-type:hover:enabled {
+  background: var(--q-red-deep);
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel button {
+    transition: none;
+  }
+}

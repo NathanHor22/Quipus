@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useId, type ReactNode } from "react";
+import { useDismissiblePanel } from "@/components/ui/useDismissiblePanel";
 import type { Meeting } from "@/lib/types";
 import { sourceConversation } from "@/lib/workspace/model";
 import { ConversationDetail } from "./ConversationDetail";
@@ -17,44 +18,24 @@ export function ConversationModal({ meeting, meetings, onClose, onOpenFull, rece
   onOpenFull: (id: string) => void;
   receipt?: ReactNode;
 } & Omit<DetailProps, "conversation" | "onBack" | "backLabel" | "compact">) {
-  const panel = useRef<HTMLElement>(null);
-  const opener = useRef<HTMLElement | null>(null);
   const titleId = useId();
   const { dateLabel, timeLabel } = useWorkspaceTime();
   const conversation = meeting ? sourceConversation(meetings, meeting) : undefined;
+  const meetingId = meeting?.id;
 
-  useEffect(() => {
-    if (!meeting) return;
-    const element = panel.current;
-    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    if (trigger && !element?.contains(trigger)) opener.current = trigger;
-    element?.focus({ preventScroll: true });
-    return () => {
-      if (element?.contains(document.activeElement) && trigger?.isConnected && !element.contains(trigger)) {
-        trigger.focus({ preventScroll: true });
-      }
-    };
-  }, [meeting?.id]);
-
-  const closePanel = () => {
-    const trigger = opener.current;
-    onClose();
-    requestAnimationFrame(() => { if (trigger?.isConnected) trigger.focus({ preventScroll: true }); });
-  };
+  const { panelRef, closePanel, onKeyDown } = useDismissiblePanel<HTMLElement>({
+    sessionKey: meetingId,
+    onClose,
+  });
 
   if (!meeting) return null;
   return (
     <section
-      ref={panel}
+      ref={panelRef}
       className={styles.panel}
       aria-labelledby={titleId}
       tabIndex={-1}
-      onKeyDown={event => {
-        if (event.key === "Escape" && !event.defaultPrevented) {
-          event.stopPropagation();
-          closePanel();
-        }
-      }}
+      onKeyDown={onKeyDown}
     >
       <header className={styles.header}>
         <h2 id={titleId}>Meeting details</h2>

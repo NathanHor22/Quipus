@@ -6,6 +6,8 @@ export const workspaceViewPaths: Record<WorkspaceView, string> = {
   people: "/dashboard/people", device: "/dashboard/devices", settings: "/dashboard/settings",
 };
 
+export const sampleWorkspacePath = "/demo";
+
 const validViews = Object.keys(workspaceViewPaths) as WorkspaceView[];
 
 /** The URL is authoritative after native history changes, including direct detail entry. */
@@ -35,7 +37,7 @@ export function resolveWorkspaceRoute(
 export function isWorkspaceHref(href: string, mode: WorkspaceMode): boolean {
   if (!href.startsWith("/") || href.startsWith("//")) return false;
   const url = new URL(href, "https://quipus.invalid");
-  if (mode === "sample") return url.pathname === "/";
+  if (mode === "sample") return url.pathname.replace(/\/$/u, "") === sampleWorkspacePath;
   const path = url.pathname.replace(/\/$/u, "");
   return Object.values(workspaceViewPaths).includes(path)
     || /^\/dashboard\/conversations\/[^/]+$/u.test(path);

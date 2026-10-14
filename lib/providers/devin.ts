@@ -729,17 +729,13 @@ export const prepareFollowUp = prepareDevinFollowUp;
 export const draftFollowUpWithDevin = prepareDevinFollowUp;
 export const prepareFollowUpWithDevin = prepareDevinFollowUp;
 
-// Compile-time compatibility checks for the shared domain model.
+// Type-only compatibility contract for the shared domain model.
 type AssertAssignable<T, U extends T> = U;
-type _ContactCompatibility = AssertAssignable<
-  DevinFollowUpInput["contact"],
-  Pick<Contact, "id" | "name" | "company" | "role" | "email" | "phone">
->;
-type _InsightCompatibility = AssertAssignable<
-  DevinFollowUpInput["meetingInsight"],
-  MeetingInsight
->;
-type _CommitmentCompatibility = AssertAssignable<
-  DevinFollowUpInput["commitments"][number],
-  Commitment
->;
+export type DevinModelCompatibility = {
+  contact: AssertAssignable<
+    DevinFollowUpInput["contact"],
+    Pick<Contact, "id" | "name" | "company" | "role" | "email" | "phone">
+  >;
+  insight: AssertAssignable<DevinFollowUpInput["meetingInsight"], MeetingInsight>;
+  commitment: AssertAssignable<DevinFollowUpInput["commitments"][number], Commitment>;
+};

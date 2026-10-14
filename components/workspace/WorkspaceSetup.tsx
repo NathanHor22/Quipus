@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
+import { useBrowserStorageSnapshot } from "@/components/hooks/useBrowserStorageSnapshot";
+import { notifyBrowserStorage, SETUP_PREFERENCES_EVENT } from "@/lib/browser/storage";
 import {
   readSetupPreferences,
   setupStorageKey,
@@ -21,25 +23,24 @@ export type WorkspaceSetupProps = {
 export function WorkspaceSetup({ account, calendarConnected, devicePaired, hasRecording, onPair, onFirstRecording }: WorkspaceSetupProps) {
   const headingId = useId();
   const key = setupStorageKey(account.email);
-  const [restoredKey, setRestoredKey] = useState<string | null>(null);
-  const [preferences, setPreferences] = useState<SetupPreferences>(() => readSetupPreferences(null));
-
-  useEffect(() => {
-    let saved: SetupPreferences;
-    try { saved = readSetupPreferences(localStorage.getItem(key)); }
-    catch { saved = readSetupPreferences(null); }
-    setPreferences(saved);
-    setRestoredKey(key);
-  }, [key]);
-
-  useEffect(() => {
-    if (restoredKey !== key) return;
-    try { localStorage.setItem(key, JSON.stringify(preferences)); } catch { /* Setup remains usable in this tab. */ }
-  }, [key, preferences, restoredKey]);
+  const stored = useBrowserStorageSnapshot(key, { eventName: SETUP_PREFERENCES_EVENT });
+  const [memoryPreferences, setMemoryPreferences] = useState<{ key: string; value: SetupPreferences } | null>(null);
+  const preferences = memoryPreferences?.key === key ? memoryPreferences.value : readSetupPreferences(stored);
+  const setPreferences = (update: (current: SetupPreferences) => SetupPreferences) => {
+    const next = update(preferences);
+    try {
+      localStorage.setItem(key, JSON.stringify(next));
+      setMemoryPreferences(null);
+      notifyBrowserStorage(SETUP_PREFERENCES_EVENT);
+    } catch {
+      // Keep setup usable in this tab when browser storage is blocked.
+      setMemoryPreferences({ key, value: next });
+    }
+  };
 
   const step = workspaceSetupStep({ devicePaired, hasRecording, calendarConnected, calendarSkipped: preferences.calendarSkipped });
   const checkingCalendar = calendarConnected === undefined && !preferences.calendarSkipped;
-  if (restoredKey !== key || step === "complete") return null;
+  if (stored === null || step === "complete") return null;
 
   const title = step === "pair" ? "Connect your Quipus."
     : step === "record" ? "Try your first recording."

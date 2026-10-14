@@ -37,7 +37,29 @@ test("greetings use actual names and timezone; missing names stay neutral", () =
   assert.equal(validTimezone("imaginary/zone"), "Asia/Kuala_Lumpur");
 });
 
-type Row = Record<string, any>;
+type Row = Record<string, unknown>;
+type QueryResult = { data: Row | Row[] | null; error: null };
+type Query = {
+  select: () => Query;
+  order: (key: string) => Query;
+  eq: (key: string, value: unknown) => Query;
+  neq: (key: string, value: unknown) => Query;
+  in: (key: string, values: unknown[]) => Query;
+  gt: (key: string, value: string) => Query;
+  gte: (key: string, value: string) => Query;
+  lt: (key: string, value: string) => Query;
+  insert: (row: Row) => Query;
+  upsert: (row: Row) => Query;
+  update: (row: Row) => Query;
+  single: () => Promise<QueryResult>;
+  maybeSingle: () => Promise<QueryResult>;
+  then: (resolve: (value: QueryResult) => unknown) => Promise<unknown>;
+};
+function reportSpeech(tables: Record<string, Row[]>, reportId: string | undefined) {
+  const pages = tables.device_reports.find(row => row.id === reportId)?.pages;
+  assert.ok(Array.isArray(pages) && pages.every((page: unknown) => typeof page === "string"));
+  return pages.join(" ");
+}
 function database(tables: Record<string, Row[]>) {
   return { from(table: string) {
     const filters: ((row: Row) => boolean)[] = []; let changes: Row | undefined; let inserted: Row | undefined;
@@ -55,18 +77,18 @@ function database(tables: Record<string, Row[]>) {
       rows.sort((a,b) => { for (const key of orders) { const diff = String(a[key]).localeCompare(String(b[key])); if (diff) return diff; } return 0; });
       return { data: structuredClone(single ? rows[0] || null : rows), error: null };
     };
-    const q: any = {
+    const q: Query = {
       select: () => q, order: (key: string) => { orders.push(key); return q; },
       eq: (key: string, value: unknown) => { filters.push(row => row[key] === value); return q; },
       neq: (key: string, value: unknown) => { filters.push(row => row[key] !== value); return q; },
       in: (key: string, values: unknown[]) => { filters.push(row => values.includes(row[key])); return q; },
-      gt: (key: string, value: string) => { filters.push(row => row[key] > value); return q; },
-      gte: (key: string, value: string) => { filters.push(row => row[key] >= value); return q; },
-      lt: (key: string, value: string) => { filters.push(row => row[key] < value); return q; },
+      gt: (key: string, value: string) => { filters.push(row => typeof row[key] === "string" && row[key] > value); return q; },
+      gte: (key: string, value: string) => { filters.push(row => typeof row[key] === "string" && row[key] >= value); return q; },
+      lt: (key: string, value: string) => { filters.push(row => typeof row[key] === "string" && row[key] < value); return q; },
       insert: (row: Row) => { inserted = row; return q; }, upsert: (row: Row) => { inserted = row; upsert = true; return q; },
       update: (row: Row) => { changes = row; return q; },
       single: async () => execute(true), maybeSingle: async () => execute(true),
-      then: (resolve: (value: unknown) => unknown) => Promise.resolve(execute()).then(resolve),
+      then: (resolve: (value: QueryResult) => unknown) => Promise.resolve(execute()).then(resolve),
     }; return q;
   } } as unknown as SupabaseClient;
 }
@@ -85,7 +107,7 @@ test("report snapshots keep the third meeting stable after a late upload and res
   const daily = await prepareReportQuery(client, device, { text: "full report for 2026-09-21" });
   tables.meetings.unshift({ ...tables.meetings[0], id: "late", start_at: "2026-09-21T00:00:00Z" });
   const targeted = await prepareReportQuery(client, device, { text: "only the third meeting", contextId: daily.reportContextId, playbackId: daily.reportId, playbackPage: 2 });
-  const speech = tables.device_reports.find(row => row.id === targeted.reportId)!.pages.join(" ");
+  const speech = reportSpeech(tables, targeted.reportId);
   assert.match(speech, /Client 3/); assert.match(speech, /Final detail 3/); assert.doesNotMatch(speech, /Client 2/);
   const resume = await prepareReportQuery(client, device, { text: "continue my daily report", contextId: daily.reportContextId, playbackId: targeted.reportId, playbackPage: 1 });
   assert.equal(resume.reportId, daily.reportId); assert.equal(resume.page, 2);
@@ -96,7 +118,7 @@ test("foreign and expired report contexts reveal nothing; report requests cancel
   const stranger = { ...device, userId: "owner-b", id: "board-b" };
   const other = await prepareReportQuery(client, stranger, { text: "repeat that", contextId: daily.reportContextId });
   assert.notEqual(other.reportContextId, daily.reportContextId);
-  assert.doesNotMatch(tables.device_reports.find(row => row.id === other.reportId)!.pages.join(" "), /Client/);
+  assert.doesNotMatch(reportSpeech(tables, other.reportId), /Client/);
   tables.device_voice_prompts.push({ id: "approval", user_id: device.userId, device_id: device.id, status: "pending", kind: "email_send" });
   const stop = await prepareReportQuery(client, device, { text: "stop", contextId: daily.reportContextId });
   assert.equal(stop.intent, "report_stop");
@@ -104,10 +126,10 @@ test("foreign and expired report contexts reveal nothing; report requests cancel
   const state = tables.device_report_sessions.find(row => row.id === daily.reportContextId)!;
   state.expires_at = "2000-01-01T00:00:00Z";
   const expired = await prepareReportQuery(client, device, { text: "continue", contextId: daily.reportContextId });
-  assert.match(tables.device_reports.find(row => row.id === expired.reportId)!.pages.join(" "), /expired/);
+  assert.match(reportSpeech(tables, expired.reportId), /expired/);
   const lostOrdinal = await prepareReportQuery(client, device, { text: "only the third meeting", contextId: daily.reportContextId });
-  assert.match(tables.device_reports.find(row => row.id === lostOrdinal.reportId)!.pages.join(" "), /expired/);
-  assert.doesNotMatch(tables.device_reports.find(row => row.id === lostOrdinal.reportId)!.pages.join(" "), /Client 3/);
+  assert.match(reportSpeech(tables, lostOrdinal.reportId), /expired/);
+  assert.doesNotMatch(reportSpeech(tables, lostOrdinal.reportId), /Client 3/);
 });
 test("processing and missing-transcript states are spoken honestly", () => {
   const state: ReportState = { date: "2026-09-21", timezone: "UTC", depth: "full", dailyPage: 0, currentPage: 0, selectedIndex: -1, meetings: [

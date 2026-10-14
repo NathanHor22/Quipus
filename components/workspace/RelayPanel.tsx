@@ -61,14 +61,41 @@ function initials(name: string) {
     .join("");
 }
 
-export function RelayPanel({
+export function RelayPanel(props: RelayPanelProps) {
+  return <RelayPanelSession key={props.mode} {...props} />;
+}
+
+function RelayPanelSession({
   meetings,
   mode,
   integrations,
   onOpenConversation,
   onNotice,
 }: RelayPanelProps) {
-  const [matches, setMatches] = useState<RelayMatch[]>([]);
+  const meetingKey = JSON.stringify(meetings);
+  const sampleMatches = useMemo(
+    () => mode === "sample" ? sampleRelayMatches(meetings) : [],
+    [meetings, mode],
+  );
+  const [sampleChanges, setSampleChanges] = useState<{
+    source: string;
+    matches: RelayMatch[];
+  } | null>(null);
+  const [liveMatches, setLiveMatches] = useState<RelayMatch[]>([]);
+  const matches = mode === "sample"
+    ? sampleChanges?.source === meetingKey ? sampleChanges.matches : sampleMatches
+    : liveMatches;
+
+  function setMatches(update: RelayMatch[] | ((current: RelayMatch[]) => RelayMatch[])) {
+    if (mode === "sample") {
+      setSampleChanges((previous) => {
+        const current = previous?.source === meetingKey ? previous.matches : sampleMatches;
+        return { source: meetingKey, matches: typeof update === "function" ? update(current) : update };
+      });
+    } else {
+      setLiveMatches(update);
+    }
+  }
   const [loading, setLoading] = useState(mode === "live");
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,36 +105,29 @@ export function RelayPanel({
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-    if (mode === "sample") {
-      setMatches(sampleRelayMatches(meetings));
-      setLoading(false);
-      setError(null);
-      return () => {
-        cancelled = true;
-      };
-    }
-    setLoading(true);
-    void fetch("/api/relay/matches", { cache: "no-store" })
+    if (mode === "sample") return;
+    const controller = new AbortController();
+    void fetch("/api/relay/matches", { cache: "no-store", signal: controller.signal })
       .then(async (response) => {
         const payload = await response.json();
         if (!response.ok) throw new Error(payload.error || "Relay could not be opened.");
         return (payload.matches || []).map((match: unknown) => relayMatchSchema.parse(match));
       })
       .then((loaded) => {
-        if (!cancelled) setMatches(loaded);
+        if (!controller.signal.aborted) {
+          setLiveMatches(loaded);
+          setError(null);
+        }
       })
       .catch((cause) => {
-        if (!cancelled)
+        if (!controller.signal.aborted)
           setError(cause instanceof Error ? cause.message : "Relay could not be opened.");
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [meetings, mode]);
+    return () => controller.abort();
+  }, [meetingKey, mode]);
 
   const active = matches.filter((match) => match.status === "pending");
   const peopleCount = useMemo(

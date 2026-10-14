@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { QuipusLogo } from "@/components/brand/QuipusLogo";
-import { RevealHeading } from "@/components/experience/QuipusExperience";
 import { sanitizeAuthReturnTo } from "@/lib/auth-policy";
 import { publicSupabaseConfig } from "@/lib/supabase/session";
 
@@ -27,21 +26,24 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <main className={styles.page}>
+      <div className={styles.cityscape} aria-hidden="true">
+        <div className={styles.cityGrid} />
+        <div className={styles.buildings}>
+          {Array.from({ length: 9 }, (_, index) => <span key={index} />)}
+        </div>
+        <div className={styles.redTrail} />
+      </div>
+
+      <Link href="/" className={styles.backButton}>Back to city</Link>
+
       <div className={styles.authShell}>
-        <Link href="/?mode=sample" className={styles.brandLockup} aria-label="Explore Quipus">
-          <QuipusLogo className={styles.logo} />
-        </Link>
         <section className={styles.card} aria-labelledby="login-title">
-          <p className={styles.cardKicker}>WELCOME TO QUIPUS</p>
-          <RevealHeading
-            as="h1"
-            text="Your conversations. Your next move."
-            className={styles.heading}
-          />
-          <p className={styles.description}>
-            Record meetings. Review the details. Follow up.
-          </p>
-          <h2 id="login-title" className={styles.signInTitle}>Sign in to your workspace</h2>
+          <div className={styles.brandLockup}>
+            <QuipusLogo className={styles.logo} />
+          </div>
+          <p className={styles.cardKicker}>YOUR WORKSPACE</p>
+          <h1 id="login-title" className={styles.heading}>Welcome to Quipus</h1>
+          <p className={styles.description}>Your next move starts here.</p>
 
           {message ? <p className={styles.notice} role="alert">{message}</p> : null}
 
@@ -51,25 +53,26 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <div className={styles.localNotice}>
               <strong>Sign-in is unavailable right now.</strong>
               <span>You can explore the sample workspace.</span>
-              <Link href="/?mode=sample">Explore a sample workspace</Link>
+              <Link href="/demo">Try the sample</Link>
             </div>
           )}
 
           <p className={styles.footnote}>
-            Your meetings stay private. You approve every follow-up.
+            Your meetings stay private.<br />You approve every follow-up.
           </p>
 
-          {configured && <div className={styles.demoSection}>
-            <span>Take a look around first.</span>
-            <Link href="/?mode=sample">Explore a sample workspace</Link>
-          </div>}
+          {configured ? (
+            <div className={styles.demoSection}>
+              <Link href="/demo">Try the sample</Link>
+            </div>
+          ) : null}
 
-          <p className={styles.legalLinks}>
-            <Link href="/privacy">Privacy</Link><span aria-hidden="true">·</span><Link href="/terms">Terms</Link>
-          </p>
+          <div className={styles.legalLinks}>
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms">Terms</Link>
+          </div>
         </section>
       </div>
-      <p className={styles.pageFooter}>Your partner in sales and business development.</p>
     </main>
   );
 }

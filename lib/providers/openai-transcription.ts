@@ -282,11 +282,6 @@ type TimedSegment = TranscriptionResult["segments"][number] & {
   endSeconds: number;
 };
 
-function speakerNumber(label: string) {
-  const match = /^Speaker (\d+)$/u.exec(label);
-  return match ? Number(match[1]) : null;
-}
-
 function normalizedWords(text: string) {
   return new Set(
     text

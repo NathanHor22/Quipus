@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
 
 interface AudioPlayerProps { src?: string | null; }
@@ -13,13 +13,18 @@ function time(value: number) {
 }
 
 export function AudioPlayer({ src }: AudioPlayerProps) {
+  const [speed, setSpeed] = useState(1);
+  return <AudioPlayback key={src ?? ""} src={src} speed={speed} onSpeedChange={setSpeed} />;
+}
+
+function AudioPlayback({ src, speed, onSpeedChange }: AudioPlayerProps & {
+  speed: number;
+  onSpeedChange: (speed: number) => void;
+}) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [speed, setSpeed] = useState(1);
-
-  useEffect(() => { setPlaying(false); setCurrent(0); }, [src]);
 
   const toggle = async () => {
     const audio = audioRef.current;
@@ -29,13 +34,13 @@ export function AudioPlayer({ src }: AudioPlayerProps) {
 
   const cycleSpeed = () => {
     const next = speed === 1 ? 1.5 : speed === 1.5 ? 2 : 1;
-    setSpeed(next);
+    onSpeedChange(next);
     if (audioRef.current) audioRef.current.playbackRate = next;
   };
 
   return (
     <div className={`audio-player${src ? "" : " is-disabled"}`}>
-      {src ? <audio ref={audioRef} src={src} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onTimeUpdate={(event) => setCurrent(event.currentTarget.currentTime)} onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)} onEnded={() => setPlaying(false)} /> : null}
+      {src ? <audio ref={audioRef} src={src} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onTimeUpdate={(event) => setCurrent(event.currentTarget.currentTime)} onLoadedMetadata={(event) => { event.currentTarget.playbackRate = speed; setDuration(event.currentTarget.duration); }} onEnded={() => setPlaying(false)} /> : null}
       <button type="button" className="audio-player__play" onClick={toggle} disabled={!src} aria-label={playing ? "Pause" : "Play"}>{playing ? <Pause /> : <Play />}</button>
       <input type="range" min={0} max={duration || 1} step={0.1} value={current} disabled={!src} aria-label="Audio position" onChange={(event) => { const next = Number(event.target.value); setCurrent(next); if (audioRef.current) audioRef.current.currentTime = next; }} />
       <span className="audio-player__time">{time(current)} / {time(duration)}</span>

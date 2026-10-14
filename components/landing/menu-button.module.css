@@ -1,0 +1,105 @@
+.button {
+  position: relative;
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
+  padding: 12px 19px;
+  border: 1px solid rgba(14, 32, 58, 0.22);
+  border-radius: 2px;
+  color: #0e203a;
+  font: 600 12px/1.3 var(--q-font-body);
+  letter-spacing: 0.01em;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition:
+    color 140ms,
+    border-color 140ms,
+    transform 180ms,
+    box-shadow 180ms;
+}
+.content {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+.button::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: -1px -15px;
+  transform: translateX(-110%) skewX(-12deg);
+  background: linear-gradient(110deg, #9b0000, #c40000 62%, #fe0000);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.button::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  pointer-events: none;
+}
+.light {
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.93), rgba(242, 245, 249, 0.76));
+}
+.navy {
+  border-color: #0e203a;
+  background: linear-gradient(115deg, #1d3652, #0e203a 70%);
+  color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 5px 20px rgba(14, 32, 58, 0.1);
+}
+.red,
+.selected {
+  border-color: #9b0000;
+  background: linear-gradient(110deg, #a60000, #c40000 64%, #dd101b);
+  color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 4px 14px rgba(155, 0, 0, 0.1);
+}
+.button:hover:not(:disabled),
+.button:focus-visible {
+  transform: translateY(-1px);
+  border-color: #c40000;
+  color: #fff;
+  box-shadow: 0 5px 18px rgba(155, 0, 0, 0.13);
+}
+.button:hover:not(:disabled)::before,
+.button:focus-visible::before {
+  transform: translateX(0) skewX(-12deg);
+}
+.button:active:not(:disabled) {
+  transform: translateY(0);
+}
+.button:focus-visible {
+  outline: 2px solid #c40000;
+  outline-offset: 4px;
+}
+.button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .button::before {
+    transition: none;
+  }
+  .button:hover:not(:disabled),
+  .button:focus-visible {
+    transform: none;
+  }
+}

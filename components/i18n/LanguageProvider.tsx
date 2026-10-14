@@ -6,7 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import {
@@ -77,52 +77,62 @@ function browserLocale(): Locale | null {
   return null;
 }
 
+const LOCALE_CHANGE_EVENT = "quipus:locale-change";
+// Retain the current choice even when the browser blocks both persistence APIs.
+let selectedLocale: Locale | null = null;
+
+function preferredLocale(initialLocale?: Locale | string | null): Locale {
+  if (selectedLocale) return selectedLocale;
+  let stored: string | null = null;
+  try {
+    stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
+  } catch {
+    // Cookie, initial locale and browser preference remain available.
+  }
+  const cookie = readLocaleCookie();
+  return stored ? parseLocale(stored)
+    : cookie ? parseLocale(cookie)
+    : initialLocale ? parseLocale(initialLocale)
+    : browserLocale() ?? DEFAULT_LOCALE;
+}
+
+function subscribeLocale(onChange: () => void) {
+  const onStorage = (event: StorageEvent) => {
+    if (event.key !== LOCALE_STORAGE_KEY || !event.newValue) return;
+    selectedLocale = parseLocale(event.newValue);
+    onChange();
+  };
+  window.addEventListener("storage", onStorage);
+  window.addEventListener(LOCALE_CHANGE_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onStorage);
+    window.removeEventListener(LOCALE_CHANGE_EVENT, onChange);
+  };
+}
+
 export type LanguageProviderProps = {
   children: ReactNode;
   initialLocale?: Locale | string | null;
 };
 
 export function LanguageProvider({ children, initialLocale }: LanguageProviderProps) {
-  const [locale, setLocaleState] = useState<Locale>(() => parseLocale(initialLocale));
+  const getSnapshot = useCallback(() => preferredLocale(initialLocale), [initialLocale]);
+  const getServerSnapshot = useCallback(() => parseLocale(initialLocale), [initialLocale]);
+  const locale = useSyncExternalStore(subscribeLocale, getSnapshot, getServerSnapshot);
 
   useEffect(() => {
-    let stored: string | null = null;
-    try {
-      stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
-    } catch {
-      // Fall through to the cookie, initial value, or browser preference.
-    }
-
-    const next = stored
-      ? parseLocale(stored)
-      : readLocaleCookie()
-        ? parseLocale(readLocaleCookie())
-        : initialLocale
-          ? parseLocale(initialLocale)
-          : browserLocale() ?? DEFAULT_LOCALE;
-
-    setLocaleState(next);
-  }, [initialLocale]);
-
-  useEffect(() => {
+    // During hydration React uses the server locale first. Never overwrite a
+    // saved preference before the external-store snapshot has been committed.
+    if (locale !== getSnapshot()) return;
     document.documentElement.lang = LOCALE_HTML_LANG[locale];
     persistLocale(locale);
-  }, [locale]);
-
-  useEffect(() => {
-    const onStorage = (event: StorageEvent) => {
-      if (event.key !== LOCALE_STORAGE_KEY || !event.newValue) return;
-      const next = parseLocale(event.newValue);
-      setLocaleState((current) => (current === next ? current : next));
-    };
-
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
+  }, [locale, getSnapshot]);
 
   const setLocale = useCallback((next: Locale) => {
     if (!isLocale(next)) return;
-    setLocaleState(next);
+    selectedLocale = next;
+    persistLocale(next);
+    window.dispatchEvent(new Event(LOCALE_CHANGE_EVENT));
   }, []);
 
   const value = useMemo<LanguageContextValue>(

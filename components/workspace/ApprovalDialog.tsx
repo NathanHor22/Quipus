@@ -1,86 +1,61 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { useDismissiblePanel } from "@/components/ui/useDismissiblePanel";
 import type { MeetingApproval, WorkspaceMode } from "@/lib/workspace/model";
 import { scheduleDetailsSchema } from "@/lib/workspace/model";
 import styles from "./detail-dock.module.css";
 import { useWorkspaceTime } from "./WorkspaceTime";
 import { localDateTime, localDateTimeToIso } from "@/lib/workspace-time";
 
-/** Approval review shares the workspace's embedded detail column. */
-export function ApprovalDialog({
-  approval,
-  mode,
-  working,
-  executionError,
-  onClose,
-  onApprove,
-}: {
+type ApprovalDialogProps = {
   approval: MeetingApproval | null;
   mode: WorkspaceMode;
   working: boolean;
   onClose: () => void;
   onApprove: (approval: MeetingApproval) => Promise<unknown>;
   executionError: string | null;
-}) {
+};
+
+/** Each review owns its draft; polling the same approval cannot overwrite edits. */
+export function ApprovalDialog(props: ApprovalDialogProps) {
   const { timezone } = useWorkspaceTime();
-  const panel = useRef<HTMLElement>(null);
-  const opener = useRef<HTMLElement | null>(null);
+  return props.approval ? <ApprovalReview key={JSON.stringify([props.approval.id, timezone])}
+    {...props} approval={props.approval} timezone={timezone} /> : null;
+}
+
+function ApprovalReview({ approval, mode, working, executionError, onClose, onApprove, timezone }:
+  Omit<ApprovalDialogProps, "approval"> & { approval: MeetingApproval; timezone: string }) {
   const activeApproval = useRef<string | null>(null);
   const titleId = useId();
-  const [title, setTitle] = useState("");
-  const [dateTime, setDateTime] = useState("");
-  const [duration, setDuration] = useState("");
-  const [email, setEmail] = useState("");
-  const [location, setLocation] = useState("");
+  const [title, setTitle] = useState(approval.title);
+  const [dateTime, setDateTime] = useState(() => approval.details.startAt ? localDateTime(approval.details.startAt, timezone) : "");
+  const [duration, setDuration] = useState(approval.details.durationMinutes?.toString() || "");
+  const [email, setEmail] = useState(approval.details.attendees.join(", "));
+  const [location, setLocation] = useState(approval.details.location || "");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const busy = working || submitting;
+  const reviewId = approval.id;
+
+  const { panelRef, closePanel, onKeyDown } = useDismissiblePanel<HTMLElement>({
+    sessionKey: reviewId,
+    onClose,
+    dismissDisabled: busy,
+  });
 
   useEffect(() => {
-    if (!approval) return;
-    setTitle(approval.title);
-    setDateTime(approval.details.startAt ? localDateTime(approval.details.startAt, timezone) : "");
-    setDuration(approval.details.durationMinutes?.toString() || "");
-    setEmail(approval.details.attendees.join(", "));
-    setLocation(approval.details.location || "");
-    setError(null);
-  }, [approval, timezone]);
+    activeApproval.current = reviewId;
+    return () => { activeApproval.current = null; };
+  }, [reviewId]);
 
-  useEffect(() => {
-    activeApproval.current = approval?.id || null;
-    if (!approval) return;
-    const element = panel.current;
-    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    if (trigger && !element?.contains(trigger)) opener.current = trigger;
-    element?.focus({ preventScroll: true });
-    return () => {
-      activeApproval.current = null;
-      if (element?.contains(document.activeElement) && trigger?.isConnected && !element.contains(trigger)) {
-        trigger.focus({ preventScroll: true });
-      }
-    };
-  }, [approval?.id]);
-
-  const closePanel = () => {
-    const trigger = opener.current;
-    onClose();
-    requestAnimationFrame(() => { if (trigger?.isConnected) trigger.focus({ preventScroll: true }); });
-  };
-
-  if (!approval) return null;
   return (
     <section
-      ref={panel}
+      ref={panelRef}
       className={styles.panel}
       aria-labelledby={titleId}
       tabIndex={-1}
-      onKeyDown={event => {
-        if (event.key === "Escape" && !event.defaultPrevented && !busy) {
-          event.stopPropagation();
-          closePanel();
-        }
-      }}
+      onKeyDown={onKeyDown}
     >
       <header className={styles.header}>
         <h2 id={titleId}>Review invitation</h2>
@@ -114,7 +89,7 @@ export function ApprovalDialog({
             if (activeApproval.current !== approvalId) return;
             setError(cause instanceof Error && !cause.message.startsWith("[") ? cause.message : "Check the meeting details and attendee email.");
           } finally {
-            setSubmitting(false);
+            if (activeApproval.current === approvalId) setSubmitting(false);
           }
         }}
       >

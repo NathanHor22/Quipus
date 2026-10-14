@@ -198,28 +198,15 @@ export type MeetingExtractionResult = z.infer<
 >;
 export type ExtractionContext = z.input<typeof extractionContextSchema>;
 
-// Compile-time compatibility checks with the shared domain types.
+// Type-only schema/domain contract: changing either side must remain assignable.
 type AssertAssignable<T, U extends T> = U;
-type _TranscriptCompatibility = AssertAssignable<
-  TranscriptSegment,
-  z.infer<typeof transcriptSegmentSchema>
->;
-type _InsightCompatibility = AssertAssignable<
-  MeetingInsight,
-  z.infer<typeof meetingInsightSchema>
->;
-type _InterestCompatibility = AssertAssignable<
-  InterestLevel,
-  z.infer<typeof meetingInsightSchema>["interestLevel"]
->;
-type _DealStageCompatibility = AssertAssignable<
-  DealStage,
-  z.infer<typeof meetingInsightSchema>["dealStage"]
->;
-type _EvidenceCompatibility = AssertAssignable<
-  MeetingEvidence,
-  z.infer<typeof meetingEvidenceSchema>
->;
+export type MeetingSchemaCompatibility = {
+  transcript: AssertAssignable<TranscriptSegment, z.infer<typeof transcriptSegmentSchema>>;
+  insight: AssertAssignable<MeetingInsight, z.infer<typeof meetingInsightSchema>>;
+  interest: AssertAssignable<InterestLevel, z.infer<typeof meetingInsightSchema>["interestLevel"]>;
+  dealStage: AssertAssignable<DealStage, z.infer<typeof meetingInsightSchema>["dealStage"]>;
+  evidence: AssertAssignable<MeetingEvidence, z.infer<typeof meetingEvidenceSchema>>;
+};
 
 /**
  * JSON Schema sent to Qwen's OpenAI-compatible strict structured-output mode.

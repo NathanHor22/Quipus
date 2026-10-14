@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import {
   Pause,
   Play,
 } from "lucide-react";
-import type { Meeting } from "@/lib/types";
+import type { Meeting, TranscriptSegment } from "@/lib/types";
 import {
   activeTranscriptIndex,
   clampPlaybackTime,
@@ -22,44 +22,74 @@ export interface PlaybackProgress {
 export type ConversationReplayView = "all" | "audio" | "transcript" | "hidden";
 type ReplayPanel = { id: string; labelledBy: string };
 
-/** Only plays captured audio. Transcript imports never become synthetic audio. */
-export function ConversationReplay({
-  conversation,
-  initialProgress,
-  onProgress,
-  view = "all",
-  panels,
-}: {
+type ReplayProps = {
   conversation: Meeting;
   initialProgress?: PlaybackProgress;
-  onProgress: (progress: PlaybackProgress) => void;
+  onProgress?: (progress: PlaybackProgress) => void;
   view?: ConversationReplayView;
   panels?: { audio: ReplayPanel; transcript: ReplayPanel };
-}) {
+};
+
+type AudioResolution = {
+  recordingId: string;
+  providedUrl: string | null;
+  attempt: number;
+  url: string | null;
+  error: string | null;
+};
+
+type MediaSnapshot = {
+  key: string;
+  ready: boolean;
+  playing: boolean;
+  duration: number | undefined;
+  error: string | null;
+};
+
+const emptyTranscript: TranscriptSegment[] = [];
+const emptyMedia: MediaSnapshot = { key: "", ready: false, playing: false, duration: undefined, error: null };
+
+/** Only plays captured audio. Transcript imports never become synthetic audio. */
+export function ConversationReplay(props: ReplayProps) {
+  return <ConversationReplaySession key={JSON.stringify([props.conversation.id, props.conversation.recordingId ?? null])} {...props} />;
+}
+
+function ConversationReplaySession({ conversation, initialProgress, onProgress, view = "all", panels }: ReplayProps) {
   const sample = conversation.id.startsWith("sample:");
   const recordingId = !sample ? conversation.recordingId : null;
-  const [source, setSource] = useState({
-    url: !sample ? conversation.recordingUrl || null : null,
-    revision: 0,
-  });
-  const [loading, setLoading] = useState(false);
-  const [ready, setReady] = useState(false);
-  const [playing, setPlaying] = useState(false);
+  const providedUrl = !sample ? conversation.recordingUrl || null : null;
+  const [refreshRequest, setRefreshRequest] = useState({ providedUrl, attempt: 0 });
+  const attempt = refreshRequest.providedUrl === providedUrl ? refreshRequest.attempt : 0;
+  const [resolution, setResolution] = useState<AudioResolution | null>(null);
+  const settled = resolution !== null && resolution.recordingId === recordingId &&
+    resolution.providedUrl === providedUrl && resolution.attempt === attempt;
+  const source = { url: settled ? resolution.url : providedUrl, revision: settled ? resolution.attempt : 0 };
+  const sourceKey = JSON.stringify([source.url, source.revision]);
+  const visible = view !== "hidden";
+  const needsUrl = Boolean(recordingId && (!providedUrl || attempt > 0));
+  const loading = visible && needsUrl && !settled;
+  const [media, setMedia] = useState<MediaSnapshot>(emptyMedia);
+  const currentMedia = media.key === sourceKey ? media : emptyMedia;
+  const { ready, playing, duration } = currentMedia;
+  const error = currentMedia.error || (settled ? resolution.error : null);
   const [position, setPosition] = useState(initialProgress?.position || 0);
-  const [duration, setDuration] = useState<number>();
   const [speed, setSpeed] = useState(initialProgress?.speed || 1);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const updateMedia = (changes: Partial<Omit<MediaSnapshot, "key">>) => {
+    setMedia(current => ({ ...(current.key === sourceKey ? current : emptyMedia), key: sourceKey, ...changes }));
+  };
+  const setReady = (value: boolean) => updateMedia({ ready: value });
+  const setPlaying = (value: boolean) => updateMedia({ playing: value });
+  const setDuration = (value: number | undefined) => updateMedia({ duration: value });
+  const setError = (value: string | null) => updateMedia({ error: value });
   const audio = useRef<HTMLAudioElement>(null);
   const pendingPosition = useRef(initialProgress?.position || 0);
   const progress = useRef({
     position: initialProgress?.position || 0,
     speed: initialProgress?.speed || 1,
   });
-  const saveProgress = useRef(onProgress);
-  const request = useRef<AbortController | null>(null);
   const activeLine = useRef<HTMLElement>(null);
-  const transcript = conversation.transcript || [];
+  const transcript = conversation.transcript || emptyTranscript;
   const speakerTones = useMemo(() => {
     const tones = new Map<string, number>();
     for (const segment of transcript) {
@@ -82,71 +112,69 @@ export function ConversationReplay({
     [transcript, normalizedSearch],
   );
 
-  const refreshAudio = useCallback(async () => {
+  // Read the latest committed callback only when a media session is released.
+  const reportProgress = useEffectEvent(() => onProgress?.({ ...progress.current }));
+
+  const refreshAudio = () => {
     if (!recordingId) return;
-    request.current?.abort();
-    const controller = new AbortController();
-    request.current = controller;
     pendingPosition.current = progress.current.position;
     audio.current?.pause();
-    setLoading(true);
     setReady(false);
     setError(null);
-    const timeout = window.setTimeout(() => controller.abort(), 15_000);
-    try {
-      const response = await fetch(
-        `/api/recordings/${encodeURIComponent(recordingId)}/playback`,
-        { cache: "no-store", signal: controller.signal },
-      );
-      const payload = await response.json();
-      if (!response.ok || typeof payload.url !== "string")
-        throw new Error(payload.error || "The recording could not be opened.");
-      const url = new URL(payload.url);
-      if (!["http:", "https:"].includes(url.protocol))
-        throw new Error("The recording could not be opened.");
-      if (request.current !== controller) return;
-      setSource((current) => ({
-        url: url.href,
-        revision: current.revision + 1,
-      }));
-    } catch (cause) {
-      if (request.current !== controller) return;
-      setError(
-        controller.signal.aborted
-          ? "The recording took too long to load. Please retry."
-          : cause instanceof Error
-            ? cause.message
-            : "The recording could not be opened.",
-      );
-    } finally {
-      window.clearTimeout(timeout);
-      if (request.current === controller) {
-        request.current = null;
-        setLoading(false);
-      }
-    }
-  }, [recordingId]);
+    setRefreshRequest(current => ({ providedUrl,
+      attempt: (current.providedUrl === providedUrl ? current.attempt : 0) + 1 }));
+  };
 
   useEffect(() => {
-    if (view === "hidden") return;
-    if (!source.url && !conversation.recordingUrl && recordingId) void refreshAudio();
-    return () => {
-      const current = request.current;
-      request.current = null;
-      current?.abort();
+    if (!visible || !needsUrl || settled || !recordingId) return;
+    const requestedId = recordingId;
+    const controller = new AbortController();
+    let disposed = false;
+    let timedOut = false;
+    const timeout = window.setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, 15_000);
+    const load = async () => {
+      try {
+        const response = await fetch(`/api/recordings/${encodeURIComponent(requestedId)}/playback`,
+          { cache: "no-store", signal: controller.signal });
+        const payload = await response.json();
+        if (!response.ok || typeof payload.url !== "string")
+          throw new Error(payload.error || "The recording could not be opened.");
+        const url = new URL(payload.url);
+        if (!["http:", "https:"].includes(url.protocol)) throw new Error("The recording could not be opened.");
+        if (!disposed) setResolution({ recordingId: requestedId, providedUrl, attempt, url: url.href, error: null });
+      } catch (cause) {
+        if (!disposed) setResolution(current => ({ recordingId: requestedId, providedUrl, attempt,
+          url: current?.recordingId === requestedId && current.providedUrl === providedUrl ? current.url : providedUrl,
+          error: timedOut ? "The recording took too long to load. Please retry."
+            : cause instanceof Error ? cause.message : "The recording could not be opened." }));
+      } finally { window.clearTimeout(timeout); }
     };
-  }, [view, source.url, conversation.recordingUrl, recordingId, refreshAudio]);
+    void load();
+    return () => {
+      disposed = true;
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
+  }, [visible, needsUrl, settled, recordingId, providedUrl, attempt]);
 
   useEffect(() => {
     const player = audio.current;
+    const playbackProgress = progress.current;
     // React's development effect replay can clean up without removing the DOM.
     if (player && source.url && player.getAttribute("src") !== source.url) {
       player.src = source.url;
       player.load();
     }
     return () => {
-      // Removing the panel also stops playback and releases the media download.
-      saveProgress.current({ ...progress.current });
+      // Save the actual media position before replacing a source or closing it.
+      if (player && player.readyState >= 1 && Number.isFinite(player.currentTime)) {
+        playbackProgress.position = player.currentTime;
+      }
+      pendingPosition.current = playbackProgress.position;
+      reportProgress();
       player?.pause();
       player?.removeAttribute("src");
       player?.load();

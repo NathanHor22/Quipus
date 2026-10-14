@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import type { ApprovalReceipt } from "./useWorkspace";
 import { useWorkspaceTime } from "./WorkspaceTime";
 import styles from "./flow.module.css";
@@ -17,26 +17,28 @@ export function ApprovalReceiptNotice({ receipt, onView, onDismiss }: {
   const { dateLabel, timeLabel } = useWorkspaceTime();
   const receiptKey = receipt.mode + ":" + receipt.meetingId;
   const checkedReceipt = useRef<string | null>(null);
-  const [celebrationKey, setCelebrationKey] = useState<string | null>(null);
+  const successMark = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (checkedReceipt.current === receiptKey) return;
     checkedReceipt.current = receiptKey;
-    if (celebratedReceipts.has(receiptKey)) {
-      setCelebrationKey(null);
-      return;
-    }
+    const mark = successMark.current;
+    if (!mark) return;
+    const shouldCelebrate = !celebratedReceipts.has(receiptKey);
+    // The effect owns this presentation-only DOM attribute. Receipt content is
+    // already confirmed; animating it does not need another React render.
+    mark.dataset.celebrate = String(shouldCelebrate);
+    if (!shouldCelebrate) return;
     celebratedReceipts.add(receiptKey);
     if (celebratedReceipts.size > 100) {
       const oldest = celebratedReceipts.values().next().value;
       if (oldest) celebratedReceipts.delete(oldest);
     }
-    setCelebrationKey(receiptKey);
   }, [receiptKey]);
 
   return <section className={styles.receipt} aria-label="Invitation confirmation" role="status">
     <div className={styles.receiptBody}>
-      <span className={styles.successMark} aria-hidden="true" data-celebrate={celebrationKey === receiptKey}>
+      <span ref={successMark} className={styles.successMark} aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none"><path d="m6 12 4 4 8-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </span>
       <div>

@@ -1,0 +1,55 @@
+{
+  "front_shell": {
+    "polygons_before": 35334,
+    "polygons_after": 11417
+  },
+  "rear_lid": {
+    "polygons_before": 1884,
+    "polygons_after": 486
+  },
+  "battery_tray": {
+    "polygons_before": 3106,
+    "polygons_after": 785
+  },
+  "speaker_retainer": {
+    "polygons_before": 2016,
+    "polygons_after": 510
+  },
+  "board_reference": {
+    "polygons_before": 1292,
+    "polygons_after": 330
+  },
+  "glass_reference": {
+    "polygons_before": 12,
+    "polygons_after": 6
+  },
+  "display_reference": {
+    "polygons_before": 12,
+    "polygons_after": 6
+  },
+  "battery_reference": {
+    "polygons_before": 268,
+    "polygons_after": 70
+  },
+  "speaker_reference": {
+    "polygons_before": 268,
+    "polygons_after": 70
+  },
+  "usb_reference": {
+    "polygons_before": 12,
+    "polygons_after": 6
+  },
+  "branding_finish_reference": {
+    "polygons_before": 17114,
+    "polygons_after": 3589
+  },
+  "bounds_metres": {
+    "width": 0.092,
+    "height": 0.112,
+    "depth": 0.039
+  },
+  "orientation": "GLB: front +Z, microphone/top +Y, speaker on +X, SD access on -X",
+  "asset_bytes": 1267780,
+  "source_revision": "Lantern service case v0.3 \u2014 Fovea front branding",
+  "description": "Working-prototype enclosure CAD with simplified component references and illustrative display. Not a production hardware design."
+}

@@ -55,13 +55,14 @@ export async function POST(request: Request) {
       );
     }
 
-    let { data: active, error: activeError } = await client
+    const { data: activeData, error: activeError } = await client
       .from("lantern_sessions")
       .select("id,state,state_version,machine,recording_id,processing_error")
       .eq("device_id", device.id)
       .is("ended_at", null)
       .maybeSingle();
     if (activeError) throw new Error(activeError.message);
+    let active = activeData;
 
     // Releases sessions created by older deployments that archived audio but
     // became stuck after the AI processing step failed.
