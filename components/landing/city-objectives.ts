@@ -52,6 +52,8 @@ export function buildCityObjectives(
   body.userData.cityObjectives = true;
   parent.add(body);
   const placement = new THREE.Object3D();
+  const objectiveIndices = new Map(objectives.map((objective, index) => [objective.id, index]));
+  const labelMatrix = new THREE.Matrix4();
   const idle = new THREE.Color(0xe51d2e);
   const active = new THREE.Color(0xff3945);
   let lastSelected: CityDestination | null | undefined;
@@ -81,5 +83,12 @@ export function buildCityObjectives(
     if (!hit.object.userData.cityObjectives || hit.instanceId === undefined) return null;
     return objectives[hit.instanceId]?.id ?? null;
   };
-  return { update, destination, targets: [body] };
+  const labelAnchor = (id: CityDestination, target: Three.Vector3) => {
+    const index = objectiveIndices.get(id);
+    if (index === undefined) return null;
+    body.getMatrixAt(index, labelMatrix);
+    target.set(0, height, 0).applyMatrix4(labelMatrix);
+    return body.localToWorld(target);
+  };
+  return { update, destination, labelAnchor, targets: [body] };
 }

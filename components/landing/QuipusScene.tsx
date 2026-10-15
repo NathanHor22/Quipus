@@ -187,7 +187,7 @@ export default function QuipusScene(props: QuipusSceneProps) {
       host.dataset.cityArchetypes = Object.keys(architecture.typeCounts).join(",");
       const cityAssetRequest = new AbortController();
       type Landmark = {
-        id: CityDestination; hit: Three.Mesh; anchor: Three.Vector3;
+        id: CityDestination; hit: Three.Mesh;
         accent: Three.MeshStandardMaterial | null; halo: Three.MeshBasicMaterial;
         objective: Three.Vector3; roofHeight: number;
       };
@@ -245,7 +245,6 @@ export default function QuipusScene(props: QuipusSceneProps) {
         landmarks.push({
           id: item.id, hit, accent, halo, roofHeight: height,
           objective: new THREE.Vector3(x, markerRoof + 1.2, z),
-          anchor: new THREE.Vector3(x, markerRoof + 2.4, z),
         });
       });
       const objectives = buildCityObjectives(THREE, background,
@@ -262,7 +261,6 @@ export default function QuipusScene(props: QuipusSceneProps) {
             landmark.roofHeight = roof;
             const markerRoof = Math.max(roof, id === "history" ? 25.4 : id === "understand" ? 18.9 : 0);
             landmark.objective.y = markerRoof + 1.2;
-            landmark.anchor.y = markerRoof + 2.4;
             landmark.hit.scale.y = (roof + 3.5) / (originalHeight + 3.5);
             landmark.hit.position.y = (roof + 3.5) / 2;
           },
@@ -464,6 +462,14 @@ export default function QuipusScene(props: QuipusSceneProps) {
       let hoverTime = 0;
       let markersDirty = true;
       let mobileIntroductionTop: number | null = null;
+      let markerObstacles: { x: number; y: number; width: number; height: number }[] = [];
+      const exploration = architecture.layout.bounds;
+      const panLimits = {
+        minX: exploration.x - exploration.width / 2 + 20,
+        maxX: exploration.x + exploration.width / 2 - 20,
+        minZ: exploration.z - exploration.depth / 2 + 20,
+        maxZ: exploration.z + exploration.depth / 2 - 20,
+      };
       let markerLayout: { x: number; y: number; width: number; height: number }[] = [];
       let projectedDevice: boolean | undefined;
       const markerSizes = new Map<CityDestination, { width: number; height: number }>();
@@ -583,6 +589,15 @@ export default function QuipusScene(props: QuipusSceneProps) {
         const introductionRect = introduction?.getBoundingClientRect();
         mobileIntroductionTop = width < 760 && introductionRect && introductionRect.height > 0
           ? introductionRect.top - bounds.top : null;
+        markerObstacles = Array.from(host.closest("main")?.querySelectorAll<HTMLElement>(
+          "[data-city-ui-reserve], [data-city-introduction], [data-destination-panel]",
+        ) ?? []).flatMap(element => {
+          const rect = element.getBoundingClientRect();
+          return rect.width && rect.height ? [{
+            x: rect.left - bounds.left - 9, y: rect.top - bounds.top - 9,
+            width: rect.width + 18, height: rect.height + 18,
+          }] : [];
+        });
         const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
         const area = width * height * pixelRatio * pixelRatio;
         const inspecting = latest.current.destination === "device";
@@ -610,7 +625,7 @@ export default function QuipusScene(props: QuipusSceneProps) {
 
       const updateMarkers = (device: boolean, mobile: boolean) => {
         const leftReserve = mobile ? 20 : currentDestination ? Math.min(460, Math.max(385, width * .4)) : Math.min(480, width * .34);
-        const topReserve = mobile ? 108 : 96;
+        const topReserve = mobile ? 18 : 22;
         const bottomReserve = mobile ? (currentDestination ? height * .5 + 18 : 105) : 35;
         const markerBottom = mobile && !currentDestination && mobileIntroductionTop !== null
           ? Math.min(height - bottomReserve, mobileIntroductionTop - 14) : height - bottomReserve;
@@ -618,34 +633,29 @@ export default function QuipusScene(props: QuipusSceneProps) {
         if (!device || projectedDevice !== device) landmarks.forEach((landmark) => {
           const button = markerElements.current.get(landmark.id);
           if (!button) return;
-          const point = project(landmark.anchor);
+          const anchor = objectives.labelAnchor(landmark.id, anchorPoint);
+          if (!anchor) { button.style.visibility = "hidden"; return; }
+          const point = project(anchor);
           const size = markerSizes.get(landmark.id);
           const bw = size?.width || 170;
           const bh = size?.height || 42;
-          const show = !device && point.inFront && point.x > leftReserve - 50
-            && point.x < width + 25 && point.y > 30 && point.y < markerBottom + 35 && markerBottom >= topReserve + bh;
-          if (!show) { button.style.visibility = "hidden"; return; }
-          const besideX = point.x + bw + 42 < width ? point.x + 20 : point.x - bw - 20;
-          let x = THREE.MathUtils.clamp(besideX, leftReserve, width - bw - 24);
-          let y = THREE.MathUtils.clamp(point.y - bh / 2, topReserve, markerBottom - bh);
-          for (let attempt = 0; attempt < 5; attempt++) {
-            const collision = placed.find((other) =>
-              x < other.x + other.width + 8 && x + bw + 8 > other.x
-              && y < other.y + other.height + 12 && y + bh + 12 > other.y);
-            if (!collision) break;
-            if (collision.y + collision.height + bh + 28 < markerBottom) {
-              y = collision.y + collision.height + 12;
-            } else {
-              x = Math.max(leftReserve, collision.x - bw - 12);
-            }
-          }
-          const crowded = placed.some((other) =>
-            x < other.x + other.width + 8 && x + bw + 8 > other.x
-            && y < other.y + other.height + 12 && y + bh + 12 > other.y);
-          if (crowded) { button.style.visibility = "hidden"; return; }
+          // Keep each label centered over the actual animated, camera-facing wedge.
+          // Crowded or clipped labels reappear when their building moves into view.
+          const x = point.x - bw / 2;
+          const y = point.y - bh - 10;
+          const inView = !device && point.inFront && x >= 18 && x + bw <= width - 18
+            && y >= topReserve && y + bh <= markerBottom;
+          const blocked = markerObstacles.some(other =>
+            x < other.x + other.width && x + bw > other.x
+            && y < other.y + other.height && y + bh > other.y);
+          const crowded = placed.some(other =>
+            x < other.x + other.width + 10 && x + bw + 10 > other.x
+            && y < other.y + other.height + 10 && y + bh + 10 > other.y);
+          if (!inView || blocked || crowded) { button.style.visibility = "hidden"; return; }
           placed.push({ x, y, width: bw, height: bh });
-          button.style.transform = "translate3d(" + Math.round(x) + "px," + Math.round(y) + "px,0)";
-          button.style.visibility = "visible";
+          const position = "translate3d(" + Math.round(x) + "px," + Math.round(y) + "px,0)";
+          if (button.style.transform !== position) button.style.transform = position;
+          if (button.style.visibility !== "visible") button.style.visibility = "visible";
         });
         PRODUCT_FEATURES.forEach(({ id }) => {
           const button = featureElements.current.get(id);
@@ -747,10 +757,12 @@ export default function QuipusScene(props: QuipusSceneProps) {
             : desiredYaw + (command.direction === "left" ? -.42 : .42);
           if (command.direction === "reset") desiredPitch = .04;
         }
+        const portraitOverview = mobile ? 0 : THREE.MathUtils.clamp((height / width - .9) * 2.4, 0, 1);
         if (!currentDestination) {
           goalTarget.copy(overview.centre);
           goalEye.copy(goalTarget).add(new THREE.Vector3(57, 58, 78));
-          goalSpan = mobile ? overview.span * 1.98 : overview.span;
+          const compactScale = THREE.MathUtils.clamp((1200 - width) / 440, 0, 1);
+          goalSpan = overview.span * (mobile ? Math.min(1.98, height / 325) : 1 + compactScale * .33 + portraitOverview * .34);
         } else if (device) {
           goalTarget.set(8, showroomBaseY + .05, 14);
           goalEye.copy(goalTarget).add(new THREE.Vector3(3, 3.6, 27));
@@ -774,8 +786,12 @@ export default function QuipusScene(props: QuipusSceneProps) {
         devicePointerUpdate = false;
         showroom.rotation.set(productPitch, productYaw, 0);
         const aspect = width / Math.max(1, height);
-        const horizontalFocus = mobile ? .5 : currentDestination ? .5 + sideReserve / (2 * width) : .66;
-        const verticalFocus = mobile && currentDestination ? .27 : mobile ? .38 : .51;
+        const overviewFocus = .66 + THREE.MathUtils.clamp((1440 - width) / 720, 0, 1) * .22 + portraitOverview * .035;
+        const mobileOverviewFocus = .65 + THREE.MathUtils.clamp((390 - width) / 70, 0, 1) * .1;
+        const horizontalFocus = mobile ? (currentDestination ? .5 : mobileOverviewFocus)
+          : currentDestination ? .5 + sideReserve / (2 * width) : overviewFocus;
+        const mobileVerticalFocus = .38 + THREE.MathUtils.clamp((760 - height) / 200, 0, 1) * .09;
+        const verticalFocus = mobile && currentDestination ? .27 : mobile ? mobileVerticalFocus : .51;
         camera.left = -currentSpan * aspect * horizontalFocus;
         camera.right = currentSpan * aspect * (1 - horizontalFocus);
         camera.top = currentSpan * verticalFocus;
@@ -819,7 +835,7 @@ export default function QuipusScene(props: QuipusSceneProps) {
         }
         try {
           renderer.render(scene, camera);
-          if (device || markersDirty || cameraMoving) {
+          if (device || markersDirty || cameraMoving || !reduced) {
             updateMarkers(device, mobile);
             markersDirty = false;
           }
@@ -909,8 +925,8 @@ export default function QuipusScene(props: QuipusSceneProps) {
               overview.centre.copy(gesture.centre)
                 .addScaledVector(cameraRight, -dx * units)
                 .addScaledVector(cameraForward, dy * units * 1.3);
-              overview.centre.x = THREE.MathUtils.clamp(overview.centre.x, -40, 63);
-              overview.centre.z = THREE.MathUtils.clamp(overview.centre.z, -56, 30);
+              overview.centre.x = THREE.MathUtils.clamp(overview.centre.x, panLimits.minX, panLimits.maxX);
+              overview.centre.z = THREE.MathUtils.clamp(overview.centre.z, panLimits.minZ, panLimits.maxZ);
             }
             requestFrame();
           }
@@ -951,7 +967,7 @@ export default function QuipusScene(props: QuipusSceneProps) {
         if (!visible() || latest.current.destination || event.ctrlKey) return;
         event.preventDefault();
         overview.span = THREE.MathUtils.clamp(
-          overview.span * Math.exp(THREE.MathUtils.clamp(event.deltaY, -100, 100) * .0018), 45, 90,
+          overview.span * Math.exp(THREE.MathUtils.clamp(event.deltaY, -100, 100) * .0018), 45, 110,
         );
 
         requestFrame();

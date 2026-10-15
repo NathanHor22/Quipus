@@ -1,4 +1,5 @@
 import type * as Three from "three";
+import { CITY_DESTINATIONS } from "./city";
 import { flightPhase } from "./city-motion";
 import { loadCityAsset, disposeCityAsset } from "./city-assets";
 
@@ -11,8 +12,12 @@ export function buildCityAerial(
   THREE: typeof import("three"), parent: Three.Group, box: BoxWriter, materials: Materials,
   emitTrail: TrailEmitter,
 ) {
-  const historyDock = new THREE.Vector3(27, 23.3, -25);
-  const reportDock = new THREE.Vector3(-1, 16.8, -16);
+  const history = CITY_DESTINATIONS.find(destination => destination.id === "history")!;
+  const report = CITY_DESTINATIONS.find(destination => destination.id === "understand")!;
+  const historyDock = new THREE.Vector3(history.position[0], 23.3, history.position[2]);
+  const reportDock = new THREE.Vector3(report.position[0], 16.8, report.position[2]);
+  const approach = (dock: Three.Vector3, dx: number, dy: number, dz: number) =>
+    [dock.x + dx, dock.y + dy, dock.z + dz];
   [historyDock, reportDock].forEach((point) => {
     box([point.x, point.y - 1.4, point.z - .2], [4.5, 2, 4.1], materials.navy);
     box([point.x, point.y - .45, point.z], [5.1, .14, 4.8], materials.pearl);
@@ -31,11 +36,21 @@ export function buildCityAerial(
   );
   const flights = [
     {
-      curve: curve([[27, 23.3, -25], [27, 23.6, -20], [28, 38, -12], [62, 45, -45], [83, 44, 24], [28, 40, 43], [27, 31.3, -15], [27, 23.75, -21], [27, 23.3, -25]]),
+      curve: curve([
+        approach(historyDock, 0, 0, 0), approach(historyDock, 0, 2, 5),
+        [historyDock.x + 1, 38, historyDock.z + 13], [88, 45, -69],
+        [104, 44, 26], [47, 40, 43], approach(historyDock, 0, 8, 10),
+        approach(historyDock, 0, 0.45, 4), approach(historyDock, 0, 0, 0),
+      ]),
       cycle: 72, offset: 53, hold: 5.5, previousDocked: false, cue: true,
     },
     {
-      curve: curve([[-1, 16.8, -16], [-1, 17.1, -11], [-4, 38, -3], [-46, 42, -57], [-58, 44, 27], [6, 40, 41], [-1, 24.8, -6], [-1, 17.25, -12], [-1, 16.8, -16]]),
+      curve: curve([
+        approach(reportDock, 0, 0, 0), approach(reportDock, 0, 2, 5),
+        [reportDock.x - 3, 38, reportDock.z + 13], [-46, 42, -57],
+        [-58, 44, 27], [6, 40, 41], approach(reportDock, 0, 8, 10),
+        approach(reportDock, 0, 0.45, 4), approach(reportDock, 0, 0, 0),
+      ]),
       cycle: 96, offset: 18, hold: 5, previousDocked: false, cue: false,
     },
     {

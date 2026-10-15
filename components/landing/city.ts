@@ -3,13 +3,13 @@ export type ProductFeature = "microphone" | "screen" | "speaker" | "storage" | "
 
 export const CITY_DESTINATIONS = [
   { id: "device", label: "Introducing Quipus", position: [8, 0, 14], height: 11 },
-  { id: "capture", label: "Be in the conversation", position: [-13, 0, -3], height: 9 },
-  { id: "understand", label: "Know what matters", position: [-1, 0, -16], height: 15 },
-  { id: "follow-up", label: "Keep the momentum", position: [27, 0, 1], height: 12 },
-  { id: "history", label: "Remember the person", position: [27, 0, -25], height: 19 },
-  { id: "about", label: "About Quipus", position: [32, 0, -39], height: 13 },
-  { id: "privacy", label: "Privacy", position: [51, 0, -17], height: 12 },
-  { id: "terms", label: "Terms", position: [50, 0, 15], height: 10 },
+  { id: "capture", label: "Be in the conversation", position: [-40, 0, -2], height: 9 },
+  { id: "understand", label: "Know what matters", position: [7, 0, -18], height: 15 },
+  { id: "follow-up", label: "Keep the momentum", position: [29, 0, 1], height: 12 },
+  { id: "history", label: "Remember the person", position: [53, 0, -38], height: 19 },
+  { id: "about", label: "About Quipus", position: [-18, 0, -55.5], height: 13 },
+  { id: "privacy", label: "Privacy", position: [80, 0, -17], height: 12 },
+  { id: "terms", label: "Terms", position: [77, 0, 60], height: 10 },
 ] as const satisfies readonly {
   id: CityDestination;
   label: string;

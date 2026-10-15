@@ -196,32 +196,22 @@ export default function QuipusLanding() {
   const { enabled, setScene } = useQuipusMotion();
   const destination = useSyncExternalStore(subscribeNavigation, readDestination, serverDestination);
   const overviewButton = useRef<HTMLButtonElement>(null);
-  const menuToggle = useRef<HTMLButtonElement>(null);
-  const destinationMenu = useRef<HTMLDivElement>(null);
   const previousDestination = useRef(destination);
   const [feature, setFeature] = useState<ProductFeature>("microphone");
   const [sceneStatus, setSceneStatus] = useState<"loading" | "ready" | "unavailable">("loading");
-  const [menuOpen, setMenuOpen] = useState(false);
   const [resetSequence, setResetSequence] = useState(0);
   const [rotationCommand, setRotationCommand] = useState<{ direction: "reset"; sequence: number }>();
-  const select = useCallback((id: CityDestination) => { setMenuOpen(false); chooseDestination(id); }, []);
   const ready = useCallback(() => setSceneStatus("ready"), []);
   const unavailable = useCallback(() => setSceneStatus("unavailable"), []);
   const resetModel = () => setRotationCommand(previous => ({ direction: "reset", sequence: (previous?.sequence ?? 0) + 1 }));
-  const focusCityControls = useCallback(() => {
-    const opener = menuToggle.current;
-    (opener?.getClientRects().length ? opener : overviewButton.current)?.focus({ preventScroll: true });
+  const focusOverview = useCallback(() => {
+    overviewButton.current?.focus({ preventScroll: true });
   }, []);
-  const closeMenu = useCallback(() => {
-    setMenuOpen(false);
-    focusCityControls();
-  }, [focusCityControls]);
   const reset = () => {
     if (readDestination()) {
       window.history.replaceState({ ...window.history.state, quipusCityPanel: false }, "", destinationUrl(null));
       notifyNavigation();
     }
-    setMenuOpen(false);
     setResetSequence(value => value + 1);
   };
   useEffect(() => { setScene("landing"); return () => setScene("overview"); }, [setScene]);
@@ -229,36 +219,31 @@ export default function QuipusLanding() {
     if (previousDestination.current && !destination) {
       const active = document.activeElement;
       if (active === document.body || active === document.documentElement || active?.closest("[data-destination-panel]")) {
-        focusCityControls();
+        focusOverview();
       }
     }
     previousDestination.current = destination;
-  }, [destination, focusCityControls]);
-  useEffect(() => {
-    if (menuOpen) destinationMenu.current?.querySelector<HTMLButtonElement>("[data-city-destination]")?.focus({ preventScroll: true });
-  }, [menuOpen]);
+  }, [destination, focusOverview]);
   useEffect(() => {
     const escape = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || event.defaultPrevented) return;
       // Embedded panels own Escape. React and native listeners can share document.
       if (event.target instanceof Element && event.target.closest("[data-destination-panel]")) return;
-      if (menuOpen) closeMenu();
-      else if (destination) closeDestination();
+      if (destination) closeDestination();
     };
     document.addEventListener("keydown", escape);
     return () => document.removeEventListener("keydown", escape);
-  }, [closeMenu, destination, menuOpen]);
+  }, [destination]);
 
   return <main className={styles.landing} data-motion={enabled ? "on" : "off"} data-city-section={destination ?? "overview"} data-scene-status={sceneStatus}>
     <a href="#city-content" className={styles.skipLink} onClick={event => {
       event.preventDefault();
       document.getElementById("city-content")?.focus({ preventScroll: true });
     }}>Skip to product information</a>
-    <div className={styles.stage}><CityPoster /><Scene destination={destination} onDestinationChange={select} reducedMotion={!enabled} feature={feature} onFeatureChange={setFeature} resetSequence={resetSequence} rotationCommand={rotationCommand} onReady={ready} onUnavailable={unavailable} /></div>
+    <div className={styles.stage}><CityPoster /><Scene destination={destination} onDestinationChange={chooseDestination} reducedMotion={!enabled} feature={feature} onFeatureChange={setFeature} resetSequence={resetSequence} rotationCommand={rotationCommand} onReady={ready} onUnavailable={unavailable} /></div>
     <div className={styles.readingVeil} aria-hidden="true" />
-    <button ref={overviewButton} type="button" className={styles.brand} onClick={reset} aria-label="Quipus city overview"><QuipusMark /><Image src="/quipus-wordmark.png" alt="Quipus" width={780} height={194} priority /></button>
-    <MenuLink href="/login?next=/dashboard" tone="navy" className={styles.signIn}>Sign in</MenuLink>
-    <MenuButton ref={menuToggle} className={styles.menuToggle} aria-controls="city-destinations" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}>Explore city</MenuButton>
+    <button data-city-ui-reserve="" ref={overviewButton} type="button" className={styles.brand} onClick={reset} aria-label="Quipus city overview"><QuipusMark /><Image src="/quipus-wordmark.png" alt="Quipus" width={780} height={194} priority /></button>
+    <MenuLink data-city-ui-reserve="" href="/login?next=/dashboard" tone="navy" className={styles.signIn}>Sign in</MenuLink>
 
     {!destination && <div className={styles.homePanel} id="city-content" tabIndex={-1}>
       <section aria-labelledby="city-title" data-city-introduction>
@@ -268,10 +253,6 @@ export default function QuipusLanding() {
         <p className={styles.companion}>With you, wherever business takes you.</p>
       </section>
     </div>}
-    <div ref={destinationMenu} className={styles.destinations} id="city-destinations" data-open={menuOpen} role="group" aria-label="Explore Quipus sections">
-      <div className={styles.menuControls}><MenuButton className={styles.menuClose} aria-label="Close destinations" onClick={closeMenu}>Close</MenuButton></div>
-      {CITY_DESTINATIONS.map(item => <MenuButton key={item.id} data-city-destination={item.id} onClick={() => select(item.id)} className={styles.destinationButton}>{item.label}</MenuButton>)}
-    </div>
     {destination && <div id="city-content" tabIndex={-1}><CityPanel key={destination} destination={destination} feature={feature} sceneUnavailable={sceneStatus === "unavailable"} onClose={closeDestination} onResetModel={resetModel} /></div>}
 
   </main>;

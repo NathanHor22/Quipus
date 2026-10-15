@@ -2,7 +2,7 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  isolation: isolate;
+  isolation: auto;
 }
 .scene canvas {
   display: block;
@@ -75,9 +75,50 @@
     background 0.2s ease;
 }
 
+.marker {
+  isolation: isolate;
+  border: 1px solid rgb(255 255 255 / 80%);
+  background: linear-gradient(125deg, rgb(255 255 255 / 54%), rgb(242 244 246 / 46%));
+  box-shadow:
+    0 4px 15px rgb(18 35 52 / 6%),
+    inset 0 0 0 1px rgb(25 42 59 / 5%);
+  backdrop-filter: blur(9px);
+  translate: 0 0;
+  transition:
+    translate 0.4s ease,
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+.marker::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: linear-gradient(125deg, rgb(194 0 19 / 7%), rgb(220 21 40 / 13%));
+  opacity: 0;
+  pointer-events: none;
+  content: "";
+  transition: opacity 0.4s ease;
+}
+.marker span {
+  position: relative;
+  z-index: 1;
+}
 .marker:hover,
 .marker:focus-visible,
-.marker[aria-pressed="true"],
+.marker[aria-pressed="true"] {
+  border-color: rgb(178 15 34 / 35%);
+  box-shadow:
+    0 7px 19px rgb(70 28 37 / 9%),
+    inset 0 0 0 1px rgb(255 255 255 / 28%);
+  color: #10263d;
+  translate: 0 -2px;
+}
+.marker:hover::before,
+.marker:focus-visible::before,
+.marker[aria-pressed="true"]::before {
+  opacity: 1;
+}
 .feature:hover,
 .feature:focus-visible,
 .feature[aria-pressed="true"] {
@@ -135,8 +176,14 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .marker,
+  .marker::before,
   .feature {
     transition: none;
+  }
+  .marker:hover,
+  .marker:focus-visible,
+  .marker[aria-pressed="true"] {
+    translate: none;
   }
 }
 

@@ -33,6 +33,17 @@ export function buildCityArchitecture(
   layout.blocks.forEach(block =>
     box([block.x, 0.045, block.z], [block.width + 1.25, 0.08, block.depth + 1.25], pearl));
 
+  const aboutPlaza = layout.landmarkSpaces.find(space => space.id === "about");
+  if (aboutPlaza) {
+    // A complete, road-aligned courtyard gives the project story its own district.
+    box([aboutPlaza.x, 0.105, aboutPlaza.z],
+      [aboutPlaza.width, 0.12, aboutPlaza.depth], paving);
+    box([aboutPlaza.x, 0.175, aboutPlaza.z],
+      [3.2, 0.025, aboutPlaza.depth - 0.4], white);
+    box([aboutPlaza.x, 0.18, aboutPlaza.z],
+      [aboutPlaza.width - 0.4, 0.025, 1.1], white);
+  }
+
   const tree = (tx: number, tz: number, size: number, detail: number) => {
     box([tx, size * 0.45, tz], [0.16, size * 0.9, 0.16], benchMaterial);
     canopies.push({ position: [tx, size * 1.07, tz],
@@ -50,10 +61,16 @@ export function buildCityArchitecture(
       box([px, 0.245, pz], [w * 0.92, 0.045, 0.85], white);
     }
     for (const side of [-1, 1]) {
-      tree(px + side * w * 0.28, pz - d * 0.27, 2.25, detail + side * 0.1);
-      tree(px + side * w * 0.28, pz + d * 0.27, 1.95, 1 - detail);
-      box([px + side * w * 0.27, 0.5, pz], [1.65, 0.16, 0.46], benchMaterial);
-      box([px + side * w * 0.27, 0.9, pz - 0.19], [1.65, 0.6, 0.12], benchMaterial);
+      if (w < 3 || d < 3) {
+        const narrowX = w < d;
+        tree(px + (narrowX ? 0 : side * w * 0.3),
+          pz + (narrowX ? side * d * 0.3 : 0), 1.45, detail + side * 0.1);
+      } else {
+        tree(px + side * w * 0.28, pz - d * 0.27, 2.25, detail + side * 0.1);
+        tree(px + side * w * 0.28, pz + d * 0.27, 1.95, 1 - detail);
+        box([px + side * w * 0.27, 0.5, pz], [1.65, 0.16, 0.46], benchMaterial);
+        box([px + side * w * 0.27, 0.9, pz - 0.19], [1.65, 0.6, 0.12], benchMaterial);
+      }
     }
   });
   layout.modelPlacements.forEach(parcel =>

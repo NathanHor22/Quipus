@@ -15,7 +15,7 @@
   inset: 0;
 }
 .stage {
-  z-index: 0;
+  z-index: auto;
 }
 .poster {
   opacity: 1;
@@ -155,68 +155,6 @@
   font-weight: 500;
   line-height: 1.6;
 }
-.destinations {
-  position: fixed;
-  z-index: 9;
-  top: 123px;
-  left: clamp(28px, 4vw, 64px);
-  display: none;
-  gap: 6px;
-  width: min(330px, calc(100vw - 56px));
-  max-height: calc(100svh - 145px);
-  padding: 16px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  border: 1px solid #d8d8d8;
-  background: rgba(255, 255, 255, 0.97);
-  box-shadow: 0 10px 50px rgba(14, 32, 58, 0.15);
-  backdrop-filter: blur(20px);
-}
-.destinations[data-open="true"] {
-  display: grid;
-}
-.menuControls {
-  position: sticky;
-  z-index: 2;
-  top: -1px;
-  display: flex;
-  justify-content: flex-end;
-  padding-bottom: 7px;
-  background: rgba(255, 255, 255, 0.98);
-}
-.menuClose {
-  min-height: 28px;
-  padding: 7px 10px;
-  font-size: 10px;
-}
-.destinationButton {
-  min-height: 37px;
-  padding: 10px 14px;
-  border-color: rgba(14, 32, 58, 0.12);
-  font-size: 12px;
-}
-.destinationButton > span {
-  justify-content: flex-start;
-}
-.menuToggle {
-  position: absolute;
-  z-index: 8;
-  top: 86px;
-  left: clamp(28px, 4vw, 64px);
-  display: none;
-  min-height: 30px;
-  padding: 8px 11px;
-  font-size: 10px;
-}
-.landing[data-scene-status="unavailable"] .menuToggle {
-  display: inline-flex;
-}
-@media (max-width: 1100px), (max-aspect-ratio: 4/3) {
-  .menuToggle {
-    display: inline-flex;
-  }
-}
 .panel {
   position: absolute;
   z-index: 4;
@@ -224,7 +162,7 @@
   bottom: auto;
   left: clamp(28px, 4vw, 64px);
   width: min(385px, 35vw);
-  max-height: calc(100svh - 189px);
+  max-height: calc(100svh - 142px);
   padding: 22px;
   overflow-x: hidden;
   overflow-y: auto;
@@ -688,11 +626,6 @@
   .heroActions {
     margin-top: 17px;
   }
-  .destinationButton {
-    min-height: 32px;
-    padding-block: 8px;
-    font-size: 11px;
-  }
 }
 @media (max-width: 1000px) and (min-width: 761px) {
   .homePanel,
@@ -784,27 +717,6 @@
   .companion {
     margin-top: 16px;
     font-size: 11px;
-  }
-  .destinations {
-    top: 112px;
-    left: 16px;
-    right: 16px;
-    width: auto;
-    max-height: calc(100svh - 130px);
-    padding: 16px;
-  }
-  .destinationButton {
-    min-height: 43px;
-  }
-  .menuToggle {
-    position: absolute;
-    z-index: 8;
-    top: 72px;
-    left: 18px;
-    display: inline-flex;
-    min-height: 30px;
-    padding: 8px 11px;
-    font-size: 10px;
   }
   .panel {
     top: auto;

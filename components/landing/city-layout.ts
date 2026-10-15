@@ -1,4 +1,4 @@
-import { CITY_DESTINATIONS } from "./city";
+import { CITY_DESTINATIONS, type CityDestination } from "./city";
 
 export type CityArchetype = "bank" | "office" | "retail" | "park" | "construction" | "studio";
 export type CityModelKind = "low" | "medium" | "tall";
@@ -32,6 +32,28 @@ export type CityBuilding = Readonly<{
   frontage?: CityModelPlacement["frontage"];
 }>;
 export type CityBlock = Readonly<{ x: number; z: number; width: number; depth: number }>;
+export type CityLandmarkSpace = Readonly<{
+  id: CityDestination; x: number; z: number; width: number; depth: number;
+}>;
+
+// These clear areas separate the three central landmarks from the denser districts.
+const landmarkSpaces: readonly CityLandmarkSpace[] = CITY_DESTINATIONS.map(item => ({
+  id: item.id, x: item.position[0], z: item.position[2],
+  width: item.id === "about" ? 18.2 : item.id === "device" ? 23 : 21,
+  depth: item.id === "about" ? 13.2 : item.id === "device" ? 21 : 16.4,
+}));
+const gardens: readonly CityBuilding[] = [
+  { id: "central-garden", x: 28, z: -18, width: 11, depth: 12,
+    height: 3.6, style: 3, detail: 0.46, kind: "park", modelKind: "low", rotation: 0 },
+  { id: "report-garden", x: 7, z: -25, width: 9, depth: 2.2,
+    height: 3.6, style: 3, detail: 0.62, kind: "park", modelKind: "low", rotation: 0 },
+  { id: "momentum-garden", x: 35.6, z: 1, width: 2, depth: 9,
+    height: 3.6, style: 3, detail: 0.32, kind: "park", modelKind: "low", rotation: 0 },
+  { id: "about-west-garden", x: -25.6, z: -55.5, width: 2.3, depth: 9.8,
+    height: 3.6, style: 3, detail: 0.43, kind: "park", modelKind: "low", rotation: 0 },
+  { id: "about-east-garden", x: -10.4, z: -55.5, width: 2.3, depth: 9.8,
+    height: 3.6, style: 3, detail: 0.57, kind: "park", modelKind: "low", rotation: 0 },
+];
 
 export const CITY_ROAD_LOOP = [
   [-30, -30], [40, -30], [40, 30], [-30, 30],
@@ -46,9 +68,12 @@ export function citySeed(x: number, z: number) {
 }
 
 function reserved(x: number, z: number, width: number, depth: number) {
-  if (CITY_DESTINATIONS.some(item =>
-    Math.abs(item.position[0] - x) < 7.4 + width / 2 &&
-    Math.abs(item.position[2] - z) < 6.9 + depth / 2)) return true;
+  if (landmarkSpaces.some(space =>
+    Math.abs(space.x - x) < (space.width + width) / 2 &&
+    Math.abs(space.z - z) < (space.depth + depth) / 2)) return true;
+  if (gardens.some(garden =>
+    Math.abs(garden.x - x) < (garden.width + width) / 2 + 1 &&
+    Math.abs(garden.z - z) < (garden.depth + depth) / 2 + 1)) return true;
   // Keep a short, clear approach to the separate hardware exhibit.
   return x + width / 2 > -4 && x - width / 2 < 20 &&
     z + depth / 2 > 6 && z - depth / 2 < 46;
@@ -101,14 +126,13 @@ export function createCityLayout() {
       }
     }
   }
-  // A small central garden occupies the clear space between the two rooftop hubs.
-  parcels.push({ id: "central-garden", x: 10.5, z: -20.5, width: 7.6, depth: 9.6,
-    height: 3.6, style: 3, detail: 0.46, kind: "park", modelKind: "low", rotation: 0 });
+  // Gardens are reserved before parcel placement, so planting never covers a building.
+  parcels.push(...gardens);
   const modelPlacements: CityModelPlacement[] = parcels.filter(parcel => parcel.kind !== "park")
     .map(parcel => ({ id: parcel.id, x: parcel.x, z: parcel.z, y: 0.14,
       width: parcel.width, depth: parcel.depth, targetHeight: parcel.height,
       kind: parcel.modelKind, rotation: parcel.rotation, frontage: parcel.frontage }));
-  return { parcels, blocks, modelPlacements,
+  return { parcels, blocks, modelPlacements, landmarkSpaces,
     roads: { avenues, streets, width: CITY_ROAD_WIDTH, loop: CITY_ROAD_LOOP },
     bounds: { x: 5, z: 3, width: 232, depth: 198 } };
 }
