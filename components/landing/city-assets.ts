@@ -1,8 +1,8 @@
 import type * as Three from "three";
 
-/** Tiny scenery downloads have their own timeout and never block city controls. */
+/** Bounded public scenery downloads never block city controls. */
 export async function loadCityAsset(
-  THREE: typeof import("three"), path: string, signal: AbortSignal,
+  THREE: typeof import("three"), path: string, signal: AbortSignal, maxBytes = 128 * 1024,
 ): Promise<Three.Group> {
   const controller = new AbortController();
   const abort = () => controller.abort();
@@ -15,9 +15,11 @@ export async function loadCityAsset(
       fetch(path, { signal: controller.signal, credentials: "omit" }),
     ]);
     if (!response.ok) throw new Error("City asset unavailable");
+    const declaredSize = Number(response.headers.get("content-length"));
+    if (declaredSize > maxBytes) throw new Error("City asset exceeds its budget");
     const bytes = await response.arrayBuffer();
     if (controller.signal.aborted) throw new DOMException("Aborted", "AbortError");
-    if (bytes.byteLength > 128 * 1024) throw new Error("City asset exceeds its budget");
+    if (bytes.byteLength > maxBytes) throw new Error("City asset exceeds its budget");
     const gltf = await new GLTFLoader().parseAsync(bytes, "/landing/");
     if (controller.signal.aborted) {
       disposeCityAsset(THREE, gltf.scene);

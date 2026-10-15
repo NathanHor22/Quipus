@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import QuipusLanding from "@/components/landing/QuipusLanding";
 
 const publicOrigin = process.env.NEXT_PUBLIC_APP_URL
-  || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? "https://" + process.env.VERCEL_PROJECT_PRODUCTION_URL : "https://roxanne-two.vercel.app");
+  || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? "https://" + process.env.VERCEL_PROJECT_PRODUCTION_URL : "https://quipus-sales-rep-assistant.vercel.app");
 
 export const metadata: Metadata = {
   metadataBase: new URL(publicOrigin),

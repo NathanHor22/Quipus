@@ -100,3 +100,19 @@ test("public content bypass is exact and cannot include private dashboards or AP
   for (const path of ["/", "/demo", "/privacy", "/terms"]) assert.equal(isPublicContentPath(path), true, path);
   for (const path of ["/demo/private", "/dashboard", "/api/meetings", "/api/processing/file.glb", "/login", "/auth/callback", "/api/auth/logout"]) assert.equal(isPublicContentPath(path), false, path);
 });
+
+
+test("city metadata is public while other JSON and private paths remain protected", () => {
+  assert.equal(isPublicContentPath("/landing/city-buildings.json"), true);
+  assert.equal(isPublicAuthPath("/landing/city-buildings.json"), true);
+  for (const path of [
+    "/landing/private.json",
+    "/landing/city-buildings.json/extra",
+    "/api/landing/city-buildings.json",
+    "/api/meetings.json",
+    "/dashboard/city-buildings.json",
+  ]) {
+    assert.equal(isPublicContentPath(path), false, path);
+    assert.equal(isPublicAuthPath(path), false, path);
+  }
+});

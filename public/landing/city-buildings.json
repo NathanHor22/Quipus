@@ -1,0 +1,191 @@
+{
+  "formatVersion": 1,
+  "file": "quipus-city-buildings.glb",
+  "orientation": "+Y up; ground Y=0; centre X/Z=0; maximum footprint dimension=1",
+  "source": {
+    "author": "Fridqeir (https://sketchfab.com/Fridqeir)",
+    "source": "https://sketchfab.com/3d-models/100-lowpoly-buildings-buildings-pack-7c87fb777cd34985807e05b79c9548c0",
+    "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+    "title": "100 Lowpoly Buildings | Buildings Pack"
+  },
+  "sourceSha256": "97a12c000240b1d91663d65637a6d46e6d2472e0120d9d19d1ee0e7c5cb26b4f",
+  "changes": [
+    "Selected 18 complete building groups; originals remain unchanged.",
+    "Baked source transforms and normalized each footprint uniformly.",
+    "Merged surfaces into shared white-body and neutral-window materials.",
+    "Removed original colours, UV layers and unused material splits; no textures.",
+    "Retained authored split normals; removed zero-area source triangles."
+  ],
+  "models": [
+    {
+      "id": "Building_18",
+      "groupName": "Building_18",
+      "kind": "low",
+      "width": 0.9999996,
+      "depth": 1.0,
+      "height": 0.81589,
+      "triangles": 214
+    },
+    {
+      "id": "Building_15",
+      "groupName": "Building_15",
+      "kind": "low",
+      "width": 0.7063003,
+      "depth": 1.0,
+      "height": 0.5444788,
+      "triangles": 239
+    },
+    {
+      "id": "Building_10",
+      "groupName": "Building_10",
+      "kind": "low",
+      "width": 0.5377203,
+      "depth": 1.0,
+      "height": 0.4417288,
+      "triangles": 368
+    },
+    {
+      "id": "Building_28",
+      "groupName": "Building_28",
+      "kind": "low",
+      "width": 0.6780629,
+      "depth": 1.0,
+      "height": 0.2996991,
+      "triangles": 852
+    },
+    {
+      "id": "Building_53",
+      "groupName": "Building_53",
+      "kind": "low",
+      "width": 1.0,
+      "depth": 0.9939056,
+      "height": 0.2861527,
+      "triangles": 686
+    },
+    {
+      "id": "Building_62",
+      "groupName": "Building_62",
+      "kind": "low",
+      "width": 1.0,
+      "depth": 0.4428917,
+      "height": 0.4014513,
+      "triangles": 919
+    },
+    {
+      "id": "Building_33",
+      "groupName": "Building_33",
+      "kind": "medium",
+      "width": 1.0,
+      "depth": 0.8845162,
+      "height": 1.1036677,
+      "triangles": 800
+    },
+    {
+      "id": "Building_24",
+      "groupName": "Building_24",
+      "kind": "medium",
+      "width": 1.0,
+      "depth": 0.7948123,
+      "height": 1.2368197,
+      "triangles": 635
+    },
+    {
+      "id": "Building_43",
+      "groupName": "Building_43",
+      "kind": "medium",
+      "width": 1.0,
+      "depth": 0.6284262,
+      "height": 1.0186363,
+      "triangles": 384
+    },
+    {
+      "id": "Building_46",
+      "groupName": "Building_46",
+      "kind": "medium",
+      "width": 1.0,
+      "depth": 0.9902678,
+      "height": 2.2288764,
+      "triangles": 604
+    },
+    {
+      "id": "Building_65",
+      "groupName": "Building_65",
+      "kind": "medium",
+      "width": 1.0,
+      "depth": 0.9877248,
+      "height": 1.2385256,
+      "triangles": 922
+    },
+    {
+      "id": "Building_70",
+      "groupName": "Building_70",
+      "kind": "medium",
+      "width": 1.0,
+      "depth": 0.905583,
+      "height": 1.0743015,
+      "triangles": 811
+    },
+    {
+      "id": "Building_83",
+      "groupName": "Building_83",
+      "kind": "medium",
+      "width": 1.0,
+      "depth": 0.8566918,
+      "height": 1.2966335,
+      "triangles": 496
+    },
+    {
+      "id": "Building_59",
+      "groupName": "Building_59",
+      "kind": "tall",
+      "width": 1.0,
+      "depth": 0.9956968,
+      "height": 3.7231607,
+      "triangles": 494
+    },
+    {
+      "id": "Building_86",
+      "groupName": "Building_86",
+      "kind": "tall",
+      "width": 1.0,
+      "depth": 0.9924011,
+      "height": 3.4922278,
+      "triangles": 690
+    },
+    {
+      "id": "Building_94",
+      "groupName": "Building_94",
+      "kind": "tall",
+      "width": 0.9999995,
+      "depth": 1.0,
+      "height": 1.8845145,
+      "triangles": 1010
+    },
+    {
+      "id": "Building_95",
+      "groupName": "Building_95",
+      "kind": "tall",
+      "width": 1.0,
+      "depth": 0.9916077,
+      "height": 1.9355181,
+      "triangles": 1252
+    },
+    {
+      "id": "Building_98",
+      "groupName": "Building_98",
+      "kind": "tall",
+      "width": 0.5713072,
+      "depth": 1.0,
+      "height": 1.2571439,
+      "triangles": 1148
+    }
+  ],
+  "stats": {
+    "bytes": 540964,
+    "triangles": 12524,
+    "meshes": 36,
+    "materials": 2,
+    "textures": 0,
+    "removedDegenerateTriangles": 1
+  }
+}

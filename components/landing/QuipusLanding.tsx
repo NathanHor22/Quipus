@@ -11,6 +11,7 @@ import { CITY_DESTINATIONS, type CityDestination, type ProductFeature } from "./
 import { DeviceSimulation } from "./DeviceSimulation";
 import { MenuButton, MenuLink } from "./MenuButton";
 import styles from "./landing.module.css";
+import cityBuildingLibrary from "@/public/landing/city-buildings.json";
 
 const Scene = dynamic(() => import("./QuipusScene"), { ssr: false });
 const navigationEvent = "quipus:city-navigation";
@@ -142,6 +143,14 @@ function InformationContent({ destination }: { destination: InformationDestinati
     <p className={styles.projectBy}>A project by Nathan Hor</p>
     <p>The early touchscreen prototype helped test recording, voice prompts and uploads. The 3D view explores the enclosure design.</p>
     <p>The goal is a portable recorder and workspace that help you remember the person, the context and the commitments.</p>
+    <details className={styles.prototypeDetails} data-city-credits>
+      <summary>City model credits</summary>
+      <p>Buildings by Fridqeir, adapted from &ldquo;{cityBuildingLibrary.source.title}&rdquo;. Models were selected, resized and recoloured for Quipus.</p>
+      <div className={styles.creditActions}>
+        <MenuLink href={cityBuildingLibrary.source.source} target="_blank" rel="noopener noreferrer">Original models</MenuLink>
+        <MenuLink href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</MenuLink>
+      </div>
+    </details>
   </div>;
   if (destination === "privacy") return <>
     <ul className={styles.informationPoints}>

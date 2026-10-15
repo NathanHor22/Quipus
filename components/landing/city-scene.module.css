@@ -50,10 +50,10 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  min-height: 42px;
+  min-height: 36px;
   width: max-content;
   max-width: 205px;
-  padding: 10px 13px 10px 10px;
+  padding: 8px 11px 8px 9px;
   border: 1px solid rgb(18 41 64 / 19%);
   border-left: 2px solid #c40000;
   background: linear-gradient(125deg, rgb(255 255 255 / 96%), rgb(242 246 251 / 84%));
@@ -74,15 +74,7 @@
     box-shadow 0.2s ease,
     background 0.2s ease;
 }
-.marker::after {
-  position: absolute;
-  bottom: -16px;
-  left: 50%;
-  width: 1px;
-  height: 15px;
-  background: linear-gradient(#9b0000, rgb(196 0 0 / 10%));
-  content: "";
-}
+
 .marker:hover,
 .marker:focus-visible,
 .marker[aria-pressed="true"],
@@ -133,10 +125,6 @@
     padding: 8px 9px;
     font-size: 9px;
     white-space: normal;
-  }
-  .marker::after {
-    height: 10px;
-    bottom: -11px;
   }
   .feature {
     min-height: 31px;

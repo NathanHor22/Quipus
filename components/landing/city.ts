@@ -7,7 +7,7 @@ export const CITY_DESTINATIONS = [
   { id: "understand", label: "Know what matters", position: [-1, 0, -16], height: 15 },
   { id: "follow-up", label: "Keep the momentum", position: [27, 0, 1], height: 12 },
   { id: "history", label: "Remember the person", position: [27, 0, -25], height: 19 },
-  { id: "about", label: "About Quipus", position: [38, 0, -38], height: 13 },
+  { id: "about", label: "About Quipus", position: [32, 0, -39], height: 13 },
   { id: "privacy", label: "Privacy", position: [51, 0, -17], height: 12 },
   { id: "terms", label: "Terms", position: [50, 0, 15], height: 10 },
 ] as const satisfies readonly {

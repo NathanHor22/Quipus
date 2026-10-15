@@ -1,7 +1,23 @@
 import { CITY_DESTINATIONS } from "./city";
 
 export type CityArchetype = "bank" | "office" | "retail" | "park" | "construction" | "studio";
+export type CityModelKind = "low" | "medium" | "tall";
+export type CityModelPlacement = Readonly<{
+  id: string;
+  x: number;
+  z: number;
+  y?: number;
+  width: number;
+  depth: number;
+  targetHeight: number;
+  kind: CityModelKind;
+  rotation?: number;
+  modelId?: string;
+  landmark?: boolean;
+  frontage?: Readonly<{ z: number; side: -1 | 1 }>;
+}>;
 export type CityBuilding = Readonly<{
+  id: string;
   x: number;
   z: number;
   width: number;
@@ -10,73 +26,93 @@ export type CityBuilding = Readonly<{
   style: number;
   detail: number;
   kind: CityArchetype;
+  modelKind: CityModelKind;
+  rotation: number;
+  plaza?: boolean;
+  frontage?: CityModelPlacement["frontage"];
 }>;
+export type CityBlock = Readonly<{ x: number; z: number; width: number; depth: number }>;
+
+export const CITY_ROAD_LOOP = [
+  [-30, -30], [40, -30], [40, 30], [-30, 30],
+] as const;
+const avenues = [-104, -80, -55, -30, -6, 17, 40, 65, 90, 114] as const;
+const streets = [-88, -65, -46, -30, -8, 10, 30, 50, 72, 94] as const;
+export const CITY_ROAD_WIDTH = 3.4;
+const setback = CITY_ROAD_WIDTH / 2 + 1.2;
 
 export function citySeed(x: number, z: number) {
   return Math.abs(Math.sin(x * 12.9898 + z * 78.233) * 43758.5453) % 1;
 }
 
-function blockKind(x: number, z: number, detail: number): CityArchetype {
-  // A few civic places are deliberately composed near the central district.
-  if ((x === 25 && z === 15) || (x === -25 && z === 15) || (x === 45 && z === 35)) return "park";
-  if (x === 15 && z === -5) return "bank";
-  if (x === 35 && z === 25) return "retail";
-  if (x === -15 && z === -25) return "construction";
-  if (z < -45 && detail > 0.42) return "office";
-  if (detail < 0.17) return "park";
-  if (detail < 0.29) return "bank";
-  if (detail < 0.48) return "retail";
-  if (detail < 0.59) return "construction";
-  if (detail < 0.77) return "studio";
-  return "office";
+function reserved(x: number, z: number, width: number, depth: number) {
+  if (CITY_DESTINATIONS.some(item =>
+    Math.abs(item.position[0] - x) < 7.4 + width / 2 &&
+    Math.abs(item.position[2] - z) < 6.9 + depth / 2)) return true;
+  // Keep a short, clear approach to the separate hardware exhibit.
+  return x + width / 2 > -4 && x - width / 2 < 20 &&
+    z + depth / 2 > 6 && z - depth / 2 < 46;
 }
 
-const style: Record<CityArchetype, number> = {
-  bank: 0,
-  office: 1,
-  retail: 2,
-  park: 3,
-  construction: 4,
-  studio: 5,
-};
-
-/** Fixed parcels leave streets, landmark plazas and the showroom approach clear. */
-export function createCityBuildings(): CityBuilding[] {
+/** Continuous streets, aligned frontages and deliberately graded skyline. */
+export function createCityLayout() {
   const parcels: CityBuilding[] = [];
-  for (let row = -9; row <= 8; row++) {
-    for (let column = -11; column <= 10; column++) {
-      const x = column * 10 + 5;
-      const z = row * 10 + 5;
-      const nearDestination = CITY_DESTINATIONS.some(
-        (item) => Math.abs(item.position[0] - x) < 10 && Math.abs(item.position[2] - z) < 10,
-      );
-      if (nearDestination || (Math.abs(x - 8) < 12 && z > 8) || (x === 5 && z > -40)) continue;
-      const detail = citySeed(column, row);
-      if (detail < 0.025) continue;
-      const kind = blockKind(x, z, detail);
-      const variation = citySeed(row + 3, column + 6);
-      const heights: Record<CityArchetype, number> = {
-        bank: 5.2 + variation * 2.8,
-        office: (z < -35 ? 18 : 12) + variation * 12,
-        retail: 2.8 + variation * 1.45,
-        park: 4,
-        construction: 7.8 + variation * 4,
-        studio: 4 + variation * 2.6,
-      };
-      parcels.push({
-        x,
-        z,
-        detail,
-        kind,
-        style: style[kind],
-        height: heights[kind],
-        width: kind === "office" ? 4.6 + variation * 1.4 : 6.3 + citySeed(row + 4, column) * 1.1,
-        depth:
-          kind === "office"
-            ? 4.8 + citySeed(column + 8, row + 1) * 1.4
-            : 6.3 + citySeed(column + 8, row + 1) * 1.1,
-      });
+  const blocks: CityBlock[] = [];
+  for (let row = 0; row < streets.length - 1; row++) {
+    for (let column = 0; column < avenues.length - 1; column++) {
+      const west = avenues[column], east = avenues[column + 1];
+      const north = streets[row], south = streets[row + 1];
+      const block = { x: (west + east) / 2, z: (north + south) / 2,
+        width: east - west - setback * 2, depth: south - north - setback * 2 };
+      blocks.push(block);
+      const publicSpace = (column === 3 && row === 5) || (column === 6 && row === 6) ||
+        (column === 1 && row === 2) || (column === 7 && row === 1) ||
+        (column === 5 && row === 7) || (column === 3 && row === 1);
+      if (publicSpace && !reserved(block.x, block.z, block.width, block.depth)) {
+        parcels.push({ ...block, id: "park-" + column + "-" + row, height: 3.6,
+          style: 3, detail: citySeed(column, row), kind: "park", modelKind: "low",
+          rotation: 0, plaza: row === 7 || (column === 3 && row === 1) });
+        continue;
+      }
+      const columns = east - west >= 24 ? 3 : 2;
+      const gap = 0.7;
+      const cell = (block.width - gap * (columns - 1)) / columns;
+      for (let side = 0; side < 2; side++) {
+        for (let slot = 0; slot < columns; slot++) {
+          const detail = citySeed(column * 7 + slot, row * 3 + side);
+          const width = cell * (0.94 + detail * 0.05);
+          const depth = Math.min(block.depth / 2 - 0.8, cell * (1.02 + detail * 0.24));
+          const x = west + setback + cell / 2 + slot * (cell + gap);
+          const frontageZ = side ? south - setback : north + setback;
+          const z = frontageZ + (side ? -1 : 1) * depth / 2;
+          if (reserved(x, z, width + 0.5, depth + 0.5)) continue;
+          const variation = citySeed(row + slot + 19, column + side + 31);
+          const modelKind: CityModelKind = z > 16 ? "low" : z < -30 ? "tall" : "medium";
+          const height = modelKind === "low" ? 3.1 + variation * 3.5
+            : modelKind === "tall" ? 14 + variation * 12 : 7.1 + variation * 6;
+          const kind: CityArchetype = modelKind === "tall" ? "office"
+            : modelKind === "medium" ? (detail > 0.58 ? "bank" : "office")
+            : detail > 0.48 ? "retail" : "studio";
+          parcels.push({ id: "parcel-" + column + "-" + row + "-" + side + "-" + slot,
+            x, z, width, depth, height, kind, modelKind, detail,
+            style: modelKind === "tall" ? 1 : modelKind === "medium" ? 0 : 2,
+            rotation: side ? Math.PI : 0, frontage: { z: frontageZ, side: side ? 1 : -1 } });
+        }
+      }
     }
   }
-  return parcels;
+  // A small central garden occupies the clear space between the two rooftop hubs.
+  parcels.push({ id: "central-garden", x: 10.5, z: -20.5, width: 7.6, depth: 9.6,
+    height: 3.6, style: 3, detail: 0.46, kind: "park", modelKind: "low", rotation: 0 });
+  const modelPlacements: CityModelPlacement[] = parcels.filter(parcel => parcel.kind !== "park")
+    .map(parcel => ({ id: parcel.id, x: parcel.x, z: parcel.z, y: 0.14,
+      width: parcel.width, depth: parcel.depth, targetHeight: parcel.height,
+      kind: parcel.modelKind, rotation: parcel.rotation, frontage: parcel.frontage }));
+  return { parcels, blocks, modelPlacements,
+    roads: { avenues, streets, width: CITY_ROAD_WIDTH, loop: CITY_ROAD_LOOP },
+    bounds: { x: 5, z: 3, width: 232, depth: 198 } };
+}
+
+export function createCityBuildings(): CityBuilding[] {
+  return createCityLayout().parcels;
 }

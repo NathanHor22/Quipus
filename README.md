@@ -105,6 +105,17 @@ callback shown on its provider page, normally
 `https://YOUR-PROJECT-REF.supabase.co/auth/v1/callback`. The app's
 `/auth/callback` belongs in Supabase's redirect allowlist.
 
+The current production Site URL is `https://quipus-sales-rep-assistant.vercel.app`.
+Set it in the hosted Supabase **Authentication > URL Configuration** page and
+add `https://quipus-sales-rep-assistant.vercel.app/auth/callback` to Redirect URLs.
+The checked-in `supabase/config.toml` does not automatically update hosted Auth.
+Set Vercel's `NEXT_PUBLIC_APP_URL` to that same production origin and redeploy.
+When migrating domains, also update `GOOGLE_REDIRECT_URI` and its Google Console
+entry for the separate Calendar integration, as described below. Keep the
+Supabase project's Google callback URI unchanged. A rejected app callback may
+otherwise fall back to the old Site URL; browser session cookies cannot move
+between the old and new hosts.
+
 Production authentication requires both public Supabase values. Leaving
 both unset disables authentication only in local development; incomplete
 configuration fails closed.
@@ -185,11 +196,11 @@ ACTION_APPROVAL_SECRET=your-random-secret-of-at-least-32-UTF8-bytes
 ```
 
 Register `GOOGLE_REDIRECT_URI` in that OAuth client's authorized redirect URIs;
-use `https://roxanne-two.vercel.app/api/google/callback` in production. The
+use `https://quipus-sales-rep-assistant.vercel.app/api/google/callback` in production. The
 same Google Cloud web client may also serve Supabase login when its authorized
 redirect URIs include
 `https://cjogfunwcwytvooycjzv.supabase.co/auth/v1/callback`. Supabase Auth must
-allow `https://roxanne-two.vercel.app/auth/callback` as an application redirect.
+allow `https://quipus-sales-rep-assistant.vercel.app/auth/callback` as an application redirect.
 The Calendar connection remains a separate consent step. Open **Settings >
 Google Calendar** in the live workspace to connect. Credentials are encrypted
 in `provider_connections`; the Google refresh token is created by this step and
@@ -199,9 +210,9 @@ For public access, set the Google Auth Platform audience to **External** and
 the publishing status to **In production**. Configure the public homepage,
 privacy policy, and terms as:
 
-- `https://roxanne-two.vercel.app`
-- `https://roxanne-two.vercel.app/privacy`
-- `https://roxanne-two.vercel.app/terms`
+- `https://quipus-sales-rep-assistant.vercel.app`
+- `https://quipus-sales-rep-assistant.vercel.app/privacy`
+- `https://quipus-sales-rep-assistant.vercel.app/terms`
 
 Declare only Quipus's active Calendar scopes:
 

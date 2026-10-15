@@ -5,8 +5,9 @@ import type * as Three from "three";
 import { CITY_DESTINATIONS, PRODUCT_FEATURES, type CityDestination, type ProductFeature } from "./city";
 import { buildCityArchitecture } from "./city-architecture";
 import { buildCityAerial } from "./city-aerial";
+import { buildCityObjectives } from "./city-objectives";
+import { buildCityModelBuildings, type CityModelPlacement } from "./city-model-buildings";
 import { buildVehicleTrails } from "./city-trails";
-import { loadCityAsset, disposeCityAsset } from "./city-assets";
 import { roadRoute, roadPosition, advanceCar, trafficColour } from "./city-motion";
 import styles from "./city-scene.module.css";
 
@@ -22,7 +23,7 @@ export type QuipusSceneProps = {
   onReady?: () => void;
   onUnavailable?: () => void;
 };
-type SceneRuntime = { sync: () => void };
+type SceneRuntime = { sync: () => void; highlight: (id: CityDestination | null) => void };
 type PrototypeRequest = {
   promise: Promise<ArrayBuffer>;
   controller: AbortController;
@@ -148,16 +149,6 @@ export default function QuipusScene(props: QuipusSceneProps) {
       const slate = new THREE.MeshStandardMaterial({ color: 0xababab, roughness: .7 });
       const navy = new THREE.MeshStandardMaterial({ color: 0x343434, roughness: .5, metalness: .12 });
       const red = new THREE.MeshStandardMaterial({ color: 0xc40012, roughness: .3, metalness: .14 });
-      const redGlass = new THREE.MeshStandardMaterial({
-        color: 0xcd001b, transparent: true, opacity: .63,
-        roughness: .22, metalness: .12, depthWrite: false,
-      });
-      const roseGlass = new THREE.MeshStandardMaterial({
-        color: 0xf23e48, transparent: true, opacity: .42, roughness: .3, depthWrite: false,
-      });
-      const darkRedGlass = new THREE.MeshStandardMaterial({
-        color: 0x81021c, transparent: true, opacity: .73, roughness: .35, depthWrite: false,
-      });
       const contact = new THREE.MeshBasicMaterial({
         color: 0x7e7e7e, transparent: true, opacity: .1, depthWrite: false,
       });
@@ -195,25 +186,10 @@ export default function QuipusScene(props: QuipusSceneProps) {
       architecture.extras.forEach((object) => background.add(object));
       host.dataset.cityArchetypes = Object.keys(architecture.typeCounts).join(",");
       const cityAssetRequest = new AbortController();
-      const constructionSite = architecture.constructionSite;
-      const construction = new THREE.Group();
-      const constructionFallback = new THREE.Group();
-      const siteWidth = constructionSite?.width ?? 0;
-      if (constructionSite) {
-        construction.position.set(...constructionSite.position);
-        // Keep a readable frame when the small optional model cannot load.
-        construction.add(constructionFallback);
-        for (let level = 0; level < 3; level++) {
-          meshBox(constructionFallback, [0, level * 1.35 + .12, 0], [siteWidth, .14, siteWidth * .67], pearl);
-          for (const x of [-1, 1]) for (const z of [-1, 1]) {
-            meshBox(constructionFallback, [x * siteWidth * .43, level * 1.35 + .78, z * siteWidth * .27], [.19, 1.3, .19], slate);
-          }
-        }
-        background.add(construction);
-      }
       type Landmark = {
         id: CityDestination; hit: Three.Mesh; anchor: Three.Vector3;
-        accent: Three.MeshStandardMaterial; halo: Three.MeshBasicMaterial;
+        accent: Three.MeshStandardMaterial | null; halo: Three.MeshBasicMaterial;
+        objective: Three.Vector3; roofHeight: number;
       };
       const landmarks: Landmark[] = [];
       const showroom = new THREE.Group();
@@ -230,79 +206,33 @@ export default function QuipusScene(props: QuipusSceneProps) {
       }
       meshBox(placeholder, [3.89, -.7, 0], [.08, 2.6, 1.6], navy);
 
-      CITY_DESTINATIONS.forEach((item, index) => {
+      const landmarkPlacements: CityModelPlacement[] = [];
+      CITY_DESTINATIONS.forEach((item) => {
         const [x, , z] = item.position;
         const height = item.height;
-        staticBox([x + .6, .08, z + .8], [12.7, .06, 11.5], contact);
-        staticBox([x, .3, z], [12.1, .6, 10.9], pearl);
-        staticBox([x, .7, z], [11.5, .22, 10.2], white);
-        const accent = red.clone();
-        accent.emissive.set(0x65000b);
+        const plazaWidth = item.id === "understand" ? 6.4 : item.id === "history" ? 7.2 : item.id === "device" ? 12.1 : 10.2;
+        const plazaDepth = item.id === "capture" ? 6.4 : item.id === "history" ? 6.2 : item.id === "terms" ? 6 : item.id === "understand" ? 6.2 : item.id === "device" ? 10.9 : 7.4;
+        staticBox([x + .15, .08, z + .15], [plazaWidth + .3, .06, plazaDepth + .3], contact);
+        staticBox([x, .21, z], [plazaWidth, .42, plazaDepth], pearl);
+        staticBox([x, .48, z], [plazaWidth - .3, .12, plazaDepth - .3], white);
+        const accent = item.id === "device" ? red.clone() : null;
+        accent?.emissive.set(0x65000b);
         const halo = new THREE.MeshBasicMaterial({
-          color: 0xc40012, transparent: true, opacity: .18, depthWrite: false,
+          color: 0xc40012, transparent: true, opacity: .1, depthWrite: false,
         });
-        meshBox(background, [x, .87, z + 5.2], [11.2, .06, .38], halo);
+        meshBox(background, [x, .56, z + plazaDepth / 2 - .12], [plazaWidth - .6, .045, .12], halo);
         if (item.id === "device") {
           staticBox([x, 1.6, z], [10.5, 1.6, 7.5], white);
-          meshBox(background, [x, 2.45, z], [10.8, .11, 7.8], accent);
-          staticBox([x - 5.6, 3.8, z - 2], [.5, 6.4, .5], pearl);
-          staticBox([x + 5.6, 3.8, z - 2], [.5, 6.4, .5], pearl);
-        } else if (item.id === "capture") {
-          staticBox([x, height / 2 + .85, z], [7.8, height, 7.1], white);
-          staticBox([x - 3.3, height + 1.4, z], [1.2, 1.3, 7.7], pearl);
-          staticBox([x + 3.3, height + 1.4, z], [1.2, 1.3, 7.7], pearl);
-          meshBox(background, [x, height + 2.08, z], [9, .16, 8], accent);
-          meshBox(background, [x, height / 2 + .9, z + 3.58], [6.1, height * .7, .08], redGlass);
-          for (let band = 0; band < 5; band++) {
-            staticBox([x, 2.2 + band * 1.2, z + 3.67], [5.7, .1, .07], pearl);
-          }
-        } else if (item.id === "understand") {
-          staticBox([x - 2.8, height / 2 + .8, z], [3.9, height, 6.5], white);
-          staticBox([x + 2.8, height * .4 + .8, z], [3.9, height * .8, 6.5], white);
-          meshBox(background, [x, height * .65, z], [8.9, .5, 6.9], accent);
-          meshBox(background, [x, height / 2 + .8, z + 3.31], [1.5, height * .8, .09], darkRedGlass);
-          staticBox([x - 2.8, height + .95, z], [4.4, .3, 6.9], pearl);
-          staticBox([x + 2.8, height * .8 + .95, z], [4.4, .3, 6.9], pearl);
-        } else if (item.id === "follow-up") {
-          staticBox([x, height / 2 + .8, z], [7.5, height, 6.6], white);
-          staticBox([x, height + 1.6, z], [5.8, 1.6, 5], pearl);
-          const fin = meshBox(background, [x + 4.1, height / 2 + 1, z], [.17, height + 2, 8.6], redGlass);
-          fin.rotation.z = -.12;
-          meshBox(background, [x, height + 2.47, z], [6.4, .14, 5.6], accent);
-          for (let band = 0; band < 3; band++) {
-            staticBox([x, 3.2 + band * 2.6, z + 3.35], [6.8, .13, .12], slate);
-          }
-        } else if (item.id === "about") {
-          staticBox([x, height * .32 + .8, z], [9.6, height * .64, 8.3], white);
-          staticBox([x - 2.2, height * .81 + .8, z - 1], [4.5, height * .34, 5.8], pearl);
-          staticBox([x + 2.8, height * .49 + .8, z + 1.2], [3.6, height * .28, 4.2], white);
-          meshBox(background, [x, height * .65 + 1, z + 4.2], [8.4, .12, .08], accent);
-          staticBox([x - 2.2, height + 1.04, z - 1], [4.8, .25, 6.1], white);
-        } else if (item.id === "privacy") {
-          staticBox([x - 3.2, height / 2 + .8, z], [2.1, height, 7.4], white);
-          staticBox([x + 3.2, height / 2 + .8, z], [2.1, height, 7.4], white);
-          staticBox([x, height * .43 + .8, z], [4.4, height * .86, 6.4], navy);
-          staticBox([x, height + .95, z], [9.2, .35, 7.8], pearl);
-          meshBox(background, [x, height + 1.18, z], [7.8, .1, 6.9], accent);
-          for (let band = 0; band < 4; band++) {
-            staticBox([x, 2.4 + band * height * .19, z + 3.27], [4.2, .08, .09], slate);
-          }
-        } else if (item.id === "terms") {
-          staticBox([x, height * .44 + .8, z], [8.1, height * .88, 6.8], white);
-          for (let band = 0; band < 4; band++) {
-            staticBox([x + (band % 2 ? .4 : -.4), 1.6 + band * height * .24, z], [9.8, .38, 8], pearl);
-          }
-          meshBox(background, [x, height + 1.18, z], [8.3, .1, 6.7], accent);
-          staticBox([x, height * .45, z + 3.43], [6.6, height * .62, .08], navy);
+          meshBox(background, [x, 2.45, z + 3.88], [10.8, .11, .16], accent ?? red);
         } else {
-          staticBox([x, height / 2 + .8, z], [7.7, height, 7.3], white);
-          staticBox([x, height * .78, z], [9.5, .6, 9], pearl);
-          staticBox([x, height + 1.65, z], [5.9, 1.8, 5.9], white);
-          meshBox(background, [x, height + 2.62, z], [6.2, .13, 6.2], accent);
-          meshBox(background, [x, height / 2 + .9, z + 3.7], [1.1, height * .86, .08], redGlass);
-          for (let band = 0; band < 5; band++) {
-            staticBox([x, 2.8 + band * 3.1, z + 3.72], [6.5, .09, .08], slate);
-          }
+          landmarkPlacements.push({
+            id: item.id, x, z, y: .55, width: item.id === "understand" ? 5.7 : 8.8,
+            depth: item.id === "capture" ? 6.2 : item.id === "terms" ? 6 : 8.1,
+            targetHeight: height + (item.id === "history" ? 1.35 : 0),
+            kind: height >= 15 ? "tall" : "medium", landmark: true,
+            modelId: item.id === "understand" ? "Building_59" : item.id === "history" ? "Building_86"
+              : item.id === "capture" ? "Building_83" : item.id === "terms" ? "Building_43" : undefined,
+          });
         }
         const hit = new THREE.Mesh(
           new THREE.BoxGeometry(12, height + 3.5, 11),
@@ -311,11 +241,32 @@ export default function QuipusScene(props: QuipusSceneProps) {
         hit.position.set(x, (height + 3.5) / 2, z);
         hit.userData.destination = item.id;
         background.add(hit);
+        const markerRoof = item.id === "history" ? 25.4 : item.id === "understand" ? 18.9 : item.id === "device" ? 13.4 : height;
         landmarks.push({
-          id: item.id, hit, accent, halo,
-          anchor: new THREE.Vector3(x, height + (index === 0 ? 2 : 3.3), z),
+          id: item.id, hit, accent, halo, roofHeight: height,
+          objective: new THREE.Vector3(x, markerRoof + 1.2, z),
+          anchor: new THREE.Vector3(x, markerRoof + 2.4, z),
         });
       });
+      const objectives = buildCityObjectives(THREE, background,
+        landmarks.map(({ id, objective }) => ({ id, position: objective })));
+      const modelBuildings = buildCityModelBuildings(THREE, background,
+        [...architecture.modelPlacements, ...landmarkPlacements],
+        { white, windows: slate, red }, {
+          multiDraw: renderer.extensions.has("WEBGL_multi_draw"),
+          onBounds: (id, _width, modelHeight) => {
+            const landmark = landmarks.find((entry) => entry.id === id);
+            if (!landmark) return;
+            const roof = modelHeight + .55;
+            const originalHeight = CITY_DESTINATIONS.find((entry) => entry.id === id)!.height;
+            landmark.roofHeight = roof;
+            const markerRoof = Math.max(roof, id === "history" ? 25.4 : id === "understand" ? 18.9 : 0);
+            landmark.objective.y = markerRoof + 1.2;
+            landmark.anchor.y = markerRoof + 2.4;
+            landmark.hit.scale.y = (roof + 3.5) / (originalHeight + 3.5);
+            landmark.hit.position.y = (roof + 3.5) / 2;
+          },
+        });
       const trails = buildVehicleTrails(THREE, background);
       const shardGeometry = new THREE.TetrahedronGeometry(.36);
       const shardMaterial = new THREE.MeshStandardMaterial({
@@ -331,11 +282,6 @@ export default function QuipusScene(props: QuipusSceneProps) {
         ambientShards.setColorAt(index, new THREE.Color(shardColours[(index * 3) % shardColours.length]));
       }
       background.add(ambientShards);
-      for (let index = 0; index < 4; index++) {
-        const fin = meshBox(background, [-38 + index * 12, 5 + index % 3, -36 + index % 3 * 15],
-          [.12, 10 + index % 3 * 2, 4], index % 2 ? roseGlass : redGlass);
-        fin.rotation.z = index % 2 ? -.16 : .09;
-      }
 
       // Sparse stylised traffic follows a single fixed road loop. Cars pause at
       // the paired lights; no physics, path-finding, collisions or dynamic lights.
@@ -664,7 +610,7 @@ export default function QuipusScene(props: QuipusSceneProps) {
 
       const updateMarkers = (device: boolean, mobile: boolean) => {
         const leftReserve = mobile ? 20 : currentDestination ? Math.min(460, Math.max(385, width * .4)) : Math.min(480, width * .34);
-        const topReserve = mobile ? 102 : 122;
+        const topReserve = mobile ? 108 : 96;
         const bottomReserve = mobile ? (currentDestination ? height * .5 + 18 : 105) : 35;
         const markerBottom = mobile && !currentDestination && mobileIntroductionTop !== null
           ? Math.min(height - bottomReserve, mobileIntroductionTop - 14) : height - bottomReserve;
@@ -679,8 +625,9 @@ export default function QuipusScene(props: QuipusSceneProps) {
           const show = !device && point.inFront && point.x > leftReserve - 50
             && point.x < width + 25 && point.y > 30 && point.y < markerBottom + 35 && markerBottom >= topReserve + bh;
           if (!show) { button.style.visibility = "hidden"; return; }
-          let x = THREE.MathUtils.clamp(point.x - bw / 2, leftReserve, width - bw - 24);
-          let y = THREE.MathUtils.clamp(point.y - bh - 18, topReserve, markerBottom - bh);
+          const besideX = point.x + bw + 42 < width ? point.x + 20 : point.x - bw - 20;
+          let x = THREE.MathUtils.clamp(besideX, leftReserve, width - bw - 24);
+          let y = THREE.MathUtils.clamp(point.y - bh / 2, topReserve, markerBottom - bh);
           for (let attempt = 0; attempt < 5; attempt++) {
             const collision = placed.find((other) =>
               x < other.x + other.width + 8 && x + bw + 8 > other.x
@@ -810,7 +757,8 @@ export default function QuipusScene(props: QuipusSceneProps) {
           goalSpan = mobile ? (height < 680 ? 35 : 30) : Math.max(18.5, height * 11 / availableWidth);
         } else {
           const destination = CITY_DESTINATIONS.find((item) => item.id === currentDestination)!;
-          goalTarget.set(destination.position[0], destination.height * .45, destination.position[2]);
+          const landmarkHeight = landmarks.find((entry) => entry.id === currentDestination)?.roofHeight ?? destination.height;
+          goalTarget.set(destination.position[0], landmarkHeight * .45, destination.position[2]);
           goalEye.copy(goalTarget).add(new THREE.Vector3(27, 28, 38));
           goalSpan = mobile ? 64 : Math.max(31, height * 14 / availableWidth);
         }
@@ -839,13 +787,17 @@ export default function QuipusScene(props: QuipusSceneProps) {
         let highlightMoving = false;
         if (!device) landmarks.forEach((landmark) => {
           const selected = currentDestination === landmark.id;
-          const over = hovered === landmark.id;
+          const over = hovered === landmark.id || markerElements.current.get(landmark.id) === document.activeElement;
           const glow = over ? .55 : selected ? .3 : .04;
-          const opacity = over ? .78 : selected ? .58 : .18;
-          landmark.accent.emissiveIntensity = THREE.MathUtils.lerp(landmark.accent.emissiveIntensity, glow, blend);
+          const opacity = over ? .65 : selected ? .4 : .1;
+          if (landmark.accent) landmark.accent.emissiveIntensity = THREE.MathUtils.lerp(landmark.accent.emissiveIntensity, glow, blend);
           landmark.halo.opacity = THREE.MathUtils.lerp(landmark.halo.opacity, opacity, blend);
           if (Math.abs(landmark.halo.opacity - opacity) > .002) highlightMoving = true;
         });
+        if (!device) {
+          const focused = document.activeElement?.getAttribute("data-city-marker") as CityDestination | null;
+          objectives.update(activeTime, reduced, camera, currentDestination ?? null, hovered ?? focused);
+        }
         // Inspection pauses the illustrated city entirely. Only the tiny
         // hover transform changes at rest; a drag does no decorative buffer work.
         if (!device && (reduced || lastDecorationTime < 0 || activeTime - lastDecorationTime >= 1 / 24)) {
@@ -923,8 +875,8 @@ export default function QuipusScene(props: QuipusSceneProps) {
           -(event.clientY - bounds.top) / Math.max(1, bounds.height) * 2 + 1,
         );
         raycaster.setFromCamera(pointer, camera);
-        const hit = raycaster.intersectObjects(landmarks.map((landmark) => landmark.hit), false)[0];
-        return hit ? hit.object.userData.destination as CityDestination : null;
+        const hit = raycaster.intersectObjects([...landmarks.map((landmark) => landmark.hit), ...objectives.targets], false)[0];
+        return hit ? objectives.destination(hit) ?? hit.object.userData.destination as CityDestination : null;
       };
       const onDown = (event: PointerEvent) => {
         if (!visible() || !event.isPrimary || event.button !== 0) return;
@@ -1041,11 +993,19 @@ export default function QuipusScene(props: QuipusSceneProps) {
       finePointer.addEventListener("change", resetPointer);
       document.addEventListener("visibilitychange", pauseOrResume);
       window.addEventListener("blur", resetPointer);
-      runtime.current = { sync: requestFrame };
+      runtime.current = {
+        sync: requestFrame,
+        highlight: (id) => {
+          hovered = latest.current.destination === "device" ? null : id;
+          host.dataset.hoveredDestination = hovered ?? "";
+          requestFrame();
+        },
+      };
       teardown = () => {
         runtime.current = null;
         modelRequest.abort();
         cityAssetRequest.abort();
+        modelBuildings.dispose();
         window.cancelAnimationFrame(frame);
         window.clearTimeout(decorationTimer);
         window.clearTimeout(dragHintTimer);
@@ -1068,7 +1028,18 @@ export default function QuipusScene(props: QuipusSceneProps) {
       requestFrame();
       // Public scenery loads alongside the usable city, never ahead of its first frame.
       host.dataset.shuttle = "loading";
-      host.dataset.construction = constructionSite ? "loading" : "absent";
+      host.dataset.buildingModels = "loading";
+      void modelBuildings.load(cityAssetRequest.signal).then((stats) => {
+        if (disposed || unavailable) return;
+        host.dataset.buildingModels = "loaded";
+        host.dataset.modelVariants = String(stats.modelCount);
+        host.dataset.modelInstances = String(stats.instanceCount);
+        host.dataset.modelDrawCalls = String(stats.drawCalls);
+        markersDirty = true;
+        requestFrame();
+      }).catch(() => {
+        if (!disposed && !unavailable) host.dataset.buildingModels = "fallback";
+      });
       void aerial.load(cityAssetRequest.signal).then(() => {
         if (disposed || unavailable) return;
         host.dataset.shuttle = "loaded";
@@ -1077,16 +1048,7 @@ export default function QuipusScene(props: QuipusSceneProps) {
       }).catch(() => {
         if (!disposed && !unavailable) host.dataset.shuttle = "fallback";
       });
-      if (constructionSite) void loadCityAsset(THREE, "/landing/quipus-city-construction.glb", cityAssetRequest.signal).then((asset) => {
-        if (disposed || unavailable) { disposeCityAsset(THREE, asset); return; }
-        asset.scale.setScalar(siteWidth);
-        construction.add(asset);
-        constructionFallback.visible = false;
-        host.dataset.construction = "loaded";
-        requestFrame();
-      }).catch(() => {
-        if (!disposed && !unavailable) host.dataset.construction = "fallback";
-      });
+
     }
     void initialize().catch(() => { teardown?.(); reportUnavailable(); });
     return () => { disposed = true; teardown?.(); };
@@ -1108,6 +1070,10 @@ export default function QuipusScene(props: QuipusSceneProps) {
         className={styles.marker}
         data-city-marker={destination.id}
         aria-pressed={props.destination === destination.id}
+        onPointerEnter={() => runtime.current?.highlight(destination.id)}
+        onPointerLeave={() => runtime.current?.highlight(null)}
+        onFocus={() => runtime.current?.highlight(destination.id)}
+        onBlur={() => runtime.current?.highlight(null)}
         onClick={() => props.onDestinationChange(destination.id)}
       ><span>{destination.label}</span></button>)}
     </div>

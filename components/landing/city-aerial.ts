@@ -12,7 +12,7 @@ export function buildCityAerial(
   emitTrail: TrailEmitter,
 ) {
   const historyDock = new THREE.Vector3(27, 23.3, -25);
-  const reportDock = new THREE.Vector3(-3.8, 16.8, -16);
+  const reportDock = new THREE.Vector3(-1, 16.8, -16);
   [historyDock, reportDock].forEach((point) => {
     box([point.x, point.y - 1.4, point.z - .2], [4.5, 2, 4.1], materials.navy);
     box([point.x, point.y - .45, point.z], [5.1, .14, 4.8], materials.pearl);
@@ -35,7 +35,7 @@ export function buildCityAerial(
       cycle: 72, offset: 53, hold: 5.5, previousDocked: false, cue: true,
     },
     {
-      curve: curve([[-3.8, 16.8, -16], [-3.8, 17.1, -11], [-4, 38, -3], [-46, 42, -57], [-58, 44, 27], [6, 40, 41], [-3.8, 24.8, -6], [-3.8, 17.25, -12], [-3.8, 16.8, -16]]),
+      curve: curve([[-1, 16.8, -16], [-1, 17.1, -11], [-4, 38, -3], [-46, 42, -57], [-58, 44, 27], [6, 40, 41], [-1, 24.8, -6], [-1, 17.25, -12], [-1, 16.8, -16]]),
       cycle: 96, offset: 18, hold: 5, previousDocked: false, cue: false,
     },
     {
