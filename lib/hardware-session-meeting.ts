@@ -12,11 +12,13 @@ export interface ArchivedLanternSession {
   updated_at?: string | null;
   meeting_id?: string | null;
   recording_started_at?: string | null;
+  capture_time_uncertain?: boolean;
 }
 
 export function sessionRecordingProgress(session: ArchivedLanternSession, durationSeconds?: number | null): RecordingProgressState {
   return {
     stage: session.processing_stage || null,
+    timeUncertain: Boolean(session.capture_time_uncertain),
     uploadedBytes: Number(session.upload_bytes || 0),
     totalBytes: Number(session.upload_total_bytes || 0),
     error: session.processing_error,

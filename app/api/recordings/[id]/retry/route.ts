@@ -2,6 +2,7 @@ import { after, NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthenticatedLanternUser } from "@/lib/supabase/session";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { usesDedicatedRecordingWorker } from "@/lib/processing-mode";
 import { processNextRecording } from "@/lib/processing-queue";
 import { publishProcessingWakeup } from "@/lib/redis";
 
@@ -18,7 +19,7 @@ export async function POST(_request: Request, context: { params: Promise<{ id: s
   after(async () => {
     await Promise.allSettled([
       publishProcessingWakeup({ sessionId, userId: user.id }),
-      processNextRecording(client, user.id, sessionId),
+      ...(!usesDedicatedRecordingWorker() ? [processNextRecording(client, user.id, sessionId)] : []),
     ]);
   });
   return NextResponse.json({ accepted: true }, { headers: { "cache-control": "no-store" } });

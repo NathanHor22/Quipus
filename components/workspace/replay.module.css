@@ -376,3 +376,29 @@
     transition: none;
   }
 }
+
+.sourceSelector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+}
+.sourceSelector button {
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 1px solid var(--q-line-strong);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--q-text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.sourceSelector button[aria-pressed="true"] {
+  border-color: var(--q-red);
+  background: #c4000009;
+  color: var(--q-red-deep);
+}
+.sourceSelector button:hover {
+  border-color: var(--q-red);
+}

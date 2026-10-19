@@ -19,23 +19,34 @@ static SemaphoreHandle_t s_lock;
 
 esp_err_t lantern_transcript_init(void) {
   s_lock = xSemaphoreCreateMutex();
-  if (!s_lock) return ESP_ERR_NO_MEM;
-  s_data = heap_caps_malloc(TRANSCRIPT_CAPACITY, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-  if (!s_data) return ESP_ERR_NO_MEM;
+  if (!s_lock)
+    return ESP_ERR_NO_MEM;
+  s_data = heap_caps_malloc(TRANSCRIPT_CAPACITY,
+                            MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  if (!s_data)
+    return ESP_ERR_NO_MEM;
   ESP_LOGI(TAG, "allocated %u-byte Agora caption buffer", TRANSCRIPT_CAPACITY);
   return ESP_OK;
 }
 
 void lantern_transcript_reset(void) {
-  if (!s_lock || xSemaphoreTake(s_lock, pdMS_TO_TICKS(100)) != pdTRUE) return;
+  if (!s_lock || xSemaphoreTake(s_lock, pdMS_TO_TICKS(100)) != pdTRUE)
+    return;
+  if (s_data) {
+    volatile uint8_t *bytes = s_data;
+    for (size_t i = 0; i < s_size; ++i)
+      bytes[i] = 0;
+  }
   s_size = 0;
   s_packets = 0;
   xSemaphoreGive(s_lock);
 }
 
 bool lantern_transcript_append(const void *packet, size_t length) {
-  if (!packet || !length || length > MAX_PACKET_LENGTH || !s_data || !s_lock) return false;
-  if (xSemaphoreTake(s_lock, pdMS_TO_TICKS(100)) != pdTRUE) return false;
+  if (!packet || !length || length > MAX_PACKET_LENGTH || !s_data || !s_lock)
+    return false;
+  if (xSemaphoreTake(s_lock, pdMS_TO_TICKS(100)) != pdTRUE)
+    return false;
   if (s_size + sizeof(uint32_t) + length > TRANSCRIPT_CAPACITY) {
     xSemaphoreGive(s_lock);
     ESP_LOGW(TAG, "caption buffer full after %u packets", s_packets);

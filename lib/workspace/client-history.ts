@@ -38,7 +38,7 @@ export function clientHistory(contact: Contact, conversations: Meeting[]) {
     for (const [index, commitment] of (meeting.insight?.commitments || []).entries()) {
       if (commitment.status === "completed" || taskDescriptions.has(normalize(commitment.description))) continue;
       // A group conversation cannot identify which contact owns an unnamed promise.
-      if (commitment.ownerType === "contact" && meeting.contacts.length !== 1) continue;
+      if (commitment.ownerType === "contact" && (commitment.contactId ? commitment.contactId !== contact.id : meeting.contacts.length !== 1)) continue;
       outstanding.push({
         key: `${meeting.id}:commitment:${commitment.id || index}`,
         description: commitment.description,

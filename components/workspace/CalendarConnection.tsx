@@ -35,10 +35,10 @@ export function CalendarConnection({ email, connected }: { email: string; connec
   const dismissed = useSyncExternalStore(subscribePreferences, readDismissed, serverDismissed);
   if (connected !== false || (dismissed && result !== "denied" && result !== "error")) return null;
   return <section className={styles.connectionPrompt} aria-label="Connect your calendar">
-    <div><h2>Bring your calendar along.</h2><p>{result === "denied" ? "Calendar access wasn’t granted. You can keep using Quipus and connect when you’re ready." : result === "error" ? "Google couldn’t finish connecting. Your conversations are safe; you can try again." : "You’re signed in. Connect Google Calendar to add the follow-ups you approve."} Each invitation still needs your approval.</p></div>
+    <div><h2>Connect Google Calendar</h2><p>{result === "denied" ? "Calendar access wasn’t granted. You can keep using Quipus and connect when you’re ready." : result === "error" ? "Google couldn’t finish connecting. Your conversations are safe; you can try again." : "You’re signed in. Connect Google Calendar to add the follow-ups you approve."} Each invitation still needs your approval.</p></div>
     <div className={styles.connectionActions}>
       <a className={styles.actionButton} href="/api/google/connect?returnTo=%2Fdashboard">Connect Calendar</a>
-      <button className={styles.textLink} onClick={() => {
+      <button className={styles.actionButton} onClick={() => {
         temporaryDismissals.add(key);
         try {
           localStorage.setItem(key, "1");

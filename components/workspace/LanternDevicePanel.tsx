@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { DeviceTransfer } from "./DeviceTransfer";
 import { Dialog } from "@/components/ui/Dialog";
 import { useBrowserStorageSnapshot } from "@/components/hooks/useBrowserStorageSnapshot";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -336,6 +337,7 @@ function DeviceSession({
       </aside>
     </div>
     <footer className={styles.deviceDangerZone}><div><strong>Remove this Quipus</strong><p>Stops this recorder uploading to your account. Recordings already in your workspace stay here.</p></div><button type="button" disabled={working} onClick={() => setConfirmingRevoke(true)}>Revoke device</button></footer>
+    {mode === "live" && <DeviceTransfer deviceId={primaryDevice.id} />}
     <Dialog open={confirmingRevoke} onClose={() => setConfirmingRevoke(false)} dismissDisabled={working}
       className={styles.revokeDialog} aria-labelledby="revoke-device-title">
       <h2 id="revoke-device-title">Remove {primaryDevice.name}?</h2><p>It will no longer upload to this account. To use it again, you will need a new pairing code. Recordings already uploaded remain in your workspace.</p>

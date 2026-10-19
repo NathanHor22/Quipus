@@ -66,3 +66,14 @@ Desktop.ini
 /hardware/lantern-firmware/sdkconfig
 /hardware/lantern-firmware/sdkconfig.v2
 /hardware/backups/
+
+# USB phone microphone firmware build variant
+/hardware/lantern-firmware/build-phone/
+/hardware/lantern-firmware/sdkconfig.phone
+/hardware/lantern-firmware/sdkconfig.phone.old
+
+# Generated, advisory-only scanner triage artifacts
+/security-review/
+
+# Reproducible local hardware handoff binaries (rebuild from source)
+/output/quipus-upgrade/hardware/

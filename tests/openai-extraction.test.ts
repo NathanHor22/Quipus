@@ -273,3 +273,16 @@ test("unsupported evidence is removed and verified evidence inherits source coor
   assert.equal(result.evidence[0]?.endSeconds, 34);
   assert.match(result.warning || "", /unsupported evidence item/u);
 });
+
+
+test("an uncertain offline capture clock clears dates even when the model returns confident times", async () => {
+  const fixture = extractionFixture();
+  fixture.insight.commitments = [{ ownerType: "user", description: "Send the quote", dueAt: "2026-10-20", status: "open" }];
+  const result = await extractWithOpenAI(transcript, { ...context, referenceTimeUncertain: true }, { ...options, fetchImpl: async () => modelResponse(fixture) });
+  assert.equal(result.followUps[0].dueAt, null);
+  assert.equal(result.followUps[0].schedule?.startAt, null);
+  assert.equal(result.insight.commitments[0].dueAt, null);
+  assert.equal(result.followUps[0].description, fixture.followUps[0].description);
+  assert.equal(result.followUps[0].schedule?.evidence, fixture.followUps[0].schedule?.evidence);
+  assert.match(result.warning || "", /time is uncertain/i);
+});

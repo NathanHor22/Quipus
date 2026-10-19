@@ -154,7 +154,7 @@
 }
 .calendarHeader {
   display: grid;
-  grid-template-columns: 66px minmax(0, 1fr) 48px;
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
   align-items: center;
   gap: 6px;
   margin-bottom: 13px;
@@ -168,7 +168,8 @@
 .calendarHeader button {
   display: grid;
   place-items: center;
-  min-height: 34px;
+  min-width: 36px;
+  min-height: 36px;
   padding: 5px;
   border: 1px solid var(--q-line);
   border-radius: 4px;
@@ -277,42 +278,19 @@
   white-space: nowrap;
 }
 .list {
+  display: grid;
+  gap: 10px;
   min-width: 0;
-}
-.entryGroup {
-  min-width: 0;
-}
-.dateHeading {
-  margin: 22px 0 9px;
-  color: var(--q-muted-strong);
-  font-size: 11px;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-}
-.entryGroup:first-child .dateHeading {
-  margin-top: 0;
 }
 .entry {
   position: relative;
   border: 1px solid var(--q-line);
-  margin-top: -1px;
+  min-width: 0;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.74);
   transition:
     background-color 130ms,
     border-color 130ms;
-}
-.entryGroup:first-child .entry {
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
-}
-.entryGroup:last-child .entry {
-  border-bottom-width: 1px;
-  border-bottom-left-radius: 6px;
-  border-bottom-right-radius: 6px;
-}
-.entryGroup:has(.dateHeading) .entry {
-  margin-top: 0;
-  border-radius: 6px 6px 0 0;
 }
 .entry:hover {
   background: rgba(255, 255, 255, 0.92);

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Quipus Phone Mic</string>
+    <string name="brand" translatable="false">QUIPUS</string>
+    <string name="explanation">Your phone, a second microphone.\n\nAudio travels through the cable to Quipus. Start and stop the meeting on your recorder after everyone agrees. This app has no internet access and does not save audio on your phone.</string>
+    <string name="connect_cable">Connect Quipus with a USB-C data cable.</string>
+    <string name="usb_declined">USB access declined. Quipus can still use its onboard microphone.</string>
+    <string name="enable_microphone">Enable phone microphone</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="disconnected">Phone microphone disconnected.</string>
+    <string name="no_device">No compatible Quipus USB connection found. Use a data cable and phone-audio firmware.</string>
+    <string name="notification_title">Quipus phone microphone</string>
+    <string name="waiting">Waiting for Quipus to start a consented meeting.</string>
+    <string name="connected">Connected. Start the meeting on Quipus after consent.</string>
+    <string name="usb_interrupted">Phone microphone disconnected. Quipus continues with its onboard microphone.</string>
+    <string name="meeting_stopped">Meeting stopped. Quipus is saving both recordings.</string>
+    <string name="recording">Recording through USB. Stop the meeting on Quipus.</string>
+    <string name="audio_interrupted">Phone audio interrupted. Quipus keeps its onboard recording.</string>
+</resources>

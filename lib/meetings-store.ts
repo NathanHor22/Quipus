@@ -2,6 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 import type { Commitment, Contact, FollowUp, Meeting, MeetingEvidence, MeetingInsight, PublicResearchSource, TranscriptSegment } from "@/lib/types";
+import { applySpeakerIdentities } from "@/lib/people-identity";
 import { demoMeetings } from "@/lib/demo-data";
 import {
   archivedLanternSessionMeeting,
@@ -35,7 +36,7 @@ export async function loadMeetings(): Promise<{ meetings: Meeting[]; source: "su
       .order("start_at"),
     client
       .from("lantern_sessions")
-      .select("id,started_at,recording_started_at,capture_ended_at,recording_id,meeting_id,processing_error,processing_stage,upload_bytes,upload_total_bytes,updated_at")
+      .select("id,started_at,recording_started_at,capture_ended_at,capture_time_uncertain,recording_id,meeting_id,processing_error,processing_stage,upload_bytes,upload_total_bytes,updated_at")
       .eq("user_id", userId)
       .or("recording_id.not.is.null,processing_stage.not.is.null")
       .order("started_at"),
@@ -57,7 +58,7 @@ export async function loadMeetings(): Promise<{ meetings: Meeting[]; source: "su
   const meetingIds = meetingRows.map((row) => row.id);
 
   const linksResult = meetingIds.length
-    ? await client.from("meeting_contacts").select("meeting_id,is_primary,contacts(*)").in("meeting_id", meetingIds)
+    ? await client.from("meeting_contacts").select("meeting_id,is_primary,contacts!inner(*)").in("meeting_id", meetingIds).eq("contacts.user_id", userId)
     : { data: [], error: null };
   const [recordingsResult, transcriptsResult, insightsResult, commitmentsResult, evidenceResult, researchResult, followUpsResult, actionsResult] = await Promise.all([
     client.from("recordings").select("id,storage_path,duration_seconds").eq("user_id", userId),
@@ -71,14 +72,14 @@ export async function loadMeetings(): Promise<{ meetings: Meeting[]; source: "su
   ]);
   const failure = [linksResult, recordingsResult, transcriptsResult, insightsResult, commitmentsResult, evidenceResult, researchResult, followUpsResult, actionsResult].find((result) => result.error);
   if (failure?.error) throw new Error(`Could not load meetings: ${failure.error.message}`);
+  const speakerResult = meetingIds.length ? await client.from("meeting_speaker_identifications").select("meeting_id,speaker_label,contact_id").eq("user_id", userId).in("meeting_id", meetingIds) : { data: [], error: null };
+  if (speakerResult.error) throw new Error("Speaker identity storage is unavailable.");
   const publicIdByDatabaseId = new Map(meetingRows.map((row) => [row.id, row.client_reference || row.id]));
   // An event can exist even when a later local completion write failed.
   const actionByEvent = new Map((actionsResult.data || []).filter((row) => row.external_id).map((row) => [row.external_id, row]));
   const actionByFollowUp = new Map((actionsResult.data || []).filter((row) => row.follow_up_id).map((row) => [row.follow_up_id, row]));
 
-  const paths = (recordingsResult.data || []).map((row) => row.storage_path).filter((path): path is string => typeof path === "string");
-  const { data: signedRows } = paths.length ? await client.storage.from("recordings").createSignedUrls(paths, 3600) : { data: [] };
-  const signedByPath = new Map((signedRows || []).map((row) => [row.path, row.signedUrl]));
+  // Mint a short-lived capability only when the owner opens replay.
   const recordingById = new Map((recordingsResult.data || []).map((row) => [row.id, row]));
   const transcriptByRecording = new Map((transcriptsResult.data || []).map((row) => [row.recording_id, row.segments]));
   const insightByMeeting = new Map((insightsResult.data || []).map((row) => [row.meeting_id, row as Row]));
@@ -87,6 +88,7 @@ export async function loadMeetings(): Promise<{ meetings: Meeting[]; source: "su
     const commitment: Commitment = {
       id: row.id,
       ownerType: row.owner_type,
+      contactId: row.contact_id || null,
       description: row.description,
       dueAt: row.due_at,
       status: row.status,
@@ -172,7 +174,6 @@ export async function loadMeetings(): Promise<{ meetings: Meeting[]; source: "su
       risks: Array.isArray(insightRow.risks) ? insightRow.risks.map(String) : [], openQuestions: Array.isArray(insightRow.open_questions) ? insightRow.open_questions.map(String) : [],
     } : null;
     const recording = row.recording_id ? recordingById.get(row.recording_id) : undefined;
-    const path = recording?.storage_path;
     const meeting: Meeting = {
       id: row.client_reference || row.id,
       title: row.title,
@@ -185,9 +186,9 @@ export async function loadMeetings(): Promise<{ meetings: Meeting[]; source: "su
       sourceApprovalId: actionByEvent.get(row.calendar_event_id)?.follow_up_id || null,
       contacts: contactsByMeeting.get(row.id) || [],
       recordingId: row.recording_id,
-      recordingUrl: typeof path === "string" ? signedByPath.get(path) || null : null,
+      recordingUrl: null,
       recordingProgress: typeof recording?.duration_seconds === "number" ? { stage: null, durationSeconds: recording.duration_seconds } : null,
-      transcript: (row.recording_id ? transcriptByRecording.get(row.recording_id) : []) as TranscriptSegment[],
+      transcript: applySpeakerIdentities((row.recording_id ? transcriptByRecording.get(row.recording_id) || [] : []) as TranscriptSegment[], contactsByMeeting.get(row.id) || [], (speakerResult.data || []).filter(identity => identity.meeting_id === row.id)),
       insight,
       evidence: evidenceByMeeting.get(row.id) || [],
       research: researchByMeeting.get(row.id) || [],
@@ -204,11 +205,10 @@ export async function loadMeetings(): Promise<{ meetings: Meeting[]; source: "su
   for (const session of archivedSessionRows) {
     if (!shouldIncludeArchivedSession(session, meetings)) continue;
     const recording = recordingById.get(session.recording_id);
-    const path = recording?.storage_path;
     meetings.push(
       archivedLanternSessionMeeting(
         session,
-        typeof path === "string" ? signedByPath.get(path) || null : null,
+        null,
         recording?.duration_seconds,
       ),
     );

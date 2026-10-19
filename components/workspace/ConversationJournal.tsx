@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Meeting } from "@/lib/types";
 import { getApprovals, type WorkspaceMode } from "@/lib/workspace/model";
 import { getRecordingProgress, recordingDurationLabel } from "@/lib/workspace/recording-progress";
@@ -126,9 +127,9 @@ function DatePopover({ value, today, onChange }: { value: string; today: string;
     </button>
     {open && <div id={id} ref={calendarRef} className={styles.calendar} role="dialog" aria-label="Filter conversations by date">
       <header className={styles.calendarHeader}>
-        <button type="button" aria-label="Previous month" onClick={() => changeMonth(-1)}>Previous</button>
+        <button type="button" aria-label="Previous month" onClick={() => changeMonth(-1)}><ChevronLeft size={18} aria-hidden="true" /></button>
         <h3 id={id + "-month"} aria-live="polite">{monthLabel}</h3>
-        <button type="button" aria-label="Next month" onClick={() => changeMonth(1)}>Next</button>
+        <button type="button" aria-label="Next month" onClick={() => changeMonth(1)}><ChevronRight size={18} aria-hidden="true" /></button>
       </header>
       <div role="grid" aria-labelledby={id + "-month"} className={styles.calendarGrid}>
         <div role="row" className={styles.calendarWeek}>
@@ -181,12 +182,12 @@ export function ConversationJournal({ meetings, mode = "sample", compact = false
     .sort((left, right) => Date.parse(right.startAt) - Date.parse(left.startAt)), [meetings, date, query, status, dateKey]);
   const visible = compact ? matching.slice(0, 6) : matching;
   const dateFormat = useMemo(() => new Intl.DateTimeFormat("en-GB", {
-    timeZone: timezone, weekday: compact ? undefined : "long", day: "numeric", month: "short", year: "numeric",
-  }), [timezone, compact]);
+    timeZone: timezone, day: "numeric", month: "short", year: "numeric",
+  }), [timezone]);
 
   const dateStamp = (value: string) => dateFormat.format(new Date(value));
 
-  return <section className={styles.journal} aria-label="Conversation history">
+  return <section className={styles.journal} aria-label="Conversation history" data-workspace-intro="conversations">
     <header className={styles.heading}>
       <div><span className={styles.eyebrow}>CONVERSATIONS</span><h2>{compact ? "Recent conversations" : "Meeting history"}</h2></div>
       {compact && onAll ? <button type="button" className={styles.textLink} onClick={onAll}>View all</button> :
@@ -207,7 +208,7 @@ export function ConversationJournal({ meetings, mode = "sample", compact = false
     </div>
     <span className={styles.announcement} role="status">{matching.length} {matching.length === 1 ? "conversation" : "conversations"} found</span>
     <div className={styles.list}>
-      {visible.map((meeting, index) => {
+      {visible.map(meeting => {
         const contact = meeting.contacts[0];
         const person = contact?.name || meeting.title;
         const topic = meeting.insight?.intent?.trim() || (meeting.title !== person ? meeting.title : "Conversation");
@@ -218,36 +219,32 @@ export function ConversationJournal({ meetings, mode = "sample", compact = false
         const statusLabel = meeting.status === "ready"
           ? awaitingApproval ? "Awaiting approval" : hasOpenActions ? "Follow-up ready" : "Report ready"
           : progress.label;
-        const newDate = !compact && (index === 0 || dateKey(visible[index - 1].startAt) !== dateKey(meeting.startAt));
-        return <div key={meeting.id} className={styles.entryGroup}>
-          {newDate && <h3 className={styles.dateHeading}>{dateStamp(meeting.startAt)}</h3>}
-          <article className={styles.entry} data-selected={selected}>
-            <div className={styles.row}>
-              <div className={styles.copy}>
-                <p className={styles.meetingLine}><strong>{person}</strong>{contact?.company && <span>{contact.company}</span>}</p>
-                <p className={styles.tagline}>{topic}</p>
-                <div className={styles.metadata}>
-                  <time dateTime={meeting.startAt}>{compact ? dateStamp(meeting.startAt) + " \u00b7 " : ""}{timeLabel(meeting.startAt)}</time>
-                  <span>{recordingDurationLabel(meeting)}</span>
-                  {meeting.contacts.length > 1 && <span>{meeting.contacts.length} contacts</span>}
-                </div>
-                {meeting.status === "processing" && progress.stage !== "failed" && <div className={styles.processing}>
-                  <RecordingProgress meeting={meeting} mode={mode} compact />
-                  {progress.audioAvailable && <button type="button" onClick={() => onOpen(meeting.id, "Audio")}>Play recording</button>}
-                </div>}
+        return <article key={meeting.id} className={styles.entry} data-selected={selected}>
+          <div className={styles.row}>
+            <div className={styles.copy}>
+              <p className={styles.meetingLine}><strong>{person}</strong>{contact?.company && <span>{contact.company}</span>}</p>
+              <p className={styles.tagline}>{topic}</p>
+              <div className={styles.metadata}>
+                <time dateTime={meeting.recordingProgress?.timeUncertain ? undefined : meeting.startAt}>{meeting.recordingProgress?.timeUncertain ? "Recording date and time unconfirmed" : <>{dateStamp(meeting.startAt)}{" \u00b7 "}{timeLabel(meeting.startAt)}</>}</time>
+                <span>{recordingDurationLabel(meeting)}</span>
+                {meeting.contacts.length > 1 && <span>{meeting.contacts.length} contacts</span>}
               </div>
-              <div className={styles.rowActions}>
-                <span className={styles.statusBadge} data-state={progress.stage === "failed" ? "failed" : awaitingApproval ? "approval" : progress.stage}>{statusLabel}</span>
-                <button type="button" className={styles.detailsButton} onClick={() => onOpen(meeting.id)}
-                  aria-label={"Open meeting with " + person} aria-expanded={selected}>Open meeting</button>
-              </div>
+              {meeting.status === "processing" && progress.stage !== "failed" && <div className={styles.processing}>
+                <RecordingProgress meeting={meeting} mode={mode} compact />
+                {progress.audioAvailable && <button type="button" onClick={() => onOpen(meeting.id, "Audio")}>Play recording</button>}
+              </div>}
             </div>
-            {progress.stage === "failed" && <div className={styles.recovery}>
-              <RecordingProgress meeting={meeting} mode={mode} onOpenAudio={() => onOpen(meeting.id, "Audio")} onRetryAccepted={onRetryAccepted} />
-            </div>}
-            {selected && inlineDetails && <div className={styles.inlineDetails}>{inlineDetails}</div>}
-          </article>
-        </div>;
+            <div className={styles.rowActions}>
+              <span className={styles.statusBadge} data-state={progress.stage === "failed" ? "failed" : awaitingApproval ? "approval" : progress.stage}>{statusLabel}</span>
+              <button type="button" className={styles.detailsButton} onClick={() => onOpen(meeting.id)}
+                aria-label={"Open meeting with " + person} aria-expanded={selected}>Open meeting</button>
+            </div>
+          </div>
+          {progress.stage === "failed" && <div className={styles.recovery}>
+            <RecordingProgress meeting={meeting} mode={mode} onOpenAudio={() => onOpen(meeting.id, "Audio")} onRetryAccepted={onRetryAccepted} />
+          </div>}
+          {selected && inlineDetails && <div className={styles.inlineDetails}>{inlineDetails}</div>}
+        </article>;
       })}
       {!visible.length && <div className={styles.empty}>
         <h3>{query || date || status !== "all" ? "No matching conversations" : "No conversations yet"}</h3>

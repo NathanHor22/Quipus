@@ -111,7 +111,7 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
   }, [persistSample]);
 
   const refreshLive = useCallback(
-    (allowSample = false, silent = false) => {
+    (silent = false) => {
       if (silent && (liveRefreshRunning.current || actionLock.current)) return;
       const refreshId = Symbol("workspace-refresh");
       liveRefreshRunning.current = refreshId;
@@ -129,12 +129,8 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
             payload.error || "Your workspace could not be loaded.",
           );
         if (payload.source === "seed") {
-          if (allowSample) {
-            loadSample();
-            return;
-          }
           throw new Error(
-            "Your workspace is not connected yet. You can explore the sample workspace while it is being set up.",
+            "Your workspace is not connected yet. Please retry or open the separate sample workspace.",
           );
         }
         setMeetings(payload.meetings || []);
@@ -191,10 +187,10 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
         if (liveRefreshRunning.current === refreshId) liveRefreshRunning.current = null;
       });
     },
-    [loadSample],
+    [],
   );
 
-  const loadLive = useCallback((allowSample = false, silent = false) => {
+  const loadLive = useCallback((silent = false) => {
     if (!silent) {
       setMode("live");
       setMeetings([]);
@@ -207,21 +203,21 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
       url.searchParams.delete("mode");
       window.history.replaceState({}, "", url);
     }
-    return refreshLive(allowSample, silent);
+    return refreshLive(silent);
   }, [refreshLive]);
 
   useEffect(() => {
     owner.current = Symbol(accountIdentity || "sample-workspace");
     metadataRefreshedAt.current = 0;
     devicePaired.current = false;
-    if (initialMode === "live") void refreshLive(true);
+    if (initialMode === "live") void refreshLive(false);
     return disposeRequests;
   }, [accountIdentity, initialMode, refreshLive, disposeRequests]);
 
   useEffect(() => {
     if (mode !== "live" || loading) return;
     const refresh = () => {
-      if (document.visibilityState === "visible") void loadLive(false, true);
+      if (document.visibilityState === "visible") void loadLive(true);
     };
     const supabase = getBrowserSupabase();
     let disposed = false;

@@ -19,6 +19,20 @@ function rounded(value: number, places = 2) {
   return Math.round(value * factor) / factor;
 }
 
+/** Shared recognition-copy policy for in-memory and streaming implementations. */
+export function recognitionAdjustment(dc: number, rms: number, centeredPeak: number, clipped: number): { gain: number; normalize: boolean } {
+  // Aim for speech around -20 dBFS. Cap the boost at 12 dB and preserve 8%
+  // peak headroom. Loud or already-clipped recordings are never amplified.
+  const desiredRms = 32_768 * 10 ** (-20 / 20);
+  const rmsGain = rms > 0 ? desiredRms / rms : 1;
+  const peakGain = centeredPeak > 0 ? (32_767 * 0.92) / centeredPeak : 1;
+  const maximumGain = 10 ** (12 / 20);
+  const gain = clipped > 0 ? Math.min(1, peakGain) : Math.min(maximumGain, rmsGain, peakGain);
+  const removeDc = Math.abs(dc) >= 64;
+  const normalize = removeDc || gain >= 1.12 || gain < 0.95;
+  return { gain, normalize };
+}
+
 /**
  * Measures a canonical recording and creates a conservative speech-recognition
  * copy. The original bytes remain untouched for evidence and playback.
@@ -65,15 +79,7 @@ export function prepareWavForRecognition(data: Uint8Array): {
     frameCount += 1;
   }
 
-  // Aim for speech around -20 dBFS. Cap the boost at 12 dB and preserve 8%
-  // peak headroom. Loud or already-clipped recordings are never amplified.
-  const desiredRms = 32_768 * 10 ** (-20 / 20);
-  const rmsGain = rms > 0 ? desiredRms / rms : 1;
-  const peakGain = centeredPeak > 0 ? (32_767 * 0.92) / centeredPeak : 1;
-  const maximumGain = 10 ** (12 / 20);
-  const gain = clipped > 0 ? Math.min(1, peakGain) : Math.min(maximumGain, rmsGain, peakGain);
-  const removeDc = Math.abs(dc) >= 64;
-  const normalize = removeDc || gain >= 1.12 || gain < 0.95;
+  const { gain, normalize } = recognitionAdjustment(dc, rms, centeredPeak, clipped);
   let audio = data;
 
   if (normalize) {

@@ -84,6 +84,7 @@ export const extractedParticipantSchema = z
 export const extractedCommitmentSchema = z
   .object({
     ownerType: z.enum(["user", "contact"]),
+    participantName: compactText("commitment participant", 120).nullable().optional(),
     description: compactText("commitment description", 240),
     dueAt: dueAtSchema.nullable(),
     status: z.enum(["open", "completed"]),
@@ -145,6 +146,7 @@ export const meetingEvidenceSchema = z
 export const extractedFollowUpSchema = z
   .object({
     type: z.enum(["message", "email", "schedule", "call", "send_file"]),
+    participantName: compactText("follow-up participant", 120).nullable().optional(),
     description: compactText("follow-up description", 240),
     dueAt: dueAtSchema.nullable(),
     draft: compactText("follow-up draft", 2_000).nullable(),
@@ -187,6 +189,7 @@ export const extractionContextSchema = z
     referenceDate: z.string().datetime({ offset: true }).optional(),
     timezone: compactText("timezone", 80).optional(),
     referenceLocalDateTime: compactText("local reference time", 160).optional(),
+    referenceTimeUncertain: z.boolean().optional(),
   })
   .strict();
 
@@ -259,9 +262,10 @@ export const meetingExtractionJsonSchema = {
           items: {
             type: "object",
             additionalProperties: false,
-            required: ["ownerType", "description", "dueAt", "status"],
+            required: ["ownerType", "participantName", "description", "dueAt", "status"],
             properties: {
               ownerType: { type: "string", enum: ["user", "contact"] },
+              participantName: { type: ["string", "null"], description: "Exact participant name or email explicitly responsible; null if uncertain" },
               description: {
                 type: "string",
                 minLength: 1,
@@ -326,12 +330,13 @@ export const meetingExtractionJsonSchema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["type", "description", "dueAt", "draft", "schedule"],
+        required: ["type", "participantName", "description", "dueAt", "draft", "schedule"],
         properties: {
           type: {
             type: "string",
             enum: ["message", "email", "schedule", "call", "send_file"],
           },
+          participantName: { type: ["string", "null"], description: "Exact recipient participant name or email; null if ambiguous or group-wide" },
           description: { type: "string", minLength: 1, maxLength: 240 },
           dueAt: {
             type: ["string", "null"],

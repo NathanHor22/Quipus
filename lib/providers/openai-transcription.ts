@@ -7,7 +7,9 @@ import {
 } from "../meeting-schema";
 import {
   OPENAI_WAV_CHUNK_BYTES,
-  splitCanonicalWav,
+  planCanonicalWavChunks,
+  canonicalWavChunkBlob,
+  type WavChunkRange,
   type WavChunk,
 } from "../wav";
 
@@ -305,7 +307,7 @@ function wordSimilarity(left: string, right: string) {
 
 /** Keeps provider-local speaker labels stable across overlapping API chunks. */
 export function combineChunkedTranscriptions(
-  chunks: readonly WavChunk[],
+  chunks: readonly Pick<WavChunk, "offsetSeconds" | "durationSeconds">[],
   results: readonly TranscriptionResult[],
 ): TranscriptionResult {
   if (chunks.length !== results.length || chunks.length === 0) {
@@ -441,19 +443,23 @@ async function mapWithConcurrency<T, U>(
 ) {
   const output = new Array<U>(values.length);
   let cursor = 0;
+  let failed = false;
   const runners = Array.from({ length: Math.min(concurrency, values.length) }, async () => {
-    while (cursor < values.length) {
+    while (!failed && cursor < values.length) {
       const index = cursor;
       cursor += 1;
-      output[index] = await task(values[index]!, index);
+      try { output[index] = await task(values[index]!, index); }
+      catch (error) { failed = true; throw error; }
     }
   });
-  await Promise.all(runners);
+  const outcomes = await Promise.allSettled(runners);
+  const failure = outcomes.find(result => result.status === "rejected");
+  if (failure?.status === "rejected") throw failure.reason;
   return output;
 }
 
 /**
- * Transcribes short files directly and long Quipus WAV archives as two
+ * Transcribes short files directly and long Quipus WAV archives as bounded
  * concurrent, overlapping requests while rebuilding absolute timestamps.
  */
 export async function transcribeWithOpenAI(
@@ -465,9 +471,9 @@ export async function transcribeWithOpenAI(
     await options.onChunkProgress?.(1, 1);
     return result;
   }
-  let chunks: WavChunk[];
+  let chunks: WavChunkRange[];
   try {
-    chunks = splitCanonicalWav(new Uint8Array(await audio.arrayBuffer()));
+    chunks = await planCanonicalWavChunks(audio, { signal: options.signal });
   } catch (cause) {
     throw new OpenAITranscriptionProviderError(
       "Recordings over 20 MB must be canonical 16 kHz mono PCM WAV files.",
@@ -476,14 +482,19 @@ export async function transcribeWithOpenAI(
   }
   const baseName = (options.fileName || "quipus.wav").replace(/\.wav$/iu, "");
   let completed = 0;
+  const chunkController = new AbortController();
+  const signal = options.signal ? AbortSignal.any([options.signal, chunkController.signal]) : chunkController.signal;
   const results = await mapWithConcurrency(chunks, 3, async (chunk, index) => {
-    const result = await transcribeSingleWithOpenAI(new Blob([Uint8Array.from(chunk.bytes).buffer], { type: "audio/wav" }), {
-      ...options,
-      fileName: `${baseName}.part-${String(index + 1).padStart(3, "0")}.wav`,
-    });
-    completed += 1;
-    await options.onChunkProgress?.(completed, chunks.length);
-    return result;
+    try {
+      signal.throwIfAborted();
+      const result = await transcribeSingleWithOpenAI(canonicalWavChunkBlob(audio, chunk), {
+        ...options, signal,
+        fileName: `${baseName}.part-${String(index + 1).padStart(3, "0")}.wav`,
+      });
+      completed += 1;
+      await options.onChunkProgress?.(completed, chunks.length);
+      return result;
+    } catch (error) { chunkController.abort(error); throw error; }
   });
   return combineChunkedTranscriptions(chunks, results);
 }

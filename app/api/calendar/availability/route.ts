@@ -47,7 +47,9 @@ export async function GET(request: Request) {
       client,
       userId,
     });
-    const availability = await getGoogleCalendarAvailability(input, {
+    const { data: profile, error: profileError } = await client.from("profiles").select("timezone").eq("id", userId).maybeSingle();
+    if (profileError) throw new Error("Calendar timezone is unavailable.");
+    const availability = await getGoogleCalendarAvailability({ ...input, timeZone: profile?.timezone ?? "Asia/Kuala_Lumpur" }, {
       oauthClient,
       calendarId: config.calendarId,
     });

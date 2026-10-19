@@ -1,0 +1,20 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace = 'com.quipus.usbmic'
+    compileSdk { version = release(37) { minorApiLevel = 0 } }
+    buildToolsVersion = '36.0.0'
+    defaultConfig {
+        applicationId = 'com.quipus.usbmic'
+        minSdk = 30
+        targetSdk = 37
+        versionCode = 1
+        versionName = '0.1.0'
+    }
+    compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+    // The repository pins the tested Gradle wrapper; update notices are not code issues.
+    lint { disable 'AndroidGradlePluginVersion' }
+    buildTypes { release { minifyEnabled = false } }
+}
+
+dependencies { testImplementation 'junit:junit:4.13.2' }

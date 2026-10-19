@@ -45,3 +45,10 @@ test("an incomplete archive receives a valid minimal calendar duration", () => {
     1_000,
   );
 });
+
+
+test("uncertain offline clock stays explicitly marked independently of audio duration", () => {
+  const meeting = archivedLanternSessionMeeting({ id: "offline-session", started_at: "2026-10-18T01:00:00Z", capture_ended_at: "2026-10-18T01:05:00Z", recording_id: "recording", processing_error: null, capture_time_uncertain: true }, null, 300);
+  assert.equal(meeting.recordingProgress?.timeUncertain, true);
+  assert.equal(meeting.recordingProgress?.durationSeconds, 300);
+});

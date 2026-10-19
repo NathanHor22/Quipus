@@ -1,6 +1,8 @@
 "use client";
 
 import { useId, useMemo } from "react";
+import { PersonProfile } from "./PersonProfile";
+import type { WorkspaceMode } from "@/lib/workspace/model";
 import type { Contact, Meeting } from "@/lib/types";
 import { clientHistory } from "@/lib/workspace/client-history";
 import { initials } from "@/lib/workspace/contact-display";
@@ -9,13 +11,14 @@ import styles from "./client-history.module.css";
 
 export type ClientHistoryProps = {
   contact: Contact;
+  mode?: WorkspaceMode;
   conversations: Meeting[];
   onOpenMeeting: (meetingId: string) => void;
   onBack?: () => void;
   onCorrect?: () => void;
 };
 
-export function ClientHistory({ contact, conversations, onOpenMeeting, onBack, onCorrect }: ClientHistoryProps) {
+export function ClientHistory({ contact, conversations, onOpenMeeting, onBack, onCorrect, mode = "sample" }: ClientHistoryProps) {
   const { dateLabel, timeLabel } = useWorkspaceTime();
   const nextStepId = useId();
   const history = useMemo(() => clientHistory(contact, conversations), [contact, conversations]);
@@ -38,14 +41,14 @@ export function ClientHistory({ contact, conversations, onOpenMeeting, onBack, o
     {history.nextStepMeeting && <section className={styles.nextStep} aria-labelledby={nextStepId}>
       <span className={styles.kicker}>LATEST NEXT STEP</span>
       <h3 id={nextStepId}>{history.nextStepMeeting.insight!.next}</h3>
-      <div><span>From {dateLabel(history.nextStepMeeting.startAt, { year: "numeric" })}</span><button type="button" onClick={() => onOpenMeeting(history.nextStepMeeting!.id)}>View conversation</button></div>
+      <div><span>From {history.nextStepMeeting.recordingProgress?.timeUncertain ? "a recording with unconfirmed time" : dateLabel(history.nextStepMeeting.startAt, { year: "numeric" })}</span><button type="button" onClick={() => onOpenMeeting(history.nextStepMeeting!.id)}>View conversation</button></div>
     </section>}
 
     <div className={styles.columns}>
       <section className={styles.meetings} aria-label="Prior meetings">
         <header className={styles.sectionHeader}><h3>Conversation history</h3><span>{history.meetings.length}</span></header>
         {history.meetings.length ? history.meetings.map(meeting => <button type="button" className={styles.meeting} key={meeting.id} onClick={() => onOpenMeeting(meeting.id)}>
-          <span className={styles.meetingDate}>{dateLabel(meeting.startAt, { year: "numeric" })}<small>{timeLabel(meeting.startAt)}</small></span>
+          <span className={styles.meetingDate}>{meeting.recordingProgress?.timeUncertain ? "Date unconfirmed" : dateLabel(meeting.startAt, { year: "numeric" })}<small>{meeting.recordingProgress?.timeUncertain ? "Time unconfirmed" : timeLabel(meeting.startAt)}</small></span>
           <span className={styles.meetingCopy}><strong>{meeting.title}</strong><span>{meeting.insight?.executiveSummary || meeting.insight?.intent || (meeting.status === "processing" ? "Preparing your summary…" : "Open the conversation to review its details.")}</span></span>
         </button>) : <p className={styles.empty}>Recorded conversations linked to this contact will appear here.</p>}
       </section>
@@ -60,6 +63,8 @@ export function ClientHistory({ contact, conversations, onOpenMeeting, onBack, o
         </article>) : <p className={styles.empty}>No outstanding follow-ups or commitments are recorded for this contact.</p>}
       </section>
     </div>
+
+    <PersonProfile key={contact.id} contact={contact} mode={mode} onOpenMeeting={onOpenMeeting} />
 
     {history.research.length > 0 && <section className={styles.research} aria-label="Unverified public company context">
       <header className={styles.researchHeader}><div><span className={styles.kicker}>PUBLIC CONTEXT · UNVERIFIED</span><h3>Company sources</h3><p>These sources describe the company. They do not establish that this contact is the person mentioned in a source.</p></div></header>

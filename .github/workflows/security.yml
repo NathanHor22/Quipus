@@ -1,0 +1,66 @@
+name: Security checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '23 2 * * 1'
+permissions:
+  contents: read
+jobs:
+  application-boundaries:
+    outputs:
+      boundary_result: ${{ steps.boundaries.outcome }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Scan tracked credentials without exposing matches
+        run: node scripts/security-scan.mjs
+      - name: Verify ownership, origin, expiry and deletion boundaries
+        id: boundaries
+        run: npx tsx --test tests/security-boundaries.test.ts tests/recording-playback.test.ts tests/recording-retention.test.ts tests/recording-migrations.test.ts
+      - name: Production dependency advisory check
+        run: npm audit --omit=dev --audit-level=high
+      - name: Relay production dependency advisory check
+        run: npm --prefix worker audit --omit=dev --audit-level=high
+
+  optional-security-triage:
+    needs: application-boundaries
+    if: >-
+      always() && vars.QUIPUS_SECURITY_AI_REVIEW == 'true' &&
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Triage redacted scanner metadata without production access
+        run: node --import tsx scripts/security-review.mjs
+        env:
+          SECURITY_REVIEW_OPENAI_API_KEY: ${{ secrets.SECURITY_REVIEW_OPENAI_API_KEY }}
+          SECURITY_REVIEW_MODEL: ${{ vars.SECURITY_REVIEW_MODEL }}
+          SECURITY_BOUNDARY_RESULT: ${{ needs.application-boundaries.outputs.boundary_result }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: advisory-security-review
+          path: security-review/security-review.json
+          retention-days: 7
+          if-no-files-found: error

@@ -4,8 +4,8 @@
 
 #include "sdkconfig.h"
 
-#define LANTERN_FIRMWARE_VERSION "0.8.0-quipus"
-#define LANTERN_API_BASE_URL "https://roxanne-two.vercel.app"
+#define LANTERN_FIRMWARE_VERSION "0.9.0-quipus"
+#define LANTERN_API_BASE_URL "https://quipus-sales-rep-assistant.vercel.app"
 
 #if CONFIG_LANTERN_BOARD_ZHENGCHEN_M1307
 #include "boards/lantern_original.h"

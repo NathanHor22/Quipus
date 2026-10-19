@@ -2,10 +2,10 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Meeting } from "@/lib/types";
+import type { Contact, Meeting } from "@/lib/types";
+import { matchOwnedContact, resolveActionContact } from "@/lib/people-identity";
 import type { MeetingExtractionResult, TranscriptionResult } from "@/lib/meeting-schema";
 import type { RelayResearchSource } from "@/lib/relay";
-import { getServerSupabase, resolveWorkspaceUserId } from "@/lib/supabase/server";
 
 export interface PersistMeetingInput {
   clientReference: string;
@@ -36,6 +36,8 @@ export interface PersistMeetingResult {
 }
 
 export interface PersistMeetingOptions {
+  /** Explicit trusted client for background processing outside a request context. */
+  client?: SupabaseClient;
   /** Test hook for exercising production fail-closed behavior without mutating process.env. */
   runtimeEnvironment?: string;
 }
@@ -145,7 +147,7 @@ export async function persistProcessedMeeting(
 ): Promise<PersistMeetingResult> {
   const production =
     (options.runtimeEnvironment ?? process.env.NODE_ENV) === "production";
-  const client = getServerSupabase();
+  const client = options.client ?? (await import("@/lib/supabase/server")).getServerSupabase();
   if (!client) {
     if (production) {
       throw new PersistenceConfigurationError(
@@ -155,7 +157,7 @@ export async function persistProcessedMeeting(
     return { persisted: false, warning: "Supabase is not configured; the result is available in this browser only." };
   }
   const userId = input.ownerUserId ||
-    (await resolveWorkspaceUserId(client));
+    (await (await import("@/lib/supabase/server")).resolveWorkspaceUserId(client));
   if (!userId) {
     if (production) {
       throw new PersistenceConfigurationError(
@@ -243,11 +245,12 @@ export async function persistProcessedMeeting(
   // manually supplied contact hint when the extraction provider found no
   // participant, and lets us replace temporary browser IDs with database IDs.
   for (const participant of input.meeting.contacts) {
-    let query = client.from("contacts").select("id").eq("user_id", userId).eq("name", participant.name).limit(1);
-    if (participant.email) query = query.eq("email", participant.email);
-    const { data: existing, error: lookupError } = await query.maybeSingle();
+    const lookup = client.from("contacts").select("id,name,company,role,email,phone").eq("user_id", userId);
+    const { data: candidates, error: lookupError } = participant.email
+      ? await lookup.ilike("email", participant.email.replace(/[\\%_]/gu, "\\$&")).limit(20)
+      : await lookup.ilike("name", participant.name.replace(/[\\%_]/gu, "\\$&")).limit(20);
     if (lookupError) throw new Error(`Could not look up contact ${participant.name}: ${lookupError.message}`);
-    let contactId = existing?.id as string | undefined;
+    let contactId = matchOwnedContact(participant, (candidates || []) as Contact[])?.id;
     if (!contactId) {
       const { data: created, error } = await client.from("contacts").insert({
         user_id: userId,
@@ -267,7 +270,7 @@ export async function persistProcessedMeeting(
   const { error: unlinkError } = await client.from("meeting_contacts").delete().eq("meeting_id", meetingId);
   if (unlinkError) throw new Error(`Could not refresh meeting contacts: ${unlinkError.message}`);
   if (contactIds.length) {
-    const { error } = await client.from("meeting_contacts").insert(contactIds.map((contactId, index) => ({ meeting_id: meetingId, contact_id: contactId, is_primary: index === 0 })));
+    const { error } = await client.from("meeting_contacts").insert([...new Set(contactIds)].map((contactId, index) => ({ meeting_id: meetingId, contact_id: contactId, is_primary: index === 0 })));
     if (error) throw new Error(`Could not link meeting contacts: ${error.message}`);
   }
 
@@ -293,7 +296,7 @@ export async function persistProcessedMeeting(
   const { error: commitmentsDeleteError } = await client.from("commitments").delete().eq("meeting_id", meetingId);
   if (commitmentsDeleteError) throw new Error(`Could not refresh commitments: ${commitmentsDeleteError.message}`);
   if (insight.commitments.length) {
-    const { error } = await client.from("commitments").insert(insight.commitments.map((item) => ({ user_id: userId, meeting_id: meetingId, owner_type: item.ownerType, description: item.description, due_at: dueTimestamp(item.dueAt), status: item.status })));
+    const { error } = await client.from("commitments").insert(insight.commitments.map((item) => ({ user_id: userId, meeting_id: meetingId, owner_type: item.ownerType, contact_id: item.ownerType === "contact" ? resolveActionContact(input.meeting.contacts, item.participantName) : null, description: item.description, due_at: dueTimestamp(item.dueAt), status: item.status })));
     if (error) throw new Error(`Could not save commitments: ${error.message}`);
   }
 
@@ -335,7 +338,7 @@ export async function persistProcessedMeeting(
   if (followUpsDeleteError) throw new Error(`Could not refresh follow-ups: ${followUpsDeleteError.message}`);
   const followUpIds = input.extraction.followUps.map(() => randomUUID());
   if (input.extraction.followUps.length) {
-    const { error } = await client.from("follow_ups").insert(input.extraction.followUps.map((item, index) => ({ id: followUpIds[index], user_id: userId, meeting_id: meetingId, contact_id: contactIds[0] || null, type: item.type, description: item.description, draft: item.draft, due_at: dueTimestamp(item.dueAt), ...(item.schedule ? { schedule_details: item.schedule } : {}), status: "pending" })));
+    const { error } = await client.from("follow_ups").insert(input.extraction.followUps.map((item, index) => ({ id: followUpIds[index], user_id: userId, meeting_id: meetingId, contact_id: resolveActionContact(input.meeting.contacts, item.participantName), type: item.type, description: item.description, draft: item.draft, due_at: dueTimestamp(item.dueAt), ...(item.schedule ? { schedule_details: item.schedule } : {}), status: "pending" })));
     if (error) throw new Error(`Could not save follow-ups: ${error.message}`);
   }
 
@@ -350,7 +353,7 @@ export async function persistProcessedMeeting(
   input.meeting.followUps = input.extraction.followUps.map((item, index) => ({
     id: followUpIds[index],
     meetingId: input.meeting.id,
-    contactId: contactIds[0] || null,
+    contactId: resolveActionContact(input.meeting.contacts, item.participantName),
     type: item.type,
     description: item.description,
     draft: item.draft,

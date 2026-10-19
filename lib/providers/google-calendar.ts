@@ -3,6 +3,7 @@ import {
   createDecipheriv,
   createHash,
   randomBytes,
+  randomUUID,
 } from "node:crypto";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -11,6 +12,7 @@ import { google, type calendar_v3 } from "googleapis";
 import { z } from "zod";
 
 import { env } from "../env";
+import { assertTimeZone, calendarInstant, calendarRfc3339 } from "../calendar-time";
 
 export const GOOGLE_CONNECTION_PROVIDER = "google";
 export const GOOGLE_TIME_ZONE = "Asia/Kuala_Lumpur";
@@ -96,7 +98,7 @@ export interface GoogleAvailabilitySlot {
 export interface GoogleCalendarAvailability {
   date: string;
   period: "day" | "morning" | "afternoon";
-  timeZone: typeof GOOGLE_TIME_ZONE;
+  timeZone: string;
   durationMinutes: 30;
   slots: GoogleAvailabilitySlot[];
 }
@@ -125,6 +127,7 @@ export const googleCalendarEventSchema = z
     approved: z.literal(true),
     summary: z.string().trim().min(1).max(200),
     startAt: startAtSchema,
+    timeZone: z.string().trim().max(100).refine(value => { try { assertTimeZone(value); return true; } catch { return false; } }, "Invalid timezone.").optional(),
     durationMinutes: z.number().int().min(5).max(480).default(30),
     attendees: z.array(attendeeEmailSchema).min(1).max(20),
     description: z.string().trim().max(5000).optional(),
@@ -140,6 +143,8 @@ export const googleCalendarEventSchema = z
   })
   .strict()
   .superRefine((value, context) => {
+    try { calendarInstant(value.startAt, value.timeZone ?? GOOGLE_TIME_ZONE); }
+    catch (error) { context.addIssue({ code: z.ZodIssueCode.custom, path: ["startAt"], message: error instanceof Error ? error.message : "Invalid calendar time." }); }
     if (new Set(value.attendees).size !== value.attendees.length) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -164,6 +169,7 @@ export const googleAvailabilitySchema = z
   .object({
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/u),
     period: z.enum(["day", "morning", "afternoon"]).default("day"),
+    timeZone: z.string().max(100).refine(value => { try { assertTimeZone(value); return true; } catch { return false; } }).optional(),
   })
   .strict()
   .superRefine((value, context) => {
@@ -188,7 +194,7 @@ export interface CreatedGoogleCalendarEvent {
   summary: string;
   startAt: string;
   endAt: string;
-  timeZone: typeof GOOGLE_TIME_ZONE;
+  timeZone: string;
   attendees: string[];
 }
 
@@ -425,7 +431,7 @@ export function createGoogleAuthorizationUrl(
     access_type: "offline",
     include_granted_scopes: true,
     prompt: "consent select_account",
-    scope: [...GOOGLE_OAUTH_SCOPES, ...(options.includeGmail ? ["https://www.googleapis.com/auth/gmail.send"] : [])],
+    scope: ["openid", "email", ...GOOGLE_OAUTH_SCOPES, ...(options.includeGmail ? ["https://www.googleapis.com/auth/gmail.send"] : [])],
     state,
     ...(options.loginHint?.trim()
       ? { login_hint: options.loginHint.trim() }
@@ -459,7 +465,16 @@ export async function exchangeGoogleAuthorizationCode(
 
 interface ProviderConnectionRow {
   encrypted_credentials: string;
+  connection_generation?: string;
+  account_email?: string | null;
 }
+export interface GoogleCredentialSnapshot {
+  encryptedCredentials: string;
+  generation: string | null;
+  accountEmail: string | null;
+  credentials: Credentials;
+}
+
 
 async function readConnectionRow(
   client: SupabaseClient,
@@ -467,7 +482,7 @@ async function readConnectionRow(
 ): Promise<ProviderConnectionRow | null> {
   const { data, error } = await client
     .from("provider_connections")
-    .select("encrypted_credentials")
+    .select("encrypted_credentials,connection_generation,account_email")
     .eq("user_id", userId)
     .eq("provider", GOOGLE_CONNECTION_PROVIDER)
     .maybeSingle();
@@ -490,14 +505,64 @@ export async function loadPersistedGoogleCredentials(
   return decryptGoogleCredentials(row.encrypted_credentials, secret);
 }
 
+export async function loadGoogleCredentialSnapshot(client: SupabaseClient, userId: string, secret: string): Promise<GoogleCredentialSnapshot | null> {
+  const row = await readConnectionRow(client, userId);
+  return row ? { encryptedCredentials: row.encrypted_credentials, generation: row.connection_generation || null,
+    accountEmail: row.account_email || null, credentials: decryptGoogleCredentials(row.encrypted_credentials, secret) } : null;
+}
+
+type ConnectionMetadata = { scopes?: string[]; account_email?: string | null; connection_status?: "connected" | "needs_reconnect"; checked_at?: string };
+
+/** Refresh can update exactly the loaded envelope; it can never recreate a connection. */
+export async function persistRefreshedGoogleCredentials(client: SupabaseClient, userId: string, snapshot: GoogleCredentialSnapshot, additions: Credentials, secret: string, metadata: ConnectionMetadata = {}): Promise<GoogleCredentialSnapshot | null> {
+  const credentials = compactCredentials({ ...snapshot.credentials, ...compactCredentials(additions) });
+  const encryptedCredentials = encryptGoogleCredentials(credentials, secret);
+  let query = client.from("provider_connections").update({ ...metadata,
+    encrypted_credentials: encryptedCredentials, scopes: metadata.scopes ?? credentials.scope?.split(/\s+/u).filter(Boolean) ?? [],
+    expires_at: credentials.expiry_date ? new Date(credentials.expiry_date).toISOString() : null,
+    updated_at: new Date().toISOString(),
+  }).eq("user_id", userId).eq("provider", GOOGLE_CONNECTION_PROVIDER).eq("encrypted_credentials", snapshot.encryptedCredentials);
+  if (snapshot.generation) query = query.eq("connection_generation", snapshot.generation);
+  const result = await query.select("encrypted_credentials").maybeSingle();
+  if (result.error) throw new GoogleCalendarProviderError("Updated Google credentials could not be saved.", "storage");
+  return result.data ? { credentials, encryptedCredentials, generation: snapshot.generation, accountEmail: metadata.account_email === undefined ? snapshot.accountEmail : metadata.account_email } : null;
+}
+
+interface AuthorizedCredentialState {
+  client: SupabaseClient; userId: string; secret: string;
+  snapshot: GoogleCredentialSnapshot | null; pending: Promise<void>;
+}
+const authorizedCredentialStates = new WeakMap<OAuth2Client, AuthorizedCredentialState>();
+
+/** Serialises token events and explicit health writes from one OAuth client. */
+export async function updateAuthorizedGoogleCredentials(oauth: OAuth2Client, additions: Credentials, metadata: ConnectionMetadata = {}): Promise<boolean> {
+  const state = authorizedCredentialStates.get(oauth);
+  if (!state) return false;
+  let saved = false;
+  state.pending = state.pending.then(async () => {
+    if (!state.snapshot) return;
+    state.snapshot = await persistRefreshedGoogleCredentials(state.client, state.userId, state.snapshot, additions, state.secret, metadata);
+    saved = Boolean(state.snapshot);
+  }).catch(() => { state.snapshot = null; });
+  await state.pending;
+  return saved;
+}
+
+export async function authorizedGoogleCredentialSnapshot(oauth: OAuth2Client): Promise<GoogleCredentialSnapshot | null> {
+  const state = authorizedCredentialStates.get(oauth);
+  await state?.pending;
+  return state?.snapshot || null;
+}
+
 export async function persistGoogleCredentials(
   client: SupabaseClient,
   userId: string,
   credentials: Credentials,
   secret: string,
 ): Promise<Credentials> {
-  const existing = await loadPersistedGoogleCredentials(client, userId, secret);
-  const merged = compactCredentials({ ...existing, ...compactCredentials(credentials) });
+  // Explicit OAuth completion starts a new generation. Never borrow a refresh
+  // token from a previously connected Google account.
+  const merged = compactCredentials(credentials);
   if (!merged.refresh_token) {
     throw new GoogleCalendarProviderError(
       "Google did not return a refresh token. Reconnect and grant offline access.",
@@ -515,6 +580,10 @@ export async function persistGoogleCredentials(
       user_id: userId,
       provider: GOOGLE_CONNECTION_PROVIDER,
       encrypted_credentials: encryptGoogleCredentials(merged, secret),
+      connection_generation: randomUUID(),
+      account_email: null,
+      checked_at: null,
+      connection_status: "connected",
       scopes,
       expires_at: expiresAt,
       updated_at: now,
@@ -534,78 +603,23 @@ export async function createAuthorizedGoogleOAuthClient(options: {
   config?: GoogleOAuthConfig;
   client?: SupabaseClient | null;
   userId?: string | null;
+  oauthClient?: OAuth2Client;
 } = {}): Promise<OAuth2Client> {
   const config = options.config ?? getGoogleOAuthConfig();
-  let credentials: Credentials | null = null;
-
+  const secret = requireApprovalSecret(config.approvalSecret);
+  const snapshot = options.client && options.userId ? await loadGoogleCredentialSnapshot(options.client, options.userId, secret) : null;
+  if (!snapshot?.credentials.refresh_token) throw new GoogleCalendarProviderError("Google Calendar is not connected.", "not_connected");
+  const oauthClient = options.oauthClient ?? createGoogleOAuthClient(config);
+  oauthClient.setCredentials(snapshot.credentials);
   if (options.client && options.userId) {
-    credentials = await loadPersistedGoogleCredentials(
-      options.client,
-      options.userId,
-      requireApprovalSecret(config.approvalSecret),
-    );
+    authorizedCredentialStates.set(oauthClient, { client: options.client, userId: options.userId, secret, snapshot, pending: Promise.resolve() });
+    oauthClient.on("tokens", tokens => { void updateAuthorizedGoogleCredentials(oauthClient, tokens); });
   }
-  if (!credentials?.refresh_token) {
-    throw new GoogleCalendarProviderError(
-      "Google Calendar is not connected.",
-      "not_connected",
-    );
-  }
-
-  const oauthClient = createGoogleOAuthClient(config);
-  oauthClient.setCredentials(credentials);
   return oauthClient;
 }
 
-function parseLocalDateTime(value: string): number | null {
-  const match =
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/u.exec(
-      value,
-    );
-  if (!match) return null;
-  const [year, month, day, hour, minute, second] = match
-    .slice(1, 7)
-    .map((part) => Number(part ?? 0));
-  const millisecond = Number((match[7] ?? "").padEnd(3, "0") || 0);
-  const localAnchor = new Date(
-    Date.UTC(year, month - 1, day, hour, minute, second, millisecond),
-  );
-  if (
-    localAnchor.getUTCFullYear() !== year ||
-    localAnchor.getUTCMonth() !== month - 1 ||
-    localAnchor.getUTCDate() !== day ||
-    localAnchor.getUTCHours() !== hour ||
-    localAnchor.getUTCMinutes() !== minute ||
-    localAnchor.getUTCSeconds() !== second
-  ) {
-    return Number.NaN;
-  }
-  return localAnchor.getTime() - 8 * 60 * 60_000;
-}
-
-function malaysiaRfc3339(instantMs: number): string {
-  const local = new Date(instantMs + 8 * 60 * 60_000);
-  return `${local.toISOString().slice(0, 19)}+08:00`;
-}
-
 export function normalizeMalaysiaDateTime(value: string): string {
-  const trimmed = value.trim();
-  const localTime = parseLocalDateTime(trimmed);
-  const instant = localTime === null ? Date.parse(trimmed) : localTime;
-  if (!Number.isFinite(instant)) {
-    throw new RangeError("Invalid calendar start time.");
-  }
-  // Offset-bearing values must be RFC 3339-like; Date.parse alone accepts unsafe
-  // implementation-specific formats.
-  if (
-    localTime === null &&
-    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})$/u.test(
-      trimmed,
-    )
-  ) {
-    throw new RangeError("Invalid calendar start time.");
-  }
-  return malaysiaRfc3339(instant);
+  return calendarRfc3339(calendarInstant(value, GOOGLE_TIME_ZONE), GOOGLE_TIME_ZONE);
 }
 
 export function buildGoogleCalendarInsert(
@@ -614,9 +628,10 @@ export function buildGoogleCalendarInsert(
   eventId?: string,
 ) {
   const parsed = googleCalendarEventSchema.parse(input);
-  const startInstant = Date.parse(normalizeMalaysiaDateTime(parsed.startAt));
-  const startAt = malaysiaRfc3339(startInstant);
-  const endAt = malaysiaRfc3339(startInstant + parsed.durationMinutes * 60_000);
+  const timeZone = parsed.timeZone ?? GOOGLE_TIME_ZONE;
+  const startInstant = calendarInstant(parsed.startAt, timeZone);
+  const startAt = calendarRfc3339(startInstant, timeZone);
+  const endAt = calendarRfc3339(startInstant + parsed.durationMinutes * 60_000, timeZone);
   const conferenceLine = parsed.conferenceUrl
     ? `Join the meeting: ${parsed.conferenceUrl}`
     : "";
@@ -629,6 +644,7 @@ export function buildGoogleCalendarInsert(
 
   return {
     parsed,
+    timeZone,
     startAt,
     endAt,
     parameters: {
@@ -640,8 +656,8 @@ export function buildGoogleCalendarInsert(
         summary: parsed.summary,
         ...(description ? { description } : {}),
         ...(parsed.location ? { location: parsed.location } : {}),
-        start: { dateTime: startAt, timeZone: GOOGLE_TIME_ZONE },
-        end: { dateTime: endAt, timeZone: GOOGLE_TIME_ZONE },
+        start: { dateTime: startAt, timeZone },
+        end: { dateTime: endAt, timeZone },
         attendees: parsed.attendees.map((email) => ({ email })),
         conferenceData: {
           createRequest: {
@@ -676,16 +692,9 @@ export async function getGoogleCalendarAvailability(
   const parsed = googleAvailabilitySchema.parse(input);
   const calendarId = options.calendarId?.trim() || "primary";
   const hours = AVAILABILITY_HOURS[parsed.period];
-  const windowStart = Date.parse(
-    normalizeMalaysiaDateTime(
-      `${parsed.date}T${String(hours.start).padStart(2, "0")}:00`,
-    ),
-  );
-  const windowEnd = Date.parse(
-    normalizeMalaysiaDateTime(
-      `${parsed.date}T${String(hours.end).padStart(2, "0")}:00`,
-    ),
-  );
+  const timeZone = parsed.timeZone ?? GOOGLE_TIME_ZONE;
+  const windowStart = calendarInstant(parsed.date + "T" + String(hours.start).padStart(2, "0") + ":00", timeZone);
+  const windowEnd = calendarInstant(parsed.date + "T" + String(hours.end).padStart(2, "0") + ":00", timeZone);
   if (!options.calendar && !options.oauthClient) {
     throw new GoogleCalendarProviderError(
       "An authorized Google client is required.",
@@ -702,9 +711,9 @@ export async function getGoogleCalendarAvailability(
   try {
     const response = await calendar.freebusy.query({
       requestBody: {
-        timeMin: malaysiaRfc3339(windowStart),
-        timeMax: malaysiaRfc3339(windowEnd),
-        timeZone: GOOGLE_TIME_ZONE,
+        timeMin: calendarRfc3339(windowStart, timeZone),
+        timeMax: calendarRfc3339(windowEnd, timeZone),
+        timeZone,
         items: [{ id: calendarId }],
       },
     });
@@ -732,14 +741,14 @@ export async function getGoogleCalendarAvailability(
         continue;
       }
       slots.push({
-        startAt: malaysiaRfc3339(start),
-        endAt: malaysiaRfc3339(end),
+        startAt: calendarRfc3339(start, timeZone),
+        endAt: calendarRfc3339(end, timeZone),
       });
     }
     return {
       date: parsed.date,
       period: parsed.period,
-      timeZone: GOOGLE_TIME_ZONE,
+      timeZone,
       durationMinutes: 30,
       slots,
     };
@@ -813,7 +822,7 @@ export async function createGoogleCalendarEvent(
       summary: insert.parsed.summary,
       startAt: insert.startAt,
       endAt: insert.endAt,
-      timeZone: GOOGLE_TIME_ZONE,
+      timeZone: insert.timeZone,
       attendees: [...insert.parsed.attendees],
     };
   } catch (error) {
@@ -828,7 +837,7 @@ export async function createGoogleCalendarEvent(
         summary: insert.parsed.summary,
         startAt: insert.startAt,
         endAt: insert.endAt,
-        timeZone: GOOGLE_TIME_ZONE,
+        timeZone: insert.timeZone,
         attendees: [...insert.parsed.attendees],
       };
     }

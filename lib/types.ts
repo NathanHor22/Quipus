@@ -38,6 +38,9 @@ export interface Contact {
 export interface TranscriptSegment {
   id?: string;
   speaker: string;
+  /** Original diarization label is retained when the owner confirms an identity. */
+  sourceSpeaker?: string;
+  identifiedContactId?: string | null;
   text: string;
   startSeconds?: number;
   endSeconds?: number;
@@ -46,6 +49,8 @@ export interface TranscriptSegment {
 export interface Commitment {
   id?: string;
   ownerType: "user" | "contact";
+  contactId?: string | null;
+  participantName?: string | null;
   description: string;
   dueAt?: string | null;
   status?: "open" | "completed";
@@ -114,6 +119,8 @@ export interface ScheduleDetails {
 
 /** Durable, owner-scoped recording state; AI completion has no estimated percentage. */
 export interface RecordingProgressState {
+  /** Capture clock was unavailable; calendar placement is only an estimate. */
+  timeUncertain?: boolean;
   stage: string | null;
   uploadedBytes?: number;
   totalBytes?: number;

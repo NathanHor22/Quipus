@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAuthenticatedSession } from "@/lib/api-security";
+import { readGoogleConnection } from "@/lib/google-connection";
 import { integrationStatus } from "@/lib/env";
 import { getServerSupabase, resolveWorkspaceUserId } from "@/lib/supabase/server";
 
@@ -14,14 +15,13 @@ export async function GET() {
   if (client) {
     const userId = await resolveWorkspaceUserId(client).catch(() => null);
     if (userId) {
-      const { data, error } = await client.from("provider_connections").select("provider").eq("user_id", userId).eq("provider", "google").maybeSingle();
-      if (error) return NextResponse.json({ error: "Connection status is temporarily unavailable." }, { status: 503, headers: { "cache-control": "no-store" } });
-      if (data) integrations.google = true;
+      try { integrations.google = (await readGoogleConnection(client, userId)).state === "connected"; }
+      catch { return NextResponse.json({ error: "Connection status is temporarily unavailable." }, { status: 503, headers: { "cache-control": "no-store" } }); }
     }
   }
 
   return NextResponse.json({
     integrations,
     checkedAt: new Date().toISOString(),
-  });
+  }, { headers: { "cache-control": "no-store" } });
 }

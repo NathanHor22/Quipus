@@ -861,3 +861,12 @@
     transition: none;
   }
 }
+
+.timeUncertain {
+  padding: 14px 16px;
+  border: 1px solid #d9b375;
+  background: #fffaf0;
+  color: #6b4a17;
+  font-size: 12px;
+  line-height: 1.6;
+}

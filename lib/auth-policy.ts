@@ -40,7 +40,7 @@ export function sanitizeAuthReturnTo(value: string | null | undefined): string {
 
 /** Public content never needs a session lookup; authenticated APIs stay protected. */
 export function isPublicContentPath(pathname: string): boolean {
-  return ["/", "/demo", "/privacy", "/terms", "/landing/city-buildings.json"].includes(pathname);
+  return ["/", "/demo", "/privacy", "/terms", "/landing/city-buildings.json", "/manifest.webmanifest", "/icon", "/apple-icon", "/robots.txt", "/sitemap.xml"].includes(pathname) || pathname.startsWith("/icons/");
 }
 
 export function isPublicAuthPath(pathname: string): boolean {
@@ -56,6 +56,9 @@ export function isPublicAuthPath(pathname: string): boolean {
 export function isLanternDevicePath(pathname: string): boolean {
   return (
     pathname === "/api/device/v1/claim" ||
+    pathname === "/api/device/v1/archive-key" ||
+    pathname === "/api/device/v1/transfer/ack" ||
+    pathname === "/api/device/v1/sessions/import" ||
     pathname === "/api/device/v1/briefing" ||
     pathname === "/api/device/v1/command" ||
     pathname === "/api/device/v1/heartbeat" ||
@@ -63,7 +66,7 @@ export function isLanternDevicePath(pathname: string): boolean {
     pathname === "/api/device/v1/reports" ||
     pathname === "/api/device/v1/speak" ||
     pathname === "/api/device/v1/sessions" ||
-    /^\/api\/device\/v1\/sessions\/[0-9a-f-]{36}\/(?:events|transcript|audio|upload|complete)$/iu.test(
+    /^\/api\/device\/v1\/sessions\/[0-9a-f-]{36}\/(?:events|transcript|audio|upload|complete|archive|sources\/phone)$/iu.test(
       pathname,
     )
   );

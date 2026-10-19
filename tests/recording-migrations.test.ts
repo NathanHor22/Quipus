@@ -84,12 +84,48 @@ test("real PostgreSQL migrations preserve archives, isolate queues, and atomical
     await db.query("insert into meetings(user_id,title,start_at,end_at,status) values($1,'Unsubscribed owner',now(),now(),'ready')",[other]);
     assert.equal((await db.query("select * from meeting_deliveries")).rows.length,1);
 
+    // Retention is a storage-first, lease-protected operation. It keeps meeting
+    // history, and the public role cannot operate the privileged deletion queue.
+    const phone = "88888888-8888-4888-8888-888888888888";
+    const derivedPath = `${user}/device/${session}/99999999-9999-4999-8999-999999999999.wav`;
+    const lateDerivedPath = `${user}/device/${session}/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.wav`;
+    const phonePath = `${user}/device/${session}/${phone}.wav`;
+    await db.query(`insert into recording_audio_sources(id,user_id,session_id,recording_id,source_kind,storage_path,byte_length,sha256,timing_manifest,committed_at,verified_at)
+      values($1,$2,$3,$4,'phone',$5,32044,$6,'{}',now(),now())`,[phone,user,session,audio,phonePath,"b".repeat(64)]);
+    await db.query(`insert into recording_audio_derivatives(user_id,recording_id,version,storage_path,byte_length,sha256)
+      values($1,$2,'test-v1',$3,32044,$4)`,[user,audio,derivedPath,"c".repeat(64)]);
+    await db.query("update recordings set audio_retention_at=now()-interval '91 days',consolidated_storage_path=$2 where id=$1",[audio,derivedPath]);
+    await db.exec("update lantern_processing_jobs set state='running',lease_until=now()+interval '1 minute'");
+    assert.equal((await db.query("select * from claim_recording_audio_deletions(20)")).rows.length,0);
+    await db.exec("update lantern_processing_jobs set state='queued',lease_until=null");
+    const deletion = (await db.query<{ recording_id:string; lease_token:string; object_paths:string[] }>("select * from claim_recording_audio_deletions(20)")).rows[0];
+    assert.equal(deletion.recording_id,audio);
+    assert.deepEqual(new Set(deletion.object_paths),new Set([`${user}/device/${session}/${audio}.wav`,phonePath,derivedPath]));
+    assert.equal((await db.query("select * from claim_recording_audio_deletions(20)")).rows.length,0);
+    assert.deepEqual((await db.query("select finish_recording_audio_deletion($1,gen_random_uuid()) as finished",[audio])).rows,[{finished:false}]);
+    // A late derivative cannot be forgotten by a previously claimed snapshot.
+    await db.query(`insert into recording_audio_derivatives(user_id,recording_id,version,storage_path,byte_length,sha256)
+      values($1,$2,'test-v2',$3,32044,$4)`,[user,audio,lateDerivedPath,"d".repeat(64)]);
+    await assert.rejects(db.query("select finish_recording_audio_deletion($1,$2)",[audio,deletion.lease_token]), /manifest changed/);
+    assert.equal((await db.query<{audio_deleted_at:string|null}>("select audio_deleted_at from recordings where id=$1",[audio])).rows[0].audio_deleted_at,null);
+    await db.exec("update recording_audio_deletions set state='pending',lease_until=null,available_at=now()");
+    const refreshed = (await db.query<{ lease_token:string; object_paths:string[] }>("select * from claim_recording_audio_deletions(20)")).rows[0];
+    assert.ok(refreshed.object_paths.includes(lateDerivedPath));
+    assert.deepEqual((await db.query("select finish_recording_audio_deletion($1,$2) as finished",[audio,refreshed.lease_token])).rows,[{finished:true}]);
+    assert.equal((await db.query("select * from recording_audio_sources")).rows.length,0);
+    assert.equal((await db.query("select * from recording_audio_derivatives")).rows.length,0);
+    assert.equal((await db.query("select * from meetings where id=$1",[meeting])).rows.length,1);
+    assert.deepEqual((await db.query("select storage_path,audio_deleted_at is not null as deleted from recordings where id=$1",[audio])).rows,[{storage_path:null,deleted:true}]);
+    assert.equal((await db.query("select * from security_audit_events where event_type='audio_deleted'")).rows.length,1);
+
     await db.exec("grant select on lantern_sessions to authenticated; set role authenticated;");
     await db.query("select set_config('request.jwt.claim.sub',$1,false)",[other]);
     assert.equal((await db.query("select * from lantern_sessions")).rows.length,0);
     await db.query("select set_config('request.jwt.claim.sub',$1,false)",[user]);
     assert.equal((await db.query("select * from lantern_sessions")).rows.length,1);
     await assert.rejects(db.query("select * from lantern_audio_uploads"), /permission denied/);
+    await assert.rejects(db.query("select * from security_audit_events"), /permission denied/);
+    await assert.rejects(db.query("select * from claim_recording_audio_deletions(20)"), /permission denied/);
     await assert.rejects(db.query("select * from device_voice_prompts"), /permission denied/);
     await assert.rejects(db.query("select * from device_report_sessions"), /permission denied/);
     await assert.rejects(db.query("select * from claim_meeting_delivery()"), /permission denied/);

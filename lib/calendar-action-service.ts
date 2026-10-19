@@ -30,6 +30,7 @@ function internalIdempotencyKey(
   const canonicalPayload = JSON.stringify({
     summary: input.summary,
     startAt: input.startAt,
+    timeZone: input.timeZone ?? "Asia/Kuala_Lumpur",
     ...(input.durationMinutes !== 30 ? { durationMinutes: input.durationMinutes } : {}),
     attendees: [...input.attendees].sort(),
     description: input.description ?? null,
@@ -122,7 +123,7 @@ export async function executeCalendarRequest(request: Request, authenticatedUser
         { status: 403 },
       );
     }
-    const input = googleCalendarEventSchema.parse(raw);
+    let input = googleCalendarEventSchema.parse(raw);
     if ([input.meetingId, input.clientReference, input.followUpId].some((id) => id?.startsWith("sample:"))) {
       return NextResponse.json({ error: "Sample approvals cannot create real invitations." }, { status: 400 });
     }
@@ -142,6 +143,11 @@ export async function executeCalendarRequest(request: Request, authenticatedUser
       );
     }
     ownerUserId = userId;
+    if (!input.timeZone) {
+      const { data: profile, error: profileError } = await client.from("profiles").select("timezone").eq("id", userId).maybeSingle();
+      if (profileError) throw new Error("Your Calendar timezone could not be loaded.");
+      input = googleCalendarEventSchema.parse({ ...input, timeZone: profile?.timezone ?? "Asia/Kuala_Lumpur" });
+    }
 
     let relayMatch = null;
     if (input.relayMatchId) {

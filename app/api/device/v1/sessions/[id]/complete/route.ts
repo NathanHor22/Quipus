@@ -1,3 +1,5 @@
+import { archiveVerified } from "@/lib/archive-verification";
+import { usesDedicatedRecordingWorker } from "@/lib/processing-mode";
 import { after, NextResponse } from "next/server";
 import { z } from "zod";
 import { authenticateLantern } from "@/lib/lantern-device-auth";
@@ -38,17 +40,18 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     after(async () => {
       const results = await Promise.allSettled([
         publishProcessingWakeup({ sessionId: id, userId: device.userId }),
-        processNextRecording(client, device.userId, id),
+        ...(!usesDedicatedRecordingWorker() ? [processNextRecording(client, device.userId, id)] : []),
       ]);
       for (const result of results) {
-        if (result.status === "rejected") console.error("[recording-job]", result.reason);
+        if (result.status === "rejected") console.error("Recording processing is delayed; the durable job will retry.");
       }
     });
-    return reply({ accepted: true, archiveAccepted: true, processingQueued: stored.processing_stage !== "ready",
+    const verified = await archiveVerified(client, id, stored.audio_event_id, stored.recording_id);
+    return reply({ accepted: true, archiveAccepted: true, archiveVerified: verified, processingQueued: stored.processing_stage !== "ready",
       duplicate: Boolean(stored.ended_at), conversationId: `hardware:${id}`, meetingId: stored.meeting_id,
       meeting: stored.processing_stage === "ready" ? { status: "ready" } : null, session: machine });
   } catch (cause) {
-    console.error("[queue-recording]", cause);
+    console.error("Recording queue request failed; the SD original must be retained.");
     return reply({ error: "Could not queue this recording. Retry with the same session." }, cause instanceof z.ZodError ? 400 : 502);
   }
 }

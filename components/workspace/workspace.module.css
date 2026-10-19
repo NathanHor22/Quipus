@@ -384,6 +384,11 @@
 }
 .agenda {
   display: grid;
+  padding: 8px;
+  touch-action: pan-y pinch-zoom;
+}
+.monthGrid {
+  touch-action: pan-y pinch-zoom;
 }
 .agendaRow {
   display: flex;
@@ -394,9 +399,12 @@
   padding: 19px 22px;
   border: 0;
   border-bottom: 1px solid var(--q-line);
-  border-radius: 0;
+  border-radius: 4px;
   background: transparent;
   text-align: left;
+}
+.agendaRow:last-child {
+  border-bottom-color: transparent;
 }
 .agendaRow:hover {
   background: var(--q-glass-strong);
@@ -1046,13 +1054,23 @@
     padding: 22px;
   }
   .agendaRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     padding: 17px 14px;
-    gap: 12px;
-    flex-wrap: wrap;
+    gap: 9px 12px;
   }
   .agendaDate {
-    flex-basis: 86px;
+    grid-column: 1;
+    grid-row: 1;
     font-size: 12px;
+  }
+  .agendaCopy {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .agendaRow .typePill {
+    grid-column: 2;
+    grid-row: 1;
   }
   .agendaCopy strong {
     font-size: 15px;
@@ -1104,4 +1122,10 @@
   .personCard:hover {
     transform: none;
   }
+}
+
+.peopleView {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
 }

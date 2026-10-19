@@ -240,6 +240,7 @@ export async function POST(request: Request) {
       {
         device: {
           id: claimed.device_id,
+          ownerId: claimed.owner_id,
           name: claimed.device_name,
         },
         credential: {

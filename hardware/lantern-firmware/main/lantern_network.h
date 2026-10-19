@@ -38,7 +38,8 @@ typedef struct {
   char last_error[96];
 } lantern_network_status_t;
 
-typedef void (*lantern_network_callback_t)(const lantern_network_status_t *status);
+typedef void (*lantern_network_callback_t)(
+    const lantern_network_status_t *status);
 
 typedef struct {
   char app_id[33];
@@ -59,23 +60,30 @@ typedef struct {
   char transcript_event_id[37];
   char audio_event_id[37];
   char completion_event_id[37];
+  char owner_id[37];
+  char phone_event_id[37];
+  bool offline_local;
   bool archive_accepted;
+  bool archive_verified;
   bool processing_queued;
   unsigned version;
   char local_date[11];
   char local_time[9];
 } lantern_cloud_session_t;
 
-esp_err_t lantern_network_start(lantern_config_t *config, lantern_network_callback_t callback);
+esp_err_t lantern_network_start(lantern_config_t *config,
+                                lantern_network_callback_t callback);
 void lantern_network_get_status(lantern_network_status_t *status);
-esp_err_t lantern_network_send_heartbeat(const char *state, unsigned state_version, int battery_level);
+esp_err_t lantern_network_send_heartbeat(const char *state,
+                                         unsigned state_version,
+                                         int battery_level);
 void lantern_network_set_realtime(bool enabled);
 esp_err_t lantern_network_open_setup_portal(void);
-esp_err_t lantern_network_scan_wifi(lantern_wifi_network_t *networks, size_t capacity,
-                                    size_t *count);
+esp_err_t lantern_network_scan_wifi(lantern_wifi_network_t *networks,
+                                    size_t capacity, size_t *count);
 esp_err_t lantern_network_connect_wifi(const char *ssid, const char *password);
-esp_err_t lantern_network_get_reports(lantern_report_item_t *items, size_t capacity,
-                                      size_t *count);
+esp_err_t lantern_network_get_reports(lantern_report_item_t *items,
+                                      size_t capacity, size_t *count);
 esp_err_t lantern_network_play_briefing(const char *kind, int battery_level);
 bool lantern_network_review_pending(void);
 void lantern_network_cancel_review(void);
@@ -83,19 +91,23 @@ void lantern_network_cancel_review(void);
 bool lantern_network_report_playing(void);
 void lantern_network_interrupt_report(void);
 esp_err_t lantern_network_play_prompt(const char *kind);
-esp_err_t lantern_network_run_voice_command(const char *context, int battery_level,
-                                            char *intent, size_t intent_capacity);
+esp_err_t lantern_network_run_voice_command(const char *context,
+                                            int battery_level, char *intent,
+                                            size_t intent_capacity);
 esp_err_t lantern_network_restart_session(void);
 esp_err_t lantern_network_begin_quick(lantern_cloud_session_t *session);
-esp_err_t lantern_network_confirm_consent(
-  lantern_cloud_session_t *session,
-  bool accepted,
-  lantern_agora_transport_t *transport);
+esp_err_t lantern_network_confirm_consent(lantern_cloud_session_t *session,
+                                          bool accepted,
+                                          lantern_agora_transport_t *transport);
 esp_err_t lantern_network_capture_started(lantern_cloud_session_t *session);
 esp_err_t lantern_network_stop_recording(lantern_cloud_session_t *session);
 esp_err_t lantern_network_abort_session(lantern_cloud_session_t *session);
 esp_err_t lantern_network_upload_transcript(lantern_cloud_session_t *session);
 esp_err_t lantern_network_upload_audio(lantern_cloud_session_t *session);
-esp_err_t lantern_network_complete_session(
-  lantern_cloud_session_t *session,
-  bool *transcript_ready);
+esp_err_t lantern_network_complete_session(lantern_cloud_session_t *session,
+                                           bool *transcript_ready);
+
+esp_err_t lantern_network_prepare_archive_key(void);
+esp_err_t lantern_network_begin_offline(lantern_cloud_session_t *session);
+esp_err_t lantern_network_import_recording(lantern_cloud_session_t *session);
+esp_err_t lantern_network_upload_phone(lantern_cloud_session_t *session);

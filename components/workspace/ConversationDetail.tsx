@@ -1,5 +1,7 @@
 "use client";
 import { ShareMeetingWhatsApp } from "./WhatsAppDelivery";
+import { MeetingPreparation } from "./MeetingPreparation";
+import { SpeakerIdentityEditor } from "./SpeakerIdentityEditor";
 import { EmailFollowUp } from "./EmailFollowUp";
 import { RecordingProgress } from "./RecordingProgress";
 
@@ -28,6 +30,12 @@ function normalizedBriefText(text: string) {
 
 const detailTabs = ["Summary", "Actions", "Transcript", "Audio"] as const;
 export type DetailTab = (typeof detailTabs)[number];
+const detailTabLabels: Record<DetailTab, string> = {
+  Summary: "Summary",
+  Actions: "Follow-ups",
+  Transcript: "Transcript",
+  Audio: "Recording",
+};
 
 export type ConversationDetailProps = {
   conversation: Meeting;
@@ -139,8 +147,8 @@ function ConversationDetailSession({
           <div>
             <div className={styles.heroMeta}>
               {!compact && conversation.status !== "ready" && <span className={styles.status}>{conversation.status}</span>}
-              <span>{dateLabel(conversation.startAt, { year: "numeric" })}</span>
-              <span>{timeLabel(conversation.startAt)}</span>
+              <span>{conversation.recordingProgress?.timeUncertain ? "Recording date unconfirmed" : dateLabel(conversation.startAt, { year: "numeric" })}</span>
+              <span>{conversation.recordingProgress?.timeUncertain ? "Time needs confirmation" : timeLabel(conversation.startAt)}</span>
               {compact && <span>{recordingDurationLabel(conversation)}</span>}
               {mode === "sample" && <span className={styles.status}>Sample</span>}
             </div>
@@ -167,7 +175,7 @@ function ConversationDetailSession({
             aria-label="Conversation details"
             tabs={detailTabs.map(tab => ({
               value: tab,
-              label: tab,
+              label: detailTabLabels[tab],
               id: tabId(tab),
               panelId: panelId(tab),
             }))}
@@ -176,6 +184,7 @@ function ConversationDetailSession({
           />
 
           <div className={styles.pane} role="tabpanel" id={panelId("Summary")} aria-labelledby={tabId("Summary")} tabIndex={0} hidden={activeTab !== "Summary"}>
+            {conversation.recordingProgress?.timeUncertain && <p className={styles.timeUncertain} role="status">Recording time needs confirmation. Calendar placement is an estimate; review follow-up dates before approval.</p>}
             <section className={styles.contextCard}>
               <header className={styles.cardHeader}>
                 <div><span className={styles.kicker}>SUMMARY</span><h3>What mattered</h3></div>
@@ -193,6 +202,8 @@ function ConversationDetailSession({
                 <div className={styles.emptyCard}><strong>{conversation.status === "processing" ? "Preparing the brief" : "No brief available"}</strong><p>{conversation.transcript?.length ? "The original transcript is still available." : conversation.recordingId ? "The original recording is still available." : "No recording or transcript is available."}</p></div>
               )}
             </section>
+
+            <MeetingPreparation key={conversation.id} meeting={conversation} mode={mode} compact={compact} onUpdated={onRetryAccepted} />
 
             {Boolean(conversation.evidence?.length) && (
               <details className={styles.sourceDetails} open={!compact}>
@@ -243,7 +254,7 @@ function ConversationDetailSession({
             {(approvals.length > 0 || tasks.length > 0 || commitments.length > 0) && (
               <section className={styles.contextCard}>
                 <header className={styles.cardHeader}>
-                  <div><span className={styles.kicker}>ACTIONS</span><h3>Follow-ups and commitments</h3></div>
+                  <div><span className={styles.kicker}>FOLLOW-UPS</span><h3>Follow-ups and commitments</h3></div>
                 </header>
                 {approvals.map((approval) => {
                   return (
@@ -289,6 +300,7 @@ function ConversationDetailSession({
           </div>
 
           <div className={styles.replayColumn} hidden={activeTab !== "Audio" && activeTab !== "Transcript"}>
+            {activeTab === "Transcript" && <SpeakerIdentityEditor meeting={conversation} mode={mode} onSaved={onRetryAccepted} />}
             <ConversationReplay
               key={conversation.id}
               conversation={conversation}

@@ -16,4 +16,20 @@ config LANTERN_BOARD_ES3C28P
 
 endchoice
 
+config QUIPUS_PHONE_USB_AUDIO
+    bool "USB-C Android phone microphone"
+    default n
+    depends on LANTERN_BOARD_ES3C28P
+    help
+        Receive a second microphone from the Android companion app through the
+        native USB serial/JTAG data interface. Use the phone-audio sdkconfig
+        overlay: console logs must use UART, never the USB binary transport.
+
+config QUIPUS_UNSAFE_LOCAL_DEBUG
+    bool "Unsafe local audio download and unsigned OTA endpoints (lab only)"
+    default n
+    help
+        Exposes private microphone test audio and unsigned OTA on the setup LAN.
+        Keep disabled for all shared devices. USB flashing remains available.
+
 endmenu

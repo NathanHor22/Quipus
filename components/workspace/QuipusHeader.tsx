@@ -25,12 +25,12 @@ export function QuipusHeader({ view, sample, account, navigate }: {
   return <header className={styles.header}>
     <a href={sample ? "/" : "/dashboard"} className={styles.brand} aria-label={sample ? "Quipus website" : "Quipus home"} onClick={sample ? undefined : event => switchView(event, "overview")}><QuipusMark /><span>QUIPUS</span></a>
     <nav className={styles.navigation} aria-label="Main navigation">
-      {([{ id: "overview", label: "Home" }, { id: "conversations", label: "Conversations" },
+      {([{ id: "overview", label: "Home" }, { id: "people", label: "People" },
         { id: "calendar", label: "Calendar" }, { id: "device", label: "Devices" }, { id: "settings", label: "Settings" }] as const).map(({ id, label }) =>
-        <a key={id} href={sample ? `${sampleWorkspacePath}?mode=sample&view=${id}` : viewPaths[id]} aria-current={view === id ? "page" : undefined}
-          className={`${styles.navLink} ${view === id ? styles.navSelected : ""}`}
+        <a key={id} href={sample ? `${sampleWorkspacePath}?mode=sample&view=${id}` : viewPaths[id]} aria-current={view === id || id === "people" && view === "conversations" ? "page" : undefined}
+          className={`${styles.navLink} ${(view === id || id === "people" && view === "conversations") ? styles.navSelected : ""}`}
           onClick={event => switchView(event, id)}>
-          {view === id && <motion.span className={styles.navHighlight} layoutId="quipus-active-tab" transition={{ duration: enabled ? .24 : 0, ease: [0.2, 0.8, 0.2, 1] }} />}
+          {(view === id || id === "people" && view === "conversations") && <motion.span className={styles.navHighlight} layoutId="quipus-active-tab" transition={{ duration: enabled ? .24 : 0, ease: [0.2, 0.8, 0.2, 1] }} />}
           <span>{label}</span>
         </a>)}
     </nav>

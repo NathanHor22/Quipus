@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
@@ -88,51 +88,34 @@ async function attachAudio(
     recordedAt.getUTCMonth() + 1,
   ).padStart(2, "0")}/${recordingId}.wav`;
   let objectStored = false;
-  let rowStored = false;
+  let attached = false;
   try {
-    const { error: uploadError } = await client.storage
-      .from("recordings")
+    // Hash the accepted complete bytes before the storage write. The worker
+    // independently checks the downloaded object against this durable manifest.
+    const sha256 = createHash("sha256").update(bytes).digest("hex");
+    const { error: uploadError } = await client.storage.from("recordings")
       .upload(uploadedPath, bytes, { contentType: "audio/wav", upsert: false });
-    if (uploadError) throw new Error(`Could not store Quipus audio: ${uploadError.message}`);
+    if (uploadError) throw new Error("Could not store the complete recording.");
     objectStored = true;
-    const { error: rowError } = await client.from("recordings").insert({
-      id: recordingId,
-      user_id: device.userId,
-      device_id: device.id,
-      storage_path: uploadedPath,
-      duration_seconds: Math.ceil(wav.durationSeconds),
-      status: "processing",
-      provider_status: {
-        transport: "agora",
-        archive: "device-sd-wav-v2",
-        bytes: bytes.length,
-      },
+    const { data: acceptedId, error } = await client.rpc("attach_lantern_legacy_audio", {
+      p_session_id: sessionId, p_user_id: device.userId, p_device_id: device.id,
+      p_event_id: eventId, p_recording_id: recordingId, p_storage_path: uploadedPath,
+      p_bytes: bytes.length, p_sha256: sha256, p_duration: Math.ceil(wav.durationSeconds),
     });
-    if (rowError) throw new Error(`Could not save Quipus recording: ${rowError.message}`);
-    rowStored = true;
-    const { data: attached, error: sessionError } = await client
-      .from("lantern_sessions")
-      .update({
-        recording_id: recordingId,
-        audio_received_at: new Date().toISOString(),
-        audio_event_id: eventId,
-        processing_error: null,
-      })
-      .eq("id", sessionId)
-      .eq("device_id", device.id)
-      .is("recording_id", null)
-      .select("recording_id")
-      .maybeSingle();
-    if (sessionError) throw new Error(sessionError.message);
-    if (attached?.recording_id !== recordingId) {
-      throw new Error("Another audio upload already won this session.");
-    }
-    return { recordingId, durationSeconds: wav.durationSeconds };
+    if (error || typeof acceptedId !== "string") throw new Error("Could not attach the complete recording.");
+    attached = acceptedId === recordingId;
+    if (!attached) await client.storage.from("recordings").remove([uploadedPath]);
+    return { recordingId: acceptedId, durationSeconds: wav.durationSeconds };
   } catch (cause) {
-    if (rowStored) {
-      await client.from("recordings").delete().eq("id", recordingId).eq("user_id", device.userId);
+    // An RPC transport error can happen after commit. Read the ownership boundary
+    // before removing an object; uncertainty must preserve the original.
+    if (objectStored && !attached) {
+      const { data: stored, error } = await client.from("lantern_sessions").select("recording_id")
+        .eq("id", sessionId).eq("user_id", device.userId).eq("device_id", device.id).maybeSingle();
+      if (!error && stored && stored.recording_id !== recordingId) {
+        await client.storage.from("recordings").remove([uploadedPath]);
+      }
     }
-    if (objectStored) await client.storage.from("recordings").remove([uploadedPath]);
     throw cause;
   }
 }
@@ -224,10 +207,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       { status: 201, headers: { "cache-control": "no-store" } },
     );
   } catch (cause) {
-    console.error("[lantern-audio-upload]", cause);
+    console.error("Complete recording upload failed; the SD original must be retained.");
     if (cause instanceof z.ZodError) return response("Audio request is invalid.", 400);
     const message = cause instanceof Error ? cause.message : "Quipus audio could not be saved.";
     if (message.includes("Content-Range")) return response(message, 400);
-    return response(message, 422);
+    return response("The complete recording could not be attached. Keep the SD original and retry.", 422);
   }
 }

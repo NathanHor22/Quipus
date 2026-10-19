@@ -1,4 +1,5 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { browserMutationError, isMachineAuthenticatedPath } from "@/lib/request-security";
 import { NextResponse, type NextRequest } from "next/server";
 
 import {
@@ -36,6 +37,12 @@ function unauthenticatedResponse(
 }
 
 export async function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith("/api/") && !isMachineAuthenticatedPath(request.nextUrl.pathname)) {
+    const rejected = browserMutationError(request);
+    if (rejected) return NextResponse.json({ error: rejected.error }, {
+      status: rejected.status, headers: { "cache-control": "no-store", "x-content-type-options": "nosniff" },
+    });
+  }
   // Public content does not depend on Google/Supabase latency.
   if (isPublicContentPath(request.nextUrl.pathname)) {
     if (request.nextUrl.pathname === "/" && request.nextUrl.searchParams.get("mode") === "sample") {
@@ -71,7 +78,7 @@ export async function proxy(request: NextRequest) {
   }
 
   let response = NextResponse.next({ request });
-  if (isLanternDevicePath(request.nextUrl.pathname) || request.nextUrl.pathname === "/api/internal/process-recordings") return response;
+  if (isLanternDevicePath(request.nextUrl.pathname) || isMachineAuthenticatedPath(request.nextUrl.pathname)) return response;
   const supabase = createServerClient(supabaseUrl!, supabaseAnonKey!, {
     cookies: {
       getAll() {

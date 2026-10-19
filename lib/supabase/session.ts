@@ -7,6 +7,7 @@ export type AuthenticatedLanternUser = {
   id: string;
   email: string | null;
   displayName: string | null;
+  introductionCompletedAt?: string | null;
 };
 
 export function publicSupabaseConfig() {
@@ -63,10 +64,19 @@ export async function getAuthenticatedLanternUser(): Promise<AuthenticatedLanter
       : typeof user.user_metadata?.name === "string"
         ? user.user_metadata.name
         : "";
+  const rawIntroductionCompletedAt = user.user_metadata?.quipus_workspace_introduction_completed_at;
+  // This is a display preference only. Never use user metadata for permissions.
+  const introductionCompletedAt =
+    typeof rawIntroductionCompletedAt === "string" &&
+    Number.isFinite(Date.parse(rawIntroductionCompletedAt)) &&
+    new Date(rawIntroductionCompletedAt).toISOString() === rawIntroductionCompletedAt
+      ? rawIntroductionCompletedAt
+      : null;
 
   return {
     id: user.id,
     email: user.email?.trim().toLowerCase() || null,
     displayName: rawName.trim() || null,
+    introductionCompletedAt,
   };
 }

@@ -7,6 +7,7 @@ import {
   createGoogleOAuthState,
   getGoogleOAuthConfig,
   requireApprovalSecret,
+  readGoogleOAuthState,
 } from "@/lib/providers/google-calendar";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getAuthenticatedLanternUser } from "@/lib/supabase/session";
@@ -67,7 +68,12 @@ export async function GET(request: Request) {
       includeGmail: requestUrl.searchParams.get("gmail") === "1",
     });
 
-    return NextResponse.redirect(authorizationUrl);
+    const response = NextResponse.redirect(authorizationUrl);
+    response.cookies.set("quipus-google-oauth-nonce", readGoogleOAuthState(state, requireApprovalSecret(config.approvalSecret)).nonce, {
+      httpOnly: true, secure: new URL(config.redirectUri).protocol === "https:",
+      sameSite: "lax", path: "/api/google", maxAge: 600,
+    });
+    return response;
   } catch (error) {
     const status =
       error instanceof GoogleCalendarProviderError &&

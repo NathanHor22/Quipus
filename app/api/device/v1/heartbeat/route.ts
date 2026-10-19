@@ -73,12 +73,17 @@ export async function POST(request: Request) {
     if (updateError) throw new Error(updateError.message);
     if (!updated) return response("Device credential is invalid or revoked.", 403);
 
+    const { data: transfer, error: transferError } = await client.from("device_transfers")
+      .select("id").eq("device_id", device.id).eq("status", "pending")
+      .gt("expires_at", serverTime).maybeSingle();
+    if (transferError) throw new Error("Transfer status could not be checked.");
     const authoritativeState = lanternStateSchema.parse(updated.device_state);
     const authoritativeVersion = Number(updated.state_version || 0);
 
     return NextResponse.json(
       {
         acknowledgedEventId: input.eventId,
+        transfer: transfer ? { id: transfer.id } : null,
         state: authoritativeState,
         stateVersion: authoritativeVersion,
         synchronized:

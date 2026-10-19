@@ -1,4 +1,8 @@
 "use client";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { WorkspaceIntroduction } from "./WorkspaceIntroduction";
+import { useWorkspaceIntroduction } from "./useWorkspaceIntroduction";
+import { useCalendarSwipe } from "./useCalendarSwipe";
 import { WhatsAppDelivery } from "./WhatsAppDelivery";
 
 import Link from "next/link";
@@ -31,6 +35,7 @@ import { getRecordingProgress } from "@/lib/workspace/recording-progress";
 import { ApprovalReceiptNotice } from "./ApprovalReceiptNotice";
 import flow from "./flow.module.css";
 import { ProfileSettings } from "./ProfileSettings";
+import { GoogleConnectionSettings } from "./GoogleConnectionSettings";
 import { CalendarConnection } from "./CalendarConnection";
 import { WorkspaceTimezone } from "./WorkspaceTime";
 import q from "./quipus.module.css";
@@ -55,6 +60,7 @@ export type WorkspaceAccount = {
   email: string;
   displayName: string | null;
   timezone?: string;
+  introductionCompletedAt?: string | null;
 };
 
 type WorkspaceProps = {
@@ -200,6 +206,23 @@ function WorkspaceSession({
     displayName: account?.displayName, date: now, timezone, meetings,
     pendingCount: pending.length, sample: mode === "sample", loading,
   });
+  const introduction = useWorkspaceIntroduction({
+    mode,
+    accountId: account?.email || null,
+    ready: !loading && view === "overview" && !detailId && !selectedId && !editing,
+    completedAt: account?.introductionCompletedAt,
+    onComplete: async () => {
+      if (mode !== "live" || !account) return;
+      const response = await fetch("/api/profile/introduction", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ completed: true }),
+      });
+      if (!response.ok) throw new Error("Introduction preference could not be saved.");
+      const result = await response.json() as { completedAt: string };
+      setAccount(current => current ? { ...current, introductionCompletedAt: result.completedAt } : null);
+    },
+  });
   const selectedMeeting =
     meetings.find((meeting) => meeting.id === selectedId) || null;
   const grid = getMonthGrid(visibleMonth, { today });
@@ -267,7 +290,7 @@ function WorkspaceSession({
   };
   const backFromDetail = () => {
     const origin = detailOrigin;
-    if (!origin || !isWorkspaceHref(origin.href, mode)) { navigate("conversations"); return; }
+    if (!origin || !isWorkspaceHref(origin.href, mode)) { navigate("people"); return; }
     switchUrl(origin.href, origin.scroll);
   };
   const openClient = (id: string) => {
@@ -282,6 +305,15 @@ function WorkspaceSession({
     const date = new Date(`${visibleMonth}-15T12:00:00Z`);
     date.setUTCMonth(date.getUTCMonth() + amount);
     setVisibleMonth(date.toISOString().slice(0, 7));
+  };
+  const calendarSwipe = useCalendarSwipe(changeMonth);
+  const replayIntroduction = () => {
+    navigate("overview");
+    introduction.start();
+  };
+  const nextIntroductionStep = () => {
+    if (introduction.step === 1) navigate("calendar");
+    introduction.next();
   };
   const approve = async (approval: MeetingApproval) => {
     const created = await workspace.approve(approval);
@@ -317,7 +349,7 @@ function WorkspaceSession({
     onClose={() => setSelectedId(null)} onOpenFull={openDetail}
     onOpenContact={openClient} onEditApproval={reviewApproval}
     onUpdateContact={workspace.patchContact}
-    onRetryAccepted={() => void workspace.loadLive(false, true)}
+    onRetryAccepted={() => void workspace.loadLive(true)}
     mode={mode} receipt={receiptNotice}
     onTask={(id, completed) => void workspace.patchFollowUp(id, { status: completed ? "completed" : "pending" })}
     working={working} error={error}
@@ -374,16 +406,16 @@ function WorkspaceSession({
                 backLabel={detailOrigin?.href.includes("view=people") || detailOrigin?.href.includes("/people") ? "Back to client history" : detailOrigin?.href.includes("view=calendar") || detailOrigin?.href.includes("/calendar") ? "Back to calendar" : detailOrigin?.href === "/dashboard" || detailOrigin?.href.includes("view=overview") || detailOrigin?.href === sampleWorkspacePath || detailOrigin?.href === sampleWorkspacePath + "?mode=sample" ? "Back to home" : "Back to conversations"}
                 onBack={backFromDetail}
                 onTask={(id, completed) => void workspace.patchFollowUp(id, { status: completed ? "completed" : "pending" })}
-                onEditApproval={reviewApproval} onUpdateContact={workspace.patchContact} onOpenContact={openClient} onRetryAccepted={() => void workspace.loadLive(false, true)}
+                onEditApproval={reviewApproval} onUpdateContact={workspace.patchContact} onOpenContact={openClient} onRetryAccepted={() => void workspace.loadLive(true)}
               /> : <div className={styles.emptyInline}><h3>Conversation unavailable.</h3><p>It may still be processing, or it isn’t in this workspace.</p><button className={q.textLink} onClick={() => navigate("conversations")}>Back to conversations</button></div>) : null}
               {!desktopDock && detailId && editing && <div className={d.inlinePanel}>{panel}</div>}
               {view === "overview" && <>
                 {activeRecordings.length > 0 && <section className={flow.progressList} aria-label="Recordings in progress">
                   <div className={flow.progressHeading}><h2>Recordings in progress</h2></div>
-                  {activeRecordings.map(meeting => <div key={meeting.id} className={flow.progressEntry}><h3>{meeting.title}</h3><RecordingProgress meeting={meeting} mode={mode} onOpenAudio={() => openConversation(meeting.id, "Audio", "recording")} onRetryAccepted={() => workspace.loadLive(false, true)} />{!desktopDock && panelOrigin === "recording" && selectedId === meeting.id && <div className={d.inlinePanel}>{panel}</div>}</div>)}
+                  {activeRecordings.map(meeting => <div key={meeting.id} className={flow.progressEntry}><h3>{meeting.title}</h3><RecordingProgress meeting={meeting} mode={mode} onOpenAudio={() => openConversation(meeting.id, "Audio", "recording")} onRetryAccepted={() => workspace.loadLive(true)} />{!desktopDock && panelOrigin === "recording" && selectedId === meeting.id && <div className={d.inlinePanel}>{panel}</div>}</div>)}
                 </section>}
                 <div className={q.dailyBrief}>
-                  <section className={q.followUps} aria-labelledby="followups-heading">
+                  <section className={q.followUps} aria-labelledby="followups-heading" data-workspace-intro="approvals">
                     <div className={q.sectionHeading}><h2 id="followups-heading">Ready for review</h2><span className={q.sectionCount} aria-label={`${pending.length} pending follow-ups`}>{pending.length}</span></div>
                     <p className={q.sectionIntro}>Your next steps. Your approval.</p>
                     {pending.length ? <div className={q.approvalList}>{pending.slice(0, 3).map(approval => <article key={approval.id} className={q.pendingItem} data-selected={editing?.id === approval.id}>
@@ -408,32 +440,33 @@ function WorkspaceSession({
                     </> : <div className={q.emptyState}><h3>A little breathing room.</h3><p>No upcoming meetings on your connected calendar.</p><button className={q.meetingAction} onClick={() => navigate("calendar")}>Open calendar</button></div>}
                   </section>
                 </div>
-                <ConversationJournal meetings={conversations} mode={mode} compact onOpen={openConversation} onAll={() => navigate("conversations")} filters={journalFilters} onFiltersChange={setJournalFilters} onRetryAccepted={() => void workspace.loadLive(false, true)} selectedId={selectedId} inlineDetails={journalPanel} />
+                <ConversationJournal meetings={conversations} mode={mode} compact onOpen={openConversation} onAll={() => navigate("conversations")} filters={journalFilters} onFiltersChange={setJournalFilters} onRetryAccepted={() => void workspace.loadLive(true)} selectedId={selectedId} inlineDetails={journalPanel} />
               </>}
-              {view === "conversations" && !detailId && <ConversationJournal meetings={conversations} mode={mode} onOpen={openConversation} onPeople={() => navigate("people")} filters={journalFilters} onFiltersChange={setJournalFilters} onRetryAccepted={() => void workspace.loadLive(false, true)} selectedId={selectedId} inlineDetails={journalPanel} />}
+              {view === "conversations" && !detailId && <ConversationJournal meetings={conversations} mode={mode} onOpen={openConversation} onPeople={() => navigate("people")} filters={journalFilters} onFiltersChange={setJournalFilters} onRetryAccepted={() => void workspace.loadLive(true)} selectedId={selectedId} inlineDetails={journalPanel} />}
               {view === "calendar" && (
                 <>
                   <div className={styles.calendarLayout}>
                     <section
                       className={styles.calendarSurface}
                       aria-label="Meeting calendar"
+                      data-workspace-intro="calendar"
                     >
                       <header className={styles.calendarToolbar}>
                         <div className={styles.monthControls}>
-                          <h2>{monthLabel}</h2>
+                          <h2 aria-live="polite" aria-atomic="true">{monthLabel}</h2>
                           <button
                             className={styles.iconButton}
                             onClick={() => changeMonth(-1)}
                             aria-label="Previous month"
                           >
-                            Previous
+                            <ChevronLeft aria-hidden="true" />
                           </button>
                           <button
                             className={styles.iconButton}
                             onClick={() => changeMonth(1)}
                             aria-label="Next month"
                           >
-                            Next
+                            <ChevronRight aria-hidden="true" />
                           </button>
                           <button
                             className={styles.todayButton}
@@ -486,7 +519,7 @@ function WorkspaceSession({
                               <span key={day}>{day}</span>
                             ))}
                           </div>
-                          <div className={styles.monthGrid}>
+                          <div className={styles.monthGrid} {...calendarSwipe}>
                             {grid.map((day) => {
                               const entries = meetings.filter(
                                 (meeting) =>
@@ -520,7 +553,7 @@ function WorkspaceSession({
                                         title={meeting.title}
                                       >
                                         <span className={styles.eventTime}>
-                                          {timeLabel(meeting.startAt)}
+                                          {meeting.recordingProgress?.timeUncertain ? "Time unconfirmed" : timeLabel(meeting.startAt)}
                                         </span>
                                         <strong>
                                           {meeting.contacts[0]?.name ||
@@ -553,7 +586,7 @@ function WorkspaceSession({
                           </div>
                         </>
                       ) : (
-                        <div className={styles.agenda}>
+                        <div className={styles.agenda} {...calendarSwipe}>
                           {meetings
                             .filter((meeting) =>
                               formatDateKey(meeting.startAt).startsWith(
@@ -575,11 +608,11 @@ function WorkspaceSession({
                                     day: "2-digit",
                                   })}
                                 </span>
-                                <span>
+                                <span className={styles.agendaCopy}>
                                   <strong>{meeting.title}</strong>
                                   <small>
                                     {meeting.contacts[0]?.company} ·{" "}
-                                    {timeLabel(meeting.startAt)}
+                                    {meeting.recordingProgress?.timeUncertain ? "Time unconfirmed" : timeLabel(meeting.startAt)}
                                   </small>
                                 </span>
                                 <span className={styles.typePill}>
@@ -795,9 +828,9 @@ function WorkspaceSession({
                 </>
               )}
 
-              {view === "people" && selectedContact && <ClientHistory contact={selectedContact} conversations={conversations} onBack={() => navigate("people")} onOpenMeeting={openDetail} onCorrect={() => { const latest = conversations.find(meeting => meeting.contacts.some(contact => contact.id === selectedContact.id)); if (latest) openDetail(latest.id, "Summary", true, selectedContact.id); }} />}
+              {view === "people" && selectedContact && <ClientHistory mode={mode} contact={selectedContact} conversations={conversations} onBack={() => navigate("people")} onOpenMeeting={openDetail} onCorrect={() => { const latest = conversations.find(meeting => meeting.contacts.some(contact => contact.id === selectedContact.id)); if (latest) openDetail(latest.id, "Summary", true, selectedContact.id); }} />}
               {view === "people" && !selectedContact && (
-                <section>
+                <section className={styles.peopleView}>
                   <label className={`${styles.search} ${styles.peopleSearch}`}>
 
                     <input
@@ -848,6 +881,7 @@ function WorkspaceSession({
                         );
                       })}
                   </div>
+                  <ConversationJournal meetings={conversations} mode={mode} filters={journalFilters} onFiltersChange={setJournalFilters} onOpen={(id, tab) => openDetail(id, tab)} onRetryAccepted={() => void workspace.loadLive(true)} />
                   {!contacts.length && (
                     <div className={styles.emptyInline}>
 
@@ -869,53 +903,18 @@ function WorkspaceSession({
               {view === "settings" && (
                 <div className={styles.settingsGrid}>
                   <ProfileSettings account={account} sample={mode === "sample"} onSaved={setAccount} />
+                  <section className={styles.settingsCard}>
+                    <h2>A quick introduction</h2>
+                    <p>Three short steps through your conversations, approvals and calendar.</p>
+                    <button type="button" className={styles.secondaryButton} onClick={replayIntroduction}>Replay introduction</button>
+                  </section>
                   <WhatsAppDelivery sample={mode === "sample"} />
                   <section className={styles.settingsCard}>
                     <h2>Gmail follow-ups</h2>
                     <p>Review a draft, then approve the exact recipient and message before sending.</p>
                     {mode === "live" ? <a className={styles.secondaryButton} href="/api/google/connect?gmail=1&returnTo=%2Fdashboard%2Fsettings">Connect or refresh Gmail</a> : <p>Available in your connected workspace.</p>}
                   </section>
-                  <section className={styles.settingsCard}>
-
-                      <h2>Google Calendar</h2>
-                    <p>
-                      Approve a meeting in Quipus and keep it on your calendar.
-                    </p>
-                    <span className={styles.connectionState}>
-                      <i
-                        className={
-                          mode === "live" && integrations.google
-                            ? styles.greenDot
-                            : styles.neutralDot
-                        }
-                      />
-                      {mode === "sample"
-                        ? "Sample calendar"
-                        : integrations.google === undefined
-                          ? "Status unavailable"
-                          : integrations.google
-                          ? "Connection saved"
-                          : "Not connected"}
-                    </span>
-                    {mode === "live" ? (
-                      <a
-                        className={styles.secondaryButton}
-                        href="/api/google/connect?returnTo=%2Fdashboard%2Fsettings"
-                      >
-                        {integrations.google
-                          ? "Reconnect Google Calendar"
-                          : "Connect Google Calendar"}
-
-                      </a>
-                    ) : (
-                      <Link
-                        className={styles.secondaryButton}
-                        href={account ? "/dashboard" : "/login?next=/dashboard"}
-                      >
-                        Open your live workspace
-                      </Link>
-                    )}
-                  </section>
+                  <GoogleConnectionSettings sample={mode === "sample"} accountIdentity={account?.email} />
                   <section className={styles.settingsCard}>
                     <h2>Language & region</h2>
                     <p>
@@ -971,6 +970,7 @@ function WorkspaceSession({
               Quipus<span> by Fovea</span>
             </span>
             <span className={styles.footerLinks}>
+              <button type="button" className={styles.textButton} onClick={replayIntroduction}>Quick introduction</button>
               <Link href="/privacy">Privacy</Link>
               <Link href="/terms">Terms</Link>
             </span>
@@ -978,6 +978,7 @@ function WorkspaceSession({
         </motion.div>
         {desktopDock && panel && <motion.aside className={d.dock} aria-label={editing ? "Review approval" : "Conversation details"} initial={motionEnabled && !reducedMotion ? { opacity: 0, x: 20 } : false} animate={{ opacity: 1, x: 0 }} transition={{ duration: .2, ease: [0.2, 0.8, 0.2, 1] }}>{panel}</motion.aside>}
       </main>
+      <WorkspaceIntroduction step={introduction.step} onNext={nextIntroductionStep} onDismiss={introduction.dismiss} />
       {mode === "live" && (
         <RecordingDialog
           open={recordingOpen}

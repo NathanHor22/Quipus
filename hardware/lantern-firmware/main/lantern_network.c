@@ -1,18 +1,20 @@
 #include "lantern_network.h"
 
+#include "esp_sntp.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <time.h>
 
 #include "cJSON.h"
 #include "esp_check.h"
 #include "esp_crt_bundle.h"
 #include "esp_event.h"
+#include "esp_heap_caps.h"
 #include "esp_http_client.h"
 #include "esp_http_server.h"
-#include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "esp_mac.h"
 #include "esp_netif.h"
@@ -21,14 +23,14 @@
 #include "esp_system.h"
 #include "esp_timer.h"
 #include "esp_wifi.h"
-#include "mbedtls/sha256.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "freertos/task.h"
+#include "mbedtls/sha256.h"
 
+#include "lantern_audio.h"
 #include "lantern_board.h"
 #include "lantern_display.h"
-#include "lantern_audio.h"
 #include "lantern_sd.h"
 #include "lantern_transcript.h"
 
@@ -62,7 +64,8 @@ static void stop_setup_portal(void) {
   }
   s_status.setup_portal_active = false;
   s_status.connectivity = s_status.wifi_connected
-    ? LANTERN_CONNECTIVITY_WIFI_ONLY : LANTERN_CONNECTIVITY_RECONNECTING;
+                              ? LANTERN_CONNECTIVITY_WIFI_ONLY
+                              : LANTERN_CONNECTIVITY_RECONNECTING;
   s_status.setup_ssid[0] = '\0';
   ESP_ERROR_CHECK_WITHOUT_ABORT(esp_wifi_set_mode(WIFI_MODE_STA));
 }
@@ -72,8 +75,9 @@ static void configure_setup_radio(void) {
   // SSID is a setup/recovery path, so range and discoverability matter more
   // than peak throughput.
   ESP_ERROR_CHECK_WITHOUT_ABORT(esp_wifi_set_protocol(
-    WIFI_IF_AP, WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N));
-  ESP_ERROR_CHECK_WITHOUT_ABORT(esp_wifi_set_bandwidth(WIFI_IF_AP, WIFI_BW_HT20));
+      WIFI_IF_AP, WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N));
+  ESP_ERROR_CHECK_WITHOUT_ABORT(
+      esp_wifi_set_bandwidth(WIFI_IF_AP, WIFI_BW_HT20));
   if (s_wifi_started) {
     // 80 quarter-dBm units maps to the ESP32-S3's supported 20 dBm setting.
     ESP_ERROR_CHECK_WITHOUT_ABORT(esp_wifi_set_max_tx_power(80));
@@ -103,26 +107,31 @@ typedef struct {
 
 static response_buffer_t *response_buffer_create(void) {
   response_buffer_t *response = heap_caps_calloc(
-    1, sizeof(response_buffer_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-  if (!response) ESP_LOGE(TAG, "could not allocate HTTP response buffer in PSRAM");
+      1, sizeof(response_buffer_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  if (!response)
+    ESP_LOGE(TAG, "could not allocate HTTP response buffer in PSRAM");
   return response;
 }
 
 static void notify(void) {
-  if (s_callback) s_callback(&s_status);
+  if (s_callback)
+    s_callback(&s_status);
 }
 
 static void set_error(const char *message) {
-  snprintf(s_status.last_error, sizeof(s_status.last_error), "%s", message ? message : "unknown error");
+  snprintf(s_status.last_error, sizeof(s_status.last_error), "%s",
+           message ? message : "unknown error");
   ESP_LOGW(TAG, "%s", s_status.last_error);
   notify();
 }
 
 static bool recover_rejected_credential(int status) {
-  if ((status != 401 && status != 403) || !s_config || !lantern_storage_is_paired(s_config)) {
+  if ((status != 401 && status != 403) || !s_config ||
+      !lantern_storage_is_paired(s_config)) {
     return false;
   }
-  ESP_LOGW(TAG, "cloud rejected the device credential; preserving Wi-Fi and reopening pairing");
+  ESP_LOGW(TAG, "cloud rejected the device credential; preserving Wi-Fi and "
+                "reopening pairing");
   esp_err_t result = lantern_storage_clear_device(s_config);
   if (result != ESP_OK) {
     set_error("Could not reset revoked pairing");
@@ -147,17 +156,22 @@ static void uuid_v4(char output[37]) {
   }
   bytes[6] = (bytes[6] & 0x0f) | 0x40;
   bytes[8] = (bytes[8] & 0x3f) | 0x80;
-  snprintf(output, 37,
-    "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-    bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
-    bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]);
+  snprintf(
+      output, 37,
+      "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+      bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
+      bytes[7], bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13],
+      bytes[14], bytes[15]);
 }
 
 static esp_err_t http_event(esp_http_client_event_t *event) {
-  if (event->event_id != HTTP_EVENT_ON_DATA || !event->user_data || event->data_len <= 0) return ESP_OK;
+  if (event->event_id != HTTP_EVENT_ON_DATA || !event->user_data ||
+      event->data_len <= 0)
+    return ESP_OK;
   response_buffer_t *response = event->user_data;
   size_t remaining = sizeof(response->data) - response->length - 1;
-  size_t copy = (size_t)event->data_len < remaining ? (size_t)event->data_len : remaining;
+  size_t copy =
+      (size_t)event->data_len < remaining ? (size_t)event->data_len : remaining;
   if (copy) {
     memcpy(response->data + response->length, event->data, copy);
     response->length += copy;
@@ -168,33 +182,45 @@ static esp_err_t http_event(esp_http_client_event_t *event) {
 
 static esp_err_t audio_http_event(esp_http_client_event_t *event) {
   audio_response_t *audio = event->user_data;
-  if (!audio) return ESP_OK;
-  if (event->event_id == HTTP_EVENT_ON_HEADER && event->header_key && event->header_value) {
+  if (!audio)
+    return ESP_OK;
+  if (event->event_id == HTTP_EVENT_ON_HEADER && event->header_key &&
+      event->header_value) {
     if (strcasecmp(event->header_key, "x-quipus-context-id") == 0)
-      snprintf(audio->context_id, sizeof(audio->context_id), "%s", event->header_value);
+      snprintf(audio->context_id, sizeof(audio->context_id), "%s",
+               event->header_value);
     if (strcasecmp(event->header_key, "x-quipus-playback-id") == 0)
-      snprintf(audio->playback_id, sizeof(audio->playback_id), "%s", event->header_value);
+      snprintf(audio->playback_id, sizeof(audio->playback_id), "%s",
+               event->header_value);
     if (strcasecmp(event->header_key, "x-quipus-playback-page") == 0)
       audio->playback_page = (unsigned)atoi(event->header_value);
     if (strcasecmp(event->header_key, "x-lantern-report-id") == 0)
-      snprintf(audio->report_id, sizeof(audio->report_id), "%s", event->header_value);
+      snprintf(audio->report_id, sizeof(audio->report_id), "%s",
+               event->header_value);
     if (strcasecmp(event->header_key, "x-lantern-report-page") == 0)
       audio->report_page = (unsigned)atoi(event->header_value);
     if (strcasecmp(event->header_key, "x-lantern-review-token") == 0)
-      snprintf(audio->review_token, sizeof(audio->review_token), "%s", event->header_value);
+      snprintf(audio->review_token, sizeof(audio->review_token), "%s",
+               event->header_value);
   }
-  if (event->event_id == HTTP_EVENT_ON_HEADER && event->header_key && event->header_value &&
+  if (event->event_id == HTTP_EVENT_ON_HEADER && event->header_key &&
+      event->header_value &&
       strcasecmp(event->header_key, "content-type") == 0) {
-    audio->content_is_pcm = strncasecmp(event->header_value, "audio/pcm", 9) == 0;
+    audio->content_is_pcm =
+        strncasecmp(event->header_value, "audio/pcm", 9) == 0;
     return ESP_OK;
   }
-  if (event->event_id == HTTP_EVENT_ON_HEADER && event->header_key && event->header_value &&
+  if (event->event_id == HTTP_EVENT_ON_HEADER && event->header_key &&
+      event->header_value &&
       strcasecmp(event->header_key, "x-lantern-command") == 0) {
     snprintf(audio->command, sizeof(audio->command), "%s", event->header_value);
     return ESP_OK;
   }
-  if (event->event_id != HTTP_EVENT_ON_DATA || !event->data || event->data_len <= 0) return ESP_OK;
-  if (audio->manual_read) return ESP_OK;
+  if (event->event_id != HTTP_EVENT_ON_DATA || !event->data ||
+      event->data_len <= 0)
+    return ESP_OK;
+  if (audio->manual_read)
+    return ESP_OK;
   if (audio->content_is_pcm) {
     if (!audio->playback_started) {
       if (lantern_audio_pcm_begin() != ESP_OK) {
@@ -203,7 +229,8 @@ static esp_err_t audio_http_event(esp_http_client_event_t *event) {
       }
       audio->playback_started = true;
     }
-    if (lantern_audio_pcm_write(event->data, (size_t)event->data_len) != ESP_OK) {
+    if (lantern_audio_pcm_write(event->data, (size_t)event->data_len) !=
+        ESP_OK) {
       audio->playback_failed = true;
       return ESP_FAIL;
     }
@@ -211,7 +238,8 @@ static esp_err_t audio_http_event(esp_http_client_event_t *event) {
     return ESP_OK;
   }
   size_t remaining = sizeof(audio->response.data) - audio->response.length - 1;
-  size_t copy = (size_t)event->data_len < remaining ? (size_t)event->data_len : remaining;
+  size_t copy =
+      (size_t)event->data_len < remaining ? (size_t)event->data_len : remaining;
   if (copy) {
     memcpy(audio->response.data + audio->response.length, event->data, copy);
     audio->response.length += copy;
@@ -222,13 +250,16 @@ static esp_err_t audio_http_event(esp_http_client_event_t *event) {
 
 bool lantern_network_report_playing(void) { return s_report_playing; }
 void lantern_network_interrupt_report(void) {
-  if (!s_report_playing) return;
+  if (!s_report_playing)
+    return;
   s_report_interrupted = true;
   lantern_audio_pcm_cancel();
 }
 
 static void remember_report_position(const audio_response_t *audio) {
-  if (audio->context_id[0]) snprintf(s_report_context, sizeof(s_report_context), "%s", audio->context_id);
+  if (audio->context_id[0])
+    snprintf(s_report_context, sizeof(s_report_context), "%s",
+             audio->context_id);
   if (audio->playback_id[0]) {
     snprintf(s_playback_id, sizeof(s_playback_id), "%s", audio->playback_id);
     s_playback_page = audio->playback_page;
@@ -238,45 +269,74 @@ static void remember_report_position(const audio_response_t *audio) {
 // Explicit reads allow cancellation between chunks. Only this task touches
 // the HTTP handle; an interrupted request is closed before listening again.
 static esp_err_t perform_audio_request(esp_http_client_handle_t client,
-    const void *body, size_t length, audio_response_t *audio, bool report_request) {
+                                       const void *body, size_t length,
+                                       audio_response_t *audio,
+                                       bool report_request) {
   audio->manual_read = true;
   s_report_interrupted = false;
   esp_err_t result = esp_http_client_open(client, (int)length);
-  if (result != ESP_OK) return result;
+  if (result != ESP_OK)
+    return result;
   size_t written = 0;
   while (written < length) {
-    int count = esp_http_client_write(client, (const char *)body + written, (int)(length - written));
-    if (count <= 0) return ESP_FAIL;
+    int count = esp_http_client_write(client, (const char *)body + written,
+                                      (int)(length - written));
+    if (count <= 0)
+      return ESP_FAIL;
     written += (size_t)count;
   }
-  if (esp_http_client_fetch_headers(client) < 0) return ESP_FAIL;
+  if (esp_http_client_fetch_headers(client) < 0)
+    return ESP_FAIL;
   remember_report_position(audio);
-  s_report_playing = report_request || strncmp(audio->command, "report_", 7) == 0;
+  s_report_playing =
+      report_request || strncmp(audio->command, "report_", 7) == 0;
   if (s_report_playing && audio->content_is_pcm)
-    lantern_display_show(LANTERN_SCREEN_STATUS, LANTERN_HAS_TOUCHSCREEN ? "TAP TO INTERRUPT" : "PRESS TO INTERRUPT");
+    lantern_display_show(LANTERN_SCREEN_STATUS, LANTERN_HAS_TOUCHSCREEN
+                                                    ? "TAP TO INTERRUPT"
+                                                    : "PRESS TO INTERRUPT");
   esp_http_client_set_timeout_ms(client, 2000);
   char *chunk = heap_caps_malloc(2048, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-  if (!chunk) { s_report_playing = false; return ESP_ERR_NO_MEM; }
+  if (!chunk) {
+    s_report_playing = false;
+    return ESP_ERR_NO_MEM;
+  }
   TickType_t last_data = xTaskGetTickCount();
   while (true) {
-    if (s_report_interrupted) { result = LANTERN_REPORT_INTERRUPTED; break; }
+    if (s_report_interrupted) {
+      result = LANTERN_REPORT_INTERRUPTED;
+      break;
+    }
     int count = esp_http_client_read(client, chunk, 2048);
     if (count <= 0) {
-      if (esp_http_client_is_complete_data_received(client)) break;
-      if ((xTaskGetTickCount() - last_data) * portTICK_PERIOD_MS < 10000) { vTaskDelay(pdMS_TO_TICKS(10)); continue; }
-      result = ESP_ERR_TIMEOUT; break;
+      if (esp_http_client_is_complete_data_received(client))
+        break;
+      if ((xTaskGetTickCount() - last_data) * portTICK_PERIOD_MS < 10000) {
+        vTaskDelay(pdMS_TO_TICKS(10));
+        continue;
+      }
+      result = ESP_ERR_TIMEOUT;
+      break;
     }
     last_data = xTaskGetTickCount();
-    if (s_report_interrupted) { result = LANTERN_REPORT_INTERRUPTED; break; }
-    esp_http_client_event_t event = { .event_id = HTTP_EVENT_ON_DATA, .user_data = audio, .data = chunk, .data_len = count };
+    if (s_report_interrupted) {
+      result = LANTERN_REPORT_INTERRUPTED;
+      break;
+    }
+    esp_http_client_event_t event = {.event_id = HTTP_EVENT_ON_DATA,
+                                     .user_data = audio,
+                                     .data = chunk,
+                                     .data_len = count};
     audio->manual_read = false;
     result = audio_http_event(&event);
     audio->manual_read = true;
-    if (result != ESP_OK) break;
+    if (result != ESP_OK)
+      break;
   }
-  if (audio->playback_started) lantern_audio_pcm_end();
+  if (audio->playback_started)
+    lantern_audio_pcm_end();
   free(chunk);
-  if (s_report_interrupted) result = LANTERN_REPORT_INTERRUPTED;
+  if (s_report_interrupted)
+    result = LANTERN_REPORT_INTERRUPTED;
   // Advance only after the whole PCM page has drained. A disconnect or tap
   // keeps the current page as the resume point; a completed page can never be
   // read again unless the user explicitly asks to repeat it.
@@ -286,7 +346,8 @@ static esp_err_t perform_audio_request(esp_http_client_handle_t client,
   }
   s_report_playing = false;
   if (result == LANTERN_REPORT_INTERRUPTED) {
-    s_review_token[0] = '\0'; s_report_id[0] = '\0';
+    s_review_token[0] = '\0';
+    s_report_id[0] = '\0';
     ESP_LOGI(TAG, "report interrupted at speech page %u", s_playback_page);
   }
   return result;
@@ -294,82 +355,95 @@ static esp_err_t perform_audio_request(esp_http_client_handle_t client,
 
 static int post_json_with_timeout(const char *path, const char *body,
                                   const char *authorization,
-                                  response_buffer_t *response,
-                                  int timeout_ms) {
+                                  response_buffer_t *response, int timeout_ms) {
   char url[256];
   snprintf(url, sizeof(url), "%s%s", LANTERN_API_BASE_URL, path);
   memset(response, 0, sizeof(*response));
   esp_http_client_config_t config = {
-    .url = url,
-    .event_handler = http_event,
-    .user_data = response,
-    .timeout_ms = timeout_ms,
-    .crt_bundle_attach = esp_crt_bundle_attach,
+      .url = url,
+      .event_handler = http_event,
+      .user_data = response,
+      .timeout_ms = timeout_ms,
+      .crt_bundle_attach = esp_crt_bundle_attach,
+      .disable_auto_redirect = true,
   };
   esp_http_client_handle_t client = esp_http_client_init(&config);
-  if (!client) return -1;
+  if (!client)
+    return -1;
   esp_http_client_set_method(client, HTTP_METHOD_POST);
   esp_http_client_set_header(client, "Content-Type", "application/json");
-  if (authorization && authorization[0]) esp_http_client_set_header(client, "Authorization", authorization);
+  if (authorization && authorization[0])
+    esp_http_client_set_header(client, "Authorization", authorization);
   esp_http_client_set_post_field(client, body, (int)strlen(body));
   esp_err_t result = esp_http_client_perform(client);
   int status = result == ESP_OK ? esp_http_client_get_status_code(client) : -1;
-  if (result != ESP_OK) ESP_LOGW(TAG, "POST %s failed: %s", path, esp_err_to_name(result));
+  if (result != ESP_OK)
+    ESP_LOGW(TAG, "POST %s failed: %s", path, esp_err_to_name(result));
   esp_http_client_cleanup(client);
   return status;
 }
 
-static int post_json(const char *path, const char *body, const char *authorization,
-                     response_buffer_t *response) {
+static int post_json(const char *path, const char *body,
+                     const char *authorization, response_buffer_t *response) {
   return post_json_with_timeout(path, body, authorization, response, 20000);
 }
 
-static int post_binary(const char *path, const char *content_type, const void *body,
-                       size_t body_length, const char *authorization,
-                       const char *event_id, response_buffer_t *response) {
+static int post_binary(const char *path, const char *content_type,
+                       const void *body, size_t body_length,
+                       const char *authorization, const char *event_id,
+                       response_buffer_t *response) {
   char url[256];
   snprintf(url, sizeof(url), "%s%s", LANTERN_API_BASE_URL, path);
   memset(response, 0, sizeof(*response));
   esp_http_client_config_t config = {
-    .url = url,
-    .event_handler = http_event,
-    .user_data = response,
-    .timeout_ms = 60000,
-    .crt_bundle_attach = esp_crt_bundle_attach,
-    .buffer_size_tx = 4096,
+      .url = url,
+      .event_handler = http_event,
+      .user_data = response,
+      .timeout_ms = 60000,
+      .crt_bundle_attach = esp_crt_bundle_attach,
+      .disable_auto_redirect = true,
+      .buffer_size_tx = 4096,
   };
   esp_http_client_handle_t client = esp_http_client_init(&config);
-  if (!client) return -1;
+  if (!client)
+    return -1;
   esp_http_client_set_method(client, HTTP_METHOD_POST);
   esp_http_client_set_header(client, "Content-Type", content_type);
-  if (authorization && authorization[0]) esp_http_client_set_header(client, "Authorization", authorization);
-  if (event_id && event_id[0]) esp_http_client_set_header(client, "X-Lantern-Event-Id", event_id);
+  if (authorization && authorization[0])
+    esp_http_client_set_header(client, "Authorization", authorization);
+  if (event_id && event_id[0])
+    esp_http_client_set_header(client, "X-Lantern-Event-Id", event_id);
   esp_http_client_set_post_field(client, (const char *)body, (int)body_length);
   esp_err_t result = esp_http_client_perform(client);
   int status = result == ESP_OK ? esp_http_client_get_status_code(client) : -1;
-  if (result != ESP_OK) ESP_LOGW(TAG, "POST %s failed: %s", path, esp_err_to_name(result));
+  if (result != ESP_OK)
+    ESP_LOGW(TAG, "POST %s failed: %s", path, esp_err_to_name(result));
   esp_http_client_cleanup(client);
   return status;
 }
 
-static int post_file_chunk(const char *path, FILE *file, size_t offset,
-                           size_t chunk_length, size_t total_length,
-                           const char *authorization, const char *event_id,
-                           response_buffer_t *response) {
-  if (!file || !chunk_length || offset + chunk_length > total_length) return -1;
+static int post_file_chunk(const char *path, lantern_sd_reader_t *file,
+                           size_t offset, size_t chunk_length,
+                           size_t total_length, const char *authorization,
+                           const char *event_id, response_buffer_t *response) {
+  if (!file || !chunk_length || offset + chunk_length > total_length)
+    return -1;
   char url[256], content_range[80];
   snprintf(url, sizeof(url), "%s%s", LANTERN_API_BASE_URL, path);
   snprintf(content_range, sizeof(content_range), "bytes %u-%u/%u",
-    (unsigned)offset, (unsigned)(offset + chunk_length - 1), (unsigned)total_length);
+           (unsigned)offset, (unsigned)(offset + chunk_length - 1),
+           (unsigned)total_length);
   memset(response, 0, sizeof(*response));
   esp_http_client_config_t config = {
-    .url = url,
-    .timeout_ms = 60000,
-    .crt_bundle_attach = esp_crt_bundle_attach,
-    .buffer_size_tx = 4096,
+      .url = url,
+      .timeout_ms = 60000,
+      .crt_bundle_attach = esp_crt_bundle_attach,
+      .disable_auto_redirect = true,
+      .buffer_size_tx = 4096,
   };
   esp_http_client_handle_t client = esp_http_client_init(&config);
-  if (!client) return -1;
+  if (!client)
+    return -1;
   esp_http_client_set_method(client, HTTP_METHOD_POST);
   esp_http_client_set_header(client, "Content-Type", "audio/wav");
   esp_http_client_set_header(client, "Content-Range", content_range);
@@ -378,7 +452,7 @@ static int post_file_chunk(const char *path, FILE *file, size_t offset,
 
   int status = -1;
   uint8_t *buffer = heap_caps_malloc(8192, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-  if (!buffer || fseek(file, (long)offset, SEEK_SET) != 0 ||
+  if (!buffer || lantern_sd_reader_seek(file, offset) != 0 ||
       esp_http_client_open(client, (int)chunk_length) != ESP_OK) {
     free(buffer);
     esp_http_client_cleanup(client);
@@ -388,28 +462,29 @@ static int post_file_chunk(const char *path, FILE *file, size_t offset,
   bool failed = false;
   while (remaining) {
     size_t wanted = remaining < 8192 ? remaining : 8192;
-    size_t read = fread(buffer, 1, wanted, file);
+    size_t read = lantern_sd_reader_read(file, buffer, wanted);
     if (read != wanted) {
       failed = true;
       break;
     }
     size_t sent = 0;
     while (sent < read) {
-      int written = esp_http_client_write(
-        client, (const char *)buffer + sent, (int)(read - sent));
+      int written = esp_http_client_write(client, (const char *)buffer + sent,
+                                          (int)(read - sent));
       if (written <= 0) {
         failed = true;
         break;
       }
       sent += (size_t)written;
     }
-    if (failed) break;
+    if (failed)
+      break;
     remaining -= read;
   }
   free(buffer);
   if (!failed && esp_http_client_fetch_headers(client) >= 0) {
-    int received = esp_http_client_read_response(
-      client, response->data, sizeof(response->data) - 1);
+    int received = esp_http_client_read_response(client, response->data,
+                                                 sizeof(response->data) - 1);
     if (received >= 0) {
       response->length = (size_t)received;
       response->data[response->length] = '\0';
@@ -422,47 +497,65 @@ static int post_file_chunk(const char *path, FILE *file, size_t offset,
 }
 
 static void device_authorization(char output[140]) {
-  snprintf(output, 140, "Device %s.%s", s_config->device_id, s_config->device_secret);
+  snprintf(output, 140, "Device %s.%s", s_config->device_id,
+           s_config->device_secret);
 }
 
-static void copy_json_string(cJSON *object, const char *name, char *destination, size_t capacity) {
+static void copy_json_string(cJSON *object, const char *name, char *destination,
+                             size_t capacity) {
   cJSON *value = cJSON_GetObjectItemCaseSensitive(object, name);
   if (cJSON_IsString(value) && value->valuestring) {
     snprintf(destination, capacity, "%s", value->valuestring);
   }
 }
 
-static bool parse_session_response(const char *body, lantern_cloud_session_t *session,
+static bool parse_session_response(const char *body,
+                                   lantern_cloud_session_t *session,
                                    lantern_agora_transport_t *transport) {
   cJSON *root = cJSON_Parse(body);
-  cJSON *machine = root ? cJSON_GetObjectItemCaseSensitive(root, "session") : NULL;
+  cJSON *machine =
+      root ? cJSON_GetObjectItemCaseSensitive(root, "session") : NULL;
   if (!cJSON_IsObject(machine)) {
     cJSON_Delete(root);
     return false;
   }
-  copy_json_string(machine, "sessionId", session->session_id, sizeof(session->session_id));
+  copy_json_string(machine, "sessionId", session->session_id,
+                   sizeof(session->session_id));
   cJSON *version = cJSON_GetObjectItemCaseSensitive(machine, "version");
-  if (cJSON_IsNumber(version)) session->version = (unsigned)version->valuedouble;
+  if (cJSON_IsNumber(version))
+    session->version = (unsigned)version->valuedouble;
   cJSON *prompt = cJSON_GetObjectItemCaseSensitive(machine, "prompt");
-  if (cJSON_IsObject(prompt)) copy_json_string(prompt, "id", session->prompt_id, sizeof(session->prompt_id));
-  else session->prompt_id[0] = '\0';
+  if (cJSON_IsObject(prompt))
+    copy_json_string(prompt, "id", session->prompt_id,
+                     sizeof(session->prompt_id));
+  else
+    session->prompt_id[0] = '\0';
   cJSON *clock = cJSON_GetObjectItemCaseSensitive(root, "clock");
   if (cJSON_IsObject(clock)) {
-    copy_json_string(clock, "localDate", session->local_date, sizeof(session->local_date));
-    copy_json_string(clock, "localTime", session->local_time, sizeof(session->local_time));
+    copy_json_string(clock, "localDate", session->local_date,
+                     sizeof(session->local_date));
+    copy_json_string(clock, "localTime", session->local_time,
+                     sizeof(session->local_time));
   }
   if (transport) {
     memset(transport, 0, sizeof(*transport));
     cJSON *value = cJSON_GetObjectItemCaseSensitive(root, "transport");
     if (cJSON_IsObject(value)) {
-      copy_json_string(value, "appId", transport->app_id, sizeof(transport->app_id));
-      copy_json_string(value, "channel", transport->channel, sizeof(transport->channel));
-      copy_json_string(value, "token", transport->token, sizeof(transport->token));
-      copy_json_string(value, "expiresAt", transport->expires_at, sizeof(transport->expires_at));
-      cJSON *publisher = cJSON_GetObjectItemCaseSensitive(value, "publisherUid");
+      copy_json_string(value, "appId", transport->app_id,
+                       sizeof(transport->app_id));
+      copy_json_string(value, "channel", transport->channel,
+                       sizeof(transport->channel));
+      copy_json_string(value, "token", transport->token,
+                       sizeof(transport->token));
+      copy_json_string(value, "expiresAt", transport->expires_at,
+                       sizeof(transport->expires_at));
+      cJSON *publisher =
+          cJSON_GetObjectItemCaseSensitive(value, "publisherUid");
       cJSON *bot = cJSON_GetObjectItemCaseSensitive(value, "sttBotUid");
-      if (cJSON_IsNumber(publisher)) transport->publisher_uid = (uint32_t)publisher->valuedouble;
-      if (cJSON_IsNumber(bot)) transport->stt_bot_uid = (uint32_t)bot->valuedouble;
+      if (cJSON_IsNumber(publisher))
+        transport->publisher_uid = (uint32_t)publisher->valuedouble;
+      if (cJSON_IsNumber(bot))
+        transport->stt_bot_uid = (uint32_t)bot->valuedouble;
     }
   }
   bool valid = session->session_id[0] && cJSON_IsNumber(version);
@@ -470,8 +563,10 @@ static bool parse_session_response(const char *body, lantern_cloud_session_t *se
   return valid;
 }
 
-static void provider_error(const char *operation, int status, const response_buffer_t *response) {
-  if (recover_rejected_credential(status)) return;
+static void provider_error(const char *operation, int status,
+                           const response_buffer_t *response) {
+  if (recover_rejected_credential(status))
+    return;
   char detail[96];
   cJSON *root = cJSON_Parse(response->data);
   cJSON *error = root ? cJSON_GetObjectItemCaseSensitive(root, "error") : NULL;
@@ -487,34 +582,40 @@ static void provider_error(const char *operation, int status, const response_buf
 static bool normalize_pairing_code(char *code) {
   char normalized[21] = {0};
   size_t length = 0;
-  for (const char *cursor = code; *cursor && length < sizeof(normalized) - 1; ++cursor) {
-    if (*cursor == '-' || isspace((unsigned char)*cursor)) continue;
+  for (const char *cursor = code; *cursor && length < sizeof(normalized) - 1;
+       ++cursor) {
+    if (*cursor == '-' || isspace((unsigned char)*cursor))
+      continue;
     normalized[length++] = (char)toupper((unsigned char)*cursor);
   }
-  if (length != 10) return false;
+  if (length != 10)
+    return false;
   memcpy(code, normalized, length + 1);
   return true;
 }
 
 static esp_err_t ensure_pending_device_secret(void) {
-  if (s_config->device_secret[0]) return ESP_OK;
+  if (s_config->device_secret[0])
+    return ESP_OK;
 
   uint8_t random[32];
   esp_fill_random(random, sizeof(random));
   for (size_t index = 0; index < sizeof(random); ++index) {
-    snprintf(
-      s_config->device_secret + (index * 2),
-      sizeof(s_config->device_secret) - (index * 2),
-      "%02x",
-      random[index]);
+    snprintf(s_config->device_secret + (index * 2),
+             sizeof(s_config->device_secret) - (index * 2), "%02x",
+             random[index]);
   }
-  esp_err_t result = lantern_storage_save_pending_secret(s_config->device_secret);
-  if (result != ESP_OK) s_config->device_secret[0] = '\0';
+  esp_err_t result =
+      lantern_storage_save_pending_secret(s_config->device_secret);
+  if (result != ESP_OK)
+    s_config->device_secret[0] = '\0';
   return result;
 }
 
 static esp_err_t claim_device(void) {
-  if (!s_config || !s_config->pairing_code[0] || lantern_storage_is_paired(s_config)) return ESP_OK;
+  if (!s_config || !s_config->pairing_code[0] ||
+      lantern_storage_is_paired(s_config))
+    return ESP_OK;
   if (!normalize_pairing_code(s_config->pairing_code)) {
     set_error("Pair code must have 10 characters");
     return ESP_ERR_INVALID_ARG;
@@ -528,15 +629,19 @@ static esp_err_t claim_device(void) {
   ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_STA));
   char body[512];
   snprintf(body, sizeof(body),
-    "{\"pairingCode\":\"%s\",\"hardwareId\":\"esp32s3:%02x%02x%02x%02x%02x%02x\","
-    "\"model\":\"%s\",\"firmwareVersion\":\"%s\",\"credentialSecret\":\"%s\"}",
-    s_config->pairing_code, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],
-    LANTERN_MODEL, LANTERN_FIRMWARE_VERSION, s_config->device_secret);
+           "{\"pairingCode\":\"%s\",\"hardwareId\":\"esp32s3:%02x%02x%02x%02x%"
+           "02x%02x\","
+           "\"model\":\"%s\",\"firmwareVersion\":\"%s\",\"credentialSecret\":"
+           "\"%s\"}",
+           s_config->pairing_code, mac[0], mac[1], mac[2], mac[3], mac[4],
+           mac[5], LANTERN_MODEL, LANTERN_FIRMWARE_VERSION,
+           s_config->device_secret);
   response_buffer_t *response = response_buffer_create();
-  if (!response) return ESP_ERR_NO_MEM;
+  if (!response)
+    return ESP_ERR_NO_MEM;
   int status = post_json("/api/device/v1/claim", body, NULL, response);
-  ESP_LOGI(TAG, "pairing claim returned HTTP %d (%u response bytes)",
-    status, (unsigned)response->length);
+  ESP_LOGI(TAG, "pairing claim returned HTTP %d (%u response bytes)", status,
+           (unsigned)response->length);
   if (status != 201) {
     if (status == 404 || status == 410) {
       // Preserve the code and pending credential. The user can submit a new
@@ -554,19 +659,33 @@ static esp_err_t claim_device(void) {
     return ESP_FAIL;
   }
   cJSON *root = cJSON_Parse(response->data);
-  cJSON *device = root ? cJSON_GetObjectItemCaseSensitive(root, "device") : NULL;
-  cJSON *credential = root ? cJSON_GetObjectItemCaseSensitive(root, "credential") : NULL;
+  cJSON *device =
+      root ? cJSON_GetObjectItemCaseSensitive(root, "device") : NULL;
+  cJSON *credential =
+      root ? cJSON_GetObjectItemCaseSensitive(root, "credential") : NULL;
   cJSON *id = device ? cJSON_GetObjectItemCaseSensitive(device, "id") : NULL;
-  cJSON *secret = credential ? cJSON_GetObjectItemCaseSensitive(credential, "secret") : NULL;
+  cJSON *secret = credential
+                      ? cJSON_GetObjectItemCaseSensitive(credential, "secret")
+                      : NULL;
   if (!cJSON_IsString(id) || !cJSON_IsString(secret)) {
     cJSON_Delete(root);
     free(response);
     set_error("Pairing response was invalid");
     return ESP_FAIL;
   }
-  snprintf(s_config->device_id, sizeof(s_config->device_id), "%s", id->valuestring);
-  snprintf(s_config->device_secret, sizeof(s_config->device_secret), "%s", secret->valuestring);
-  esp_err_t save = lantern_storage_save_device(s_config->device_id, s_config->device_secret);
+  snprintf(s_config->device_id, sizeof(s_config->device_id), "%s",
+           id->valuestring);
+  snprintf(s_config->device_secret, sizeof(s_config->device_secret), "%s",
+           secret->valuestring);
+  esp_err_t save =
+      lantern_storage_save_device(s_config->device_id, s_config->device_secret);
+  cJSON *owner = cJSON_GetObjectItemCaseSensitive(device, "ownerId");
+  if (save == ESP_OK && cJSON_IsString(owner) &&
+      strlen(owner->valuestring) == 36) {
+    snprintf(s_config->owner_id, sizeof(s_config->owner_id), "%s",
+             owner->valuestring);
+    save = lantern_storage_save_owner(s_config->owner_id);
+  }
   cJSON_Delete(root);
   free(response);
   if (save != ESP_OK) {
@@ -582,14 +701,15 @@ static esp_err_t claim_device(void) {
   return ESP_OK;
 }
 
-static void decode_form_value(const char *source, char *destination, size_t destination_size) {
+static void decode_form_value(const char *source, char *destination,
+                              size_t destination_size) {
   size_t written = 0;
   while (*source && *source != '&' && written + 1 < destination_size) {
     if (*source == '+') {
       destination[written++] = ' ';
       ++source;
     } else if (*source == '%' && source[1] && source[2]) {
-      char hex[3] = { source[1], source[2], 0 };
+      char hex[3] = {source[1], source[2], 0};
       destination[written++] = (char)strtoul(hex, NULL, 16);
       source += 3;
     } else {
@@ -599,33 +719,42 @@ static void decode_form_value(const char *source, char *destination, size_t dest
   destination[written] = '\0';
 }
 
-static void form_field(const char *body, const char *name, char *destination, size_t destination_size) {
+static void form_field(const char *body, const char *name, char *destination,
+                       size_t destination_size) {
   destination[0] = '\0';
   char needle[32];
   snprintf(needle, sizeof(needle), "%s=", name);
   const char *value = strstr(body, needle);
-  if (!value || (value != body && value[-1] != '&')) return;
+  if (!value || (value != body && value[-1] != '&'))
+    return;
   decode_form_value(value + strlen(needle), destination, destination_size);
 }
 
 static esp_err_t setup_page(httpd_req_t *request) {
   static const char page[] =
-    "<!doctype html><html><head><meta name=viewport content='width=device-width,initial-scale=1'>"
-    "<title>Quipus setup</title><style>body{font:16px system-ui;background:#03110c;color:#e8fff2;"
-    "max-width:420px;margin:40px auto;padding:24px}h1{color:#35ff8c}p{color:#a9c9b7;line-height:1.55}label{display:block;margin-top:18px;color:#d9f7e5}"
-    "input{width:100%;box-sizing:border-box;padding:13px;margin-top:7px;border-radius:8px;border:1px solid #28704c;background:#071b12;color:#effff5}"
-    "button{margin-top:24px;width:100%;padding:14px;border:0;border-radius:8px;background:#35ff8c;color:#03110c;font-weight:700}</style></head>"
-    "<body><h1>Quipus</h1><p>Use the one-time pairing code from your Quipus dashboard. If Quipus already knows this Wi-Fi, leave the Wi-Fi fields blank.</p>"
-    "<form method=post action=/configure><label>Wi-Fi name<input name=ssid maxlength=32 placeholder='Leave blank to keep saved Wi-Fi'></label>"
-    "<label>Wi-Fi password<input name=password type=password maxlength=64></label>"
-    "<label>Pairing code (required to pair or reconnect)<input name=code maxlength=20 placeholder='XXXXX-XXXXX'></label><button>Connect Quipus</button></form>"
-    "<p><a href=/audio.wav style='color:#35ff8c'>Download the latest microphone test</a></p>"
-    "<hr style='border-color:#164d34'><h2>Local firmware update</h2><input id=firmware type=file accept=.bin>"
-    "<button type=button onclick='updateFirmware()'>Install update</button><p id=result></p>"
-    "<script>async function updateFirmware(){const f=document.getElementById(\"firmware\").files[0];"
-    "if(!f){result.textContent=\"Choose lantern.bin first\";return;}result.textContent=\"Uploading...\";"
-    "const r=await fetch(\"/firmware\",{method:\"POST\",headers:{\"Content-Type\":\"application/octet-stream\"},body:f});"
-    "result.textContent=await r.text();}</script></body></html>";
+      "<!doctype html><html><head><meta name=viewport "
+      "content='width=device-width,initial-scale=1'>"
+      "<title>Quipus setup</title><style>body{font:16px "
+      "system-ui;background:#03110c;color:#e8fff2;"
+      "max-width:420px;margin:40px "
+      "auto;padding:24px}h1{color:#35ff8c}p{color:#a9c9b7;line-height:1.55}"
+      "label{display:block;margin-top:18px;color:#d9f7e5}"
+      "input{width:100%;box-sizing:border-box;padding:13px;margin-top:7px;"
+      "border-radius:8px;border:1px solid "
+      "#28704c;background:#071b12;color:#effff5}"
+      "button{margin-top:24px;width:100%;padding:14px;border:0;border-radius:"
+      "8px;background:#35ff8c;color:#03110c;font-weight:700}</style></head>"
+      "<body><h1>Quipus</h1><p>Use the one-time pairing code from your Quipus "
+      "dashboard. If Quipus already knows this Wi-Fi, leave the Wi-Fi fields "
+      "blank.</p>"
+      "<form method=post action=/configure><label>Wi-Fi name<input name=ssid "
+      "maxlength=32 placeholder='Leave blank to keep saved Wi-Fi'></label>"
+      "<label>Wi-Fi password<input name=password type=password "
+      "maxlength=64></label>"
+      "<label>Pairing code (required to pair or reconnect)<input name=code "
+      "maxlength=20 placeholder='XXXXX-XXXXX'></label><button>Connect "
+      "Quipus</button></form>"
+      "</body></html>";
   httpd_resp_set_type(request, "text/html");
   return httpd_resp_send(request, page, HTTPD_RESP_USE_STRLEN);
 }
@@ -642,15 +771,18 @@ static void wav_u32(uint8_t *target, uint32_t value) {
   target[3] = (uint8_t)((value >> 24) & 0xff);
 }
 
+#if CONFIG_QUIPUS_UNSAFE_LOCAL_DEBUG
 static esp_err_t audio_download(httpd_req_t *request) {
   size_t samples = lantern_audio_buffered_samples();
   if (lantern_audio_is_recording()) {
     httpd_resp_set_status(request, "409 Conflict");
-    httpd_resp_send(request, "Stop recording before playback", HTTPD_RESP_USE_STRLEN);
+    httpd_resp_send(request, "Stop recording before playback",
+                    HTTPD_RESP_USE_STRLEN);
     return ESP_FAIL;
   }
   if (!samples) {
-    httpd_resp_send_err(request, HTTPD_404_NOT_FOUND, "No microphone test has been recorded");
+    httpd_resp_send_err(request, HTTPD_404_NOT_FOUND,
+                        "No microphone test has been recorded");
     return ESP_FAIL;
   }
   uint32_t data_bytes = (uint32_t)(samples * sizeof(int16_t));
@@ -670,21 +802,26 @@ static esp_err_t audio_download(httpd_req_t *request) {
   char length[16];
   snprintf(length, sizeof(length), "%u", (unsigned)(44 + data_bytes));
   httpd_resp_set_type(request, "audio/wav");
-  httpd_resp_set_hdr(request, "Content-Disposition", "attachment; filename=lantern-mic-test.wav");
+  httpd_resp_set_hdr(request, "Content-Disposition",
+                     "attachment; filename=lantern-mic-test.wav");
   httpd_resp_set_hdr(request, "Content-Length", length);
-  ESP_RETURN_ON_ERROR(httpd_resp_send_chunk(request, (const char *)header, sizeof(header)), TAG, "WAV header");
+  ESP_RETURN_ON_ERROR(
+      httpd_resp_send_chunk(request, (const char *)header, sizeof(header)), TAG,
+      "WAV header");
   int16_t chunk[512];
   for (size_t offset = 0; offset < samples;) {
     size_t copied = lantern_audio_copy_samples(chunk, offset, 512);
-    if (!copied) break;
-    ESP_RETURN_ON_ERROR(
-      httpd_resp_send_chunk(request, (const char *)chunk, copied * sizeof(chunk[0])),
-      TAG,
-      "WAV chunk");
+    if (!copied)
+      break;
+    ESP_RETURN_ON_ERROR(httpd_resp_send_chunk(request, (const char *)chunk,
+                                              copied * sizeof(chunk[0])),
+                        TAG, "WAV chunk");
     offset += copied;
   }
   return httpd_resp_send_chunk(request, NULL, 0);
 }
+
+#endif
 
 static void delayed_restart(void *argument) {
   (void)argument;
@@ -692,28 +829,34 @@ static void delayed_restart(void *argument) {
   esp_restart();
 }
 
+#if CONFIG_QUIPUS_UNSAFE_LOCAL_DEBUG
 static esp_err_t firmware_update(httpd_req_t *request) {
   if (request->content_len <= 0) {
-    httpd_resp_send_err(request, HTTPD_400_BAD_REQUEST, "Firmware file is empty");
+    httpd_resp_send_err(request, HTTPD_400_BAD_REQUEST,
+                        "Firmware file is empty");
     return ESP_FAIL;
   }
   const esp_partition_t *partition = esp_ota_get_next_update_partition(NULL);
   if (!partition || request->content_len > partition->size) {
-    httpd_resp_send_err(request, HTTPD_400_BAD_REQUEST, "Firmware does not fit the OTA slot");
+    httpd_resp_send_err(request, HTTPD_400_BAD_REQUEST,
+                        "Firmware does not fit the OTA slot");
     return ESP_FAIL;
   }
   esp_ota_handle_t update = 0;
   esp_err_t result = esp_ota_begin(partition, request->content_len, &update);
   if (result != ESP_OK) {
-    httpd_resp_send_err(request, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not begin firmware update");
+    httpd_resp_send_err(request, HTTPD_500_INTERNAL_SERVER_ERROR,
+                        "Could not begin firmware update");
     return result;
   }
   char buffer[2048];
   int remaining = request->content_len;
   while (remaining > 0) {
-    int requested = remaining < (int)sizeof(buffer) ? remaining : (int)sizeof(buffer);
+    int requested =
+        remaining < (int)sizeof(buffer) ? remaining : (int)sizeof(buffer);
     int received = httpd_req_recv(request, buffer, requested);
-    if (received == HTTPD_SOCK_ERR_TIMEOUT) continue;
+    if (received == HTTPD_SOCK_ERR_TIMEOUT)
+      continue;
     if (received <= 0) {
       esp_ota_abort(update);
       return ESP_FAIL;
@@ -721,22 +864,29 @@ static esp_err_t firmware_update(httpd_req_t *request) {
     result = esp_ota_write(update, buffer, received);
     if (result != ESP_OK) {
       esp_ota_abort(update);
-      httpd_resp_send_err(request, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not write firmware update");
+      httpd_resp_send_err(request, HTTPD_500_INTERNAL_SERVER_ERROR,
+                          "Could not write firmware update");
       return result;
     }
     remaining -= received;
   }
   result = esp_ota_end(update);
-  if (result == ESP_OK) result = esp_ota_set_boot_partition(partition);
+  if (result == ESP_OK)
+    result = esp_ota_set_boot_partition(partition);
   if (result != ESP_OK) {
-    httpd_resp_send_err(request, HTTPD_400_BAD_REQUEST, "Firmware image failed validation");
+    httpd_resp_send_err(request, HTTPD_400_BAD_REQUEST,
+                        "Firmware image failed validation");
     return result;
   }
-  ESP_LOGI(TAG, "OTA image accepted in %s (%u bytes)", partition->label, (unsigned)request->content_len);
-  httpd_resp_send(request, "Update installed. Quipus is restarting.", HTTPD_RESP_USE_STRLEN);
+  ESP_LOGI(TAG, "OTA image accepted in %s (%u bytes)", partition->label,
+           (unsigned)request->content_len);
+  httpd_resp_send(request, "Update installed. Quipus is restarting.",
+                  HTTPD_RESP_USE_STRLEN);
   xTaskCreate(delayed_restart, "ota_restart", 2048, NULL, 4, NULL);
   return ESP_OK;
 }
+
+#endif
 
 static esp_err_t configure(httpd_req_t *request) {
   if (request->content_len <= 0 || request->content_len >= 256) {
@@ -745,7 +895,8 @@ static esp_err_t configure(httpd_req_t *request) {
   }
   char body[256] = {0};
   int received = httpd_req_recv(request, body, request->content_len);
-  if (received <= 0) return ESP_FAIL;
+  if (received <= 0)
+    return ESP_FAIL;
   body[received] = '\0';
   char ssid[33], password[65], code[21];
   form_field(body, "ssid", ssid, sizeof(ssid));
@@ -754,35 +905,50 @@ static esp_err_t configure(httpd_req_t *request) {
   bool has_valid_code = code[0] && normalize_pairing_code(code);
   const char *selected_ssid = ssid[0] ? ssid : s_config->wifi_ssid;
   const char *selected_password = ssid[0] ? password : s_config->wifi_password;
-  if (!selected_ssid[0] || (!lantern_storage_is_paired(s_config) && !has_valid_code) ||
+  if (!selected_ssid[0] ||
+      (!lantern_storage_is_paired(s_config) && !has_valid_code) ||
       (code[0] && !has_valid_code)) {
-    httpd_resp_send_err(request, HTTPD_400_BAD_REQUEST, "Check the Wi-Fi name and 10-character pairing code");
+    httpd_resp_send_err(request, HTTPD_400_BAD_REQUEST,
+                        "Check the Wi-Fi name and 10-character pairing code");
+    return ESP_FAIL;
+  }
+  if (has_valid_code && lantern_storage_is_paired(s_config) &&
+      lantern_sd_pending_count() > 0) {
+    httpd_resp_send_err(
+        request, HTTPD_400_BAD_REQUEST,
+        "Sync pending recordings before changing account pairing");
     return ESP_FAIL;
   }
   if (has_valid_code && lantern_storage_is_paired(s_config)) {
     esp_err_t reset_result = lantern_storage_clear_device(s_config);
     if (reset_result != ESP_OK) {
-      httpd_resp_send_err(request, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not reset the previous pairing");
+      httpd_resp_send_err(request, HTTPD_500_INTERNAL_SERVER_ERROR,
+                          "Could not reset the previous pairing");
       return reset_result;
     }
     s_status.paired = false;
   }
-  esp_err_t result = lantern_storage_save_wifi(selected_ssid, selected_password, code);
+  esp_err_t result =
+      lantern_storage_save_wifi(selected_ssid, selected_password, code);
   if (result != ESP_OK) {
-    httpd_resp_send_err(request, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not save settings");
+    httpd_resp_send_err(request, HTTPD_500_INTERNAL_SERVER_ERROR,
+                        "Could not save settings");
     return result;
   }
   httpd_resp_set_type(request, "text/html");
-  httpd_resp_send(request, "<h1>Connected</h1><p>Quipus is restarting now.</p>", HTTPD_RESP_USE_STRLEN);
+  httpd_resp_send(request, "<h1>Connected</h1><p>Quipus is restarting now.</p>",
+                  HTTPD_RESP_USE_STRLEN);
   xTaskCreate(delayed_restart, "restart", 2048, NULL, 4, NULL);
   return ESP_OK;
 }
 
 static esp_err_t start_setup_portal(void) {
-  if (s_server) return ESP_OK;
+  if (s_server)
+    return ESP_OK;
   uint8_t mac[6];
   ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_SOFTAP));
-  snprintf(s_status.setup_ssid, sizeof(s_status.setup_ssid), "Quipus-%02X%02X", mac[4], mac[5]);
+  snprintf(s_status.setup_ssid, sizeof(s_status.setup_ssid), "Quipus-%02X%02X",
+           mac[4], mac[5]);
   wifi_config_t ap = {0};
   ap.ap.ssid_len = strnlen(s_status.setup_ssid, sizeof(ap.ap.ssid));
   memcpy(ap.ap.ssid, s_status.setup_ssid, ap.ap.ssid_len);
@@ -807,50 +973,71 @@ static esp_err_t start_setup_portal(void) {
   server_config.max_uri_handlers = 4;
   server_config.stack_size = 3072;
   server_config.lru_purge_enable = true;
-  ESP_LOGI(TAG, "starting setup server; internal_free=%u largest_internal=%u",
-    (unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT),
-    (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
+  ESP_LOGI(
+      TAG, "starting setup server; internal_free=%u largest_internal=%u",
+      (unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT),
+      (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL |
+                                                 MALLOC_CAP_8BIT));
   esp_err_t server_result = httpd_start(&s_server, &server_config);
   if (server_result != ESP_OK) {
     s_server = NULL;
     ESP_LOGE(TAG, "setup server failed: %s (0x%x)",
-      esp_err_to_name(server_result), (unsigned)server_result);
+             esp_err_to_name(server_result), (unsigned)server_result);
     return server_result;
   }
-  const httpd_uri_t root = { .uri = "/", .method = HTTP_GET, .handler = setup_page };
-  const httpd_uri_t save = { .uri = "/configure", .method = HTTP_POST, .handler = configure };
-  const httpd_uri_t audio = { .uri = "/audio.wav", .method = HTTP_GET, .handler = audio_download };
-  const httpd_uri_t firmware = { .uri = "/firmware", .method = HTTP_POST, .handler = firmware_update };
+  const httpd_uri_t root = {
+      .uri = "/", .method = HTTP_GET, .handler = setup_page};
+  const httpd_uri_t save = {
+      .uri = "/configure", .method = HTTP_POST, .handler = configure};
+#if CONFIG_QUIPUS_UNSAFE_LOCAL_DEBUG
+  const httpd_uri_t audio = {
+      .uri = "/audio.wav", .method = HTTP_GET, .handler = audio_download};
+  const httpd_uri_t firmware = {
+      .uri = "/firmware", .method = HTTP_POST, .handler = firmware_update};
+#endif
   ESP_ERROR_CHECK(httpd_register_uri_handler(s_server, &root));
   ESP_ERROR_CHECK(httpd_register_uri_handler(s_server, &save));
+#if CONFIG_QUIPUS_UNSAFE_LOCAL_DEBUG
   ESP_ERROR_CHECK(httpd_register_uri_handler(s_server, &audio));
   ESP_ERROR_CHECK(httpd_register_uri_handler(s_server, &firmware));
+#endif
   s_status.setup_portal_active = true;
   s_status.connectivity = LANTERN_CONNECTIVITY_SETUP;
-  ESP_LOGI(TAG, "setup portal: SSID=%s URL=http://192.168.4.1", s_status.setup_ssid);
+  ESP_LOGI(TAG, "setup portal: SSID=%s URL=http://192.168.4.1",
+           s_status.setup_ssid);
   notify();
   return ESP_OK;
 }
 
-static void wifi_event(void *argument, esp_event_base_t base, int32_t id, void *data) {
+static void wifi_event(void *argument, esp_event_base_t base, int32_t id,
+                       void *data) {
   (void)argument;
-  if (base == WIFI_EVENT && id == WIFI_EVENT_STA_START && lantern_storage_has_wifi(s_config)) {
+  if (base == WIFI_EVENT && id == WIFI_EVENT_STA_START &&
+      lantern_storage_has_wifi(s_config)) {
     esp_wifi_connect();
   } else if (base == WIFI_EVENT && id == WIFI_EVENT_STA_DISCONNECTED) {
     s_status.wifi_connected = false;
     s_status.wifi_rssi = -127;
     s_status.connectivity = s_status.setup_portal_active
-      ? LANTERN_CONNECTIVITY_SETUP : LANTERN_CONNECTIVITY_RECONNECTING;
+                                ? LANTERN_CONNECTIVITY_SETUP
+                                : LANTERN_CONNECTIVITY_RECONNECTING;
     xEventGroupClearBits(s_wifi_events, WIFI_CONNECTED_BIT);
-    if (!s_suspend_auto_reconnect) esp_wifi_connect();
+    if (!s_suspend_auto_reconnect)
+      esp_wifi_connect();
     notify();
   } else if (base == IP_EVENT && id == IP_EVENT_STA_GOT_IP) {
     const ip_event_got_ip_t *event = data;
-    snprintf(s_status.ip_address, sizeof(s_status.ip_address), IPSTR, IP2STR(&event->ip_info.ip));
+    snprintf(s_status.ip_address, sizeof(s_status.ip_address), IPSTR,
+             IP2STR(&event->ip_info.ip));
     s_status.wifi_connected = true;
     s_status.connectivity = LANTERN_CONNECTIVITY_WIFI_ONLY;
     s_status.last_error[0] = '\0';
     xEventGroupSetBits(s_wifi_events, WIFI_CONNECTED_BIT);
+    if (!esp_sntp_enabled()) {
+      esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
+      esp_sntp_setservername(0, "pool.ntp.org");
+      esp_sntp_init();
+    }
     ESP_LOGI(TAG, "Wi-Fi connected at %s", s_status.ip_address);
     notify();
   }
@@ -863,7 +1050,8 @@ static void connection_task(void *argument) {
     vTaskDelete(NULL);
     return;
   }
-  EventBits_t bits = xEventGroupWaitBits(s_wifi_events, WIFI_CONNECTED_BIT, pdFALSE, pdTRUE, pdMS_TO_TICKS(15000));
+  EventBits_t bits = xEventGroupWaitBits(s_wifi_events, WIFI_CONNECTED_BIT,
+                                         pdFALSE, pdTRUE, pdMS_TO_TICKS(15000));
   if (!(bits & WIFI_CONNECTED_BIT)) {
     // A travelling user may be away from the most recently used network.
     // Scan once and try the strongest remembered alternative before exposing
@@ -872,15 +1060,19 @@ static void connection_task(void *argument) {
     size_t visible_count = 0;
     s_suspend_auto_reconnect = true;
     esp_wifi_disconnect();
-    if (lantern_network_scan_wifi(visible, LANTERN_WIFI_SCAN_LIMIT, &visible_count) == ESP_OK) {
-      for (size_t network = 0; network < visible_count && !(bits & WIFI_CONNECTED_BIT); ++network) {
+    if (lantern_network_scan_wifi(visible, LANTERN_WIFI_SCAN_LIMIT,
+                                  &visible_count) == ESP_OK) {
+      for (size_t network = 0;
+           network < visible_count && !(bits & WIFI_CONNECTED_BIT); ++network) {
         for (size_t saved = 0; saved < s_config->wifi_profile_count; ++saved) {
-          if (strcmp(visible[network].ssid, s_config->wifi_profiles[saved].ssid) == 0 &&
+          if (strcmp(visible[network].ssid,
+                     s_config->wifi_profiles[saved].ssid) == 0 &&
               strcmp(visible[network].ssid, s_config->wifi_ssid) != 0) {
             ESP_LOGI(TAG, "trying remembered Wi-Fi %s at %d dBm",
-              visible[network].ssid, visible[network].rssi);
-            if (lantern_network_connect_wifi(visible[network].ssid,
-                s_config->wifi_profiles[saved].password) == ESP_OK) {
+                     visible[network].ssid, visible[network].rssi);
+            if (lantern_network_connect_wifi(
+                    visible[network].ssid,
+                    s_config->wifi_profiles[saved].password) == ESP_OK) {
               bits = WIFI_CONNECTED_BIT;
             }
             break;
@@ -897,41 +1089,50 @@ static void connection_task(void *argument) {
       return;
     }
   }
-  if (!lantern_storage_is_paired(s_config) && s_config->pairing_code[0]) claim_device();
-  if (!lantern_storage_is_paired(s_config)) start_setup_portal();
+  if (!lantern_storage_is_paired(s_config) && s_config->pairing_code[0])
+    claim_device();
+  if (!lantern_storage_is_paired(s_config))
+    start_setup_portal();
   vTaskDelete(NULL);
 }
 
-esp_err_t lantern_network_start(lantern_config_t *config, lantern_network_callback_t callback) {
-  if (!config) return ESP_ERR_INVALID_ARG;
+esp_err_t lantern_network_start(lantern_config_t *config,
+                                lantern_network_callback_t callback) {
+  if (!config)
+    return ESP_ERR_INVALID_ARG;
   s_config = config;
   s_callback = callback;
   memset(&s_status, 0, sizeof(s_status));
   s_status.connectivity = LANTERN_CONNECTIVITY_RECONNECTING;
   s_status.paired = lantern_storage_is_paired(config);
   s_wifi_events = xEventGroupCreate();
-  if (!s_wifi_events) return ESP_ERR_NO_MEM;
+  if (!s_wifi_events)
+    return ESP_ERR_NO_MEM;
   ESP_ERROR_CHECK(esp_netif_init());
   ESP_ERROR_CHECK(esp_event_loop_create_default());
   esp_netif_create_default_wifi_sta();
   esp_netif_create_default_wifi_ap();
   wifi_init_config_t init = WIFI_INIT_CONFIG_DEFAULT();
   ESP_ERROR_CHECK(esp_wifi_init(&init));
-  ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event, NULL));
-  ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, wifi_event, NULL));
+  ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID,
+                                             wifi_event, NULL));
+  ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP,
+                                             wifi_event, NULL));
   bool has_wifi = lantern_storage_has_wifi(config);
   bool needs_setup = !lantern_storage_is_paired(config);
   esp_err_t portal_result = ESP_OK;
   if (has_wifi) {
     wifi_config_t station = {0};
     size_t ssid_length = strnlen(config->wifi_ssid, sizeof(station.sta.ssid));
-    size_t password_length = strnlen(config->wifi_password, sizeof(station.sta.password));
+    size_t password_length =
+        strnlen(config->wifi_password, sizeof(station.sta.password));
     memcpy(station.sta.ssid, config->wifi_ssid, ssid_length);
     memcpy(station.sta.password, config->wifi_password, password_length);
     station.sta.threshold.authmode = WIFI_AUTH_OPEN;
     station.sta.pmf_cfg.capable = true;
     station.sta.pmf_cfg.required = false;
-    ESP_ERROR_CHECK(esp_wifi_set_mode(needs_setup ? WIFI_MODE_APSTA : WIFI_MODE_STA));
+    ESP_ERROR_CHECK(
+        esp_wifi_set_mode(needs_setup ? WIFI_MODE_APSTA : WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &station));
     if (needs_setup) {
       // Keep one stable, actionable setup screen while the saved network joins
@@ -946,29 +1147,35 @@ esp_err_t lantern_network_start(lantern_config_t *config, lantern_network_callba
   }
   ESP_ERROR_CHECK(esp_wifi_start());
   s_wifi_started = true;
-  if (s_status.setup_portal_active) configure_setup_radio();
+  if (s_status.setup_portal_active)
+    configure_setup_radio();
   // Voice commands and streamed PCM are latency-sensitive. Modem power save
   // can defer hotspot packets until the next beacon and cause audible gaps.
   // Keep modem power save on while idle. Recording and streamed speech opt in
   // to the low-latency radio mode explicitly.
   esp_wifi_set_ps(WIFI_PS_MIN_MODEM);
-  if (portal_result != ESP_OK) return portal_result;
-  if (has_wifi && xTaskCreate(connection_task, "lantern_connect", 8192, NULL, 5, NULL) != pdPASS) {
+  if (portal_result != ESP_OK)
+    return portal_result;
+  if (has_wifi && xTaskCreate(connection_task, "lantern_connect", 8192, NULL, 5,
+                              NULL) != pdPASS) {
     return ESP_ERR_NO_MEM;
   }
   return ESP_OK;
 }
 
 void lantern_network_get_status(lantern_network_status_t *status) {
-  if (!status) return;
+  if (!status)
+    return;
   *status = s_status;
   if (status->wifi_connected) {
     wifi_ap_record_t access_point = {0};
     if (esp_wifi_sta_get_ap_info(&access_point) == ESP_OK) {
       status->wifi_rssi = access_point.rssi;
-      if (status->connectivity == LANTERN_CONNECTIVITY_ONLINE && access_point.rssi < -72) {
+      if (status->connectivity == LANTERN_CONNECTIVITY_ONLINE &&
+          access_point.rssi < -72) {
         status->connectivity = LANTERN_CONNECTIVITY_WEAK;
-      } else if (status->connectivity == LANTERN_CONNECTIVITY_WEAK && access_point.rssi >= -72) {
+      } else if (status->connectivity == LANTERN_CONNECTIVITY_WEAK &&
+                 access_point.rssi >= -72) {
         status->connectivity = LANTERN_CONNECTIVITY_ONLINE;
       }
     }
@@ -976,8 +1183,10 @@ void lantern_network_get_status(lantern_network_status_t *status) {
 }
 
 void lantern_network_set_realtime(bool enabled) {
-  if (!s_wifi_started) return;
-  ESP_ERROR_CHECK_WITHOUT_ABORT(esp_wifi_set_ps(enabled ? WIFI_PS_NONE : WIFI_PS_MIN_MODEM));
+  if (!s_wifi_started)
+    return;
+  ESP_ERROR_CHECK_WITHOUT_ABORT(
+      esp_wifi_set_ps(enabled ? WIFI_PS_NONE : WIFI_PS_MIN_MODEM));
 }
 
 esp_err_t lantern_network_open_setup_portal(void) {
@@ -989,33 +1198,40 @@ esp_err_t lantern_network_open_setup_portal(void) {
   return result;
 }
 
-esp_err_t lantern_network_scan_wifi(lantern_wifi_network_t *networks, size_t capacity,
-                                    size_t *count) {
-  if (!networks || !capacity || !count || !s_wifi_started) return ESP_ERR_INVALID_ARG;
+esp_err_t lantern_network_scan_wifi(lantern_wifi_network_t *networks,
+                                    size_t capacity, size_t *count) {
+  if (!networks || !capacity || !count || !s_wifi_started)
+    return ESP_ERR_INVALID_ARG;
   *count = 0;
-  wifi_scan_config_t scan = { .show_hidden = false };
+  wifi_scan_config_t scan = {.show_hidden = false};
   esp_err_t result = esp_wifi_scan_start(&scan, true);
-  if (result != ESP_OK) return result;
+  if (result != ESP_OK)
+    return result;
   uint16_t available = 20;
   wifi_ap_record_t records[20] = {0};
   result = esp_wifi_scan_get_ap_records(&available, records);
-  if (result != ESP_OK) return result;
+  if (result != ESP_OK)
+    return result;
   for (uint16_t index = 0; index < available && *count < capacity; ++index) {
-    if (!records[index].ssid[0]) continue;
+    if (!records[index].ssid[0])
+      continue;
     bool duplicate = false;
     for (size_t prior = 0; prior < *count; ++prior) {
-      if (strcmp(networks[prior].ssid, (const char *)records[index].ssid) == 0) {
+      if (strcmp(networks[prior].ssid, (const char *)records[index].ssid) ==
+          0) {
         duplicate = true;
         break;
       }
     }
-    if (duplicate) continue;
+    if (duplicate)
+      continue;
     lantern_wifi_network_t *output = &networks[(*count)++];
     snprintf(output->ssid, sizeof(output->ssid), "%s", records[index].ssid);
     output->rssi = records[index].rssi;
     output->secured = records[index].authmode != WIFI_AUTH_OPEN;
     output->remembered = false;
-    for (size_t saved = 0; s_config && saved < s_config->wifi_profile_count; ++saved) {
+    for (size_t saved = 0; s_config && saved < s_config->wifi_profile_count;
+         ++saved) {
       if (strcmp(output->ssid, s_config->wifi_profiles[saved].ssid) == 0) {
         output->remembered = true;
         break;
@@ -1026,13 +1242,16 @@ esp_err_t lantern_network_scan_wifi(lantern_wifi_network_t *networks, size_t cap
 }
 
 esp_err_t lantern_network_connect_wifi(const char *ssid, const char *password) {
-  if (!ssid || !ssid[0] || strlen(ssid) > 32 || !password || strlen(password) > 64 ||
-      !s_wifi_started || !s_config) return ESP_ERR_INVALID_ARG;
+  if (!ssid || !ssid[0] || strlen(ssid) > 32 || !password ||
+      strlen(password) > 64 || !s_wifi_started || !s_config)
+    return ESP_ERR_INVALID_ARG;
   wifi_config_t previous = {0};
-  ESP_RETURN_ON_ERROR(esp_wifi_get_config(WIFI_IF_STA, &previous), TAG, "read Wi-Fi config");
+  ESP_RETURN_ON_ERROR(esp_wifi_get_config(WIFI_IF_STA, &previous), TAG,
+                      "read Wi-Fi config");
   wifi_config_t station = {0};
   snprintf((char *)station.sta.ssid, sizeof(station.sta.ssid), "%s", ssid);
-  snprintf((char *)station.sta.password, sizeof(station.sta.password), "%s", password);
+  snprintf((char *)station.sta.password, sizeof(station.sta.password), "%s",
+           password);
   station.sta.threshold.authmode = WIFI_AUTH_OPEN;
   station.sta.pmf_cfg.capable = true;
   station.sta.pmf_cfg.required = false;
@@ -1048,11 +1267,14 @@ esp_err_t lantern_network_connect_wifi(const char *ssid, const char *password) {
   }
   esp_err_t connect_result = esp_wifi_connect();
   s_suspend_auto_reconnect = false;
-  if (connect_result != ESP_OK) return connect_result;
-  EventBits_t bits = xEventGroupWaitBits(s_wifi_events, WIFI_CONNECTED_BIT, pdFALSE, pdTRUE,
-    pdMS_TO_TICKS(20000));
+  if (connect_result != ESP_OK)
+    return connect_result;
+  EventBits_t bits = xEventGroupWaitBits(s_wifi_events, WIFI_CONNECTED_BIT,
+                                         pdFALSE, pdTRUE, pdMS_TO_TICKS(20000));
   if (!(bits & WIFI_CONNECTED_BIT)) {
-    ESP_LOGW(TAG, "Wi-Fi candidate %s did not connect; restoring previous network", ssid);
+    ESP_LOGW(TAG,
+             "Wi-Fi candidate %s did not connect; restoring previous network",
+             ssid);
     s_suspend_auto_reconnect = true;
     esp_wifi_disconnect();
     esp_wifi_set_config(WIFI_IF_STA, &previous);
@@ -1060,32 +1282,38 @@ esp_err_t lantern_network_connect_wifi(const char *ssid, const char *password) {
     s_suspend_auto_reconnect = false;
     return ESP_ERR_TIMEOUT;
   }
-  ESP_RETURN_ON_ERROR(lantern_storage_save_wifi(ssid, password, s_config->pairing_code),
-    TAG, "save Wi-Fi");
+  ESP_RETURN_ON_ERROR(
+      lantern_storage_save_wifi(ssid, password, s_config->pairing_code), TAG,
+      "save Wi-Fi");
   ESP_RETURN_ON_ERROR(lantern_storage_load(s_config), TAG, "reload Wi-Fi");
-  if (lantern_storage_is_paired(s_config) && s_status.setup_portal_active) stop_setup_portal();
+  if (lantern_storage_is_paired(s_config) && s_status.setup_portal_active)
+    stop_setup_portal();
   s_status.connectivity = LANTERN_CONNECTIVITY_WIFI_ONLY;
   notify();
   return ESP_OK;
 }
 
-esp_err_t lantern_network_get_reports(lantern_report_item_t *items, size_t capacity,
-                                      size_t *count) {
+esp_err_t lantern_network_get_reports(lantern_report_item_t *items,
+                                      size_t capacity, size_t *count) {
   if (!items || !capacity || !count || !s_config || !s_status.wifi_connected ||
-      !lantern_storage_is_paired(s_config)) return ESP_ERR_INVALID_STATE;
+      !lantern_storage_is_paired(s_config))
+    return ESP_ERR_INVALID_STATE;
   *count = 0;
   char authorization[140];
   device_authorization(authorization);
   response_buffer_t *response = response_buffer_create();
-  if (!response) return ESP_ERR_NO_MEM;
-  int status = post_json("/api/device/v1/reports", "{\"limit\":5}", authorization, response);
+  if (!response)
+    return ESP_ERR_NO_MEM;
+  int status = post_json("/api/device/v1/reports", "{\"limit\":5}",
+                         authorization, response);
   if (status != 200) {
     provider_error("Report list", status, response);
     free(response);
     return ESP_FAIL;
   }
   cJSON *root = cJSON_Parse(response->data);
-  cJSON *reports = root ? cJSON_GetObjectItemCaseSensitive(root, "reports") : NULL;
+  cJSON *reports =
+      root ? cJSON_GetObjectItemCaseSensitive(root, "reports") : NULL;
   if (!cJSON_IsArray(reports)) {
     cJSON_Delete(root);
     free(response);
@@ -1093,7 +1321,8 @@ esp_err_t lantern_network_get_reports(lantern_report_item_t *items, size_t capac
   }
   cJSON *entry = NULL;
   cJSON_ArrayForEach(entry, reports) {
-    if (*count >= capacity) break;
+    if (*count >= capacity)
+      break;
     lantern_report_item_t *item = &items[(*count)++];
     memset(item, 0, sizeof(*item));
     copy_json_string(entry, "id", item->id, sizeof(item->id));
@@ -1108,59 +1337,128 @@ esp_err_t lantern_network_get_reports(lantern_report_item_t *items, size_t capac
   return ESP_OK;
 }
 
-esp_err_t lantern_network_send_heartbeat(const char *state, unsigned state_version, int battery_level) {
-  if (!s_config || !s_status.wifi_connected || !lantern_storage_is_paired(s_config)) return ESP_ERR_INVALID_STATE;
+static bool acknowledge_pending_transfer(const char *body) {
+  cJSON *json = cJSON_Parse(body);
+  cJSON *transfer =
+      json ? cJSON_GetObjectItemCaseSensitive(json, "transfer") : NULL;
+  cJSON *id =
+      transfer ? cJSON_GetObjectItemCaseSensitive(transfer, "id") : NULL;
+  char transfer_id[37] = {0};
+  if (cJSON_IsString(id) && strlen(id->valuestring) == 36)
+    snprintf(transfer_id, sizeof(transfer_id), "%s", id->valuestring);
+  cJSON_Delete(json);
+  if (!transfer_id[0] || lantern_audio_is_recording() ||
+      lantern_sd_has_private_material())
+    return false;
+  char request[160], authorization[140];
+  snprintf(request, sizeof(request),
+           "{\"transferId\":\"%s\",\"pendingRecordings\":0,"
+           "\"readyForKeyErase\":true}",
+           transfer_id);
+  device_authorization(authorization);
+  response_buffer_t *response = response_buffer_create();
+  if (!response)
+    return false;
+  int status = post_json("/api/device/v1/transfer/ack", request, authorization,
+                         response);
+  free(response);
+  if (status != 200)
+    return false;
+  // The server has released the old credential. No local private files exist;
+  // now erase its archived key and pairing before opening setup for a new UUID.
+  esp_err_t erased = lantern_storage_clear_archive_identity();
+  lantern_sd_clear_identity();
+  esp_err_t cleared = lantern_storage_clear();
+  s_suspend_auto_reconnect = true;
+  esp_wifi_disconnect();
+  esp_err_t wifi_erased = esp_wifi_restore();
+  lantern_audio_clear_private_buffer();
+  lantern_transcript_reset();
+  memset(s_config, 0, sizeof(*s_config));
+  s_status.paired = false;
+  s_report_context[0] = 0;
+  s_report_id[0] = 0;
+  s_playback_id[0] = 0;
+  s_review_token[0] = 0;
+  if (erased != ESP_OK || cleared != ESP_OK || wifi_erased != ESP_OK)
+    ESP_LOGW(TAG, "Transfer cleanup requires verification after restart");
+  lantern_display_show(LANTERN_SCREEN_SETUP, "TRANSFER COMPLETE - RESTARTING");
+  vTaskDelay(pdMS_TO_TICKS(500));
+  esp_restart();
+  return true;
+}
+
+esp_err_t lantern_network_send_heartbeat(const char *state,
+                                         unsigned state_version,
+                                         int battery_level) {
+  if (!s_config || !s_status.wifi_connected ||
+      !lantern_storage_is_paired(s_config))
+    return ESP_ERR_INVALID_STATE;
   char event_id[37];
   uuid_v4(event_id);
   char authorization[140];
-  snprintf(authorization, sizeof(authorization), "Device %s.%s", s_config->device_id, s_config->device_secret);
+  snprintf(authorization, sizeof(authorization), "Device %s.%s",
+           s_config->device_id, s_config->device_secret);
   char body[512];
   char battery[16];
-  if (battery_level < 0) snprintf(battery, sizeof(battery), "null");
-  else snprintf(battery, sizeof(battery), "%d", battery_level);
+  if (battery_level < 0)
+    snprintf(battery, sizeof(battery), "null");
+  else
+    snprintf(battery, sizeof(battery), "%d", battery_level);
   snprintf(body, sizeof(body),
-    "{\"eventId\":\"%s\",\"firmwareVersion\":\"%s\",\"state\":\"%s\","
-    "\"stateVersion\":%u,\"batteryLevel\":%s,\"networkType\":\"wifi\","
-    "\"freeHeapBytes\":%u,\"lastError\":null}",
-    event_id, LANTERN_FIRMWARE_VERSION, state, state_version, battery,
-    (unsigned)esp_get_free_heap_size());
+           "{\"eventId\":\"%s\",\"firmwareVersion\":\"%s\",\"state\":\"%s\","
+           "\"stateVersion\":%u,\"batteryLevel\":%s,\"networkType\":\"wifi\","
+           "\"freeHeapBytes\":%u,\"lastError\":null}",
+           event_id, LANTERN_FIRMWARE_VERSION, state, state_version, battery,
+           (unsigned)esp_get_free_heap_size());
   response_buffer_t *response = response_buffer_create();
-  if (!response) return ESP_ERR_NO_MEM;
-  int status = post_json("/api/device/v1/heartbeat", body, authorization, response);
+  if (!response)
+    return ESP_ERR_NO_MEM;
+  int status =
+      post_json("/api/device/v1/heartbeat", body, authorization, response);
   if (status != 200) {
     ESP_LOGW(TAG, "heartbeat HTTP %d: %.192s", status, response->data);
     recover_rejected_credential(status);
     s_status.connectivity = s_status.wifi_connected
-      ? LANTERN_CONNECTIVITY_WIFI_ONLY : LANTERN_CONNECTIVITY_RECONNECTING;
+                                ? LANTERN_CONNECTIVITY_WIFI_ONLY
+                                : LANTERN_CONNECTIVITY_RECONNECTING;
     notify();
     free(response);
     return ESP_FAIL;
   }
+  bool transferred = acknowledge_pending_transfer(response->data);
   free(response);
+  if (transferred)
+    return ESP_OK;
   s_status.connectivity = s_status.wifi_rssi < -72
-    ? LANTERN_CONNECTIVITY_WEAK : LANTERN_CONNECTIVITY_ONLINE;
+                              ? LANTERN_CONNECTIVITY_WEAK
+                              : LANTERN_CONNECTIVITY_ONLINE;
   s_status.last_error[0] = '\0';
   notify();
   ESP_LOGI(TAG, "heartbeat acknowledged");
   return ESP_OK;
 }
 
-static esp_err_t play_briefing_page(const char *kind, int battery_level, bool interruptible) {
-  if (!kind || !s_config || !s_status.wifi_connected || !lantern_storage_is_paired(s_config)) {
+static esp_err_t play_briefing_page(const char *kind, int battery_level,
+                                    bool interruptible) {
+  if (!kind || !s_config || !s_status.wifi_connected ||
+      !lantern_storage_is_paired(s_config)) {
     return ESP_ERR_INVALID_STATE;
   }
   char url[256];
   snprintf(url, sizeof(url), "%s/api/device/v1/briefing", LANTERN_API_BASE_URL);
   audio_response_t *audio = heap_caps_calloc(
-    1, sizeof(audio_response_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-  if (!audio) return ESP_ERR_NO_MEM;
+      1, sizeof(audio_response_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  if (!audio)
+    return ESP_ERR_NO_MEM;
   esp_http_client_config_t config = {
-    .url = url,
-    .event_handler = audio_http_event,
-    .user_data = audio,
-    .timeout_ms = 60000,
-    .crt_bundle_attach = esp_crt_bundle_attach,
-    .buffer_size = 4096,
+      .url = url,
+      .event_handler = audio_http_event,
+      .user_data = audio,
+      .timeout_ms = 60000,
+      .crt_bundle_attach = esp_crt_bundle_attach,
+      .disable_auto_redirect = true,
+      .buffer_size = 4096,
   };
   esp_http_client_handle_t client = esp_http_client_init(&config);
   if (!client) {
@@ -1171,29 +1469,42 @@ static esp_err_t play_briefing_page(const char *kind, int battery_level, bool in
   device_authorization(authorization);
   char body[200];
   char battery[16];
-  if (battery_level < 0) snprintf(battery, sizeof(battery), "null");
-  else snprintf(battery, sizeof(battery), "%d", battery_level);
+  if (battery_level < 0)
+    snprintf(battery, sizeof(battery), "null");
+  else
+    snprintf(battery, sizeof(battery), "%d", battery_level);
   if (s_report_id[0])
-    snprintf(body, sizeof(body), "{\"kind\":\"%s\",\"batteryLevel\":%s,\"reportId\":\"%s\",\"page\":%u}", kind, battery, s_report_id, s_report_page);
-  else snprintf(body, sizeof(body), "{\"kind\":\"%s\",\"batteryLevel\":%s}", kind, battery);
+    snprintf(
+        body, sizeof(body),
+        "{\"kind\":\"%s\",\"batteryLevel\":%s,\"reportId\":\"%s\",\"page\":%u}",
+        kind, battery, s_report_id, s_report_page);
+  else
+    snprintf(body, sizeof(body), "{\"kind\":\"%s\",\"batteryLevel\":%s}", kind,
+             battery);
   esp_http_client_set_method(client, HTTP_METHOD_POST);
   esp_http_client_set_header(client, "Content-Type", "application/json");
   esp_http_client_set_header(client, "Authorization", authorization);
   esp_http_client_set_header(client, "X-Lantern-Protocol", "3");
   esp_http_client_set_post_field(client, body, (int)strlen(body));
-  esp_err_t result = perform_audio_request(client, body, strlen(body), audio, interruptible);
+  esp_err_t result =
+      perform_audio_request(client, body, strlen(body), audio, interruptible);
   if (result == LANTERN_REPORT_INTERRUPTED) {
-    esp_http_client_cleanup(client); free(audio); return result;
+    esp_http_client_cleanup(client);
+    free(audio);
+    return result;
   }
   int status = result == ESP_OK ? esp_http_client_get_status_code(client) : -1;
-  if (audio->playback_started) lantern_audio_pcm_end();
+  if (audio->playback_started)
+    lantern_audio_pcm_end();
   bool success = result == ESP_OK && status == 200 && audio->content_is_pcm &&
-    audio->audio_bytes > 0 && !audio->playback_failed;
+                 audio->audio_bytes > 0 && !audio->playback_failed;
   if (!success) {
-    ESP_LOGW(TAG, "briefing %s failed HTTP %d: %.192s", kind, status, audio->response.data);
+    ESP_LOGW(TAG, "briefing %s failed HTTP %d: %.192s", kind, status,
+             audio->response.data);
     recover_rejected_credential(status);
   } else {
-    ESP_LOGI(TAG, "briefing %s played %u PCM bytes", kind, (unsigned)audio->audio_bytes);
+    ESP_LOGI(TAG, "briefing %s played %u PCM bytes", kind,
+             (unsigned)audio->audio_bytes);
     snprintf(s_report_id, sizeof(s_report_id), "%s", audio->report_id);
     s_report_page = audio->report_page;
     snprintf(s_review_token, sizeof(s_review_token), "%s", audio->review_token);
@@ -1204,14 +1515,19 @@ static esp_err_t play_briefing_page(const char *kind, int battery_level, bool in
 }
 
 bool lantern_network_review_pending(void) { return s_review_token[0] != '\0'; }
-void lantern_network_cancel_review(void) { s_review_token[0] = '\0'; s_report_id[0] = '\0'; }
+void lantern_network_cancel_review(void) {
+  s_review_token[0] = '\0';
+  s_report_id[0] = '\0';
+}
 
 esp_err_t lantern_network_play_briefing(const char *kind, int battery_level) {
-  if (s_report_request_active) return ESP_ERR_INVALID_STATE;
+  if (s_report_request_active)
+    return ESP_ERR_INVALID_STATE;
   s_report_request_active = true;
   lantern_network_cancel_review();
   do {
-    esp_err_t result = play_briefing_page(kind, battery_level, strcmp(kind, "status") == 0);
+    esp_err_t result =
+        play_briefing_page(kind, battery_level, strcmp(kind, "status") == 0);
     if (result != ESP_OK) {
       lantern_network_cancel_review();
       s_report_request_active = false;
@@ -1223,21 +1539,24 @@ esp_err_t lantern_network_play_briefing(const char *kind, int battery_level) {
 }
 
 esp_err_t lantern_network_play_prompt(const char *kind) {
-  if (!kind || !s_config || !s_status.wifi_connected || !lantern_storage_is_paired(s_config)) {
+  if (!kind || !s_config || !s_status.wifi_connected ||
+      !lantern_storage_is_paired(s_config)) {
     return ESP_ERR_INVALID_STATE;
   }
   char url[256];
   snprintf(url, sizeof(url), "%s/api/device/v1/speak", LANTERN_API_BASE_URL);
   audio_response_t *audio = heap_caps_calloc(
-    1, sizeof(audio_response_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-  if (!audio) return ESP_ERR_NO_MEM;
+      1, sizeof(audio_response_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  if (!audio)
+    return ESP_ERR_NO_MEM;
   esp_http_client_config_t config = {
-    .url = url,
-    .event_handler = audio_http_event,
-    .user_data = audio,
-    .timeout_ms = 60000,
-    .crt_bundle_attach = esp_crt_bundle_attach,
-    .buffer_size = 4096,
+      .url = url,
+      .event_handler = audio_http_event,
+      .user_data = audio,
+      .timeout_ms = 60000,
+      .crt_bundle_attach = esp_crt_bundle_attach,
+      .disable_auto_redirect = true,
+      .buffer_size = 4096,
   };
   esp_http_client_handle_t client = esp_http_client_init(&config);
   if (!client) {
@@ -1254,33 +1573,40 @@ esp_err_t lantern_network_play_prompt(const char *kind) {
   esp_http_client_set_post_field(client, body, (int)strlen(body));
   esp_err_t result = esp_http_client_perform(client);
   int status = result == ESP_OK ? esp_http_client_get_status_code(client) : -1;
-  if (audio->playback_started) lantern_audio_pcm_end();
+  if (audio->playback_started)
+    lantern_audio_pcm_end();
   bool success = result == ESP_OK && status == 200 && audio->content_is_pcm &&
-    audio->audio_bytes > 0 && !audio->playback_failed;
+                 audio->audio_bytes > 0 && !audio->playback_failed;
   if (!success) {
-    ESP_LOGW(TAG, "prompt %s failed HTTP %d: %.192s", kind, status, audio->response.data);
+    ESP_LOGW(TAG, "prompt %s failed HTTP %d: %.192s", kind, status,
+             audio->response.data);
     recover_rejected_credential(status);
   } else {
-    ESP_LOGI(TAG, "prompt %s played %u PCM bytes", kind, (unsigned)audio->audio_bytes);
+    ESP_LOGI(TAG, "prompt %s played %u PCM bytes", kind,
+             (unsigned)audio->audio_bytes);
   }
   esp_http_client_cleanup(client);
   free(audio);
   return success ? ESP_OK : ESP_FAIL;
 }
 
-esp_err_t lantern_network_run_voice_command(const char *context, int battery_level,
-                                            char *intent, size_t intent_capacity) {
-  if (!context || !intent || !intent_capacity || !s_config || !s_status.wifi_connected ||
-      !lantern_storage_is_paired(s_config)) {
+esp_err_t lantern_network_run_voice_command(const char *context,
+                                            int battery_level, char *intent,
+                                            size_t intent_capacity) {
+  if (!context || !intent || !intent_capacity || !s_config ||
+      !s_status.wifi_connected || !lantern_storage_is_paired(s_config)) {
     return ESP_ERR_INVALID_ARG;
   }
   intent[0] = '\0';
   size_t samples = lantern_audio_buffered_samples();
-  if (!samples) return ESP_ERR_INVALID_STATE;
+  if (!samples)
+    return ESP_ERR_INVALID_STATE;
   size_t data_bytes = samples * sizeof(int16_t);
   size_t wav_size = 44 + data_bytes;
-  uint8_t *wav = heap_caps_malloc(wav_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-  if (!wav) return ESP_ERR_NO_MEM;
+  uint8_t *wav =
+      heap_caps_malloc(wav_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  if (!wav)
+    return ESP_ERR_NO_MEM;
   memset(wav, 0, 44);
   memcpy(wav, "RIFF", 4);
   wav_u32(wav + 4, 36 + (uint32_t)data_bytes);
@@ -1305,18 +1631,19 @@ esp_err_t lantern_network_run_voice_command(const char *context, int battery_lev
   device_authorization(authorization);
   snprintf(battery, sizeof(battery), "%d", battery_level);
   audio_response_t *audio = heap_caps_calloc(
-    1, sizeof(audio_response_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+      1, sizeof(audio_response_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
   if (!audio) {
     free(wav);
     return ESP_ERR_NO_MEM;
   }
   esp_http_client_config_t config = {
-    .url = url,
-    .event_handler = audio_http_event,
-    .user_data = audio,
-    .timeout_ms = 120000,
-    .crt_bundle_attach = esp_crt_bundle_attach,
-    .buffer_size_tx = 4096,
+      .url = url,
+      .event_handler = audio_http_event,
+      .user_data = audio,
+      .timeout_ms = 120000,
+      .crt_bundle_attach = esp_crt_bundle_attach,
+      .disable_auto_redirect = true,
+      .buffer_size_tx = 4096,
   };
   esp_http_client_handle_t client = esp_http_client_init(&config);
   if (!client) {
@@ -1329,23 +1656,31 @@ esp_err_t lantern_network_run_voice_command(const char *context, int battery_lev
   esp_http_client_set_header(client, "Authorization", authorization);
   esp_http_client_set_header(client, "X-Lantern-Command-Context", context);
   esp_http_client_set_header(client, "X-Lantern-Protocol", "3");
-  if ((strcmp(context, "report") == 0 || strcmp(context, "wake_command") == 0) && s_report_context[0]) {
+  if ((strcmp(context, "report") == 0 ||
+       strcmp(context, "wake_command") == 0) &&
+      s_report_context[0]) {
     esp_http_client_set_header(client, "X-Quipus-Context-Id", s_report_context);
     esp_http_client_set_header(client, "X-Quipus-Playback-Id", s_playback_id);
-    char page[12]; snprintf(page, sizeof(page), "%u", s_playback_page);
+    char page[12];
+    snprintf(page, sizeof(page), "%u", s_playback_page);
     esp_http_client_set_header(client, "X-Quipus-Playback-Page", page);
   }
   if (strcmp(context, "action") == 0 && s_review_token[0])
-    esp_http_client_set_header(client, "X-Lantern-Review-Token", s_review_token);
+    esp_http_client_set_header(client, "X-Lantern-Review-Token",
+                               s_review_token);
   esp_http_client_set_header(client, "X-Lantern-Battery-Level", battery);
   esp_http_client_set_post_field(client, (const char *)wav, (int)wav_size);
-  esp_err_t result = perform_audio_request(client, wav, wav_size, audio, strcmp(context, "report") == 0);
+  esp_err_t result = perform_audio_request(client, wav, wav_size, audio,
+                                           strcmp(context, "report") == 0);
   int status = result == ESP_OK ? esp_http_client_get_status_code(client) : -1;
-  if (audio->playback_started) lantern_audio_pcm_end();
+  if (audio->playback_started)
+    lantern_audio_pcm_end();
   esp_http_client_cleanup(client);
   free(wav);
   if (result == LANTERN_REPORT_INTERRUPTED) {
-    snprintf(intent, intent_capacity, "report_answer"); free(audio); return result;
+    snprintf(intent, intent_capacity, "report_answer");
+    free(audio);
+    return result;
   }
   if (result == ESP_OK && status == 204) {
     ESP_LOGI(TAG, "cloud wake verifier ignored a non-Quipus utterance");
@@ -1356,11 +1691,13 @@ esp_err_t lantern_network_run_voice_command(const char *context, int battery_lev
       !audio->audio_bytes || audio->playback_failed || !audio->command[0]) {
     recover_rejected_credential(status);
     if (!audio->content_is_pcm && audio->response.length) {
-      ESP_LOGW(TAG, "voice command HTTP %d: %.192s", status, audio->response.data);
+      ESP_LOGW(TAG, "voice command HTTP %d: %.192s", status,
+               audio->response.data);
     } else {
-      ESP_LOGW(TAG, "voice command failed result=%s HTTP %d bytes=%u command=%s",
-        esp_err_to_name(result), status, (unsigned)audio->audio_bytes,
-        audio->command[0] ? audio->command : "missing");
+      ESP_LOGW(TAG,
+               "voice command failed result=%s HTTP %d bytes=%u command=%s",
+               esp_err_to_name(result), status, (unsigned)audio->audio_bytes,
+               audio->command[0] ? audio->command : "missing");
     }
     free(audio);
     return ESP_FAIL;
@@ -1369,10 +1706,12 @@ esp_err_t lantern_network_run_voice_command(const char *context, int battery_lev
   snprintf(s_review_token, sizeof(s_review_token), "%s", audio->review_token);
   snprintf(s_report_id, sizeof(s_report_id), "%s", audio->report_id);
   s_report_page = audio->report_page;
-  ESP_LOGI(TAG, "voice command %s played %u PCM bytes", intent, (unsigned)audio->audio_bytes);
+  ESP_LOGI(TAG, "voice command %s played %u PCM bytes", intent,
+           (unsigned)audio->audio_bytes);
   free(audio);
   while (s_report_id[0]) {
-    esp_err_t page_result = play_briefing_page("status", battery_level, strcmp(context, "action") != 0);
+    esp_err_t page_result = play_briefing_page("status", battery_level,
+                                               strcmp(context, "action") != 0);
     if (page_result != ESP_OK) {
       lantern_network_cancel_review();
       return page_result;
@@ -1382,7 +1721,8 @@ esp_err_t lantern_network_run_voice_command(const char *context, int battery_lev
 }
 
 esp_err_t lantern_network_restart_session(void) {
-  if (!s_config || !s_status.wifi_connected || !lantern_storage_is_paired(s_config)) {
+  if (!s_config || !s_status.wifi_connected ||
+      !lantern_storage_is_paired(s_config)) {
     return ESP_ERR_INVALID_STATE;
   }
   char event_id[37];
@@ -1392,8 +1732,10 @@ esp_err_t lantern_network_restart_session(void) {
   char authorization[140];
   device_authorization(authorization);
   response_buffer_t *response = response_buffer_create();
-  if (!response) return ESP_ERR_NO_MEM;
-  int status = post_json("/api/device/v1/restart", body, authorization, response);
+  if (!response)
+    return ESP_ERR_NO_MEM;
+  int status =
+      post_json("/api/device/v1/restart", body, authorization, response);
   if (status != 200) {
     provider_error("Session restart", status, response);
     free(response);
@@ -1405,35 +1747,49 @@ esp_err_t lantern_network_restart_session(void) {
 }
 
 esp_err_t lantern_network_begin_quick(lantern_cloud_session_t *session) {
-  if (!session || !s_config || !s_status.wifi_connected || !lantern_storage_is_paired(s_config)) {
+  if (!session || !s_config || !s_status.wifi_connected ||
+      !lantern_storage_is_paired(s_config)) {
     return ESP_ERR_INVALID_STATE;
   }
   char preserved_event_id[37];
-  snprintf(preserved_event_id, sizeof(preserved_event_id), "%s", session->begin_event_id);
+  snprintf(preserved_event_id, sizeof(preserved_event_id), "%s",
+           session->begin_event_id);
 
   for (unsigned attempt = 0; attempt < 2; ++attempt) {
     memset(session, 0, sizeof(*session));
     if (attempt == 0 && preserved_event_id[0]) {
       snprintf(session->begin_event_id, sizeof(session->begin_event_id), "%s",
-        preserved_event_id);
+               preserved_event_id);
     } else {
       uuid_v4(session->begin_event_id);
     }
 
     char body[128];
     snprintf(body, sizeof(body), "{\"eventId\":\"%s\",\"mode\":\"quick\"}",
-      session->begin_event_id);
+             session->begin_event_id);
     char authorization[140];
     device_authorization(authorization);
     response_buffer_t *response = response_buffer_create();
-    if (!response) return ESP_ERR_NO_MEM;
-    int status = post_json("/api/device/v1/sessions", body, authorization, response);
+    if (!response)
+      return ESP_ERR_NO_MEM;
+    int status =
+        post_json("/api/device/v1/sessions", body, authorization, response);
 
+    if (status == 409 && LANTERN_HAS_SD_CARD &&
+        lantern_sd_pending_count() > 0) {
+      // A queued meeting may still own the cloud session. Start the next one
+      // locally instead of resetting and orphaning its resumable upload.
+      free(response);
+      return ESP_FAIL;
+    }
     if (status == 409 && attempt == 0) {
       provider_error("Session start", status, response);
       free(response);
-      ESP_LOGW(TAG, "stale cloud session detected; resetting it before one fresh start");
-      if (lantern_network_restart_session() != ESP_OK) return ESP_FAIL;
+      ESP_LOGW(
+          TAG,
+          "stale cloud session detected; resetting it before one fresh start");
+      if (lantern_network_restart_session() != ESP_OK)
+        return ESP_FAIL;
       continue;
     }
     if (status != 201 && status != 200) {
@@ -1441,7 +1797,8 @@ esp_err_t lantern_network_begin_quick(lantern_cloud_session_t *session) {
       free(response);
       return ESP_FAIL;
     }
-    bool valid = parse_session_response(response->data, session, NULL) && session->prompt_id[0];
+    bool valid = parse_session_response(response->data, session, NULL) &&
+                 session->prompt_id[0];
     free(response);
     if (!valid) {
       set_error("Session response was invalid");
@@ -1452,26 +1809,37 @@ esp_err_t lantern_network_begin_quick(lantern_cloud_session_t *session) {
   return ESP_FAIL;
 }
 
-static esp_err_t send_session_event(lantern_cloud_session_t *session, const char *event_json,
+static esp_err_t send_session_event(lantern_cloud_session_t *session,
+                                    const char *event_json,
                                     lantern_agora_transport_t *transport,
                                     char persistent_event_id[37]) {
-  if (!session || !session->session_id[0]) return ESP_ERR_INVALID_ARG;
+  if (!session || !session->session_id[0])
+    return ESP_ERR_INVALID_ARG;
   char event_id[37];
   char *selected_event_id = event_id;
   if (persistent_event_id) {
-    if (!persistent_event_id[0]) uuid_v4(persistent_event_id);
+    if (!persistent_event_id[0])
+      uuid_v4(persistent_event_id);
     selected_event_id = persistent_event_id;
   } else {
     uuid_v4(event_id);
   }
+  // Persist idempotency before the control request can commit remotely.
+  if (persistent_event_id &&
+      lantern_sd_recording_matches_session(session->session_id)) {
+    if (lantern_sd_checkpoint(session, false, false, false) != ESP_OK)
+      return ESP_FAIL;
+  }
   char path[160];
-  snprintf(path, sizeof(path), "/api/device/v1/sessions/%s/events", session->session_id);
+  snprintf(path, sizeof(path), "/api/device/v1/sessions/%s/events",
+           session->session_id);
   size_t needed = strlen(event_json) + 180;
   char *body = heap_caps_malloc(needed, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-  if (!body) return ESP_ERR_NO_MEM;
+  if (!body)
+    return ESP_ERR_NO_MEM;
   snprintf(body, needed,
-    "{\"eventId\":\"%s\",\"expectedVersion\":%u,\"event\":%s}",
-    selected_event_id, session->version, event_json);
+           "{\"eventId\":\"%s\",\"expectedVersion\":%u,\"event\":%s}",
+           selected_event_id, session->version, event_json);
   char authorization[140];
   device_authorization(authorization);
   response_buffer_t *response = response_buffer_create();
@@ -1495,18 +1863,21 @@ static esp_err_t send_session_event(lantern_cloud_session_t *session, const char
   return ESP_OK;
 }
 
-esp_err_t lantern_network_confirm_consent(lantern_cloud_session_t *session, bool accepted,
-                                          lantern_agora_transport_t *transport) {
+esp_err_t
+lantern_network_confirm_consent(lantern_cloud_session_t *session, bool accepted,
+                                lantern_agora_transport_t *transport) {
   char event[320];
   snprintf(event, sizeof(event),
-    "{\"type\":\"RECORDING_CONSENT\",\"at\":\"1970-01-01T00:00:00Z\"," 
-    "\"promptId\":\"%s\",\"accepted\":%s}",
-    session ? session->prompt_id : "", accepted ? "true" : "false");
+           "{\"type\":\"RECORDING_CONSENT\",\"at\":\"1970-01-01T00:00:00Z\","
+           "\"promptId\":\"%s\",\"accepted\":%s}",
+           session ? session->prompt_id : "", accepted ? "true" : "false");
   esp_err_t result = send_session_event(
-    session, event, transport, session ? session->consent_event_id : NULL);
-  if (result != ESP_OK || !accepted) return result;
+      session, event, transport, session ? session->consent_event_id : NULL);
+  if (result != ESP_OK || !accepted)
+    return result;
   if (!transport || !transport->app_id[0] || !transport->channel[0] ||
-      !transport->token[0] || !transport->publisher_uid || !transport->stt_bot_uid) {
+      !transport->token[0] || !transport->publisher_uid ||
+      !transport->stt_bot_uid) {
     set_error("Agora transport was missing");
     return ESP_FAIL;
   }
@@ -1515,32 +1886,38 @@ esp_err_t lantern_network_confirm_consent(lantern_cloud_session_t *session, bool
 
 esp_err_t lantern_network_capture_started(lantern_cloud_session_t *session) {
   return send_session_event(
-    session, "{\"type\":\"CAPTURE_STARTED\",\"at\":\"1970-01-01T00:00:00Z\"}", NULL,
-    session ? session->capture_event_id : NULL);
+      session, "{\"type\":\"CAPTURE_STARTED\",\"at\":\"1970-01-01T00:00:00Z\"}",
+      NULL, session ? session->capture_event_id : NULL);
 }
 
 esp_err_t lantern_network_stop_recording(lantern_cloud_session_t *session) {
   return send_session_event(
-    session, "{\"type\":\"STOP\",\"at\":\"1970-01-01T00:00:00Z\"}", NULL,
-    session ? session->stop_event_id : NULL);
+      session, "{\"type\":\"STOP\",\"at\":\"1970-01-01T00:00:00Z\"}", NULL,
+      session ? session->stop_event_id : NULL);
 }
 
 esp_err_t lantern_network_abort_session(lantern_cloud_session_t *session) {
   return send_session_event(
-    session, "{\"type\":\"RESET\",\"at\":\"1970-01-01T00:00:00Z\"}", NULL, NULL);
+      session, "{\"type\":\"RESET\",\"at\":\"1970-01-01T00:00:00Z\"}", NULL,
+      NULL);
 }
 
 esp_err_t lantern_network_upload_transcript(lantern_cloud_session_t *session) {
-  if (!session || !session->session_id[0] || !lantern_transcript_size()) return ESP_ERR_INVALID_STATE;
+  if (!session || !session->session_id[0] || !lantern_transcript_size())
+    return ESP_ERR_INVALID_STATE;
   char path[168], authorization[140], event_id[37];
-  snprintf(path, sizeof(path), "/api/device/v1/sessions/%s/transcript", session->session_id);
+  snprintf(path, sizeof(path), "/api/device/v1/sessions/%s/transcript",
+           session->session_id);
   device_authorization(authorization);
-  if (!session->transcript_event_id[0]) uuid_v4(session->transcript_event_id);
+  if (!session->transcript_event_id[0])
+    uuid_v4(session->transcript_event_id);
   snprintf(event_id, sizeof(event_id), "%s", session->transcript_event_id);
   response_buffer_t *response = response_buffer_create();
-  if (!response) return ESP_ERR_NO_MEM;
+  if (!response)
+    return ESP_ERR_NO_MEM;
   int status = post_binary(path, "application/x-lantern-agora-caption-batch",
-    lantern_transcript_data(), lantern_transcript_size(), authorization, event_id, response);
+                           lantern_transcript_data(), lantern_transcript_size(),
+                           authorization, event_id, response);
   if (status != 201 && status != 200) {
     provider_error("Transcript upload", status, response);
     free(response);
@@ -1558,28 +1935,53 @@ typedef struct {
   char sha256[65];
 } upload_fingerprint_t;
 
+static void append_phone_timing(char *body, size_t capacity) {
+  size_t length = strlen(body);
+  const char *timing = lantern_sd_phone_timing();
+  if (length && body[length - 1] == '}' && timing && timing[0]) {
+    body[length - 1] = 0;
+    snprintf(body + length - 1, capacity - length + 1,
+             ",\"timingManifest\":%s}", timing);
+  }
+}
+
 static esp_err_t upload_sd_direct(lantern_cloud_session_t *session,
-                                 upload_fingerprint_t *fingerprint, bool recover_commit) {
+                                  upload_fingerprint_t *fingerprint,
+                                  bool recover_commit, bool phone) {
   const int64_t started_at = esp_timer_get_time();
   int64_t hash_read_us = 0, hash_cpu_us = 0, recover_us = 0, prepare_us = 0;
   int64_t connect_us = 0, read_us = 0, write_us = 0, acknowledge_us = 0;
   int64_t progress_us = 0, commit_us = 0, measured_at;
   size_t sent_bytes = 0, confirmed_bytes = 0;
   const char *stage = "open SD";
-  const char *filename = lantern_sd_recording_path();
-  size_t total = lantern_sd_recording_size();
-  FILE *file = filename ? fopen(filename, "rb") : NULL;
-  if (!file || total <= 44) { if (file) fclose(file); return ESP_FAIL; }
-  uint8_t *buffer = heap_caps_malloc(UPLOAD_READ_BYTES, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  size_t total = phone ? lantern_sd_phone_size() : lantern_sd_recording_size();
+  lantern_sd_reader_t *file = lantern_sd_reader_open(phone);
+  const char *event_id =
+      phone ? session->phone_event_id : session->audio_event_id;
+  if (!file || total <= 44) {
+    if (file)
+      lantern_sd_reader_close(file);
+    return ESP_FAIL;
+  }
+  uint8_t *buffer =
+      heap_caps_malloc(UPLOAD_READ_BYTES, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
   response_buffer_t *response = response_buffer_create();
-  if (!buffer || !response) { free(buffer); free(response); fclose(file); return ESP_ERR_NO_MEM; }
+  if (!buffer || !response) {
+    free(buffer);
+    free(response);
+    lantern_sd_reader_close(file);
+    return ESP_ERR_NO_MEM;
+  }
   esp_err_t result = ESP_FAIL;
   esp_http_client_handle_t upload = NULL;
   cJSON *json = NULL;
-  char path[160], authorization[140], body[256];
+  char path[192], authorization[140], body[1200];
   int status;
   device_authorization(authorization);
-  snprintf(path, sizeof(path), "/api/device/v1/sessions/%s/upload", session->session_id);
+  snprintf(path, sizeof(path),
+           phone ? "/api/device/v1/sessions/%s/sources/phone"
+                 : "/api/device/v1/sessions/%s/upload",
+           session->session_id);
   // The finalized WAV is immutable throughout this retry loop. Reuse its
   // fingerprint on reconnect; a later user-triggered upload hashes afresh.
   stage = "checksum";
@@ -1591,60 +1993,109 @@ static esp_err_t upload_sd_direct(lantern_cloud_session_t *session,
     size_t hashed = 0;
     while (!hash_error && hashed < total) {
       measured_at = esp_timer_get_time();
-      size_t n = fread(buffer, 1,
-        total - hashed < UPLOAD_READ_BYTES ? total - hashed : UPLOAD_READ_BYTES, file);
+      size_t n = lantern_sd_reader_read(file, buffer,
+                                        total - hashed < UPLOAD_READ_BYTES
+                                            ? total - hashed
+                                            : UPLOAD_READ_BYTES);
       hash_read_us += esp_timer_get_time() - measured_at;
-      if (!n) { hash_error = -1; break; }
+      if (!n) {
+        hash_error = -1;
+        break;
+      }
       measured_at = esp_timer_get_time();
       hash_error = mbedtls_sha256_update(&sha, buffer, n);
       hash_cpu_us += esp_timer_get_time() - measured_at;
       hashed += n;
     }
     unsigned char digest[32];
-    if (!hash_error) hash_error = mbedtls_sha256_finish(&sha, digest);
+    if (!hash_error)
+      hash_error = mbedtls_sha256_finish(&sha, digest);
     mbedtls_sha256_free(&sha);
-    if (hash_error) goto done;
-    for (unsigned i = 0; i < 32; ++i) snprintf(fingerprint->sha256 + i * 2, 3, "%02x", digest[i]);
+    if (hash_error)
+      goto done;
+    for (unsigned i = 0; i < 32; ++i)
+      snprintf(fingerprint->sha256 + i * 2, 3, "%02x", digest[i]);
     fingerprint->bytes = total;
   }
-  if (fingerprint->bytes != total) goto done;
+  if (fingerprint->bytes != total)
+    goto done;
   const char *hex = fingerprint->sha256;
   // Fresh recordings cannot already exist in Storage. Only retries need the
   // recovery check for a completed PATCH whose acknowledgement was lost.
   if (recover_commit) {
     stage = "recover commit";
-    snprintf(body, sizeof(body), "{\"action\":\"commit\",\"eventId\":\"%s\",\"bytes\":%u,\"sha256\":\"%s\"}", session->audio_event_id, (unsigned)total, hex);
+    snprintf(body, sizeof(body),
+             "{\"action\":\"commit\",\"eventId\":\"%s\",\"bytes\":%u,"
+             "\"sha256\":\"%s\"}",
+             event_id, (unsigned)total, hex);
     measured_at = esp_timer_get_time();
-    status = post_json_with_timeout(path, body, authorization, response, 120000);
+    if (phone)
+      append_phone_timing(body, sizeof(body));
+    status =
+        post_json_with_timeout(path, body, authorization, response, 120000);
     recover_us += esp_timer_get_time() - measured_at;
-    if (status == 200) { confirmed_bytes = total; result = ESP_OK; goto done; }
-    if (status == 404) { result = ESP_ERR_NOT_SUPPORTED; goto done; }
+    if (status == 200) {
+      confirmed_bytes = total;
+      result = ESP_OK;
+      goto done;
+    }
+    if (status == 404) {
+      result = ESP_ERR_NOT_SUPPORTED;
+      goto done;
+    }
   }
   stage = "prepare";
   lantern_display_show(LANTERN_SCREEN_SAVING, "CONNECTING TO STORAGE");
-  snprintf(body, sizeof(body), "{\"action\":\"prepare\",\"eventId\":\"%s\",\"bytes\":%u,\"sha256\":\"%s\"}", session->audio_event_id, (unsigned)total, hex);
+  snprintf(body, sizeof(body),
+           "{\"action\":\"prepare\",\"eventId\":\"%s\",\"bytes\":%u,\"sha256\":"
+           "\"%s\"}",
+           event_id, (unsigned)total, hex);
   measured_at = esp_timer_get_time();
+  if (phone)
+    append_phone_timing(body, sizeof(body));
   status = post_json_with_timeout(path, body, authorization, response, 60000);
   prepare_us += esp_timer_get_time() - measured_at;
-  if (status == 404) { result = ESP_ERR_NOT_SUPPORTED; goto done; }
-  if (status != 200) { provider_error("Resume audio", status, response); goto done; }
+  if (status == 404) {
+    result = ESP_ERR_NOT_SUPPORTED;
+    goto done;
+  }
+  if (status != 200) {
+    provider_error("Resume audio", status, response);
+    goto done;
+  }
   json = cJSON_Parse(response->data);
-  if (json && cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, "archived"))) { confirmed_bytes = total; result = ESP_OK; goto done; }
-  cJSON *url = json ? cJSON_GetObjectItemCaseSensitive(json, "uploadUrl") : NULL;
+  if (json &&
+      cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, "archived"))) {
+    confirmed_bytes = total;
+    result = ESP_OK;
+    goto done;
+  }
+  cJSON *url =
+      json ? cJSON_GetObjectItemCaseSensitive(json, "uploadUrl") : NULL;
   cJSON *token = json ? cJSON_GetObjectItemCaseSensitive(json, "token") : NULL;
-  cJSON *offset_value = json ? cJSON_GetObjectItemCaseSensitive(json, "uploadedBytes") : NULL;
-  if (!cJSON_IsString(url) || !cJSON_IsString(token) || !cJSON_IsNumber(offset_value) ||
-      strncmp(url->valuestring, "https://", 8) != 0 || offset_value->valuedouble < 0 || offset_value->valuedouble > total) goto done;
+  cJSON *offset_value =
+      json ? cJSON_GetObjectItemCaseSensitive(json, "uploadedBytes") : NULL;
+  if (!cJSON_IsString(url) || !cJSON_IsString(token) ||
+      !cJSON_IsNumber(offset_value) ||
+      strncmp(url->valuestring, "https://", 8) != 0 ||
+      offset_value->valuedouble < 0 || offset_value->valuedouble > total)
+    goto done;
   size_t offset = (size_t)offset_value->valuedouble;
   confirmed_bytes = offset;
-  ESP_LOGI(TAG, "Resuming full WAV from confirmed byte %u/%u", (unsigned)offset, (unsigned)total);
-  esp_http_client_config_t config = { .url = url->valuestring, .timeout_ms = 90000,
-    .crt_bundle_attach = esp_crt_bundle_attach, .buffer_size_tx = 4096, .keep_alive_enable = true,
-    .disable_auto_redirect = true };
+  ESP_LOGI(TAG, "Resuming full WAV from confirmed byte %u/%u", (unsigned)offset,
+           (unsigned)total);
+  esp_http_client_config_t config = {.url = url->valuestring,
+                                     .timeout_ms = 90000,
+                                     .crt_bundle_attach = esp_crt_bundle_attach,
+                                     .disable_auto_redirect = true,
+                                     .buffer_size_tx = 4096,
+                                     .keep_alive_enable = true};
   upload = esp_http_client_init(&config);
-  if (!upload) goto done;
+  if (!upload)
+    goto done;
   esp_http_client_set_method(upload, HTTP_METHOD_PATCH);
-  esp_http_client_set_header(upload, "Content-Type", "application/offset+octet-stream");
+  esp_http_client_set_header(upload, "Content-Type",
+                             "application/offset+octet-stream");
   esp_http_client_set_header(upload, "Tus-Resumable", "1.0.0");
   esp_http_client_set_header(upload, "x-signature", token->valuestring);
   while (offset < total) {
@@ -1654,12 +2105,14 @@ static esp_err_t upload_sd_direct(lantern_cloud_session_t *session,
     snprintf(offset_text, sizeof(offset_text), "%u", (unsigned)offset);
     esp_http_client_set_header(upload, "Upload-Offset", offset_text);
     stage = "seek SD";
-    if (fseek(file, (long)offset, SEEK_SET)) goto done;
+    if (lantern_sd_reader_seek(file, offset))
+      goto done;
     stage = "connect TLS";
     measured_at = esp_timer_get_time();
     esp_err_t open_result = esp_http_client_open(upload, (int)length);
     connect_us += esp_timer_get_time() - measured_at;
-    if (open_result != ESP_OK) goto done;
+    if (open_result != ESP_OK)
+      goto done;
     size_t sent = 0;
     unsigned last_percent = 101;
     TickType_t last_progress_at = xTaskGetTickCount();
@@ -1667,32 +2120,42 @@ static esp_err_t upload_sd_direct(lantern_cloud_session_t *session,
     while (sent < length) {
       stage = "read SD";
       measured_at = esp_timer_get_time();
-      size_t n = fread(buffer, 1,
-        length - sent < UPLOAD_READ_BYTES ? length - sent : UPLOAD_READ_BYTES, file);
+      size_t n = lantern_sd_reader_read(file, buffer,
+                                        length - sent < UPLOAD_READ_BYTES
+                                            ? length - sent
+                                            : UPLOAD_READ_BYTES);
       read_us += esp_timer_get_time() - measured_at;
-      if (!n) goto done;
+      if (!n)
+        goto done;
       size_t written = 0;
       while (written < n) {
         stage = "write TLS";
         measured_at = esp_timer_get_time();
-        int amount = esp_http_client_write(upload, (const char *)buffer + written, (int)(n - written));
+        int amount = esp_http_client_write(
+            upload, (const char *)buffer + written, (int)(n - written));
         write_us += esp_timer_get_time() - measured_at;
-        if (amount <= 0) goto done;
+        if (amount <= 0)
+          goto done;
         written += (size_t)amount;
         sent_bytes += (size_t)amount;
       }
       sent += n;
-      if ((xTaskGetTickCount() - last_progress_at) * portTICK_PERIOD_MS >= 10000) {
-        ESP_LOGI(TAG, "WAV transfer sent %u/%u; waiting for storage acknowledgement",
-          (unsigned)(offset + sent), (unsigned)total);
+      if ((xTaskGetTickCount() - last_progress_at) * portTICK_PERIOD_MS >=
+          10000) {
+        ESP_LOGI(TAG,
+                 "WAV transfer sent %u/%u; waiting for storage acknowledgement",
+                 (unsigned)(offset + sent), (unsigned)total);
         last_progress_at = xTaskGetTickCount();
       }
       unsigned percent = (unsigned)((offset + sent) * 100 / total);
       TickType_t now = xTaskGetTickCount();
       if (percent != last_percent &&
-          (last_percent == 101 || percent == 100 || now - last_display_at >= pdMS_TO_TICKS(500))) {
-        char progress[40]; snprintf(progress, sizeof(progress), "UPLOADING AUDIO %u%%", percent);
-        lantern_display_show(LANTERN_SCREEN_SAVING, progress); last_percent = percent;
+          (last_percent == 101 || percent == 100 ||
+           now - last_display_at >= pdMS_TO_TICKS(500))) {
+        char progress[40];
+        snprintf(progress, sizeof(progress), "UPLOADING AUDIO %u%%", percent);
+        lantern_display_show(LANTERN_SCREEN_SAVING, progress);
+        last_percent = percent;
         last_display_at = now;
       }
     }
@@ -1700,7 +2163,8 @@ static esp_err_t upload_sd_direct(lantern_cloud_session_t *session,
     measured_at = esp_timer_get_time();
     int64_t content_length = esp_http_client_fetch_headers(upload);
     acknowledge_us += esp_timer_get_time() - measured_at;
-    if (content_length < 0) goto done;
+    if (content_length < 0)
+      goto done;
     status = esp_http_client_get_status_code(upload);
     measured_at = esp_timer_get_time();
     esp_http_client_read_response(upload, (char *)buffer, UPLOAD_READ_BYTES);
@@ -1713,110 +2177,151 @@ static esp_err_t upload_sd_direct(lantern_cloud_session_t *session,
     confirmed_bytes = offset;
     ESP_LOGI(TAG, "Direct WAV upload %u/%u", (unsigned)offset, (unsigned)total);
     if (offset < total) {
-      snprintf(body, sizeof(body), "{\"action\":\"progress\",\"eventId\":\"%s\",\"bytes\":%u,\"sha256\":\"%s\",\"uploadedBytes\":%u}", session->audio_event_id, (unsigned)total, hex, (unsigned)offset);
-      // A progress notification failure must not abort a successful storage PATCH.
+      snprintf(body, sizeof(body),
+               "{\"action\":\"progress\",\"eventId\":\"%s\",\"bytes\":%u,"
+               "\"sha256\":\"%s\",\"uploadedBytes\":%u}",
+               event_id, (unsigned)total, hex, (unsigned)offset);
+      // A progress notification failure must not abort a successful storage
+      // PATCH.
       stage = "progress notice";
       measured_at = esp_timer_get_time();
+      if (phone)
+        append_phone_timing(body, sizeof(body));
       (void)post_json_with_timeout(path, body, authorization, response, 10000);
       progress_us += esp_timer_get_time() - measured_at;
     }
   }
-  snprintf(body, sizeof(body), "{\"action\":\"commit\",\"eventId\":\"%s\",\"bytes\":%u,\"sha256\":\"%s\"}", session->audio_event_id, (unsigned)total, hex);
+  snprintf(body, sizeof(body),
+           "{\"action\":\"commit\",\"eventId\":\"%s\",\"bytes\":%u,\"sha256\":"
+           "\"%s\"}",
+           event_id, (unsigned)total, hex);
   lantern_display_show(LANTERN_SCREEN_SAVING, "VERIFYING FULL RECORDING");
   stage = "verify archive";
   measured_at = esp_timer_get_time();
+  if (phone)
+    append_phone_timing(body, sizeof(body));
   status = post_json_with_timeout(path, body, authorization, response, 120000);
   commit_us += esp_timer_get_time() - measured_at;
-  if (status == 200) result = ESP_OK;
-  else provider_error("Verify archive", status, response);
+  if (status == 200)
+    result = ESP_OK;
+  else
+    provider_error("Verify archive", status, response);
 done:
-  if (upload) esp_http_client_cleanup(upload);
-  cJSON_Delete(json); free(buffer); free(response); fclose(file);
-  ESP_LOGI(TAG, "WAV timing result=%s stage=%s total_ms=%lld sent=%u confirmed=%u/%u",
-    esp_err_to_name(result), stage, (long long)((esp_timer_get_time() - started_at) / 1000),
-    (unsigned)sent_bytes, (unsigned)confirmed_bytes, (unsigned)total);
-  ESP_LOGI(TAG, "WAV timing ms hash_read=%lld hash_cpu=%lld recover=%lld prepare=%lld connect=%lld",
-    (long long)(hash_read_us / 1000), (long long)(hash_cpu_us / 1000),
-    (long long)(recover_us / 1000), (long long)(prepare_us / 1000), (long long)(connect_us / 1000));
-  ESP_LOGI(TAG, "WAV timing ms sd_read=%lld tls_write=%lld ack=%lld progress=%lld verify=%lld",
-    (long long)(read_us / 1000), (long long)(write_us / 1000), (long long)(acknowledge_us / 1000),
-    (long long)(progress_us / 1000), (long long)(commit_us / 1000));
+  if (upload)
+    esp_http_client_cleanup(upload);
+  cJSON_Delete(json);
+  free(buffer);
+  free(response);
+  lantern_sd_reader_close(file);
+  ESP_LOGI(
+      TAG,
+      "WAV timing result=%s stage=%s total_ms=%lld sent=%u confirmed=%u/%u",
+      esp_err_to_name(result), stage,
+      (long long)((esp_timer_get_time() - started_at) / 1000),
+      (unsigned)sent_bytes, (unsigned)confirmed_bytes, (unsigned)total);
+  ESP_LOGI(TAG,
+           "WAV timing ms hash_read=%lld hash_cpu=%lld recover=%lld "
+           "prepare=%lld connect=%lld",
+           (long long)(hash_read_us / 1000), (long long)(hash_cpu_us / 1000),
+           (long long)(recover_us / 1000), (long long)(prepare_us / 1000),
+           (long long)(connect_us / 1000));
+  ESP_LOGI(TAG,
+           "WAV timing ms sd_read=%lld tls_write=%lld ack=%lld progress=%lld "
+           "verify=%lld",
+           (long long)(read_us / 1000), (long long)(write_us / 1000),
+           (long long)(acknowledge_us / 1000), (long long)(progress_us / 1000),
+           (long long)(commit_us / 1000));
   return result;
 }
 
 esp_err_t lantern_network_upload_audio(lantern_cloud_session_t *session) {
-  if (!session || !session->session_id[0]) return ESP_ERR_INVALID_ARG;
+  if (!session || !session->session_id[0])
+    return ESP_ERR_INVALID_ARG;
   char path[160], authorization[140], event_id[37];
-  snprintf(path, sizeof(path), "/api/device/v1/sessions/%s/audio", session->session_id);
+  snprintf(path, sizeof(path), "/api/device/v1/sessions/%s/audio",
+           session->session_id);
   device_authorization(authorization);
   bool resuming_audio = session->audio_event_id[0] != '\0';
-  if (!session->audio_event_id[0]) uuid_v4(session->audio_event_id);
+  if (!session->audio_event_id[0])
+    uuid_v4(session->audio_event_id);
   snprintf(event_id, sizeof(event_id), "%s", session->audio_event_id);
+  if (lantern_sd_recording_ready())
+    lantern_sd_checkpoint(session, true, false, false);
 
   if (lantern_sd_recording_ready()) {
     esp_err_t direct = ESP_FAIL;
     upload_fingerprint_t fingerprint = {0};
     for (unsigned attempt = 0; attempt < 3; ++attempt) {
-      direct = upload_sd_direct(session, &fingerprint, resuming_audio || attempt > 0);
-      if (direct == ESP_OK || direct == ESP_ERR_NOT_SUPPORTED || direct == ESP_ERR_NO_MEM) break;
+      direct = upload_sd_direct(session, &fingerprint,
+                                resuming_audio || attempt > 0, false);
+      if (direct == ESP_OK || direct == ESP_ERR_NOT_SUPPORTED ||
+          direct == ESP_ERR_NO_MEM)
+        break;
       if (attempt < 2) {
         // Re-query the confirmed server offset, including bytes received before
         // a lost connection. Never restart capture or substitute the RAM tail.
-        ESP_LOGW(TAG, "WAV transfer interrupted; resuming attempt %u/3", attempt + 2);
+        ESP_LOGW(TAG, "WAV transfer interrupted; resuming attempt %u/3",
+                 attempt + 2);
         lantern_display_show(LANTERN_SCREEN_SAVING, "RECONNECTING UPLOAD");
         vTaskDelay(pdMS_TO_TICKS(1500));
       }
     }
     // Older deployments remain usable; a failed direct upload never switches
     // protocols mid-session or substitutes the short RAM buffer.
-    if (direct != ESP_ERR_NOT_SUPPORTED) return direct;
-    const char *recording_path = lantern_sd_recording_path();
+    if (direct != ESP_ERR_NOT_SUPPORTED)
+      return direct;
     size_t total = lantern_sd_recording_size();
-    FILE *file = recording_path ? fopen(recording_path, "rb") : NULL;
+    lantern_sd_reader_t *file = lantern_sd_reader_open(false);
     if (!file || !total) {
-      if (file) fclose(file);
+      if (file)
+        lantern_sd_reader_close(file);
       return ESP_FAIL;
     }
     const size_t chunk_capacity = 512 * 1024;
     response_buffer_t *response = response_buffer_create();
     if (!response) {
-      fclose(file);
+      lantern_sd_reader_close(file);
       return ESP_ERR_NO_MEM;
     }
     for (size_t offset = 0; offset < total;) {
       size_t chunk = total - offset;
-      if (chunk > chunk_capacity) chunk = chunk_capacity;
+      if (chunk > chunk_capacity)
+        chunk = chunk_capacity;
       int status = post_file_chunk(path, file, offset, chunk, total,
-        authorization, event_id, response);
+                                   authorization, event_id, response);
       bool final_chunk = offset + chunk == total;
       if (status == 200) {
         // A 200 on a chunk means this event was already fully attached. This
         // makes retrying from byte zero safe after a lost final response.
         ESP_LOGI(TAG, "SD WAV upload already acknowledged by cloud");
-        fclose(file);
+        lantern_sd_reader_close(file);
         free(response);
         return ESP_OK;
       }
       if ((!final_chunk && status != 202) || (final_chunk && status != 201)) {
         provider_error("SD audio chunk", status, response);
-        fclose(file);
+        lantern_sd_reader_close(file);
         free(response);
         return ESP_FAIL;
       }
       offset += chunk;
-      ESP_LOGI(TAG, "SD WAV upload %u/%u bytes", (unsigned)offset, (unsigned)total);
+      ESP_LOGI(TAG, "SD WAV upload %u/%u bytes", (unsigned)offset,
+               (unsigned)total);
     }
-    fclose(file);
+    lantern_sd_reader_close(file);
     free(response);
     return ESP_OK;
   }
 
   size_t samples = lantern_audio_buffered_samples();
-  if (!samples) return ESP_ERR_INVALID_STATE;
+  if (!samples)
+    return ESP_ERR_INVALID_STATE;
   size_t data_bytes = samples * sizeof(int16_t);
   size_t wav_size = 44 + data_bytes;
-  uint8_t *wav = heap_caps_malloc(wav_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-  if (!wav) return ESP_ERR_NO_MEM;
+  uint8_t *wav =
+      heap_caps_malloc(wav_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  if (!wav)
+    return ESP_ERR_NO_MEM;
   memset(wav, 0, 44);
   memcpy(wav, "RIFF", 4);
   wav_u32(wav + 4, 36 + (uint32_t)data_bytes);
@@ -1840,7 +2345,8 @@ esp_err_t lantern_network_upload_audio(lantern_cloud_session_t *session) {
     free(wav);
     return ESP_ERR_NO_MEM;
   }
-  int status = post_binary(path, "audio/wav", wav, wav_size, authorization, event_id, response);
+  int status = post_binary(path, "audio/wav", wav, wav_size, authorization,
+                           event_id, response);
   free(wav);
   if (status != 201 && status != 200) {
     provider_error("Audio upload", status, response);
@@ -1851,21 +2357,33 @@ esp_err_t lantern_network_upload_audio(lantern_cloud_session_t *session) {
   return ESP_OK;
 }
 
-esp_err_t lantern_network_complete_session(
-    lantern_cloud_session_t *session, bool *transcript_ready) {
-  if (!session || !session->session_id[0]) return ESP_ERR_INVALID_ARG;
-  if (transcript_ready) *transcript_ready = false;
+esp_err_t lantern_network_complete_session(lantern_cloud_session_t *session,
+                                           bool *transcript_ready) {
+  if (!session || !session->session_id[0])
+    return ESP_ERR_INVALID_ARG;
+  if (transcript_ready)
+    *transcript_ready = false;
   char path[160], authorization[140], body[80];
-  if (!session->completion_event_id[0]) uuid_v4(session->completion_event_id);
-  snprintf(path, sizeof(path), "/api/device/v1/sessions/%s/complete", session->session_id);
-  snprintf(body, sizeof(body), "{\"eventId\":\"%s\"}", session->completion_event_id);
+  if (!session->completion_event_id[0])
+    uuid_v4(session->completion_event_id);
+  if (lantern_sd_recording_matches_session(session->session_id) &&
+      lantern_sd_checkpoint(session, true, true,
+                            lantern_sd_phone_size() <= 44 ||
+                                session->phone_event_id[0]) != ESP_OK)
+    return ESP_FAIL;
+  snprintf(path, sizeof(path), "/api/device/v1/sessions/%s/complete",
+           session->session_id);
+  snprintf(body, sizeof(body), "{\"eventId\":\"%s\"}",
+           session->completion_event_id);
   device_authorization(authorization);
   response_buffer_t *response = response_buffer_create();
-  if (!response) return ESP_ERR_NO_MEM;
+  if (!response)
+    return ESP_ERR_NO_MEM;
   // Full meeting transcription can legitimately take longer than the normal
   // control-plane timeout. The endpoint is idempotent, and Vercel allows this
   // route up to 120 seconds.
-  int status = post_json_with_timeout(path, body, authorization, response, 125000);
+  int status =
+      post_json_with_timeout(path, body, authorization, response, 125000);
   if (status != 201 && status != 200) {
     provider_error("Meeting processing", status, response);
     free(response);
@@ -1873,12 +2391,21 @@ esp_err_t lantern_network_complete_session(
   }
   bool valid = parse_session_response(response->data, session, NULL);
   cJSON *root = valid ? cJSON_Parse(response->data) : NULL;
-  session->archive_accepted = root && cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(root, "archiveAccepted"));
-  session->processing_queued = root && cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(root, "processingQueued"));
-  cJSON *meeting = root ? cJSON_GetObjectItemCaseSensitive(root, "meeting") : NULL;
-  cJSON *meeting_status = cJSON_IsObject(meeting)
-    ? cJSON_GetObjectItemCaseSensitive(meeting, "status")
-    : NULL;
+  session->archive_accepted =
+      root &&
+      cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(root, "archiveAccepted"));
+  session->archive_verified =
+      root &&
+      cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(root, "archiveVerified"));
+  session->processing_queued =
+      root &&
+      cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(root, "processingQueued"));
+  cJSON *meeting =
+      root ? cJSON_GetObjectItemCaseSensitive(root, "meeting") : NULL;
+  cJSON *meeting_status =
+      cJSON_IsObject(meeting)
+          ? cJSON_GetObjectItemCaseSensitive(meeting, "status")
+          : NULL;
   if (transcript_ready && cJSON_IsString(meeting_status) &&
       strcmp(meeting_status->valuestring, "ready") == 0) {
     *transcript_ready = true;
@@ -1886,4 +2413,169 @@ esp_err_t lantern_network_complete_session(
   cJSON_Delete(root);
   free(response);
   return valid ? ESP_OK : ESP_FAIL;
+}
+
+#if LANTERN_HAS_SD_CARD
+static int get_device_json(const char *path, response_buffer_t *response) {
+  char url[256], authorization[140];
+  snprintf(url, sizeof(url), "%s%s", LANTERN_API_BASE_URL, path);
+  device_authorization(authorization);
+  memset(response, 0, sizeof(*response));
+  esp_http_client_config_t config = {.url = url,
+                                     .event_handler = http_event,
+                                     .user_data = response,
+                                     .timeout_ms = 20000,
+                                     .crt_bundle_attach = esp_crt_bundle_attach,
+                                     .disable_auto_redirect = true};
+  esp_http_client_handle_t client = esp_http_client_init(&config);
+  if (!client)
+    return -1;
+  esp_http_client_set_method(client, HTTP_METHOD_GET);
+  esp_http_client_set_header(client, "Authorization", authorization);
+  esp_err_t result = esp_http_client_perform(client);
+  int status = result == ESP_OK ? esp_http_client_get_status_code(client) : -1;
+  esp_http_client_cleanup(client);
+  return status;
+}
+#endif
+
+esp_err_t lantern_network_prepare_archive_key(void) {
+#if !LANTERN_HAS_SD_CARD
+  return ESP_ERR_NOT_SUPPORTED;
+#else
+  if (!s_config || !s_status.paired || !s_status.wifi_connected)
+    return ESP_ERR_INVALID_STATE;
+  response_buffer_t *response = response_buffer_create();
+  if (!response)
+    return ESP_ERR_NO_MEM;
+  int status = get_device_json("/api/device/v1/archive-key", response);
+  cJSON *json = status == 200 ? cJSON_Parse(response->data) : NULL;
+  cJSON *key = json ? cJSON_GetObjectItemCaseSensitive(json, "key") : NULL;
+  cJSON *owner =
+      json ? cJSON_GetObjectItemCaseSensitive(json, "ownerId") : NULL;
+  cJSON *device =
+      json ? cJSON_GetObjectItemCaseSensitive(json, "deviceId") : NULL;
+  cJSON *version =
+      json ? cJSON_GetObjectItemCaseSensitive(json, "keyVersion") : NULL;
+  esp_err_t result = ESP_FAIL;
+  uint8_t bytes[32] = {0};
+  if (cJSON_IsString(key) && strlen(key->valuestring) == 64 &&
+      cJSON_IsString(owner) && strlen(owner->valuestring) == 36 &&
+      cJSON_IsString(device) &&
+      !strcmp(device->valuestring, s_config->device_id) &&
+      cJSON_IsNumber(version) && version->valueint == 1) {
+    bool valid = true;
+    for (unsigned i = 0; i < 64; ++i)
+      if (!isxdigit((unsigned char)key->valuestring[i]))
+        valid = false;
+    if (valid) {
+      for (unsigned i = 0; i < 32; ++i) {
+        char hex[3] = {key->valuestring[i * 2], key->valuestring[i * 2 + 1], 0};
+        bytes[i] = (uint8_t)strtoul(hex, NULL, 16);
+      }
+      char old_owner[37], old_device[37];
+      uint8_t old_key[32];
+      bool existing = lantern_storage_load_archive_identity(
+                          old_owner, old_device, old_key) == ESP_OK;
+      if (existing &&
+          (strcmp(old_device, s_config->device_id) ||
+           strcmp(old_owner, owner->valuestring) ||
+           memcmp(old_key, bytes, 32)) &&
+          lantern_sd_has_private_material()) {
+        set_error("Pending recordings belong to the previous pairing");
+      } else if (lantern_storage_save_archive_identity(owner->valuestring,
+                                                       s_config->device_id,
+                                                       bytes) == ESP_OK &&
+                 lantern_storage_save_owner(owner->valuestring) == ESP_OK) {
+        snprintf(s_config->owner_id, sizeof(s_config->owner_id), "%s",
+                 owner->valuestring);
+        result = lantern_sd_configure_identity(s_config->owner_id,
+                                               s_config->device_id, bytes);
+      }
+      memset(old_key, 0, sizeof(old_key));
+    }
+  }
+  memset(bytes, 0, sizeof(bytes));
+  cJSON_Delete(json);
+  memset(response, 0, sizeof(*response));
+  free(response);
+  return result;
+#endif
+}
+esp_err_t lantern_network_begin_offline(lantern_cloud_session_t *session) {
+  if (!session || !s_config || !s_status.paired || !s_config->owner_id[0] ||
+      !lantern_sd_secure_ready())
+    return ESP_ERR_INVALID_STATE;
+  memset(session, 0, sizeof(*session));
+  uuid_v4(session->session_id);
+  uuid_v4(session->begin_event_id);
+  uuid_v4(session->audio_event_id);
+  uuid_v4(session->phone_event_id);
+  uuid_v4(session->completion_event_id);
+  snprintf(session->owner_id, sizeof(session->owner_id), "%s",
+           s_config->owner_id);
+  session->offline_local = true;
+  time_t now = time(NULL) + 8 * 60 * 60;
+  struct tm local;
+  gmtime_r(&now, &local);
+  if (now > 1735689600) {
+    strftime(session->local_date, sizeof(session->local_date), "%Y-%m-%d",
+             &local);
+    strftime(session->local_time, sizeof(session->local_time), "%H:%M:%S",
+             &local);
+  }
+  return ESP_OK;
+}
+esp_err_t lantern_network_import_recording(lantern_cloud_session_t *session) {
+  if (!session || !session->session_id[0] || !s_config ||
+      strcmp(session->owner_id, s_config->owner_id))
+    return ESP_ERR_INVALID_STATE;
+  const char *captured = lantern_sd_captured_at();
+  char date[32];
+  if (captured && captured[0])
+    snprintf(date, sizeof(date), "\"%s\"", captured);
+  else
+    snprintf(date, sizeof(date), "null");
+  unsigned duration =
+      (unsigned)((lantern_sd_recording_size() - 44 + 31999) / 32000);
+  char body[768], authorization[140];
+  snprintf(body, sizeof(body),
+           "{\"sessionId\":\"%s\",\"eventId\":\"%s\",\"capturedAt\":%s,"
+           "\"timeUncertain\":%s,\"durationSeconds\":%u,"
+           "\"consentAccepted\":true,\"ownerDeviceId\":\"%s\",\"ownerId\":\"%"
+           "s\",\"audioSources\":[\"onboard\"%s]}",
+           session->session_id, session->begin_event_id, date,
+           lantern_sd_time_uncertain() ? "true" : "false", duration,
+           s_config->device_id, session->owner_id,
+           lantern_sd_phone_size() > 44 ? ",\"phone\"" : "");
+  device_authorization(authorization);
+  response_buffer_t *response = response_buffer_create();
+  if (!response)
+    return ESP_ERR_NO_MEM;
+  int status = post_json("/api/device/v1/sessions/import", body, authorization,
+                         response);
+  bool valid = (status == 200 || status == 201) &&
+               parse_session_response(response->data, session, NULL);
+  free(response);
+  if (valid)
+    session->offline_local = false;
+  return valid ? ESP_OK : ESP_FAIL;
+}
+esp_err_t lantern_network_upload_phone(lantern_cloud_session_t *session) {
+  if (lantern_sd_phone_size() <= 44)
+    return ESP_OK;
+  if (!session || !session->session_id[0])
+    return ESP_ERR_INVALID_ARG;
+  if (!session->phone_event_id[0])
+    uuid_v4(session->phone_event_id);
+  upload_fingerprint_t fingerprint = {0};
+  for (unsigned attempt = 0; attempt < 3; ++attempt) {
+    esp_err_t result = upload_sd_direct(session, &fingerprint, true, true);
+    if (result == ESP_OK)
+      return ESP_OK;
+    if (result == ESP_ERR_NO_MEM || result == ESP_ERR_NOT_SUPPORTED)
+      return result;
+    vTaskDelay(pdMS_TO_TICKS(1000));
+  }
+  return ESP_FAIL;
 }

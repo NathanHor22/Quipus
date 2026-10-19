@@ -25,6 +25,11 @@ function ascii(data: Uint8Array, offset: number, length: number) {
 
 /** Validates the canonical PCM WAV emitted by the Quipus firmware. */
 export function parseLanternWav(data: Uint8Array): CanonicalWav {
+  return parseCanonicalWavHeader(data, data.byteLength);
+}
+
+/** Validates a bounded header read against the complete file size. */
+export function parseCanonicalWavHeader(data: Uint8Array, totalFileBytes: number): CanonicalWav {
   if (data.length < 44 || ascii(data, 0, 4) !== "RIFF" || ascii(data, 8, 8) !== "WAVEfmt ") {
     throw new Error("Quipus audio is not a WAV file.");
   }
@@ -36,7 +41,7 @@ export function parseLanternWav(data: Uint8Array): CanonicalWav {
   const sampleRate = view.getUint32(24, true);
   const bitsPerSample = view.getUint16(34, true);
   if (
-    riffSize + 8 !== data.length ||
+    riffSize + 8 !== totalFileBytes ||
     formatLength !== 16 ||
     audioFormat !== 1 ||
     channels !== 1 ||
@@ -47,7 +52,7 @@ export function parseLanternWav(data: Uint8Array): CanonicalWav {
     throw new Error("Quipus audio must be canonical 16 kHz mono 16-bit PCM WAV.");
   }
   const dataBytes = view.getUint32(40, true);
-  if (dataBytes === 0 || dataBytes + 44 !== data.length || dataBytes % 2 !== 0) {
+  if (dataBytes === 0 || dataBytes + 44 !== totalFileBytes || dataBytes % 2 !== 0) {
     throw new Error("Quipus WAV data length is invalid.");
   }
   return {
@@ -65,26 +70,26 @@ export function createCanonicalWav(pcm: Uint8Array): Uint8Array {
     throw new Error("Quipus PCM data must contain complete 16-bit samples.");
   }
   const output = new Uint8Array(CANONICAL_WAV_HEADER_BYTES + pcm.byteLength);
+  output.set(createCanonicalWavHeader(pcm.byteLength));
+  output.set(pcm, CANONICAL_WAV_HEADER_BYTES);
+  return output;
+}
+
+/** Header construction does not allocate the corresponding PCM payload. */
+export function createCanonicalWavHeader(dataBytes: number): Uint8Array {
+  if (!Number.isSafeInteger(dataBytes) || dataBytes <= 0 || dataBytes % 2 !== 0 || dataBytes > 0xffff_ffff - 36) {
+    throw new Error("Quipus PCM data must contain complete 16-bit samples within the RIFF limit.");
+  }
+  const output = new Uint8Array(CANONICAL_WAV_HEADER_BYTES);
   const view = new DataView(output.buffer);
   const writeAscii = (offset: number, value: string) => {
-    for (let index = 0; index < value.length; index += 1) {
-      output[offset + index] = value.charCodeAt(index);
-    }
+    for (let index = 0; index < value.length; index += 1) output[offset + index] = value.charCodeAt(index);
   };
-  writeAscii(0, "RIFF");
-  view.setUint32(4, output.byteLength - 8, true);
-  writeAscii(8, "WAVE");
-  writeAscii(12, "fmt ");
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, 1, true);
-  view.setUint32(24, 16_000, true);
-  view.setUint32(28, CANONICAL_WAV_BYTES_PER_SECOND, true);
-  view.setUint16(32, 2, true);
-  view.setUint16(34, 16, true);
-  writeAscii(36, "data");
-  view.setUint32(40, pcm.byteLength, true);
-  output.set(pcm, CANONICAL_WAV_HEADER_BYTES);
+  writeAscii(0, "RIFF"); view.setUint32(4, dataBytes + 36, true);
+  writeAscii(8, "WAVE"); writeAscii(12, "fmt "); view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); view.setUint16(22, 1, true); view.setUint32(24, 16_000, true);
+  view.setUint32(28, CANONICAL_WAV_BYTES_PER_SECOND, true); view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true); writeAscii(36, "data"); view.setUint32(40, dataBytes, true);
   return output;
 }
 
@@ -174,4 +179,45 @@ export function splitCanonicalWav(
     start = next > start ? next : end;
   }
   return chunks;
+}
+
+export type WavChunkRange = {
+  pcmStartByte: number;
+  pcmEndByte: number;
+  offsetSeconds: number;
+  durationSeconds: number;
+};
+
+/** Plan ranges using only the 44-byte header and at most three seconds per cut. */
+export async function planCanonicalWavChunks(audio: Blob, options: { maxBytes?: number; overlapSeconds?: number; signal?: AbortSignal } = {}): Promise<WavChunkRange[]> {
+  options.signal?.throwIfAborted();
+  const metadata = parseCanonicalWavHeader(new Uint8Array(await audio.slice(0, CANONICAL_WAV_HEADER_BYTES).arrayBuffer()), audio.size);
+  const maxBytes = options.maxBytes ?? OPENAI_WAV_CHUNK_BYTES;
+  const maxPcmBytes = even(maxBytes - CANONICAL_WAV_HEADER_BYTES);
+  if (!Number.isFinite(maxPcmBytes) || maxPcmBytes < CANONICAL_WAV_BYTES_PER_SECOND) throw new Error("WAV chunks must hold at least one second of audio.");
+  const overlapBytes = Math.min(even((options.overlapSeconds ?? 8) * CANONICAL_WAV_BYTES_PER_SECOND), even(maxPcmBytes / 4));
+  const chunks: WavChunkRange[] = [];
+  let start = 0;
+  while (start < metadata.dataBytes) {
+    options.signal?.throwIfAborted();
+    const hardEnd = Math.min(metadata.dataBytes, start + maxPcmBytes);
+    let end = hardEnd;
+    if (hardEnd !== metadata.dataBytes) {
+      const earliest = even(Math.max(start + Math.min(60 * CANONICAL_WAV_BYTES_PER_SECOND, maxPcmBytes / 2), hardEnd - 3 * CANONICAL_WAV_BYTES_PER_SECOND));
+      const scan = new Uint8Array(await audio.slice(CANONICAL_WAV_HEADER_BYTES + earliest, CANONICAL_WAV_HEADER_BYTES + hardEnd).arrayBuffer());
+      end = earliest + quietBoundary(scan, 0, scan.byteLength);
+    }
+    if (end <= start) throw new Error("Could not create a valid WAV chunk boundary.");
+    chunks.push({ pcmStartByte: start, pcmEndByte: end, offsetSeconds: start / CANONICAL_WAV_BYTES_PER_SECOND, durationSeconds: (end - start) / CANONICAL_WAV_BYTES_PER_SECOND });
+    if (end === metadata.dataBytes) break;
+    const next = even(end - overlapBytes);
+    start = next > start ? next : end;
+  }
+  return chunks;
+}
+
+/** Blob slices stay file-backed when the caller supplies an openAsBlob source. */
+export function canonicalWavChunkBlob(audio: Blob, chunk: WavChunkRange): Blob {
+  const bytes = chunk.pcmEndByte - chunk.pcmStartByte;
+  return new Blob([Uint8Array.from(createCanonicalWavHeader(bytes)).buffer, audio.slice(CANONICAL_WAV_HEADER_BYTES + chunk.pcmStartByte, CANONICAL_WAV_HEADER_BYTES + chunk.pcmEndByte)], { type: "audio/wav" });
 }

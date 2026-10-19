@@ -1,10 +1,7 @@
 "use client";
 
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
-import {
-  Pause,
-  Play,
-} from "lucide-react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { Pause, Play } from "lucide-react";
 import type { Meeting, TranscriptSegment } from "@/lib/types";
 import {
   activeTranscriptIndex,
@@ -12,7 +9,14 @@ import {
   formatAudioTime,
 } from "@/lib/workspace/playback";
 import styles from "./replay.module.css";
+import { playbackRenewalDelay } from "@/lib/workspace/playback-expiry";
 import { recordingDurationLabel } from "@/lib/workspace/recording-progress";
+import {
+  playbackSources,
+  playbackSourceLabels,
+  readPlaybackSources,
+  type PlaybackSource,
+} from "@/lib/workspace/playback-sources";
 
 export interface PlaybackProgress {
   position: number;
@@ -30,11 +34,20 @@ type ReplayProps = {
   panels?: { audio: ReplayPanel; transcript: ReplayPanel };
 };
 
+type SourceControls = {
+  selectedSource: PlaybackSource;
+  availableSources: PlaybackSource[];
+  onSourceChange: (source: PlaybackSource) => void;
+  onSourcesResolved: (sources: PlaybackSource[]) => void;
+};
+
 type AudioResolution = {
+  source: PlaybackSource;
   recordingId: string;
   providedUrl: string | null;
   attempt: number;
   url: string | null;
+  expiresAt: string | null;
   error: string | null;
 };
 
@@ -47,23 +60,88 @@ type MediaSnapshot = {
 };
 
 const emptyTranscript: TranscriptSegment[] = [];
-const emptyMedia: MediaSnapshot = { key: "", ready: false, playing: false, duration: undefined, error: null };
+const emptyMedia: MediaSnapshot = {
+  key: "",
+  ready: false,
+  playing: false,
+  duration: undefined,
+  error: null,
+};
 
 /** Only plays captured audio. Transcript imports never become synthetic audio. */
 export function ConversationReplay(props: ReplayProps) {
-  return <ConversationReplaySession key={JSON.stringify([props.conversation.id, props.conversation.recordingId ?? null])} {...props} />;
+  return (
+    <ConversationReplaySources
+      key={JSON.stringify([props.conversation.id, props.conversation.recordingId ?? null])}
+      {...props}
+    />
+  );
 }
 
-function ConversationReplaySession({ conversation, initialProgress, onProgress, view = "all", panels }: ReplayProps) {
+function ConversationReplaySources(props: ReplayProps) {
+  const [selectedSource, setSelectedSource] = useState<PlaybackSource>("combined");
+  const [availableSources, setAvailableSources] = useState<PlaybackSource[]>([]);
+  const receiveSources = useCallback(
+    (sources: PlaybackSource[]) => setAvailableSources(sources),
+    [],
+  );
+  const [savedProgress, setSavedProgress] = useState<
+    Partial<Record<PlaybackSource, PlaybackProgress>>
+  >({});
+  const { onProgress } = props;
+  // Transcript-only playback always uses the consolidated timeline.
+  const effectiveSource = props.view === "transcript" ? "combined" : selectedSource;
+  const saveProgress = useCallback(
+    (value: PlaybackProgress) => {
+      setSavedProgress((current) => ({ ...current, [effectiveSource]: value }));
+      if (effectiveSource === "combined") onProgress?.(value);
+    },
+    [effectiveSource, onProgress],
+  );
+  return (
+    <ConversationReplaySession
+      key={effectiveSource}
+      {...props}
+      initialProgress={
+        savedProgress[effectiveSource] ??
+        (effectiveSource === "combined" ? props.initialProgress : undefined)
+      }
+      onProgress={saveProgress}
+      selectedSource={effectiveSource}
+      availableSources={availableSources}
+      onSourceChange={setSelectedSource}
+      onSourcesResolved={receiveSources}
+    />
+  );
+}
+
+function ConversationReplaySession({
+  conversation,
+  initialProgress,
+  onProgress,
+  view = "all",
+  panels,
+  selectedSource,
+  availableSources,
+  onSourceChange,
+  onSourcesResolved,
+}: ReplayProps & SourceControls) {
   const sample = conversation.id.startsWith("sample:");
   const recordingId = !sample ? conversation.recordingId : null;
-  const providedUrl = !sample ? conversation.recordingUrl || null : null;
+  const providedUrl =
+    !sample && selectedSource === "combined" ? conversation.recordingUrl || null : null;
   const [refreshRequest, setRefreshRequest] = useState({ providedUrl, attempt: 0 });
   const attempt = refreshRequest.providedUrl === providedUrl ? refreshRequest.attempt : 0;
   const [resolution, setResolution] = useState<AudioResolution | null>(null);
-  const settled = resolution !== null && resolution.recordingId === recordingId &&
-    resolution.providedUrl === providedUrl && resolution.attempt === attempt;
-  const source = { url: settled ? resolution.url : providedUrl, revision: settled ? resolution.attempt : 0 };
+  const settled =
+    resolution !== null &&
+    resolution.recordingId === recordingId &&
+    resolution.providedUrl === providedUrl &&
+    resolution.attempt === attempt;
+  const source = {
+    url: settled ? resolution.url : providedUrl,
+    revision: settled ? resolution.attempt : 0,
+  };
   const sourceKey = JSON.stringify([source.url, source.revision]);
   const visible = view !== "hidden";
   const needsUrl = Boolean(recordingId && (!providedUrl || attempt > 0));
@@ -76,13 +154,18 @@ function ConversationReplaySession({ conversation, initialProgress, onProgress, 
   const [speed, setSpeed] = useState(initialProgress?.speed || 1);
   const [search, setSearch] = useState("");
   const updateMedia = (changes: Partial<Omit<MediaSnapshot, "key">>) => {
-    setMedia(current => ({ ...(current.key === sourceKey ? current : emptyMedia), key: sourceKey, ...changes }));
+    setMedia((current) => ({
+      ...(current.key === sourceKey ? current : emptyMedia),
+      key: sourceKey,
+      ...changes,
+    }));
   };
   const setReady = (value: boolean) => updateMedia({ ready: value });
   const setPlaying = (value: boolean) => updateMedia({ playing: value });
   const setDuration = (value: number | undefined) => updateMedia({ duration: value });
   const setError = (value: string | null) => updateMedia({ error: value });
   const audio = useRef<HTMLAudioElement>(null);
+  const resumeAfterRenewal = useRef(false);
   const pendingPosition = useRef(initialProgress?.position || 0);
   const progress = useRef({
     position: initialProgress?.position || 0,
@@ -98,16 +181,16 @@ function ConversationReplaySession({ conversation, initialProgress, onProgress, 
     }
     return tones;
   }, [transcript]);
-  const activeIndex = ready ? activeTranscriptIndex(transcript, position) : -1;
+  const transcriptTimingAvailable = selectedSource !== "phone";
+  const activeIndex =
+    ready && transcriptTimingAvailable ? activeTranscriptIndex(transcript, position) : -1;
   const normalizedSearch = search.trim().toLowerCase();
   const visibleSegments = useMemo(
     () =>
       transcript
         .map((segment, index) => ({ segment, index }))
         .filter(({ segment }) =>
-          `${segment.speaker} ${segment.text}`
-            .toLowerCase()
-            .includes(normalizedSearch),
+          `${segment.speaker} ${segment.text}`.toLowerCase().includes(normalizedSearch),
         ),
     [transcript, normalizedSearch],
   );
@@ -115,14 +198,17 @@ function ConversationReplaySession({ conversation, initialProgress, onProgress, 
   // Read the latest committed callback only when a media session is released.
   const reportProgress = useEffectEvent(() => onProgress?.({ ...progress.current }));
 
-  const refreshAudio = () => {
+  const refreshAudio = (resume = false) => {
+    resumeAfterRenewal.current = resume && Boolean(audio.current && !audio.current.paused);
     if (!recordingId) return;
     pendingPosition.current = progress.current.position;
     audio.current?.pause();
     setReady(false);
     setError(null);
-    setRefreshRequest(current => ({ providedUrl,
-      attempt: (current.providedUrl === providedUrl ? current.attempt : 0) + 1 }));
+    setRefreshRequest((current) => ({
+      providedUrl,
+      attempt: (current.providedUrl === providedUrl ? current.attempt : 0) + 1,
+    }));
   };
 
   useEffect(() => {
@@ -137,20 +223,50 @@ function ConversationReplaySession({ conversation, initialProgress, onProgress, 
     }, 15_000);
     const load = async () => {
       try {
-        const response = await fetch(`/api/recordings/${encodeURIComponent(requestedId)}/playback`,
-          { cache: "no-store", signal: controller.signal });
+        const response = await fetch(
+          `/api/recordings/${encodeURIComponent(requestedId)}/playback?source=${selectedSource}`,
+          { cache: "no-store", signal: controller.signal },
+        );
         const payload = await response.json();
         if (!response.ok || typeof payload.url !== "string")
           throw new Error(payload.error || "The recording could not be opened.");
         const url = new URL(payload.url);
-        if (!["http:", "https:"].includes(url.protocol)) throw new Error("The recording could not be opened.");
-        if (!disposed) setResolution({ recordingId: requestedId, providedUrl, attempt, url: url.href, error: null });
+        if (!["http:", "https:"].includes(url.protocol))
+          throw new Error("The recording could not be opened.");
+        if (!disposed) {
+          const sources = readPlaybackSources(payload.availableSources);
+          onSourcesResolved(sources);
+          setResolution({
+            source: playbackSources.includes(payload.source) ? payload.source : selectedSource,
+            recordingId: requestedId,
+            providedUrl,
+            attempt,
+            url: url.href,
+            expiresAt: typeof payload.expiresAt === "string" ? payload.expiresAt : null,
+            error: null,
+          });
+        }
       } catch (cause) {
-        if (!disposed) setResolution(current => ({ recordingId: requestedId, providedUrl, attempt,
-          url: current?.recordingId === requestedId && current.providedUrl === providedUrl ? current.url : providedUrl,
-          error: timedOut ? "The recording took too long to load. Please retry."
-            : cause instanceof Error ? cause.message : "The recording could not be opened." }));
-      } finally { window.clearTimeout(timeout); }
+        if (!disposed)
+          setResolution((current) => ({
+            source: selectedSource,
+            recordingId: requestedId,
+            providedUrl,
+            attempt,
+            url:
+              current?.recordingId === requestedId && current.providedUrl === providedUrl
+                ? current.url
+                : providedUrl,
+            expiresAt: null,
+            error: timedOut
+              ? "The recording took too long to load. Please retry."
+              : cause instanceof Error
+                ? cause.message
+                : "The recording could not be opened.",
+          }));
+      } finally {
+        window.clearTimeout(timeout);
+      }
     };
     void load();
     return () => {
@@ -158,7 +274,25 @@ function ConversationReplaySession({ conversation, initialProgress, onProgress, 
       controller.abort();
       window.clearTimeout(timeout);
     };
-  }, [visible, needsUrl, settled, recordingId, providedUrl, attempt]);
+  }, [
+    visible,
+    needsUrl,
+    settled,
+    recordingId,
+    providedUrl,
+    attempt,
+    selectedSource,
+    onSourcesResolved,
+  ]);
+
+  const renewPlayback = useEffectEvent(() => refreshAudio(true));
+  useEffect(() => {
+    if (!visible || !settled || !resolution?.url) return;
+    const delay = playbackRenewalDelay(resolution.expiresAt);
+    if (delay === null) return;
+    const timer = window.setTimeout(() => renewPlayback(), delay);
+    return () => window.clearTimeout(timer);
+  }, [visible, settled, resolution]);
 
   useEffect(() => {
     const player = audio.current;
@@ -192,9 +326,7 @@ function ConversationReplaySession({ conversation, initialProgress, onProgress, 
       setError(null);
       return true;
     } catch {
-      setError(
-        "This part of the recording is not ready yet. Try playing the audio first.",
-      );
+      setError("This part of the recording is not ready yet. Try playing the audio first.");
       return false;
     }
   };
@@ -205,16 +337,15 @@ function ConversationReplaySession({ conversation, initialProgress, onProgress, 
     if (player && ready)
       void player
         .play()
-        .catch(() =>
-          setError("Press Play on the recording to continue listening."),
-        );
+        .catch(() => setError("Press Play on the recording to continue listening."));
   };
 
   const togglePlayback = () => {
     const player = audio.current;
     if (!player || !ready) return;
     if (!player.paused) player.pause();
-    else void player.play().catch(() => setError("The recording could not start. Please try again."));
+    else
+      void player.play().catch(() => setError("The recording could not start. Please try again."));
   };
 
   useEffect(() => {
@@ -225,10 +356,7 @@ function ConversationReplaySession({ conversation, initialProgress, onProgress, 
     player.playbackRate = progress.current.speed;
     if (pendingPosition.current <= 0) return;
     try {
-      player.currentTime = clampPlaybackTime(
-        pendingPosition.current,
-        player.duration,
-      );
+      player.currentTime = clampPlaybackTime(pendingPosition.current, player.duration);
       progress.current.position = player.currentTime;
       setPosition(player.currentTime);
       pendingPosition.current = 0;
@@ -259,14 +387,39 @@ function ConversationReplaySession({ conversation, initialProgress, onProgress, 
       >
         <header className={styles.playerHeader}>
           <div>
-            <span className={styles.eyebrow}>ORIGINAL RECORDING</span>
-            <h3>Original audio</h3>
+            <span className={styles.eyebrow}>RECORDING</span>
+            <h3>
+              {settled && resolution.source === "combined"
+                ? "Combined audio"
+                : selectedSource === "phone"
+                  ? "Phone audio"
+                  : "Original audio"}
+            </h3>
             <p>{conversation.title}</p>
-            <p className={styles.duration}>Duration · {duration ? formatAudioTime(duration) : recordingDurationLabel(conversation)}</p>
+            <p className={styles.duration}>
+              Duration ·{" "}
+              {duration ? formatAudioTime(duration) : recordingDurationLabel(conversation)}
+            </p>
           </div>
         </header>
+        {availableSources.length > 1 && (
+          <div className={styles.sourceSelector} role="group" aria-label="Recording source">
+            {availableSources.map((option) => (
+              <button
+                type="button"
+                key={option}
+                aria-pressed={option === (settled ? resolution.source : selectedSource)}
+                onClick={() => onSourceChange(option)}
+              >
+                {playbackSourceLabels[option]}
+              </button>
+            ))}
+          </div>
+        )}
         <p className={styles.intro}>
-          Listen to the original recording and revisit the details.
+          {selectedSource === "phone"
+            ? "The preserved phone microphone recording. Transcript timestamps follow the combined audio."
+            : "Listen back and revisit the details."}
         </p>
         {source.url && (
           <>
@@ -291,11 +444,17 @@ function ConversationReplaySession({ conversation, initialProgress, onProgress, 
               }}
               onDurationChange={(event) => {
                 const value = event.currentTarget.duration;
-                setDuration(
-                  Number.isFinite(value) && value > 0 ? value : undefined,
-                );
+                setDuration(Number.isFinite(value) && value > 0 ? value : undefined);
               }}
-              onCanPlay={(event) => restorePosition(event.currentTarget)}
+              onCanPlay={(event) => {
+                restorePosition(event.currentTarget);
+                if (resumeAfterRenewal.current) {
+                  resumeAfterRenewal.current = false;
+                  void event.currentTarget
+                    .play()
+                    .catch(() => setError("Press Play to continue listening."));
+                }
+              }}
               onTimeUpdate={(event) => {
                 if (pendingPosition.current > 0) return;
                 progress.current.position = event.currentTarget.currentTime;
@@ -369,9 +528,7 @@ function ConversationReplaySession({ conversation, initialProgress, onProgress, 
         {!source.url && !recordingId && (
           <div className={styles.noAudio}>
             <strong>
-              {sample
-                ? "This sample has no audio recording"
-                : "No original audio was saved"}
+              {sample ? "This sample has no audio recording" : "No original audio was saved"}
             </strong>
             <p>
               {sample
@@ -384,11 +541,7 @@ function ConversationReplaySession({ conversation, initialProgress, onProgress, 
           <div className={styles.error} role="alert">
             <p>{error}</p>
             {recordingId && (
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => void refreshAudio()}
-              >
+              <button type="button" disabled={loading} onClick={() => void refreshAudio()}>
                 Reload recording
               </button>
             )}
@@ -407,19 +560,34 @@ function ConversationReplaySession({ conversation, initialProgress, onProgress, 
         {view === "transcript" && error && (
           <div className={styles.error} role="alert">
             <p>{error}</p>
-            {recordingId && <button type="button" disabled={loading} onClick={() => void refreshAudio()}>Reload recording</button>}
+            {recordingId && (
+              <button type="button" disabled={loading} onClick={() => void refreshAudio()}>
+                Reload recording
+              </button>
+            )}
           </div>
         )}
         <div className={styles.transcriptHeader}>
           <div>
             <h3>Transcript</h3>
             <p>
-              {speakerTones.size > 0 ? `${speakerTones.size} speaker label${speakerTones.size === 1 ? "" : "s"}. ` : ""}
-              {source.url ? "Select a timestamp to listen from that point." : "The transcript, in the words captured."}
+              {speakerTones.size > 0
+                ? `${speakerTones.size} speaker label${speakerTones.size === 1 ? "" : "s"}. `
+                : ""}
+              {source.url && transcriptTimingAvailable
+                ? "Select a timestamp to listen from that point."
+                : selectedSource === "phone"
+                  ? "Choose Combined audio to listen by transcript timestamp."
+                  : "The transcript, in the words captured."}
             </p>
           </div>
           {view === "transcript" && source.url && (
-            <button type="button" disabled={!ready || loading} onClick={togglePlayback} aria-label={playing ? "Pause recording" : "Play recording"}>
+            <button
+              type="button"
+              disabled={!ready || loading}
+              onClick={togglePlayback}
+              aria-label={playing ? "Pause recording" : "Play recording"}
+            >
               {playing ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
               {playing ? "Pause" : "Play"} · {formatAudioTime(position)}
             </button>
@@ -467,7 +635,7 @@ function ConversationReplaySession({ conversation, initialProgress, onProgress, 
                 <header>
                   <strong>{segment.speaker}</strong>
                   {timed &&
-                    (source.url ? (
+                    (source.url && transcriptTimingAvailable ? (
                       <button
                         type="button"
                         className={styles.timestamp}
@@ -496,8 +664,7 @@ function ConversationReplaySession({ conversation, initialProgress, onProgress, 
           )}
         </div>
         <p className={styles.transcriptNote}>
-          The transcript may contain mistakes. The original audio is your
-          reference.
+          The transcript may contain mistakes. The original audio is your reference.
         </p>
       </div>
     </section>

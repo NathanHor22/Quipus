@@ -17,6 +17,7 @@ const url =
 function mockPlayback(
   options: {
     row?: Record<string, unknown> | null;
+    secondaryRow?: Record<string, unknown> | null;
     queryError?: unknown;
     signingError?: unknown;
     signedUrl?: string | null;
@@ -44,8 +45,11 @@ function mockPlayback(
   };
   const client = {
     from(table: string) {
-      assert.equal(table, "recordings");
-      return query;
+      if (table === "recordings") return query;
+      assert.ok(["recording_audio_sources", "recording_audio_derivatives"].includes(table));
+      const secondary = { select:()=>secondary,eq:()=>secondary,
+        maybeSingle:async()=>({data:options.secondaryRow || null,error:null}) };
+      return secondary;
     },
     storage: {
       from(bucket: string) {
@@ -68,7 +72,7 @@ function mockPlayback(
   return { client, filters, signed };
 }
 
-test("playback signs only the owned original object for two hours without proxying audio", async () => {
+test("playback signs only the owned original object for five minutes without proxying audio", async () => {
   const mock = mockPlayback();
   const response = await recordingPlaybackResponse(
     mock.client,
@@ -81,12 +85,14 @@ test("playback signs only the owned original object for two hours without proxyi
     ["id", recordingId],
     ["user_id", ownerId],
   ]);
-  assert.deepEqual(mock.signed, [[storagePath, 7200]]);
-  assert.equal(PLAYBACK_URL_SECONDS, 7200);
+  assert.deepEqual(mock.signed, [[storagePath, 300]]);
+  assert.equal(PLAYBACK_URL_SECONDS, 300);
   assert.equal(response.headers.get("cache-control"), "no-store, max-age=0");
   assert.deepEqual(await response.json(), {
     url,
-    expiresAt: "2026-09-07T03:00:00.000Z",
+    expiresAt: "2026-09-07T01:05:00.000Z",
+    source: "onboard",
+    availableSources: ["onboard"],
   });
 });
 
@@ -208,5 +214,48 @@ test("playback authenticates before validation and never caches configuration or
       if (saved[key] === undefined) delete process.env[key];
       else process.env[key] = saved[key];
     }
+  }
+});
+
+
+test("expired or deleted audio cannot receive a fresh playback capability", async () => {
+  for (const row of [
+    { id: recordingId, user_id: ownerId, storage_path: storagePath, audio_deleted_at: "2026-10-01T00:00:00Z" },
+    { id: recordingId, user_id: ownerId, storage_path: storagePath, created_at: "2026-01-01T00:00:00Z" },
+  ]) {
+    const mock = mockPlayback({ row });
+    const response = await recordingPlaybackResponse(mock.client, recordingId, ownerId, Date.parse("2026-10-18T00:00:00Z"));
+    assert.equal(response.status, 410);
+    assert.deepEqual(mock.signed, []);
+  }
+});
+
+
+test("combined replay signs only a derivative reserved for this account and recording", async () => {
+  const sessionId="12e8da59-6303-49ca-9564-83f8c98f2097", derivativeId="6a625d29-4ce2-46f4-90e6-aa059ff97410";
+  const path=`${ownerId}/device/${sessionId}/${derivativeId}.wav`;
+  const row={ id:recordingId,user_id:ownerId,storage_path:storagePath,consolidated_storage_path:path };
+  const mock=mockPlayback({row,secondaryRow:{user_id:ownerId,recording_id:recordingId,storage_path:path}});
+  assert.equal((await recordingPlaybackResponse(mock.client,recordingId,ownerId)).status,200);
+  assert.deepEqual(mock.signed,[[path,300]]);
+  const missing=mockPlayback({row});
+  assert.equal((await recordingPlaybackResponse(missing.client,recordingId,ownerId)).status,502);
+  assert.deepEqual(missing.signed,[]);
+  const original=mockPlayback({row});
+  assert.equal((await recordingPlaybackResponse(original.client,recordingId,ownerId,Date.now(),"onboard")).status,200);
+  assert.deepEqual(original.signed,[[storagePath,300]]);
+});
+
+test("phone original requires verified source metadata bound to the selected meeting", async () => {
+  const sessionId="12e8da59-6303-49ca-9564-83f8c98f2097",sourceId="6a625d29-4ce2-46f4-90e6-aa059ff97410";
+  const path=`${ownerId}/device/${sessionId}/${sourceId}.wav`;
+  const source={id:sourceId,user_id:ownerId,recording_id:recordingId,storage_path:path,committed_at:"now",verified_at:"now"};
+  const mock=mockPlayback({secondaryRow:source});
+  assert.equal((await recordingPlaybackResponse(mock.client,recordingId,ownerId,Date.now(),"phone")).status,200);
+  assert.deepEqual(mock.signed,[[path,300]]);
+  for (const secondaryRow of [{...source,user_id:"foreign"},{...source,verified_at:null},{...source,recording_id:sourceId}]) {
+    const invalid=mockPlayback({secondaryRow});
+    assert.equal((await recordingPlaybackResponse(invalid.client,recordingId,ownerId,Date.now(),"phone")).status,404);
+    assert.deepEqual(invalid.signed,[]);
   }
 });

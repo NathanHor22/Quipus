@@ -34,6 +34,7 @@ async function WorkspaceContent({ mode, view, conversationId }: WorkspaceRoutePr
         email: user.email,
         displayName: profile?.data?.name || user.displayName,
         timezone: validTimezone(profile?.data?.timezone),
+        introductionCompletedAt: user.introductionCompletedAt ?? null,
       }
     : null;
 

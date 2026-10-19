@@ -29,7 +29,6 @@ export function ProfileSettings({ account, sample, onSaved }: {
     }}>
       <label>What should we call you?<input name="preferredName" value={name} onChange={e => setName(e.target.value)} placeholder="Your preferred name" maxLength={80} autoComplete="given-name" required /></label>
       <label>Your timezone<select value={timezone} onChange={e => setTimezone(e.target.value)}>{zones.map(zone => <option key={zone} value={zone}>{zone.replaceAll("_", " ")}</option>)}</select></label>
-      <small>Used for calendar times and requests such as “yesterday’s report.”</small>
       <button className={q.actionButton} disabled={busy} type="submit">{busy ? "Saving…" : "Save profile"}</button>
       {message && <p role="status">{message}</p>}
     </form>
