@@ -43,19 +43,19 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.5.8",
-    "@types/node": "^22.10.2",
+    "@electric-sql/pglite": "^0.5.10",
+    "@types/node": "^26.6.5",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
     "@types/three": "^0.186.0",
     "esbuild": "^0.28.2",
-    "eslint": "9.39.5",
-    "eslint-config-next": "16.3.8",
+    "eslint": "10.12.0",
+    "eslint-config-next": "16.4.2",
     "prettier": "3.9.10",
     "stylelint": "17.16.0",
     "stylelint-config-recommended": "18.0.0",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
   },
   "stylelint": {
     "extends": [
