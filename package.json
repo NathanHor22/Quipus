@@ -28,7 +28,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.106.2",
-    "@upstash/redis": "^1.38.0",
+    "@upstash/redis": "^1.39.0",
     "agora-rtc-sdk-ng": "^4.24.6",
     "agora-token": "^2.0.5",
     "date-fns": "^4.1.0",
