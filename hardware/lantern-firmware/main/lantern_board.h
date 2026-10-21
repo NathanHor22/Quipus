@@ -4,7 +4,7 @@
 
 #include "sdkconfig.h"
 
-#define LANTERN_FIRMWARE_VERSION "0.9.0-quipus"
+#define LANTERN_FIRMWARE_VERSION "0.9.1-quipus"
 #define LANTERN_API_BASE_URL "https://quipus-sales-rep-assistant.vercel.app"
 
 #if CONFIG_LANTERN_BOARD_ZHENGCHEN_M1307

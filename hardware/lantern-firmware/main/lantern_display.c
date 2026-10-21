@@ -550,12 +550,14 @@ static void draw_status_bar(
     uint16_t green,
     uint16_t amber,
     uint16_t red) {
-  const uint16_t dim = rgb565(66, 78, 71);
+  const uint16_t dim = rgb565(103, 120, 138);
   rect(0, 0, LANTERN_DISPLAY_WIDTH, 29, background);
   rect(0, 28, LANTERN_DISPLAY_WIDTH, 1, dim);
 
   int bars = 0;
-  bool wifi_connected = connectivity >= LANTERN_CONNECTIVITY_WIFI_ONLY;
+  bool wifi_connected = connectivity == LANTERN_CONNECTIVITY_WIFI_ONLY ||
+    connectivity == LANTERN_CONNECTIVITY_WEAK ||
+    connectivity == LANTERN_CONNECTIVITY_ONLINE;
   if (wifi_connected) {
     bars = wifi_rssi >= -60 ? 3 : wifi_rssi >= -72 ? 2 : 1;
   }
@@ -646,7 +648,7 @@ static void render_screen(const display_update_t *update) {
   const lantern_screen_t screen = update->screen;
   const char *detail = update->detail;
   const bool view_changed = (int)update->view != previous_view;
-  const bool screen_changed = (int)screen != previous_screen || view_changed ||
+  bool screen_changed = (int)screen != previous_screen || view_changed ||
     update->revision != previous_revision;
   const bool detail_changed = strcmp(detail, previous_detail) != 0;
   const bool status_changed = update->battery_level != previous_battery ||
@@ -654,19 +656,27 @@ static void render_screen(const display_update_t *update) {
     update->wifi_rssi != previous_rssi ||
     update->connectivity != previous_connectivity ||
     update->paired != previous_paired;
+  // The setup headline changes from networking to pairing when STA gets an IP.
+  if (screen == LANTERN_SCREEN_SETUP && status_changed) screen_changed = true;
   if (!screen_changed && !detail_changed && !status_changed) return;
 
-  const uint16_t background = rgb565(17, 25, 22);
-  const uint16_t green = rgb565(181, 213, 177);
-  const uint16_t foreground = rgb565(233, 238, 231);
-  const uint16_t amber = rgb565(255, 184, 72);
-  const uint16_t red = rgb565(255, 78, 86);
+  const uint16_t background = rgb565(255, 255, 255);
+  // Legacy parameter name remains local; this is Quipus's red brand accent.
+  const uint16_t green = rgb565(196, 0, 0);
+  const uint16_t success = rgb565(24, 116, 72);
+  const uint16_t foreground = rgb565(14, 32, 58);
+  const uint16_t amber = rgb565(122, 79, 19);
+  const uint16_t red = rgb565(165, 27, 44);
   uint16_t accent = green;
   const char *title = "QUIPUS";
   const char *status = "BOOTING";
 
   switch (screen) {
-    case LANTERN_SCREEN_SETUP: status = "WIFI SETUP"; accent = amber; break;
+    case LANTERN_SCREEN_SETUP:
+      status = update->connectivity == LANTERN_CONNECTIVITY_WIFI_ONLY && !update->paired
+                   ? "PAIR QUIPUS" : "WIFI SETUP";
+      accent = green;
+      break;
     case LANTERN_SCREEN_CONNECTING: status = "CONNECTING"; accent = amber; break;
     case LANTERN_SCREEN_READY: status = "READY"; break;
     case LANTERN_SCREEN_LISTENING: status = "LISTENING"; break;
@@ -690,7 +700,7 @@ static void render_screen(const display_update_t *update) {
     if (status_changed) {
       draw_status_bar(update->battery_level, update->power_state,
         update->connectivity, update->wifi_rssi,
-        update->paired, background, foreground, green, amber, red);
+        update->paired, background, foreground, success, amber, red);
       complete = flush_rows(0, 29) && complete;
     }
     if (detail_changed) {
@@ -702,7 +712,7 @@ static void render_screen(const display_update_t *update) {
     fill(background);
     draw_status_bar(update->battery_level, update->power_state,
       update->connectivity, update->wifi_rssi,
-      update->paired, background, foreground, green, amber, red);
+      update->paired, background, foreground, success, amber, red);
 
     if (update->view == DISPLAY_SPLASH) {
       centered_text(45, "QUIPUS", 2, foreground);
@@ -757,7 +767,7 @@ static void render_screen(const display_update_t *update) {
       for (int row = 0; row < 4; ++row) {
         for (int column = 0; column < 10; ++column) {
           int x = column * 24, y = 91 + row * 39;
-          outline_rect(x + 1, y, 22, 34, 1, rgb565(66, 78, 71));
+          outline_rect(x + 1, y, 22, 34, 1, rgb565(209, 216, 226));
           char key[2] = {rows[row][column], 0};
           if (!update->uppercase) key[0] = (char)tolower((unsigned char)key[0]);
           draw_text(x + 9, y + 13, key, 1, foreground);
@@ -772,6 +782,32 @@ static void render_screen(const display_update_t *update) {
       wrapped_text(10, 61, LANTERN_DISPLAY_WIDTH - 20, detail, 16, foreground);
       outline_rect(72, 276, 96, 32, 1, foreground);
       centered_text(288, "BACK", 1, foreground);
+    } else if (screen == LANTERN_SCREEN_SETUP) {
+      const bool tall = LANTERN_DISPLAY_HEIGHT > 240;
+      const bool connected = update->connectivity == LANTERN_CONNECTIVITY_WIFI_ONLY ||
+        update->connectivity == LANTERN_CONNECTIVITY_WEAK ||
+        update->connectivity == LANTERN_CONNECTIVITY_ONLINE;
+      const uint16_t muted = rgb565(89, 101, 119);
+      centered_text(39, "QUIPUS", 2, foreground);
+      rect(18, 65, LANTERN_DISPLAY_WIDTH - 36, 2, green);
+      centered_text(tall ? 83 : 79, status, 2, green);
+      centered_text(tall ? 114 : 102,
+        connected ? "WIFI CONNECTED" : "CONNECT THIS PHONE OR LAPTOP", 1,
+        connected ? success : muted);
+      const int panel_y = tall ? 136 : 120;
+      rect(12, panel_y, LANTERN_DISPLAY_WIDTH - 24, 47, rgb565(243, 246, 250));
+      rect(12, panel_y, 3, 47, green);
+      draw_text(23, panel_y + 9, "JOIN SETUP WIFI", 1, muted);
+      wrapped_text(23, panel_y + 25, LANTERN_DISPLAY_WIDTH - 46,
+        detail && detail[0] ? detail : "OPEN WIFI OPTIONS", 1, foreground);
+      centered_text(tall ? 205 : 179, "OPEN IN YOUR BROWSER", 1, muted);
+      centered_text(tall ? 228 : 196, "192.168.4.1", 2, foreground);
+      if (tall) {
+        wrapped_text(18, 265, LANTERN_DISPLAY_WIDTH - 36,
+          update->paired ? "UPDATE YOUR NETWORK. YOUR ACCOUNT STAYS LINKED."
+                         : "ENTER THE PAIRING CODE FROM YOUR QUIPUS DASHBOARD.",
+          3, muted);
+      }
     } else {
       if (screen == LANTERN_SCREEN_READY || screen == LANTERN_SCREEN_BOOTING) {
         quipus_mark(LANTERN_DISPLAY_WIDTH / 2, ring_y - 44, accent);

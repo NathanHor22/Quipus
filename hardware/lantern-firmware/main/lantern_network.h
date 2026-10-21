@@ -34,6 +34,8 @@ typedef struct {
   bool paired;
   lantern_connectivity_t connectivity;
   char setup_ssid[33];
+  char connected_ssid[33];
+  char saved_ssid[33];
   char ip_address[16];
   char last_error[96];
 } lantern_network_status_t;

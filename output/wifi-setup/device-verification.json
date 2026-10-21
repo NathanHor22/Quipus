@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-21",
+  "firmware": "0.9.1-quipus",
+  "board": "LCDWIKI ES3C28P",
+  "port": "COM10",
+  "applicationOffset": "0x20000",
+  "applicationBytes": 1737104,
+  "sha256": "adbc324eee2b451c84347cd8044bed611b9d0e5f69ac046355cacbe822c989ed",
+  "flashHashVerified": true,
+  "nvsAndSdPreserved": true,
+  "httpChecks": [
+    {
+      "connectAccepted": true,
+      "connectMessage": "Connection request was completed successfully."
+    },
+    {
+      "request": "minimal",
+      "status": 200,
+      "bytes": 16046,
+      "doctype": true
+    },
+    {
+      "request": "browser-sized",
+      "status": 200,
+      "bytes": 16046,
+      "doctype": true
+    },
+    {
+      "request": "status",
+      "status": 200,
+      "wifi_connected": true,
+      "paired": false
+    },
+    {
+      "restoredOriginalWifi": true
+    }
+  ]
+}

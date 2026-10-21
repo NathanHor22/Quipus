@@ -1,4 +1,7 @@
 #include "lantern_network.h"
+#include "lantern_setup_page.h"
+#include "quipus_network_policy.h"
+#include "quipus_setup_form.h"
 
 #include "esp_sntp.h"
 #include <ctype.h>
@@ -54,6 +57,8 @@ static volatile bool s_report_playing;
 static volatile bool s_report_interrupted;
 static volatile bool s_report_request_active;
 static volatile bool s_suspend_auto_reconnect;
+static bool s_setup_manual;
+static TaskHandle_t s_connection_task;
 
 static esp_err_t start_setup_portal(void);
 
@@ -63,6 +68,7 @@ static void stop_setup_portal(void) {
     s_server = NULL;
   }
   s_status.setup_portal_active = false;
+  s_setup_manual = false;
   s_status.connectivity = s_status.wifi_connected
                               ? LANTERN_CONNECTIVITY_WIFI_ONLY
                               : LANTERN_CONNECTIVITY_RECONNECTING;
@@ -579,21 +585,6 @@ static void provider_error(const char *operation, int status,
   set_error(detail);
 }
 
-static bool normalize_pairing_code(char *code) {
-  char normalized[21] = {0};
-  size_t length = 0;
-  for (const char *cursor = code; *cursor && length < sizeof(normalized) - 1;
-       ++cursor) {
-    if (*cursor == '-' || isspace((unsigned char)*cursor))
-      continue;
-    normalized[length++] = (char)toupper((unsigned char)*cursor);
-  }
-  if (length != 10)
-    return false;
-  memcpy(code, normalized, length + 1);
-  return true;
-}
-
 static esp_err_t ensure_pending_device_secret(void) {
   if (s_config->device_secret[0])
     return ESP_OK;
@@ -616,7 +607,7 @@ static esp_err_t claim_device(void) {
   if (!s_config || !s_config->pairing_code[0] ||
       lantern_storage_is_paired(s_config))
     return ESP_OK;
-  if (!normalize_pairing_code(s_config->pairing_code)) {
+  if (!quipus_setup_normalize_pairing_code(s_config->pairing_code)) {
     set_error("Pair code must have 10 characters");
     return ESP_ERR_INVALID_ARG;
   }
@@ -701,62 +692,54 @@ static esp_err_t claim_device(void) {
   return ESP_OK;
 }
 
-static void decode_form_value(const char *source, char *destination,
-                              size_t destination_size) {
-  size_t written = 0;
-  while (*source && *source != '&' && written + 1 < destination_size) {
-    if (*source == '+') {
-      destination[written++] = ' ';
-      ++source;
-    } else if (*source == '%' && source[1] && source[2]) {
-      char hex[3] = {source[1], source[2], 0};
-      destination[written++] = (char)strtoul(hex, NULL, 16);
-      source += 3;
-    } else {
-      destination[written++] = *source++;
+static esp_err_t send_setup_html(httpd_req_t *request, const char *page,
+                                 size_t length) {
+  httpd_resp_set_type(request, "text/html; charset=utf-8");
+  httpd_resp_set_hdr(request, "Cache-Control", "no-store");
+  httpd_resp_set_hdr(request, "Connection", "close");
+  for (size_t offset = 0; offset < length;) {
+    size_t count = length - offset;
+    if (count > 1024)
+      count = 1024;
+    esp_err_t result = httpd_resp_send_chunk(request, page + offset, count);
+    if (result != ESP_OK) {
+      ESP_LOGW(TAG, "setup response stopped at %u/%u bytes: %s",
+               (unsigned)offset, (unsigned)length, esp_err_to_name(result));
+      return result;
     }
+    offset += count;
   }
-  destination[written] = '\0';
-}
-
-static void form_field(const char *body, const char *name, char *destination,
-                       size_t destination_size) {
-  destination[0] = '\0';
-  char needle[32];
-  snprintf(needle, sizeof(needle), "%s=", name);
-  const char *value = strstr(body, needle);
-  if (!value || (value != body && value[-1] != '&'))
-    return;
-  decode_form_value(value + strlen(needle), destination, destination_size);
+  return httpd_resp_send_chunk(request, NULL, 0);
 }
 
 static esp_err_t setup_page(httpd_req_t *request) {
-  static const char page[] =
-      "<!doctype html><html><head><meta name=viewport "
-      "content='width=device-width,initial-scale=1'>"
-      "<title>Quipus setup</title><style>body{font:16px "
-      "system-ui;background:#03110c;color:#e8fff2;"
-      "max-width:420px;margin:40px "
-      "auto;padding:24px}h1{color:#35ff8c}p{color:#a9c9b7;line-height:1.55}"
-      "label{display:block;margin-top:18px;color:#d9f7e5}"
-      "input{width:100%;box-sizing:border-box;padding:13px;margin-top:7px;"
-      "border-radius:8px;border:1px solid "
-      "#28704c;background:#071b12;color:#effff5}"
-      "button{margin-top:24px;width:100%;padding:14px;border:0;border-radius:"
-      "8px;background:#35ff8c;color:#03110c;font-weight:700}</style></head>"
-      "<body><h1>Quipus</h1><p>Use the one-time pairing code from your Quipus "
-      "dashboard. If Quipus already knows this Wi-Fi, leave the Wi-Fi fields "
-      "blank.</p>"
-      "<form method=post action=/configure><label>Wi-Fi name<input name=ssid "
-      "maxlength=32 placeholder='Leave blank to keep saved Wi-Fi'></label>"
-      "<label>Wi-Fi password<input name=password type=password "
-      "maxlength=64></label>"
-      "<label>Pairing code (required to pair or reconnect)<input name=code "
-      "maxlength=20 placeholder='XXXXX-XXXXX'></label><button>Connect "
-      "Quipus</button></form>"
-      "</body></html>";
-  httpd_resp_set_type(request, "text/html");
-  return httpd_resp_send(request, page, HTTPD_RESP_USE_STRLEN);
+  ESP_LOGI(TAG, "serving setup page (%u bytes)",
+           (unsigned)(sizeof(lantern_setup_page_html) - 1));
+  return send_setup_html(request, lantern_setup_page_html,
+                          sizeof(lantern_setup_page_html) - 1);
+}
+
+static esp_err_t setup_status(httpd_req_t *request) {
+  lantern_network_status_t status;
+  lantern_network_get_status(&status);
+  cJSON *json = cJSON_CreateObject();
+  if (!json)
+    return ESP_ERR_NO_MEM;
+  cJSON_AddBoolToObject(json, "wifi_connected", status.wifi_connected);
+  cJSON_AddBoolToObject(json, "paired", status.paired);
+  cJSON_AddStringToObject(json, "connected_ssid", status.connected_ssid);
+  cJSON_AddStringToObject(json, "saved_ssid", status.saved_ssid);
+  cJSON_AddStringToObject(json, "ip", status.ip_address);
+  cJSON_AddStringToObject(json, "last_error", status.last_error);
+  char *body = cJSON_PrintUnformatted(json);
+  cJSON_Delete(json);
+  if (!body)
+    return ESP_ERR_NO_MEM;
+  httpd_resp_set_type(request, "application/json");
+  httpd_resp_set_hdr(request, "Cache-Control", "no-store");
+  esp_err_t result = httpd_resp_send(request, body, HTTPD_RESP_USE_STRLEN);
+  free(body);
+  return result;
 }
 
 static void wav_u16(uint8_t *target, uint16_t value) {
@@ -888,57 +871,84 @@ static esp_err_t firmware_update(httpd_req_t *request) {
 
 #endif
 
+static esp_err_t send_setup_error(httpd_req_t *request,
+                                  httpd_err_code_t status,
+                                  const char *message) {
+  httpd_resp_set_status(request, status == HTTPD_500_INTERNAL_SERVER_ERROR
+                                     ? "500 Internal Server Error"
+                                     : "400 Bad Request");
+  httpd_resp_set_type(request, "text/plain; charset=utf-8");
+  httpd_resp_set_hdr(request, "Cache-Control", "no-store");
+  httpd_resp_set_hdr(request, "Connection", "close");
+  return httpd_resp_send(request, message, HTTPD_RESP_USE_STRLEN);
+}
+
 static esp_err_t configure(httpd_req_t *request) {
-  if (request->content_len <= 0 || request->content_len >= 256) {
-    httpd_resp_send_err(request, HTTPD_400_BAD_REQUEST, "Invalid form");
+  // Worst-case URL-encoded SSID + password exceed the old 256-byte body.
+  if (request->content_len <= 0 || request->content_len >= 1024) {
+    send_setup_error(request, HTTPD_400_BAD_REQUEST, "Invalid setup form");
     return ESP_FAIL;
   }
-  char body[256] = {0};
-  int received = httpd_req_recv(request, body, request->content_len);
-  if (received <= 0)
-    return ESP_FAIL;
-  body[received] = '\0';
-  char ssid[33], password[65], code[21];
-  form_field(body, "ssid", ssid, sizeof(ssid));
-  form_field(body, "password", password, sizeof(password));
-  form_field(body, "code", code, sizeof(code));
-  bool has_valid_code = code[0] && normalize_pairing_code(code);
-  const char *selected_ssid = ssid[0] ? ssid : s_config->wifi_ssid;
-  const char *selected_password = ssid[0] ? password : s_config->wifi_password;
-  if (!selected_ssid[0] ||
-      (!lantern_storage_is_paired(s_config) && !has_valid_code) ||
-      (code[0] && !has_valid_code)) {
-    httpd_resp_send_err(request, HTTPD_400_BAD_REQUEST,
-                        "Check the Wi-Fi name and 10-character pairing code");
-    return ESP_FAIL;
-  }
-  if (has_valid_code && lantern_storage_is_paired(s_config) &&
-      lantern_sd_pending_count() > 0) {
-    httpd_resp_send_err(
-        request, HTTPD_400_BAD_REQUEST,
-        "Sync pending recordings before changing account pairing");
-    return ESP_FAIL;
-  }
-  if (has_valid_code && lantern_storage_is_paired(s_config)) {
-    esp_err_t reset_result = lantern_storage_clear_device(s_config);
-    if (reset_result != ESP_OK) {
-      httpd_resp_send_err(request, HTTPD_500_INTERNAL_SERVER_ERROR,
-                          "Could not reset the previous pairing");
-      return reset_result;
+  char body[1024] = {0};
+  size_t received = 0;
+  unsigned timeouts = 0;
+  while (received < request->content_len) {
+    int count = httpd_req_recv(request, body + received,
+                               request->content_len - received);
+    if (count == HTTPD_SOCK_ERR_TIMEOUT && ++timeouts <= 2)
+      continue;
+    if (count <= 0) {
+      send_setup_error(request, HTTPD_400_BAD_REQUEST,
+                          "Setup form was incomplete. Please try again.");
+      return ESP_FAIL;
     }
-    s_status.paired = false;
+    received += (size_t)count;
   }
+  quipus_setup_form_t form;
+  if (!quipus_setup_parse_form(body, received, &form)) {
+    send_setup_error(request, HTTPD_400_BAD_REQUEST,
+                        "Check the Wi-Fi name, password and pairing code");
+    return ESP_FAIL;
+  }
+  bool paired = lantern_storage_is_paired(s_config);
+  bool has_valid_code = form.pairing_code[0] &&
+                        quipus_setup_normalize_pairing_code(form.pairing_code);
+  const char *selected_ssid = form.ssid[0] ? form.ssid : s_config->wifi_ssid;
+  const char *selected_password =
+      form.ssid[0] ? form.password : s_config->wifi_password;
+  if (!selected_ssid[0] || (!paired && !has_valid_code) ||
+      (form.pairing_code[0] && !has_valid_code)) {
+    send_setup_error(request, HTTPD_400_BAD_REQUEST,
+                        "Enter Wi-Fi details and a valid 10-character pairing code");
+    return ESP_FAIL;
+  }
+  if (paired && form.pairing_code[0]) {
+    // A local setup form must never discard an authenticated owner or bypass
+    // safe device transfer. Updating Wi-Fi alone preserves that pairing.
+    send_setup_error(
+        request, HTTPD_400_BAD_REQUEST,
+        "Already paired. Revoke or transfer this device in your dashboard first.");
+    return ESP_FAIL;
+  }
+  const char *selected_code =
+      has_valid_code ? form.pairing_code : s_config->pairing_code;
   esp_err_t result =
-      lantern_storage_save_wifi(selected_ssid, selected_password, code);
+      lantern_storage_save_wifi(selected_ssid, selected_password, selected_code);
+  memset(form.password, 0, sizeof(form.password));
+  memset(body, 0, sizeof(body));
   if (result != ESP_OK) {
-    httpd_resp_send_err(request, HTTPD_500_INTERNAL_SERVER_ERROR,
+    send_setup_error(request, HTTPD_500_INTERNAL_SERVER_ERROR,
                         "Could not save settings");
     return result;
   }
-  httpd_resp_set_type(request, "text/html");
-  httpd_resp_send(request, "<h1>Connected</h1><p>Quipus is restarting now.</p>",
-                  HTTPD_RESP_USE_STRLEN);
-  xTaskCreate(delayed_restart, "restart", 2048, NULL, 4, NULL);
+  esp_err_t sent = send_setup_html(request, lantern_setup_saved_html,
+                                    sizeof(lantern_setup_saved_html) - 1);
+  if (sent != ESP_OK)
+    ESP_LOGW(TAG, "settings saved; browser response was interrupted");
+  if (xTaskCreate(delayed_restart, "restart", 2048, NULL, 4, NULL) != pdPASS) {
+    set_error("Settings saved. Restart Quipus to apply.");
+    return ESP_ERR_NO_MEM;
+  }
   return ESP_OK;
 }
 
@@ -966,13 +976,15 @@ static esp_err_t start_setup_portal(void) {
   configure_setup_radio();
 
   httpd_config_t server_config = HTTPD_DEFAULT_CONFIG();
-  // The setup AP accepts at most two clients. Keeping HTTPD's default seven
-  // sessions leaves no spare lwIP descriptors on this build once its three
-  // internal sockets are allocated.
-  server_config.max_open_sockets = 2;
-  server_config.max_uri_handlers = 4;
-  server_config.stack_size = 3072;
+  // A browser opens speculative, favicon and status sockets alongside its
+  // page request. Four sessions avoid evicting that page under light pressure;
+  // the lwIP pool also reserves room for control, DNS, SNTP and cloud sockets.
+  server_config.max_open_sockets = 4;
+  server_config.max_uri_handlers = 5;
+  server_config.stack_size = 4096;
   server_config.lru_purge_enable = true;
+  server_config.recv_wait_timeout = 5;
+  server_config.send_wait_timeout = 10;
   ESP_LOGI(
       TAG, "starting setup server; internal_free=%u largest_internal=%u",
       (unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT),
@@ -987,6 +999,8 @@ static esp_err_t start_setup_portal(void) {
   }
   const httpd_uri_t root = {
       .uri = "/", .method = HTTP_GET, .handler = setup_page};
+  const httpd_uri_t status = {
+      .uri = "/status", .method = HTTP_GET, .handler = setup_status};
   const httpd_uri_t save = {
       .uri = "/configure", .method = HTTP_POST, .handler = configure};
 #if CONFIG_QUIPUS_UNSAFE_LOCAL_DEBUG
@@ -997,12 +1011,15 @@ static esp_err_t start_setup_portal(void) {
 #endif
   ESP_ERROR_CHECK(httpd_register_uri_handler(s_server, &root));
   ESP_ERROR_CHECK(httpd_register_uri_handler(s_server, &save));
+  ESP_ERROR_CHECK(httpd_register_uri_handler(s_server, &status));
 #if CONFIG_QUIPUS_UNSAFE_LOCAL_DEBUG
   ESP_ERROR_CHECK(httpd_register_uri_handler(s_server, &audio));
   ESP_ERROR_CHECK(httpd_register_uri_handler(s_server, &firmware));
 #endif
   s_status.setup_portal_active = true;
-  s_status.connectivity = LANTERN_CONNECTIVITY_SETUP;
+  s_status.connectivity = s_status.wifi_connected
+                              ? LANTERN_CONNECTIVITY_WIFI_ONLY
+                              : LANTERN_CONNECTIVITY_SETUP;
   ESP_LOGI(TAG, "setup portal: SSID=%s URL=http://192.168.4.1",
            s_status.setup_ssid);
   notify();
@@ -1018,18 +1035,27 @@ static void wifi_event(void *argument, esp_event_base_t base, int32_t id,
   } else if (base == WIFI_EVENT && id == WIFI_EVENT_STA_DISCONNECTED) {
     s_status.wifi_connected = false;
     s_status.wifi_rssi = -127;
+    s_status.ip_address[0] = '\0';
+    s_status.connected_ssid[0] = '\0';
     s_status.connectivity = s_status.setup_portal_active
                                 ? LANTERN_CONNECTIVITY_SETUP
                                 : LANTERN_CONNECTIVITY_RECONNECTING;
     xEventGroupClearBits(s_wifi_events, WIFI_CONNECTED_BIT);
-    if (!s_suspend_auto_reconnect)
-      esp_wifi_connect();
+    // Reconnection runs with bounded backoff on the supervisor task.
+    if (s_connection_task)
+      xTaskNotifyGive(s_connection_task);
     notify();
   } else if (base == IP_EVENT && id == IP_EVENT_STA_GOT_IP) {
     const ip_event_got_ip_t *event = data;
     snprintf(s_status.ip_address, sizeof(s_status.ip_address), IPSTR,
              IP2STR(&event->ip_info.ip));
     s_status.wifi_connected = true;
+    wifi_ap_record_t access_point = {0};
+    if (esp_wifi_sta_get_ap_info(&access_point) == ESP_OK) {
+      snprintf(s_status.connected_ssid, sizeof(s_status.connected_ssid), "%s",
+               access_point.ssid);
+      s_status.wifi_rssi = access_point.rssi;
+    }
     s_status.connectivity = LANTERN_CONNECTIVITY_WIFI_ONLY;
     s_status.last_error[0] = '\0';
     xEventGroupSetBits(s_wifi_events, WIFI_CONNECTED_BIT);
@@ -1039,61 +1065,80 @@ static void wifi_event(void *argument, esp_event_base_t base, int32_t id,
       esp_sntp_init();
     }
     ESP_LOGI(TAG, "Wi-Fi connected at %s", s_status.ip_address);
+    if (s_connection_task)
+      xTaskNotifyGive(s_connection_task);
     notify();
   }
 }
 
-static void connection_task(void *argument) {
-  (void)argument;
-  if (!lantern_storage_has_wifi(s_config)) {
-    start_setup_portal();
-    vTaskDelete(NULL);
-    return;
-  }
-  EventBits_t bits = xEventGroupWaitBits(s_wifi_events, WIFI_CONNECTED_BIT,
-                                         pdFALSE, pdTRUE, pdMS_TO_TICKS(15000));
-  if (!(bits & WIFI_CONNECTED_BIT)) {
-    // A travelling user may be away from the most recently used network.
-    // Scan once and try the strongest remembered alternative before exposing
-    // the setup AP. The list is fixed and bounded to five profiles.
-    lantern_wifi_network_t visible[LANTERN_WIFI_SCAN_LIMIT] = {0};
-    size_t visible_count = 0;
-    s_suspend_auto_reconnect = true;
-    esp_wifi_disconnect();
-    if (lantern_network_scan_wifi(visible, LANTERN_WIFI_SCAN_LIMIT,
-                                  &visible_count) == ESP_OK) {
-      for (size_t network = 0;
-           network < visible_count && !(bits & WIFI_CONNECTED_BIT); ++network) {
-        for (size_t saved = 0; saved < s_config->wifi_profile_count; ++saved) {
-          if (strcmp(visible[network].ssid,
-                     s_config->wifi_profiles[saved].ssid) == 0 &&
-              strcmp(visible[network].ssid, s_config->wifi_ssid) != 0) {
-            ESP_LOGI(TAG, "trying remembered Wi-Fi %s at %d dBm",
-                     visible[network].ssid, visible[network].rssi);
-            if (lantern_network_connect_wifi(
-                    visible[network].ssid,
-                    s_config->wifi_profiles[saved].password) == ESP_OK) {
-              bits = WIFI_CONNECTED_BIT;
-            }
+static void try_remembered_networks(void) {
+  lantern_wifi_network_t visible[LANTERN_WIFI_SCAN_LIMIT] = {0};
+  size_t visible_count = 0;
+  s_suspend_auto_reconnect = true;
+  esp_wifi_disconnect();
+  if (lantern_network_scan_wifi(visible, LANTERN_WIFI_SCAN_LIMIT,
+                                &visible_count) == ESP_OK) {
+    for (size_t network = 0;
+         network < visible_count && !s_status.wifi_connected; ++network) {
+      for (size_t saved = 0; saved < s_config->wifi_profile_count; ++saved) {
+        if (!strcmp(visible[network].ssid,
+                    s_config->wifi_profiles[saved].ssid) &&
+            strcmp(visible[network].ssid, s_config->wifi_ssid)) {
+          // connect_wifi reloads/reorders profiles only after succeeding.
+          char ssid[33], password[65];
+          snprintf(ssid, sizeof(ssid), "%.32s", visible[network].ssid);
+          snprintf(password, sizeof(password), "%.64s",
+                   s_config->wifi_profiles[saved].password);
+          ESP_LOGI(TAG, "trying remembered Wi-Fi at %d dBm",
+                   visible[network].rssi);
+          esp_err_t result = lantern_network_connect_wifi(ssid, password);
+          memset(password, 0, sizeof(password));
+          s_suspend_auto_reconnect = true;
+          if (result == ESP_OK)
             break;
-          }
         }
       }
     }
-    s_suspend_auto_reconnect = false;
-    if (!(bits & WIFI_CONNECTED_BIT)) {
-      set_error("Known Wi-Fi unavailable; setup portal started");
-      esp_wifi_connect();
-      start_setup_portal();
-      vTaskDelete(NULL);
-      return;
-    }
   }
-  if (!lantern_storage_is_paired(s_config) && s_config->pairing_code[0])
-    claim_device();
-  if (!lantern_storage_is_paired(s_config))
-    start_setup_portal();
-  vTaskDelete(NULL);
+  s_suspend_auto_reconnect = false;
+}
+
+static void connection_task(void *argument) {
+  (void)argument;
+  quipus_network_policy_t policy = {0};
+  // This task stays alive. A late hotspot connection or transient claim failure
+  // must recover without restarting the board or re-entering Wi-Fi details.
+  for (;;) {
+    quipus_network_input_t input = {
+        .wifi_connected = s_status.wifi_connected,
+        .has_saved_wifi = lantern_storage_has_wifi(s_config),
+        .paired = lantern_storage_is_paired(s_config),
+        .has_pairing_code = s_config->pairing_code[0] != '\0',
+        .portal_active = s_status.setup_portal_active,
+        .portal_manual = s_setup_manual,
+        .connection_busy = s_suspend_auto_reconnect,
+    };
+    unsigned actions = quipus_network_next(
+        &policy, &input, (uint64_t)esp_timer_get_time() / 1000);
+    if (actions & QUIPUS_NETWORK_TRY_REMEMBERED)
+      try_remembered_networks();
+    if ((actions & QUIPUS_NETWORK_OPEN_PORTAL) &&
+        start_setup_portal() != ESP_OK)
+      set_error("Setup unavailable. Restart Quipus and try again.");
+    if ((actions & QUIPUS_NETWORK_CONNECT) && !s_status.wifi_connected) {
+      esp_err_t result = esp_wifi_connect();
+      if (result != ESP_OK && result != ESP_ERR_WIFI_CONN)
+        ESP_LOGW(TAG, "Wi-Fi reconnect deferred: %s", esp_err_to_name(result));
+    }
+    if ((actions & QUIPUS_NETWORK_CLAIM) && s_status.wifi_connected)
+      claim_device();
+    if ((actions & QUIPUS_NETWORK_CLOSE_PORTAL) &&
+        s_status.wifi_connected && lantern_storage_is_paired(s_config)) {
+      stop_setup_portal();
+      notify();
+    }
+    ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(3000));
+  }
 }
 
 esp_err_t lantern_network_start(lantern_config_t *config,
@@ -1105,6 +1150,9 @@ esp_err_t lantern_network_start(lantern_config_t *config,
   memset(&s_status, 0, sizeof(s_status));
   s_status.connectivity = LANTERN_CONNECTIVITY_RECONNECTING;
   s_status.paired = lantern_storage_is_paired(config);
+  s_status.wifi_rssi = -127;
+  snprintf(s_status.saved_ssid, sizeof(s_status.saved_ssid), "%s",
+           config->wifi_ssid);
   s_wifi_events = xEventGroupCreate();
   if (!s_wifi_events)
     return ESP_ERR_NO_MEM;
@@ -1156,8 +1204,8 @@ esp_err_t lantern_network_start(lantern_config_t *config,
   esp_wifi_set_ps(WIFI_PS_MIN_MODEM);
   if (portal_result != ESP_OK)
     return portal_result;
-  if (has_wifi && xTaskCreate(connection_task, "lantern_connect", 8192, NULL, 5,
-                              NULL) != pdPASS) {
+  if (xTaskCreate(connection_task, "lantern_connect", 8192, NULL, 5,
+                  &s_connection_task) != pdPASS) {
     return ESP_ERR_NO_MEM;
   }
   return ESP_OK;
@@ -1167,6 +1215,9 @@ void lantern_network_get_status(lantern_network_status_t *status) {
   if (!status)
     return;
   *status = s_status;
+  if (s_config)
+    snprintf(status->saved_ssid, sizeof(status->saved_ssid), "%s",
+             s_config->wifi_ssid);
   if (status->wifi_connected) {
     wifi_ap_record_t access_point = {0};
     if (esp_wifi_sta_get_ap_info(&access_point) == ESP_OK) {
@@ -1190,10 +1241,15 @@ void lantern_network_set_realtime(bool enabled) {
 }
 
 esp_err_t lantern_network_open_setup_portal(void) {
+  s_setup_manual = true;
   esp_err_t result = start_setup_portal();
   if (result == ESP_OK) {
-    s_status.connectivity = LANTERN_CONNECTIVITY_SETUP;
+    s_status.connectivity = s_status.wifi_connected
+                                ? LANTERN_CONNECTIVITY_WIFI_ONLY
+                                : LANTERN_CONNECTIVITY_SETUP;
     notify();
+  } else {
+    s_setup_manual = false;
   }
   return result;
 }
@@ -1249,9 +1305,8 @@ esp_err_t lantern_network_connect_wifi(const char *ssid, const char *password) {
   ESP_RETURN_ON_ERROR(esp_wifi_get_config(WIFI_IF_STA, &previous), TAG,
                       "read Wi-Fi config");
   wifi_config_t station = {0};
-  snprintf((char *)station.sta.ssid, sizeof(station.sta.ssid), "%s", ssid);
-  snprintf((char *)station.sta.password, sizeof(station.sta.password), "%s",
-           password);
+  memcpy(station.sta.ssid, ssid, strlen(ssid));
+  memcpy(station.sta.password, password, strlen(password));
   station.sta.threshold.authmode = WIFI_AUTH_OPEN;
   station.sta.pmf_cfg.capable = true;
   station.sta.pmf_cfg.required = false;
@@ -1266,9 +1321,12 @@ esp_err_t lantern_network_connect_wifi(const char *ssid, const char *password) {
     return configure_result;
   }
   esp_err_t connect_result = esp_wifi_connect();
-  s_suspend_auto_reconnect = false;
-  if (connect_result != ESP_OK)
+  if (connect_result != ESP_OK) {
+    esp_wifi_set_config(WIFI_IF_STA, &previous);
+    esp_wifi_connect();
+    s_suspend_auto_reconnect = false;
     return connect_result;
+  }
   EventBits_t bits = xEventGroupWaitBits(s_wifi_events, WIFI_CONNECTED_BIT,
                                          pdFALSE, pdTRUE, pdMS_TO_TICKS(20000));
   if (!(bits & WIFI_CONNECTED_BIT)) {
@@ -1282,6 +1340,7 @@ esp_err_t lantern_network_connect_wifi(const char *ssid, const char *password) {
     s_suspend_auto_reconnect = false;
     return ESP_ERR_TIMEOUT;
   }
+  s_suspend_auto_reconnect = false;
   ESP_RETURN_ON_ERROR(
       lantern_storage_save_wifi(ssid, password, s_config->pairing_code), TAG,
       "save Wi-Fi");

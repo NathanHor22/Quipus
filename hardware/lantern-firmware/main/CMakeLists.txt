@@ -8,6 +8,8 @@ idf_component_register(
     "lantern_board_io.c"
     "lantern_display.c"
     "lantern_network.c"
+    "quipus_network_policy.c"
+    "quipus_setup_form.c"
     "quipus_phone_audio.c"
     "quipus_archive.c"
     "quipus_usb_protocol.c"
