@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.22",
-    "ioredis": "^5.7.0",
+    "ioredis": "^6.0.0",
     "pg": "^8.13.0",
     "pino": "^9.0.0",
     "qrcode": "^1.5.4"
