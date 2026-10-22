@@ -18,6 +18,7 @@
 #include <errno.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdatomic.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -45,6 +46,11 @@ static uint64_t s_sequence;
 static lantern_cloud_session_t s_session, s_prepared_session;
 static size_t s_pcm_bytes, s_recording_bytes, s_phone_bytes;
 static volatile bool s_accepting, s_finish_requested, s_writer_failed;
+static volatile bool s_phone_finishing;
+// The microphone producer and SD task can fail independently. Keep the first
+// error until the next recording/recovery so a later failure cannot hide it.
+static _Atomic esp_err_t s_recording_error = ESP_OK;
+static uint8_t *s_write_block;
 static StreamBufferHandle_t s_write_stream;
 static StaticStreamBuffer_t s_write_stream_state;
 static uint8_t *s_write_stream_storage;
@@ -52,6 +58,17 @@ static SemaphoreHandle_t s_writer_finished;
 static TaskHandle_t s_writer_task;
 static esp_err_t ensure_writer(void);
 static esp_err_t write_manifest(void);
+
+static void recording_failed(esp_err_t error) {
+  esp_err_t expected = ESP_OK;
+  if (error == ESP_OK)
+    error = ESP_FAIL;
+  atomic_compare_exchange_strong_explicit(&s_recording_error, &expected, error,
+                                          memory_order_relaxed,
+                                          memory_order_relaxed);
+  s_accepting = false;
+  s_writer_failed = true;
+}
 
 static bool valid_id(const char *value) {
   if (!value || strlen(value) != 36)
@@ -212,7 +229,9 @@ static esp_err_t next_sequence(uint64_t *sequence) {
 static esp_err_t mount_card(void) {
   if (s_status.mounted) {
     refresh_space();
-    return ESP_OK;
+    // A previous task/buffer allocation can fail after the card mounts. Do not
+    // report a usable recorder until the bounded writer is ready as well.
+    return ensure_writer();
   }
 
   sdmmc_host_t host = SDMMC_HOST_DEFAULT();
@@ -486,10 +505,11 @@ static esp_err_t recover_track(const char *temporary, const char *finished,
 
 static void finish_file(void) {
   esp_err_t result = ESP_FAIL;
-  if (s_file && !s_writer_failed)
+  // A producer overflow does not corrupt PCM already accepted by the writer.
+  // Flush its remaining authenticated block when possible. The archive writer
+  // itself refuses to seal after an I/O failure, retaining its recoverable prefix.
+  if (s_file)
     result = quipus_archive_finish(s_file, &s_pcm_bytes);
-  else if (s_file)
-    quipus_archive_abort(s_file);
   s_file = NULL;
   if (result == ESP_OK && rename(s_temporary_path, s_recording_path) != 0)
     result = ESP_FAIL;
@@ -499,7 +519,7 @@ static void finish_file(void) {
     result = write_manifest();
   }
   if (result != ESP_OK) {
-    s_writer_failed = true;
+    recording_failed(result);
     s_recording_bytes = 0;
     ESP_LOGE(TAG, "Encrypted recording retained for recovery");
   }
@@ -509,21 +529,18 @@ static void finish_file(void) {
 }
 static void writer_task(void *argument) {
   (void)argument;
-  uint8_t *block = heap_caps_malloc(SD_WRITE_BLOCK_BYTES,
-                                    MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-  if (!block) {
-    s_writer_failed = true;
-    vTaskDelete(NULL);
-    return;
-  }
+  // Allocated before task creation: recording_begin must never succeed with
+  // a writer that immediately exits because its working buffer is unavailable.
+  uint8_t *const block = s_write_block;
   while (true) {
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
     while (s_file) {
       size_t n = xStreamBufferReceive(s_write_stream, block,
                                       SD_WRITE_BLOCK_BYTES, pdMS_TO_TICKS(100));
-      if (n && quipus_archive_append(s_file, block, n) != ESP_OK) {
-        s_writer_failed = true;
-        s_accepting = false;
+      if (n) {
+        esp_err_t result = quipus_archive_append(s_file, block, n);
+        if (result != ESP_OK)
+          recording_failed(result);
       }
       if (s_finish_requested &&
           xStreamBufferBytesAvailable(s_write_stream) == 0) {
@@ -538,13 +555,21 @@ static void writer_task(void *argument) {
 static esp_err_t ensure_writer(void) {
   if (s_writer_task)
     return ESP_OK;
-  s_write_stream_storage = heap_caps_malloc(
-      SD_WRITE_BUFFER_BYTES, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-  s_writer_finished = xSemaphoreCreateBinary();
-  if (!s_write_stream_storage || !s_writer_finished)
+  // Retain at most one allocation of each bounded resource across retries.
+  // A partially successful initialization must not leak a second buffer/task.
+  if (!s_write_stream_storage)
+    s_write_stream_storage = heap_caps_malloc(
+        SD_WRITE_BUFFER_BYTES, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  if (!s_write_block)
+    s_write_block = heap_caps_malloc(SD_WRITE_BLOCK_BYTES,
+                                     MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  if (!s_writer_finished)
+    s_writer_finished = xSemaphoreCreateBinary();
+  if (!s_write_stream_storage || !s_write_block || !s_writer_finished)
     return ESP_ERR_NO_MEM;
-  s_write_stream = xStreamBufferCreateStatic(
-      SD_WRITE_BUFFER_BYTES, 1, s_write_stream_storage, &s_write_stream_state);
+  if (!s_write_stream)
+    s_write_stream = xStreamBufferCreateStatic(
+        SD_WRITE_BUFFER_BYTES, 1, s_write_stream_storage, &s_write_stream_state);
   if (!s_write_stream)
     return ESP_ERR_NO_MEM;
   if (xTaskCreatePinnedToCore(writer_task, "lantern_sd_write", 4096, NULL, 5,
@@ -670,6 +695,7 @@ esp_err_t lantern_sd_recording_begin(const char *session_id) {
   xStreamBufferReset(s_write_stream);
   while (xSemaphoreTake(s_writer_finished, 0) == pdTRUE) {
   }
+  atomic_store_explicit(&s_recording_error, ESP_OK, memory_order_relaxed);
   s_writer_failed = false;
   s_finish_requested = false;
   s_accepting = true;
@@ -683,12 +709,16 @@ void lantern_sd_recording_write(const int16_t *samples, size_t count) {
 #if LANTERN_HAS_SD_CARD
   if (!samples || !count || !s_accepting || !s_file || s_writer_failed)
     return;
-  size_t bytes = count * sizeof(int16_t),
-         sent = xStreamBufferSend(s_write_stream, samples, bytes,
-                                  pdMS_TO_TICKS(10));
-  if (sent != bytes) {
-    s_writer_failed = true;
-    s_accepting = false;
+  if (count > SIZE_MAX / sizeof(*samples)) {
+    recording_failed(ESP_ERR_INVALID_SIZE);
+    return;
+  }
+  size_t bytes = count * sizeof(*samples);
+  // There is exactly one producer. Check space before sending so a slow card
+  // never inserts half a PCM frame (possibly an odd byte) into the archive.
+  if (xStreamBufferSpacesAvailable(s_write_stream) < bytes ||
+      xStreamBufferSend(s_write_stream, samples, bytes, 0) != bytes) {
+    recording_failed(ESP_ERR_NO_MEM);
     ESP_LOGE(TAG, "SD writer overflow; incomplete archive preserved");
   }
   xTaskNotifyGive(s_writer_task);
@@ -704,9 +734,12 @@ esp_err_t lantern_sd_recording_finish(void) {
   s_accepting = false;
   s_finish_requested = true;
   xTaskNotifyGive(s_writer_task);
-  if (xSemaphoreTake(s_writer_finished, pdMS_TO_TICKS(15000)) != pdTRUE)
+  if (xSemaphoreTake(s_writer_finished, pdMS_TO_TICKS(15000)) != pdTRUE) {
+    recording_failed(ESP_ERR_TIMEOUT);
     return ESP_ERR_TIMEOUT;
-  return s_writer_failed || !s_recording_bytes ? ESP_FAIL : ESP_OK;
+  }
+  esp_err_t error = lantern_sd_recording_error();
+  return error != ESP_OK ? error : (!s_recording_bytes ? ESP_FAIL : ESP_OK);
 #else
   return ESP_ERR_NOT_SUPPORTED;
 #endif
@@ -719,15 +752,32 @@ void lantern_sd_recording_abort(void) {
 }
 bool lantern_sd_capture_active(void) {
 #if LANTERN_HAS_SD_CARD
-  return s_file || s_phone_file;
+  return s_file || s_phone_file || s_finish_requested || s_phone_finishing;
 #else
   return false;
 #endif
 }
+esp_err_t lantern_sd_recording_error(void) {
+#if LANTERN_HAS_SD_CARD
+  return atomic_load_explicit(&s_recording_error, memory_order_relaxed);
+#else
+  return ESP_OK;
+#endif
+}
+bool lantern_sd_can_power_down(void) {
+#if LANTERN_HAS_SD_CARD
+  // Called by the serialized control owner after capture/phone tasks stop.
+  // Pending authenticated files and ownership keys remain intact on SD/NVS.
+  return !lantern_sd_capture_active() && !s_accepting &&
+         (!s_write_stream || xStreamBufferBytesAvailable(s_write_stream) == 0);
+#else
+  return true;
+#endif
+}
 bool lantern_sd_recording_ready(void) {
 #if LANTERN_HAS_SD_CARD
-  return s_status.mounted && !s_file && !s_writer_failed &&
-         s_recording_bytes > 44;
+  return s_status.mounted && !lantern_sd_capture_active() &&
+         !s_writer_failed && s_recording_bytes > 44;
 #else
   return false;
 #endif
@@ -883,6 +933,7 @@ esp_err_t lantern_sd_next_pending(const char *owner, const char *device,
   cJSON_Delete(json);
   if (!valid)
     return ESP_FAIL;
+  atomic_store_explicit(&s_recording_error, ESP_OK, memory_order_relaxed);
   s_writer_failed = false;
   if (s_verified) {
     lantern_sd_recording_confirm_uploaded();
@@ -993,12 +1044,15 @@ esp_err_t lantern_sd_phone_finish(void) {
   if (!s_phone_file)
     return ESP_OK;
   size_t pcm = 0;
+  s_phone_finishing = true;
   esp_err_t result = quipus_archive_finish(s_phone_file, &pcm);
   s_phone_file = NULL;
   if (result == ESP_OK && pcm && rename(s_phone_temporary, s_phone_path) == 0) {
     s_phone_bytes = 44 + pcm;
+    s_phone_finishing = false;
     return ESP_OK;
   }
+  s_phone_finishing = false;
   return result == ESP_OK ? ESP_FAIL : result;
 #else
   return ESP_ERR_NOT_SUPPORTED;

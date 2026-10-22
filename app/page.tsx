@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { LandingAccount } from "@/components/landing/LandingAccount";
+import { LandingAccountPending } from "@/components/landing/LandingAccountMenu";
 import QuipusLanding from "@/components/landing/QuipusLanding";
 
 const publicOrigin = process.env.NEXT_PUBLIC_APP_URL
@@ -17,5 +20,7 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return <QuipusLanding />;
+  return <QuipusLanding accountControl={
+    <Suspense fallback={<LandingAccountPending />}><LandingAccount /></Suspense>
+  } />;
 }

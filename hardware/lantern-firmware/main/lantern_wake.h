@@ -15,5 +15,6 @@
 esp_err_t lantern_wake_init(void);
 void lantern_wake_set_enabled(bool enabled);
 bool lantern_wake_is_available(void);
+bool lantern_wake_is_enabled(void);
 bool lantern_wake_take_detection(void);
 void lantern_wake_feed(const int16_t *samples, size_t count);

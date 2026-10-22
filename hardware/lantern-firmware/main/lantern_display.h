@@ -19,6 +19,7 @@ typedef enum {
 typedef enum {
   LANTERN_SCREEN_BOOTING,
   LANTERN_SCREEN_SETUP,
+  LANTERN_SCREEN_BLUETOOTH,
   LANTERN_SCREEN_CONNECTING,
   LANTERN_SCREEN_READY,
   LANTERN_SCREEN_LISTENING,
@@ -40,6 +41,8 @@ typedef enum {
 esp_err_t lantern_display_init(void);
 // Non-blocking, task-context only; copies detail and coalesces pending updates.
 void lantern_display_show(lantern_screen_t screen, const char *detail);
+// Pairing/network failures stay beside the setup address, with bounded copies.
+void lantern_display_show_setup(const char *ssid, const char *message);
 // Touch-first views use fixed-size copies so rendering never retains caller memory.
 void lantern_display_show_splash(void);
 void lantern_display_show_home(const char *footer);
@@ -50,6 +53,7 @@ void lantern_display_show_keyboard(const char *ssid, const char *password,
 void lantern_display_show_detail(const char *title, const char *body,
                                  const char *footer);
 void lantern_display_set_charge_eta(int minutes);
+void lantern_display_set_volume(unsigned percent);
 void lantern_display_set_awake(bool awake);
 // Updates the persistent top status bar without changing the active screen.
 // battery_level is -1 when measurement is unavailable; wifi_rssi is dBm.

@@ -93,12 +93,12 @@ bool quipus_setup_normalize_pairing_code(char code[21]) {
     unsigned char value = (unsigned char)code[index];
     if (value == '-' || isspace(value))
       continue;
-    if (!((value >= 'a' && value <= 'z') ||
-          (value >= 'A' && value <= 'Z') ||
-          (value >= '0' && value <= '9')) ||
-        length >= 10)
+    // Match the dashboard/server alphabet exactly: ambiguous 0, 1, I and O
+    // are never issued. Invalid codes must not enter a cloud retry loop.
+    value = (unsigned char)toupper(value);
+    if (!strchr("23456789ABCDEFGHJKLMNPQRSTUVWXYZ", value) || length >= 10)
       return false;
-    normalized[length++] = (char)toupper(value);
+    normalized[length++] = (char)value;
   }
   if (length != 10)
     return false;

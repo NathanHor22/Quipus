@@ -27,6 +27,12 @@ static void form_tests(void) {
   CHECK(!quipus_setup_normalize_pairing_code(code));
   strcpy(code, "12345678901");
   CHECK(!quipus_setup_normalize_pairing_code(code));
+  const char *invalid_codes[] = {"0123456789", "ABCDEFGHIJ", "ABCDEFGHOK",
+                                 "AAAAAAAAA1"};
+  for (size_t i = 0; i < sizeof(invalid_codes) / sizeof(invalid_codes[0]); ++i) {
+    strcpy(code, invalid_codes[i]);
+    CHECK(!quipus_setup_normalize_pairing_code(code));
+  }
   char maximum[256];
   snprintf(maximum, sizeof(maximum), "ssid=%032d&password=%064d&code=", 0, 0);
   CHECK(quipus_setup_parse_form(maximum, strlen(maximum), &form));
@@ -52,6 +58,18 @@ static void network_tests(void) {
   CHECK(quipus_network_next(&policy, &input, 21000) == QUIPUS_NETWORK_CLAIM);
   CHECK(quipus_network_next(&policy, &input, 21001) == 0);
   CHECK(quipus_network_next(&policy, &input, 36000) == QUIPUS_NETWORK_CLAIM);
+  // A rejected/expired code is removed, so Wi-Fi stays connected without
+  // hammering the claim endpoint or hiding the account-pairing portal.
+  quipus_network_policy_t rejected = policy;
+  quipus_network_input_t waiting = input;
+  waiting.has_pairing_code = false;
+  CHECK(quipus_network_next(&rejected, &waiting, 60000) == 0);
+  CHECK(quipus_network_next(&rejected, &waiting, 600000) == 0);
+  waiting.portal_active = false;
+  CHECK(quipus_network_next(&rejected, &waiting, 600001) == QUIPUS_NETWORK_OPEN_PORTAL);
+  waiting.portal_active = true;
+  waiting.has_pairing_code = true;
+  CHECK(quipus_network_next(&rejected, &waiting, 600002) == QUIPUS_NETWORK_CLAIM);
   input.paired = true;
   CHECK(quipus_network_next(&policy, &input, 36001) == QUIPUS_NETWORK_CLOSE_PORTAL);
   input.portal_manual = true;

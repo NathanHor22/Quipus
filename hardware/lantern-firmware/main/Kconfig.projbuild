@@ -14,7 +14,27 @@ config LANTERN_BOARD_ZHENGCHEN_M1307
 config LANTERN_BOARD_ES3C28P
     bool "Lantern V2 (LCDWiki ES3C28P 2.8-inch touch)"
 
+config LANTERN_BOARD_WAVESHARE_LCD_154
+    bool "Quipus Waveshare ESP32-S3-LCD-1.54 (non-touch)"
+
 endchoice
+
+config LANTERN_API_BASE_URL
+    string "Quipus backend URL"
+    default "https://quipus-sales-rep-assistant.vercel.app"
+    help
+        Stable HTTPS origin for device APIs and the setup portal's return link.
+        Use the same deployment that issues the device's pairing code, without
+        a trailing slash or path. Cloud API keys belong on the server only.
+
+config LANTERN_WAVESHARE_BATTERY_INSTALLED
+    bool "Waveshare lithium battery installed"
+    depends on LANTERN_BOARD_WAVESHARE_LCD_154
+    default n
+    help
+        Enable calibrated battery telemetry only with a battery connected.
+        USB-only boards report an unknown battery level rather than reading
+        the unconnected battery divider.
 
 config QUIPUS_PHONE_USB_AUDIO
     bool "USB-C Android phone microphone"
@@ -31,5 +51,14 @@ config QUIPUS_UNSAFE_LOCAL_DEBUG
     help
         Exposes private microphone test audio and unsigned OTA on the setup LAN.
         Keep disabled for all shared devices. USB flashing remains available.
+
+config QUIPUS_BLE_SETUP
+    bool "Bluetooth setup from Chrome"
+    depends on BT_NIMBLE_ENABLED
+    default y if LANTERN_BOARD_WAVESHARE_LCD_154
+    help
+        Pair an unowned recorder from a website without changing the phone's
+        Wi-Fi. Requires encrypted LE Secure Connections and a passkey shown
+        on the recorder. Bluetooth closes after cloud pairing.
 
 endmenu

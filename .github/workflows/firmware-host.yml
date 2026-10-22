@@ -1,0 +1,25 @@
+name: Firmware host regressions
+on:
+  pull_request:
+    paths:
+      - 'hardware/lantern-firmware/**'
+      - 'scripts/test-firmware-boards.py'
+      - '.github/workflows/firmware-host.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'hardware/lantern-firmware/**'
+      - 'scripts/test-firmware-boards.py'
+      - '.github/workflows/firmware-host.yml'
+permissions:
+  contents: read
+jobs:
+  board-and-pcm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: python3 hardware/lantern-firmware/generate-setup-portal.py --check
+      - run: python3 scripts/test-firmware-boards.py

@@ -13,6 +13,7 @@ import { getServerSupabase, resolveWorkspaceUserId } from "@/lib/supabase/server
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const requestSchema = z.object({
   fileName: z.string().trim().min(1).max(180),

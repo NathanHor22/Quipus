@@ -1,5 +1,5 @@
 param(
-  [ValidateSet("original", "v2", "phone")]
+  [ValidateSet("original", "v2", "phone", "waveshare")]
   [string]$Profile = "v2",
   [switch]$Clean
 )
@@ -33,6 +33,7 @@ $profiles = @{
   original = @{ build = "build"; config = "sdkconfig"; defaults = "sdkconfig.defaults" }
   v2 = @{ build = "build-v2"; config = "sdkconfig.v2"; defaults = "sdkconfig.v2.defaults" }
   phone = @{ build = "build-phone"; config = "sdkconfig.phone"; defaults = "sdkconfig.v2.defaults;sdkconfig.phone-audio.defaults" }
+  waveshare = @{ build = "build-waveshare"; config = "sdkconfig.waveshare"; defaults = "sdkconfig.waveshare.defaults" }
 }
 $selected = $profiles[$Profile]
 $env:IDF_CCACHE_ENABLE = "0"

@@ -9,6 +9,23 @@ import {
   isPublicContentPath,
 } from "@/lib/auth-policy";
 
+/** A personalised home response must never enter a shared browser/CDN cache. */
+function continueRequest(request: NextRequest): NextResponse {
+  const response = NextResponse.next({ request });
+  if (request.nextUrl.pathname === "/") {
+    response.headers.set("cache-control", "private, no-store, max-age=0");
+    response.headers.set("cdn-cache-control", "no-store");
+    response.headers.set("vercel-cdn-cache-control", "no-store");
+  }
+  return response;
+}
+
+function hasSupabaseSessionCookie(request: NextRequest): boolean {
+  return request.cookies.getAll().some(({ name }) =>
+    /^sb-.+-auth-token(?:\.\d+)?$/u.test(name),
+  );
+}
+
 function copyCookies(from: NextResponse, to: NextResponse): NextResponse {
   from.cookies.getAll().forEach((cookie) => to.cookies.set(cookie));
   return to;
@@ -43,14 +60,17 @@ export async function proxy(request: NextRequest) {
       status: rejected.status, headers: { "cache-control": "no-store", "x-content-type-options": "nosniff" },
     });
   }
-  // Public content does not depend on Google/Supabase latency.
+  // Anonymous public content never waits for Google/Supabase. A signed-in
+  // visitor's home request refreshes cookies before its account slot renders.
   if (isPublicContentPath(request.nextUrl.pathname)) {
     if (request.nextUrl.pathname === "/" && request.nextUrl.searchParams.get("mode") === "sample") {
       const destination = request.nextUrl.clone();
       destination.pathname = "/demo";
       return NextResponse.redirect(destination);
     }
-    return NextResponse.next({ request });
+    if (request.nextUrl.pathname !== "/" || !hasSupabaseSessionCookie(request)) {
+      return continueRequest(request);
+    }
   }
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -60,12 +80,14 @@ export async function proxy(request: NextRequest) {
     supabaseAnonKey,
   });
 
-  if (mode === "disabled") return NextResponse.next({ request });
+  if (mode === "disabled") return continueRequest(request);
 
   if (mode === "misconfigured") {
     // Render the existing sign-in-unavailable card and public sample link.
     // Private pages and APIs continue to fail closed below.
-    if (request.nextUrl.pathname === "/login") return NextResponse.next({ request });
+    if (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/") {
+      return continueRequest(request);
+    }
     const message =
       "Quipus authentication is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.";
     if (request.nextUrl.pathname.startsWith("/api/")) {
@@ -77,7 +99,7 @@ export async function proxy(request: NextRequest) {
     });
   }
 
-  let response = NextResponse.next({ request });
+  let response = continueRequest(request);
   if (isLanternDevicePath(request.nextUrl.pathname) || isMachineAuthenticatedPath(request.nextUrl.pathname)) return response;
   const supabase = createServerClient(supabaseUrl!, supabaseAnonKey!, {
     cookies: {
@@ -94,7 +116,7 @@ export async function proxy(request: NextRequest) {
         cookiesToSet.forEach(({ name, value }) => {
           request.cookies.set(name, value);
         });
-        response = NextResponse.next({ request });
+        response = continueRequest(request);
         cookiesToSet.forEach(({ name, value, options }) => {
           response.cookies.set(name, value, options);
         });

@@ -84,6 +84,9 @@ esp_err_t lantern_wake_init(void) {
 
 void lantern_wake_set_enabled(bool enabled) {
   if (!s_model_data || !s_wakenet) return;
+  // A network event can refresh the idle policy between detection and the
+  // control task consuming it. Preserve that event until consumed or cancelled.
+  if (enabled && s_detected) return;
   if (enabled && !s_enabled) {
     s_frame_filled = 0;
     s_detected = false;
@@ -101,6 +104,10 @@ void lantern_wake_set_enabled(bool enabled) {
 
 bool lantern_wake_is_available(void) {
   return s_model_data && s_wakenet && s_frame;
+}
+
+bool lantern_wake_is_enabled(void) {
+  return s_enabled;
 }
 
 bool lantern_wake_take_detection(void) {

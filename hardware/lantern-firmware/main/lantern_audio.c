@@ -1,6 +1,7 @@
 #include "lantern_audio.h"
 
 #include <limits.h>
+#include <stdatomic.h>
 #include <stdlib.h>
 
 #include "driver/i2s_std.h"
@@ -14,6 +15,8 @@
 
 #include "lantern_board.h"
 #include "lantern_board_io.h"
+#include "quipus_pcm.h"
+#include "quipus_volume.h"
 
 #define AUDIO_READ_SAMPLES 320
 #define AUDIO_WRITE_SAMPLES 240
@@ -45,15 +48,40 @@ static volatile bool s_pcm_input_finished;
 static volatile bool s_pcm_failed;
 static volatile bool s_pcm_cancelled;
 static volatile bool s_speaker_active;
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+static atomic_uint s_volume = QUIPUS_VOLUME_DEFAULT;
+#else
+static atomic_uint s_volume = 100;
+#endif
+
+unsigned lantern_audio_volume(void) {
+  return atomic_load_explicit(&s_volume, memory_order_relaxed);
+}
+
+unsigned lantern_audio_adjust_volume(int delta) {
+  unsigned current = lantern_audio_volume();
+  unsigned next;
+  do {
+    next = quipus_volume_clamp((int)current + delta);
+  } while (!atomic_compare_exchange_weak_explicit(
+      &s_volume, &current, next, memory_order_relaxed, memory_order_relaxed));
+  return next;
+}
+
+static int16_t speaker_sample(int16_t sample) {
+  return quipus_volume_sample(sample, lantern_audio_volume());
+}
 
 #if LANTERN_AUDIO_SHARED_BUS
 typedef int16_t i2s_output_sample_t;
-static i2s_output_sample_t output_sample(int16_t sample) { return sample; }
-#define I2S_OUTPUT_CHANNELS 1
+static i2s_output_sample_t output_sample(int16_t sample) {
+  return speaker_sample(sample);
+}
+#define I2S_OUTPUT_CHANNELS (LANTERN_AUDIO_ADC_ES7210 ? 2 : 1)
 #else
 typedef int32_t i2s_output_sample_t;
 static i2s_output_sample_t output_sample(int16_t sample) {
-  return (int32_t)sample * 32768;
+  return (int32_t)speaker_sample(sample) * 32768;
 }
 #define I2S_OUTPUT_CHANNELS 1
 #endif
@@ -191,7 +219,7 @@ static void microphone_task(void *argument) {
   (void)argument;
   bool capture_logged = false;
 #if LANTERN_AUDIO_SHARED_BUS
-  int16_t raw[AUDIO_READ_SAMPLES];
+  int16_t raw[AUDIO_READ_SAMPLES * I2S_OUTPUT_CHANNELS];
 #else
   int32_t raw[AUDIO_READ_SAMPLES];
 #endif
@@ -224,6 +252,10 @@ static void microphone_task(void *argument) {
                (long)maximum);
       capture_logged = true;
     }
+#if LANTERN_AUDIO_SHARED_BUS
+    samples = quipus_pcm_select_channel(raw, samples, I2S_OUTPUT_CHANNELS, 0,
+                                        converted, AUDIO_READ_SAMPLES);
+#endif
     uint64_t absolute_total = 0;
     for (size_t index = 0; index < samples; ++index) {
       // The microphone delivers left-aligned 24-bit samples in a 32-bit I2S
@@ -231,7 +263,7 @@ static void microphone_task(void *argument) {
       // leaving the AFE VAD permanently in its speech state. Preserve two bits
       // of useful gain while restoring enough headroom for speech/silence.
 #if LANTERN_AUDIO_SHARED_BUS
-      int32_t value = raw[index];
+      int32_t value = converted[index];
 #else
       int32_t value = raw[index] >> 14;
 #endif
@@ -290,7 +322,8 @@ esp_err_t lantern_audio_init(void) {
   i2s_std_config_t speaker = {
       .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(LANTERN_SPK_SAMPLE_RATE),
       .slot_cfg = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT,
-                                                      I2S_SLOT_MODE_MONO),
+                          LANTERN_AUDIO_ADC_ES7210 ? I2S_SLOT_MODE_STEREO
+                                                   : I2S_SLOT_MODE_MONO),
       .gpio_cfg =
           {
               .mclk = LANTERN_SPK_MCLK_GPIO,
@@ -302,7 +335,8 @@ esp_err_t lantern_audio_init(void) {
           },
   };
   speaker.clk_cfg.mclk_multiple = I2S_MCLK_MULTIPLE_256;
-  speaker.slot_cfg.slot_mask = I2S_STD_SLOT_LEFT;
+  speaker.slot_cfg.slot_mask = LANTERN_AUDIO_ADC_ES7210 ? I2S_STD_SLOT_BOTH
+                                                      : I2S_STD_SLOT_LEFT;
   ESP_RETURN_ON_ERROR(i2s_channel_init_std_mode(s_speaker, &speaker), TAG,
                       "speaker mode");
 

@@ -26,13 +26,20 @@ export function createPairingCode(bytes = randomBytes(PAIRING_CODE_LENGTH)) {
   return code;
 }
 
+export class InvalidPairingCodeError extends Error {
+  constructor() {
+    super("Enter the 10-character Quipus pairing code.");
+    this.name = "InvalidPairingCodeError";
+  }
+}
+
 export function normalizePairingCode(value: string): string {
   const normalized = value.toUpperCase().replace(/[\s-]+/gu, "");
   if (
     normalized.length !== PAIRING_CODE_LENGTH ||
     [...normalized].some((character) => !PAIRING_ALPHABET.includes(character))
   ) {
-    throw new Error("Enter the 10-character Quipus pairing code.");
+    throw new InvalidPairingCodeError();
   }
   return normalized;
 }

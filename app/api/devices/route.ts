@@ -44,7 +44,7 @@ export async function GET() {
     }
     const { data, error } = await client
       .from("devices")
-      .select("id,name,model,firmware_version,last_seen_at,status,device_state,state_version,battery_level,network_type,free_heap_bytes,last_error,revoked_at")
+      .select("id,hardware_id,name,model,firmware_version,last_seen_at,status,device_state,state_version,battery_level,network_type,free_heap_bytes,last_error,revoked_at")
       .eq("user_id", userId)
       .is("revoked_at", null)
       .order("created_at", { ascending: true });

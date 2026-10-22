@@ -6,8 +6,11 @@ idf_component_register(
     "lantern_audio.c"
     "lantern_board.c"
     "lantern_board_io.c"
+    "quipus_codec_control.c"
     "lantern_display.c"
     "lantern_network.c"
+    "lantern_bluetooth.c"
+    "quipus_ble_transfer.c"
     "quipus_network_policy.c"
     "quipus_setup_form.c"
     "quipus_phone_audio.c"
@@ -20,6 +23,7 @@ idf_component_register(
   INCLUDE_DIRS "."
   REQUIRES
     agora_iot_sdk
+    bt
     app_update
     driver
     esp_adc

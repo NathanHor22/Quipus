@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { DeviceTransfer } from "./DeviceTransfer";
+import { BluetoothRecorderSetup } from "./BluetoothRecorderSetup";
 import { Dialog } from "@/components/ui/Dialog";
 import { useBrowserStorageSnapshot } from "@/components/hooks/useBrowserStorageSnapshot";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -12,6 +13,7 @@ import {
   pairingSecondsRemaining,
   pairingStorageKey,
   readPairingProgress,
+  recorderSetupUrl,
   type PairingProgress,
 } from "@/lib/workspace/setup";
 import styles from "./lantern-device.module.css";
@@ -31,7 +33,7 @@ interface DeviceRecord {
   last_error: string | null;
 }
 
-const setupAddress = "http://192.168.4.1/";
+const setupAddress = recorderSetupUrl();
 const stepLabels = ["Create code", "Join recorder Wi-Fi", "Save setup", "Verify connection"];
 
 function relativeLastSeen(value: string | null, now: number) {
@@ -236,7 +238,7 @@ function DeviceSession({
   if (mode === "sample" || !primaryDevice) {
     if (mode === "sample") return <section className={styles.sampleSetup} aria-label="Quipus setup preview">
       <span className={styles.kicker}>CONNECT YOUR RECORDER</span><h2>Your recordings, in your workspace.</h2>
-      <p>Sign in, create a pairing code and enter it on your recorder’s setup page. Quipus remembers the account and saved Wi-Fi for future uploads.</p>
+      <p>Sign in and follow the connection steps here. Quipus opens your recorder’s setup page and remembers the account and saved Wi-Fi for future uploads.</p>
       <Link className={styles.pairingPrimary} href="/login?next=%2Fdashboard%2Fdevices">Sign in to pair a device</Link>
     </section>;
 
@@ -249,9 +251,12 @@ function DeviceSession({
           <small>{codeExpired ? "Code expired. Create a new code to finish pairing." : `Expires in ${countdown}`}</small>
         </div>}
         {pairing && <button className={styles.secondaryAction} disabled={working} type="button" onClick={() => void createPairing()}>{working ? "Creating code…" : "Create new code"}</button>}
-        <p className={styles.networkNote}>Use the same phone or laptop for the Wi-Fi and setup-page steps. The recorder’s setup Wi-Fi has no internet; that is expected.</p>
+        <p className={styles.networkNote}>Connect with Bluetooth in Chrome on Windows or Android to keep this page online. Wi-Fi setup is also available for iPhone and other browsers.</p>
       </aside>
       <div className={styles.setupSteps}>
+        <BluetoothRecorderSetup onConnected={() => { void loadDevices(); }} />
+        <details className={styles.help}>
+        <summary>Use Wi-Fi setup instead</summary>
         <ol className={styles.stepNavigation} aria-label="Pairing progress">
           {stepLabels.map((label, index) => <li key={label}>
             <button type="button" aria-current={step === index ? "step" : undefined} disabled={index > step || (index > 0 && !pairing)} onClick={() => goToStep(index as PairingProgress["step"])}><span>{index + 1}</span>{label}</button>
@@ -267,15 +272,15 @@ function DeviceSession({
           {step === 1 && <>
             <h3>Join the recorder’s Wi-Fi.</h3>
             <p>On the recorder, open <strong>Wi-Fi setup</strong>. On <strong>this phone or laptop</strong>, open Wi-Fi settings and join <strong>Quipus-XXXX</strong>. Older firmware names it <strong>Lantern-XXXX</strong>.</p>
-            <p>Stay connected even if your phone or laptop says this network has no internet. The browser cannot verify which Wi-Fi you joined.</p>
+            <p>The setup-network password is <strong>lanternsetup</strong>. Stay connected if your phone or laptop says this network has no internet, then return to this page.</p>
             <button className={styles.pairingPrimary} type="button" disabled={codeExpired} onClick={() => goToStep(2)}>I joined the recorder’s Wi-Fi</button>
             <details className={styles.help}><summary>Can’t find the setup network?</summary><p>Wake the recorder screen, open the main menu and choose Wi-Fi setup. Keep it close to this phone or laptop. On older touchscreen firmware, holding the screen for eight seconds resets saved pairing and Wi-Fi; use that only if normal Wi-Fi setup is unavailable.</p></details>
           </>}
           {step === 2 && <>
-            <h3>Save Wi-Fi and the pairing code.</h3>
-            <p>While <strong>this phone or laptop is still on Quipus-XXXX</strong>, open the local setup page. Enter the code shown here and the name and password of a <strong>2.4 GHz Wi-Fi network or hotspot</strong> with internet.</p>
-            <p>If the recorder already has the right Wi-Fi saved, the setup page can keep those details. Your Wi-Fi password stays on the recorder.</p>
-            <a className={styles.pairingPrimary} href={setupAddress} target="_blank" rel="noreferrer">Open 192.168.4.1</a>
+            <h3>Connect your recorder.</h3>
+            <p>While <strong>this phone or laptop is still on Quipus-XXXX</strong>, open recorder setup below. Updated firmware fills in your pairing code. Enter the name and password of a <strong>2.4 GHz Wi-Fi network or hotspot</strong> with internet, then choose <strong>Save and connect</strong>.</p>
+            <p>The setup page runs on your recorder. After saving, reconnect this phone or laptop to normal internet; setup returns to your Quipus dashboard. Saved Wi-Fi can be reused. On older firmware, enter the code shown here manually.</p>
+            <a className={styles.pairingPrimary} href={recorderSetupUrl(codeActive ? pairing?.code : null)} target="_blank" rel="noreferrer" onClick={() => goToStep(3)}>Open recorder setup</a>
             <button className={styles.secondaryAction} type="button" disabled={codeExpired} onClick={() => goToStep(3)}>I saved the setup details</button>
             <details className={styles.help}><summary>Setup page won’t open?</summary><p>Check that this phone or laptop is joined to the recorder’s setup Wi-Fi. Enter http://192.168.4.1/ exactly, including http. If a VPN is intercepting the local connection, pause it while opening setup, then restore it afterwards.</p></details>
           </>}
@@ -290,6 +295,7 @@ function DeviceSession({
           {deviceNotice && <p className={styles.deviceNotice} role="status">{deviceNotice}</p>}
           {deviceError && <div className={styles.deviceError} role="alert"><p>{deviceError}</p><button className={styles.secondaryAction} type="button" disabled={checkingConnection} onClick={() => void loadDevices()}>{checkingConnection ? "Checking…" : "Retry connection check"}</button></div>}
         </div>
+        </details>
       </div>
     </section>;
   }
@@ -331,7 +337,7 @@ function DeviceSession({
       <aside className={styles.connectionCard}>
         <span className={styles.kicker}>WI-FI & UPLOADS</span><h3>Change your saved Wi-Fi.</h3>
         <p>Open Wi-Fi setup on the recorder. On this same phone or laptop, join Quipus-XXXX (Lantern-XXXX on older firmware), then open its local setup page.</p>
-        <a className={styles.wifiAction} href={setupAddress} target="_blank" rel="noreferrer">Open 192.168.4.1</a>
+        <a className={styles.wifiAction} href={setupAddress} target="_blank" rel="noreferrer">Open recorder setup</a>
         <p>After saving Wi-Fi, return this phone or laptop to internet to check the device status here.</p>
         <ul><li><span>Transcription configured</span><strong>{integrations.agora ? "Yes" : "Check settings"}</strong></li><li><span>Report processing configured</span><strong>{integrations.openai ? "Yes" : "Check settings"}</strong></li></ul>
       </aside>

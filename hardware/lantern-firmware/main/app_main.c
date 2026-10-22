@@ -5,11 +5,13 @@
 #include <string.h>
 
 #include "driver/gpio.h"
+#include "driver/rtc_io.h"
 #include "driver/usb_serial_jtag.h"
 #include "esp_adc/adc_oneshot.h"
 #include "esp_err.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
+#include "esp_sleep.h"
 #include "esp_system.h"
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
@@ -19,6 +21,12 @@
 #include "lantern_agora.h"
 #include "lantern_audio.h"
 #include "lantern_board.h"
+#include "lantern_bluetooth.h"
+#if LANTERN_BATTERY_INSTALLED && defined(LANTERN_BATTERY_ADC_DIVIDER)
+#include "esp_adc/adc_cali.h"
+#include "esp_adc/adc_cali_scheme.h"
+static adc_cali_handle_t s_battery_calibration;
+#endif
 #include "lantern_board_io.h"
 #include "lantern_display.h"
 #include "lantern_network.h"
@@ -27,6 +35,8 @@
 #include "lantern_transcript.h"
 #include "lantern_wake.h"
 #include "quipus_phone_audio.h"
+#include "quipus_button_tap.h"
+#include "quipus_volume.h"
 
 typedef enum {
   LOCAL_READY,
@@ -41,6 +51,7 @@ typedef enum {
 } local_state_t;
 
 typedef enum {
+  UI_SETUP,
   UI_SPLASH,
   UI_HOME,
   UI_WIFI_LIST,
@@ -87,6 +98,7 @@ static bool s_transcript_uploaded;
 static bool s_audio_uploaded;
 static bool s_phone_uploaded;
 static SemaphoreHandle_t s_control_mutex;
+static TaskHandle_t s_button_task;
 static bool s_wake_available;
 static bool s_sd_recording_active;
 static bool s_sd_archive_required;
@@ -109,6 +121,9 @@ static int s_charge_minutes_per_percent_tenths;
 static TickType_t s_last_interaction_at;
 static bool s_display_asleep;
 
+// Both tasks can own the serialized SD + HTTPS control path. Reserve bounded
+// internal stack for its deepest TLS/crypto call chains; bulk data uses PSRAM.
+#define CLOUD_CONTROL_STACK_BYTES (12 * 1024)
 #define VOICE_ACTIVITY_LEVEL 180
 #define VOICE_SILENCE_MS 650
 #define VOICE_MIN_CAPTURE_MS 1000
@@ -148,10 +163,10 @@ static bool capture_short_utterance(unsigned maximum_ms) {
     vTaskDelay(pdMS_TO_TICKS(20));
   }
   lantern_audio_set_recording(false);
-  return heard_voice;
   ESP_LOGI(TAG, "voice window captured %u ms activity=%s level=%u",
            (unsigned)((xTaskGetTickCount() - started_at) * portTICK_PERIOD_MS),
            heard_voice ? "yes" : "no", (unsigned)lantern_audio_level());
+  return heard_voice;
 }
 
 static unsigned elapsed_state_seconds(void) {
@@ -178,6 +193,18 @@ static void show_recording_progress(void) {
   lantern_display_show(LANTERN_SCREEN_RECORDING, detail);
 }
 
+static esp_err_t checkpoint_phone_timing(void) {
+  const size_t capacity = 768;
+  char *timing =
+      heap_caps_malloc(capacity, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  if (!timing)
+    return ESP_ERR_NO_MEM;
+  quipus_phone_audio_timing_json(timing, capacity);
+  esp_err_t result = lantern_sd_set_phone_timing(timing);
+  free(timing);
+  return result;
+}
+
 static void stop_local_capture(void) {
   lantern_wake_set_enabled(false);
   lantern_audio_set_recording(false);
@@ -188,9 +215,7 @@ static void stop_local_capture(void) {
     ESP_LOGW(TAG, "Phone capture stopped after an error; retaining samples");
   if ((s_sd_recording_active || lantern_sd_capture_active()) &&
       quipus_phone_audio_idle()) {
-    char phone_timing[768];
-    quipus_phone_audio_timing_json(phone_timing, sizeof(phone_timing));
-    if (lantern_sd_set_phone_timing(phone_timing) != ESP_OK)
+    if (checkpoint_phone_timing() != ESP_OK)
       ESP_LOGW(TAG, "Phone timing checkpoint unavailable; archive retained");
     lantern_sd_recording_abort();
     s_sd_recording_active = false;
@@ -223,6 +248,24 @@ static void clear_active_session(void) {
 
 #if LANTERN_BATTERY_INSTALLED
 static int battery_from_adc(int raw) {
+#ifdef LANTERN_BATTERY_ADC_DIVIDER
+  int millivolts = 0;
+  if (!s_battery_calibration ||
+      adc_cali_raw_to_voltage(s_battery_calibration, raw, &millivolts) != ESP_OK)
+    return -1;
+  millivolts *= LANTERN_BATTERY_ADC_DIVIDER;
+  const int voltage_points[] = {3300, 3640, 3760, 3880, 4000, 4200};
+  const int levels[] = {0, 20, 40, 60, 80, 100};
+  if (millivolts <= voltage_points[0]) return 0;
+  if (millivolts >= voltage_points[5]) return 100;
+  for (int index = 0; index < 5; ++index) {
+    if (millivolts < voltage_points[index + 1])
+      return levels[index] + (millivolts - voltage_points[index]) *
+          (levels[index + 1] - levels[index]) /
+          (voltage_points[index + 1] - voltage_points[index]);
+  }
+  return 100;
+#else
   const int adc_points[] = {2030, 2134, 2252, 2370, 2488, 2606};
   const int levels[] = {0, 20, 40, 60, 80, 100};
   raw += 80;
@@ -238,6 +281,7 @@ static int battery_from_adc(int raw) {
     }
   }
   return 100;
+#endif
 }
 #endif
 
@@ -254,6 +298,7 @@ static void power_and_battery_init(void) {
   gpio_config_t charging = {
       .pin_bit_mask = 1ULL << LANTERN_CHARGING_GPIO,
       .mode = GPIO_MODE_INPUT,
+      .pull_up_en = GPIO_PULLUP_ENABLE,
   };
   ESP_ERROR_CHECK(gpio_config(&charging));
 #endif
@@ -266,6 +311,17 @@ static void power_and_battery_init(void) {
                                     .bitwidth = ADC_BITWIDTH_12};
   ESP_ERROR_CHECK(
       adc_oneshot_config_channel(s_adc, LANTERN_BATTERY_ADC_CHANNEL, &channel));
+#ifdef LANTERN_BATTERY_ADC_DIVIDER
+  adc_cali_curve_fitting_config_t calibration = {
+      .unit_id = ADC_UNIT_1,
+      .chan = LANTERN_BATTERY_ADC_CHANNEL,
+      .atten = ADC_ATTEN_DB_12,
+      .bitwidth = ADC_BITWIDTH_12,
+  };
+  if (adc_cali_create_scheme_curve_fitting(&calibration,
+                                           &s_battery_calibration) != ESP_OK)
+    ESP_LOGW(TAG, "battery calibration unavailable; percentage stays unknown");
+#endif
 #else
   // The first V2 showcase is USB powered. Avoid turning the unconnected
   // battery-divider pin into random dashboard telemetry.
@@ -305,6 +361,19 @@ static lantern_power_state_t battery_power_state(void) {
 #endif
 }
 
+static void sync_idle_wake_listener(void) {
+  lantern_network_status_t network;
+  lantern_network_get_status(&network);
+  bool enabled = s_wake_available && s_state == LOCAL_READY &&
+                 network.paired && network.wifi_connected;
+#if LANTERN_HAS_TOUCHSCREEN
+  enabled = enabled && (s_ui_view == UI_SPLASH || s_ui_view == UI_HOME);
+#endif
+  // Connectivity and view changes share this policy. Reconnecting must restore
+  // idle listening without redrawing the screen or enabling it in a submenu.
+  lantern_wake_set_enabled(enabled);
+}
+
 static void show_ready(void) {
   lantern_wake_set_enabled(false);
   lantern_network_set_realtime(false);
@@ -315,32 +384,39 @@ static void show_ready(void) {
   s_state = LOCAL_READY;
   s_recovery = RECOVERY_NONE;
   s_state_entered_at = xTaskGetTickCount();
+  char bluetooth_pin[7];
+  lantern_bluetooth_passkey(bluetooth_pin);
+  if (bluetooth_pin[0] && !network.paired) {
+    lantern_display_show(LANTERN_SCREEN_BLUETOOTH, bluetooth_pin);
+    return;
+  }
 #if LANTERN_HAS_TOUCHSCREEN
+  // The active input view must match setup, even if pairing was revoked while
+  // the main menu was visible. Setup taps must never hit stale session controls.
+  s_ui_view = UI_SETUP;
   if (network.paired) {
     s_ui_view = UI_SPLASH;
     lantern_display_show_splash();
-    if (s_wake_available && network.wifi_connected)
-      lantern_wake_set_enabled(true);
+    sync_idle_wake_listener();
     return;
   }
 #endif
   if (network.setup_portal_active &&
       (!network.wifi_connected || !network.paired)) {
-    lantern_display_show(LANTERN_SCREEN_SETUP, network.setup_ssid);
+    lantern_display_show_setup(network.setup_ssid, network.last_error);
   } else if (network.wifi_connected && network.paired) {
     lantern_display_show(
         LANTERN_SCREEN_READY,
         s_wake_available ? (LANTERN_HAS_TOUCHSCREEN ? "SAY COMPUTER OR TAP"
                                                     : "SAY COMPUTER OR PRESS")
                          : (LANTERN_HAS_TOUCHSCREEN ? "TAP SCREEN TO START"
-                                                    : "PRESS CENTRE TO START"));
-    if (s_wake_available)
-      lantern_wake_set_enabled(true);
+                                                    : "PRESS " LANTERN_PRIMARY_BUTTON_LABEL " TO START"));
   } else if (network.wifi_connected) {
     lantern_display_show(LANTERN_SCREEN_READY, "PAIR IN DASHBOARD");
   } else {
     lantern_display_show(LANTERN_SCREEN_CONNECTING, "WAIT OR OPEN WIFI SETUP");
   }
+  sync_idle_wake_listener();
 }
 
 static void network_changed(const lantern_network_status_t *status) {
@@ -353,6 +429,15 @@ static void network_changed(const lantern_network_status_t *status) {
 }
 
 static esp_err_t open_quick_consent(void) {
+  lantern_network_status_t network;
+  lantern_network_get_status(&network);
+  // Wi-Fi association is independent of dashboard ownership. Both online and
+  // encrypted offline recording require an authenticated device pairing.
+  if (!network.paired) {
+    clear_active_session();
+    show_ready();
+    return ESP_ERR_INVALID_STATE;
+  }
   lantern_wake_set_enabled(false);
   lantern_network_set_realtime(true);
   lantern_display_show(LANTERN_SCREEN_CONNECTING, "OPENING SESSION");
@@ -371,7 +456,6 @@ static esp_err_t open_quick_consent(void) {
       lantern_audio_chime(1);
       return ESP_OK;
     }
-    lantern_network_status_t network;
     lantern_network_get_status(&network);
     if (!network.paired) {
       clear_active_session();
@@ -666,9 +750,8 @@ static void finalise_recording(void) {
     show_error(RECOVERY_NONE, "PHONE AUDIO STILL SAVING", "upload_error");
     return;
   }
-  char phone_timing[768];
-  quipus_phone_audio_timing_json(phone_timing, sizeof(phone_timing));
-  lantern_sd_set_phone_timing(phone_timing);
+  if (LANTERN_HAS_SD_CARD && checkpoint_phone_timing() != ESP_OK)
+    ESP_LOGW(TAG, "Phone timing checkpoint unavailable; archive retained");
   if (s_sd_recording_active) {
     lantern_display_show(LANTERN_SCREEN_SAVING, "FINALISING SD ARCHIVE");
     if (lantern_sd_recording_finish() != ESP_OK) {
@@ -994,11 +1077,19 @@ static bool ready_for_cloud_action(void) {
 
 #if LANTERN_HAS_TOUCHSCREEN
 static void show_main_menu(void) {
+  lantern_network_status_t network;
+  lantern_network_get_status(&network);
+  if (!network.paired) {
+    show_ready();
+    return;
+  }
   s_ui_view = UI_HOME;
   s_display_asleep = false;
   s_last_interaction_at = xTaskGetTickCount();
   lantern_display_show_home(s_summary_retry_pending ? "SUMMARY WAITING TO SYNC"
                                                     : "");
+  lantern_network_set_realtime(false);
+  sync_idle_wake_listener();
 }
 
 static void render_wifi_list(void) {
@@ -1020,6 +1111,7 @@ static void render_wifi_list(void) {
 
 static void open_wifi_screen(void) {
   lantern_wake_set_enabled(false);
+  s_ui_view = UI_WIFI_LIST;
   lantern_network_set_realtime(true);
   lantern_display_show(LANTERN_SCREEN_CONNECTING, "SCANNING WIFI");
   s_wifi_network_count = 0;
@@ -1046,6 +1138,7 @@ static void open_wifi_screen(void) {
 
 static void open_report_screen(void) {
   lantern_wake_set_enabled(false);
+  s_ui_view = UI_REPORT_LIST;
   lantern_display_show(LANTERN_SCREEN_STATUS, "LOADING SAVED MEETINGS");
   s_report_item_count = 0;
   lantern_network_status_t network;
@@ -1124,6 +1217,14 @@ static void connect_selected_wifi(void) {
 static void handle_touch_release(uint16_t x, uint16_t y) {
   if (s_state != LOCAL_READY) {
     handle_short_press();
+    return;
+  }
+  lantern_network_status_t network;
+  lantern_network_get_status(&network);
+  if (!network.paired || s_ui_view == UI_SETUP) {
+    // Pairing completes through the local portal. Until then, refresh its
+    // current instructions instead of opening an unauthenticated session.
+    show_ready();
     return;
   }
   if (s_ui_view == UI_SPLASH) {
@@ -1325,10 +1426,22 @@ static void handle_long_press(void) {
 static void button_task(void *argument) {
   (void)argument;
 #if LANTERN_HAS_PHYSICAL_BUTTONS
+#if LANTERN_HAS_POWER_BUTTON
+  ESP_ERROR_CHECK(rtc_gpio_deinit(LANTERN_POWER_BUTTON_GPIO));
+#endif
+  uint64_t button_mask = 0;
+  const gpio_num_t button_pins[] = {LANTERN_BUTTON_MAIN_GPIO,
+                                   LANTERN_BUTTON_UP_GPIO,
+                                   LANTERN_BUTTON_DOWN_GPIO,
+#if LANTERN_HAS_POWER_BUTTON
+                                   LANTERN_POWER_BUTTON_GPIO,
+#endif
+  };
+  for (size_t index = 0; index < sizeof(button_pins) / sizeof(button_pins[0]); ++index)
+    if (button_pins[index] != GPIO_NUM_NC)
+      button_mask |= 1ULL << button_pins[index];
   gpio_config_t buttons = {
-      .pin_bit_mask = (1ULL << LANTERN_BUTTON_MAIN_GPIO) |
-                      (1ULL << LANTERN_BUTTON_UP_GPIO) |
-                      (1ULL << LANTERN_BUTTON_DOWN_GPIO),
+      .pin_bit_mask = button_mask,
       .mode = GPIO_MODE_INPUT,
       .pull_up_en = GPIO_PULLUP_ENABLE,
   };
@@ -1341,6 +1454,7 @@ static void button_task(void *argument) {
   vTaskDelay(pdMS_TO_TICKS(800));
   bool was_pressed = false;
   bool reset_started = false;
+  bool reset_consumed = false;
 #if LANTERN_HAS_TOUCHSCREEN
   bool touch_reset_announced = false;
   bool touch_wake_only = false;
@@ -1348,6 +1462,10 @@ static void button_task(void *argument) {
 #endif
   TickType_t pressed_at = 0;
   TickType_t reset_at = 0;
+#if LANTERN_HAS_POWER_BUTTON
+  bool power_was_pressed = false;
+  TickType_t power_pressed_at = 0;
+#endif
   while (true) {
     // One owner for session/SD selection and account changes. Audio writers use
     // their own bounded queues and never wait for this control-plane mutex.
@@ -1367,12 +1485,16 @@ static void button_task(void *argument) {
     bool down_pressed = false;
 #if LANTERN_HAS_PHYSICAL_BUTTONS
     pressed = gpio_get_level(LANTERN_BUTTON_MAIN_GPIO) == 0;
-    up_pressed = gpio_get_level(LANTERN_BUTTON_UP_GPIO) == 0;
-    down_pressed = gpio_get_level(LANTERN_BUTTON_DOWN_GPIO) == 0;
+    if (LANTERN_BUTTON_UP_GPIO != GPIO_NUM_NC)
+      up_pressed = gpio_get_level(LANTERN_BUTTON_UP_GPIO) == 0;
+    if (LANTERN_BUTTON_DOWN_GPIO != GPIO_NUM_NC)
+      down_pressed = gpio_get_level(LANTERN_BUTTON_DOWN_GPIO) == 0;
 #elif LANTERN_HAS_TOUCHSCREEN
     uint16_t touch_x = 0, touch_y = 0;
     pressed = lantern_board_touch_read(&touch_x, &touch_y);
 #endif
+    if (LANTERN_RESET_USES_MAIN_AND_UP && up_pressed && pressed)
+      reset_consumed = true;
     if (pressed && !was_pressed) {
       pressed_at = xTaskGetTickCount();
 #if LANTERN_HAS_TOUCHSCREEN
@@ -1399,7 +1521,14 @@ static void button_task(void *argument) {
           vTaskDelay(pdMS_TO_TICKS(500));
           continue;
         }
-        lantern_storage_clear();
+        esp_err_t reset_result = lantern_storage_clear();
+        if (reset_result != ESP_OK) {
+          ESP_LOGE(TAG, "settings reset failed: %s", esp_err_to_name(reset_result));
+          show_error(RECOVERY_NONE, "RESET FAILED - TRY AGAIN", NULL);
+          xSemaphoreGive(s_control_mutex);
+          vTaskDelay(pdMS_TO_TICKS(500));
+          continue;
+        }
         vTaskDelay(pdMS_TO_TICKS(500));
         esp_restart();
       } else if (held_ms >= 5000 && !touch_reset_announced) {
@@ -1408,7 +1537,7 @@ static void button_task(void *argument) {
       }
     }
 #endif
-    if (!pressed && was_pressed) {
+    if (!pressed && was_pressed && !reset_consumed) {
       uint32_t held_ms =
           (uint32_t)((xTaskGetTickCount() - pressed_at) * portTICK_PERIOD_MS);
 #if LANTERN_HAS_TOUCHSCREEN
@@ -1431,7 +1560,7 @@ static void button_task(void *argument) {
 #endif
     }
 
-    if (up_pressed && down_pressed) {
+    if (up_pressed && (LANTERN_RESET_USES_MAIN_AND_UP ? pressed : down_pressed)) {
       if (!reset_started) {
         reset_started = true;
         reset_at = xTaskGetTickCount();
@@ -1445,16 +1574,66 @@ static void button_task(void *argument) {
           vTaskDelay(pdMS_TO_TICKS(500));
           continue;
         }
-        lantern_storage_clear();
+        esp_err_t reset_result = lantern_storage_clear();
+        if (reset_result != ESP_OK) {
+          ESP_LOGE(TAG, "settings reset failed: %s", esp_err_to_name(reset_result));
+          show_error(RECOVERY_NONE, "RESET FAILED - TRY AGAIN", NULL);
+          xSemaphoreGive(s_control_mutex);
+          vTaskDelay(pdMS_TO_TICKS(500));
+          continue;
+        }
         vTaskDelay(pdMS_TO_TICKS(500));
         esp_restart();
       }
     } else {
       reset_started = false;
     }
+    if (!pressed && !up_pressed)
+      reset_consumed = false;
 
-    if (s_state == LOCAL_RECORDING)
-      show_recording_progress();
+#if LANTERN_HAS_POWER_BUTTON
+    bool power_pressed = gpio_get_level(LANTERN_POWER_BUTTON_GPIO) == 0;
+    if (power_pressed && !power_was_pressed)
+      power_pressed_at = xTaskGetTickCount();
+    if (power_pressed && power_was_pressed && s_state == LOCAL_READY &&
+        !pressed && !up_pressed &&
+        (xTaskGetTickCount() - power_pressed_at) >= pdMS_TO_TICKS(2000) &&
+        quipus_phone_audio_idle() && lantern_sd_can_power_down()) {
+      lantern_wake_set_enabled(false);
+      lantern_audio_chime(1);
+      lantern_display_show(LANTERN_SCREEN_SETUP, "POWERING OFF");
+      vTaskDelay(pdMS_TO_TICKS(200));
+      lantern_display_set_awake(false);
+      lantern_board_speaker_enable(false);
+      // Battery power ends here. USB keeps the MCU powered, so also enter
+      // deep sleep after release; PWR is an RTC-capable wake input.
+      ESP_ERROR_CHECK(esp_sleep_enable_ext0_wakeup(LANTERN_POWER_BUTTON_GPIO, 0));
+      ESP_ERROR_CHECK(rtc_gpio_pullup_en(LANTERN_POWER_BUTTON_GPIO));
+      ESP_ERROR_CHECK(rtc_gpio_pulldown_dis(LANTERN_POWER_BUTTON_GPIO));
+      gpio_set_level(LANTERN_POWER_HOLD_GPIO, 0);
+      while (gpio_get_level(LANTERN_POWER_BUTTON_GPIO) == 0)
+        vTaskDelay(pdMS_TO_TICKS(20));
+      esp_deep_sleep_start();
+    }
+    power_was_pressed = power_pressed;
+#endif
+
+    if (s_state == LOCAL_RECORDING) {
+      esp_err_t storage_error = lantern_sd_recording_error();
+      if (s_sd_recording_active && storage_error != ESP_OK) {
+        ESP_LOGE(TAG, "SD capture failed; stopping recording: %s",
+                 esp_err_to_name(storage_error));
+        // Make failure visible before bounded SD/transport cleanup can wait.
+        lantern_display_show(LANTERN_SCREEN_ERROR, "SD ERROR - STOPPING");
+        show_error(RECOVERY_NONE, "SD ERROR - RECORDING STOPPED", NULL);
+        // The manifest retains the failed recording for recovery. A new session
+        // must get a fresh BEGIN event rather than replaying its old consent.
+        clear_active_session();
+        s_summary_retry_pending |= lantern_sd_pending_count() > 0;
+      } else {
+        show_recording_progress();
+      }
+    }
     if ((s_state == LOCAL_COMPLETE || s_state == LOCAL_STATUS) &&
         elapsed_state_seconds() >= 3) {
       show_ready();
@@ -1468,7 +1647,35 @@ static void button_task(void *argument) {
 static void report_interrupt_task(void *argument) {
   (void)argument;
   unsigned pressed_samples = 0;
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  quipus_button_tap_t volume_down = {0}, volume_up = {0};
+  // button_task ignores the first 800 ms after GPIO setup. Do the same here
+  // so a held power-on/boot button cannot become a volume change.
+  while (!s_controls_ready) vTaskDelay(pdMS_TO_TICKS(30));
+  vTaskDelay(pdMS_TO_TICKS(800));
+  volume_down.suppressed = volume_up.suppressed = true;
+  volume_down.pressed = gpio_get_level(LANTERN_POWER_BUTTON_GPIO) == 0;
+  volume_up.pressed = gpio_get_level(LANTERN_BUTTON_UP_GPIO) == 0;
+#endif
   while (true) {
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+    // This task remains responsive while a cloud report owns s_control_mutex.
+    // PWR/BOOT taps adjust playback; PLUS and multi-button chords take priority.
+    uint32_t now_ms = (uint32_t)(esp_timer_get_time() / 1000);
+    bool main = gpio_get_level(LANTERN_BUTTON_MAIN_GPIO) == 0;
+    bool power = gpio_get_level(LANTERN_POWER_BUTTON_GPIO) == 0;
+    bool boot = gpio_get_level(LANTERN_BUTTON_UP_GPIO) == 0;
+    bool quieter = quipus_button_tap_update(&volume_down, power,
+                                           main || boot, now_ms);
+    bool louder = quipus_button_tap_update(&volume_up, boot,
+                                          main || power, now_ms);
+    if (quieter || louder) {
+      unsigned volume = lantern_audio_adjust_volume(
+          quieter ? -QUIPUS_VOLUME_STEP : QUIPUS_VOLUME_STEP);
+      lantern_display_set_volume(volume);
+      ESP_LOGI(TAG, "speaker volume %u%%", volume);
+    }
+#endif
     if (s_controls_ready && lantern_network_report_playing() &&
         lantern_audio_is_speaker_active()) {
       bool pressed = false;
@@ -1537,7 +1744,14 @@ static int update_charging_eta(lantern_power_state_t power_state) {
 static void telemetry_task(void *argument) {
   (void)argument;
   unsigned seconds = 0;
+  char previous_pin[7] = {0};
   while (true) {
+    char pin[7];
+    lantern_bluetooth_passkey(pin);
+    if (strcmp(previous_pin, pin)) {
+      memcpy(previous_pin, pin, sizeof(pin));
+      s_network_update_pending = true;
+    }
     if (s_network_update_pending &&
         xSemaphoreTake(s_control_mutex, 0) == pdTRUE) {
       s_network_update_pending = false;
@@ -1575,6 +1789,7 @@ static void telemetry_task(void *argument) {
         show_ready();
 #endif
       }
+      sync_idle_wake_listener();
       xSemaphoreGive(s_control_mutex);
     }
 
@@ -1589,11 +1804,19 @@ static void telemetry_task(void *argument) {
     if (++seconds % 5 == 0) {
       ESP_LOGI(TAG,
                "health battery=%d%% charging=%d mic_level=%u heap=%u psram=%u "
-               "state=%d",
+               "internal_free=%u state=%d wake=%d wake_available=%d",
                s_battery_level, power_state == LANTERN_POWER_CHARGING,
                (unsigned)lantern_audio_level(),
                (unsigned)esp_get_free_heap_size(),
-               (unsigned)heap_caps_get_free_size(MALLOC_CAP_SPIRAM), s_state);
+               (unsigned)heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+               (unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT), s_state,
+               lantern_wake_is_enabled(), s_wake_available);
+      ESP_LOGI(TAG,
+               "stack minimum free buttons=%u health=%u bytes internal_max=%u",
+               (unsigned)uxTaskGetStackHighWaterMark(s_button_task),
+               (unsigned)uxTaskGetStackHighWaterMark(NULL),
+               (unsigned)heap_caps_get_largest_free_block(
+                   MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
     }
     if (seconds % 15 == 0 && s_state == LOCAL_READY &&
         xSemaphoreTake(s_control_mutex, 0) == pdTRUE) {
@@ -1666,6 +1889,9 @@ void app_main(void) {
   s_summary_retry_pending = lantern_sd_pending_count() > 0;
   ESP_ERROR_CHECK(lantern_display_init());
   ESP_ERROR_CHECK(lantern_audio_init());
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  lantern_display_set_volume(lantern_audio_volume());
+#endif
   lantern_audio_set_archive_callback(lantern_sd_recording_write);
   if (lantern_wake_init() == ESP_OK) {
     s_wake_available = true;
@@ -1681,9 +1907,20 @@ void app_main(void) {
   // buffers live in PSRAM. Keep enough internal task stack for both paths.
   s_control_mutex = xSemaphoreCreateMutex();
   ESP_ERROR_CHECK(s_control_mutex ? ESP_OK : ESP_ERR_NO_MEM);
-  xTaskCreate(button_task, "lantern_buttons", 8192, NULL, 5, NULL);
-  xTaskCreate(report_interrupt_task, "quipus_interrupt", 3072, NULL, 5, NULL);
-  xTaskCreate(telemetry_task, "lantern_health", 8192, NULL, 3, NULL);
+  ESP_ERROR_CHECK(xTaskCreate(button_task, "lantern_buttons",
+                              CLOUD_CONTROL_STACK_BYTES, NULL, 5,
+                              &s_button_task) == pdPASS
+                      ? ESP_OK
+                      : ESP_ERR_NO_MEM);
+  ESP_ERROR_CHECK(xTaskCreate(report_interrupt_task, "quipus_interrupt", 3072,
+                              NULL, 5, NULL) == pdPASS
+                      ? ESP_OK
+                      : ESP_ERR_NO_MEM);
+  ESP_ERROR_CHECK(xTaskCreate(telemetry_task, "lantern_health",
+                              CLOUD_CONTROL_STACK_BYTES, NULL, 3,
+                              NULL) == pdPASS
+                      ? ESP_OK
+                      : ESP_ERR_NO_MEM);
   ESP_ERROR_CHECK(lantern_network_start(&s_config, network_changed));
   show_ready();
   ESP_LOGI(TAG,

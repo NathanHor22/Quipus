@@ -1,5 +1,8 @@
 # Quipus hardware and device protocol
 
+For the Waveshare ESP32-S3-LCD-1.54, use the
+[board-specific build and setup guide](hardware/lantern-firmware/WAVESHARE.md).
+
 Current release: [Quipus 0.8.0](docs/quipus-release.md), installed on the LCDWIKI
 ES3C28P touchscreen V2 on 22 September 2026. Both board profiles still build.
 Use the [firmware guide](hardware/lantern-firmware/README.md) for current controls.

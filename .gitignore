@@ -65,6 +65,9 @@ Desktop.ini
 /hardware/lantern-firmware/managed_components/
 /hardware/lantern-firmware/sdkconfig
 /hardware/lantern-firmware/sdkconfig.v2
+/hardware/lantern-firmware/build-waveshare/
+/hardware/lantern-firmware/sdkconfig.waveshare
+/hardware/lantern-firmware/sdkconfig.waveshare.old
 /hardware/backups/
 
 # USB phone microphone firmware build variant
@@ -77,3 +80,6 @@ Desktop.ini
 
 # Reproducible local hardware handoff binaries (rebuild from source)
 /output/quipus-upgrade/hardware/
+
+# Temporary dependency audit reports
+/tmp-upgrade-*.json

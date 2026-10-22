@@ -1,0 +1,61 @@
+name: Waveshare firmware
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'hardware/lantern-firmware/**'
+      - 'hardware/firmware/setup-agora-sdk.py'
+      - 'scripts/package-hardware-artifacts.py'
+      - 'scripts/test-firmware-*.py'
+      - '.github/workflows/waveshare-firmware.yml'
+  pull_request:
+    paths:
+      - 'hardware/lantern-firmware/**'
+      - 'hardware/firmware/setup-agora-sdk.py'
+      - 'scripts/package-hardware-artifacts.py'
+      - 'scripts/test-firmware-*.py'
+      - '.github/workflows/waveshare-firmware.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    container: espressif/idf:v5.2.3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Portable firmware regressions
+        run: |
+          python3 scripts/test-firmware-boards.py
+          python3 hardware/lantern-firmware/generate-setup-portal.py --check
+      - name: Install Agora component
+        run: python3 hardware/firmware/setup-agora-sdk.py
+      - name: Compile Waveshare firmware
+        shell: bash
+        working-directory: hardware/lantern-firmware
+        run: |
+          . "$IDF_PATH/export.sh"
+          idf.py -B build-waveshare -D IDF_TARGET=esp32s3 \
+            -D SDKCONFIG=sdkconfig.waveshare \
+            -D SDKCONFIG_DEFAULTS=sdkconfig.waveshare.defaults build
+      - name: Fault and recovery regressions
+        run: |
+          python3 scripts/test-firmware-network.py
+          python3 scripts/test-firmware-wake.py
+          python3 scripts/test-firmware-sd.py
+          python3 scripts/test-firmware-storage.py
+          python3 scripts/test-firmware-codec-control.py
+      - name: Package and verify all five flash images
+        run: python3 scripts/package-hardware-artifacts.py --profile waveshare
+      - uses: actions/upload-artifact@v4
+        with:
+          name: quipus-waveshare-lcd-154
+          path: |
+            output/quipus-upgrade/hardware/quipus-waveshare-lcd-154.zip
+            output/quipus-upgrade/hardware/quipus-waveshare-lcd-154.sha256
+            output/quipus-upgrade/hardware/quipus-waveshare-lcd-154-manifest.json
+          if-no-files-found: error
+          retention-days: 30

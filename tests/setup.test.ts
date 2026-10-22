@@ -5,10 +5,21 @@ import {
   pairingSecondsRemaining,
   pairingStorageKey,
   readPairingProgress,
+  recorderSetupUrl,
   readSetupPreferences,
   setupStorageKey,
   workspaceSetupStep,
 } from "../lib/workspace/setup";
+
+test("recorder handoff puts only a valid pairing code in the local URL fragment", () => {
+  const url = new URL(recorderSetupUrl("ABCDE-23456"));
+  assert.equal(url.origin, "http://192.168.4.1");
+  assert.equal(url.pathname, "/");
+  assert.equal(url.search, "");
+  assert.equal(url.hash, "#code=ABCDE-23456");
+  for (const code of [undefined, null, "", "AAAAI-00000", "https://example.com", "ABCDE-23456&return=https://example.com"])
+    assert.equal(recorderSetupUrl(code), "http://192.168.4.1/");
+});
 
 test("setup preferences are isolated by account and cannot certify actual connections", () => {
   assert.equal(setupStorageKey(" Nathan@Example.com "), setupStorageKey("nathan@example.com"));

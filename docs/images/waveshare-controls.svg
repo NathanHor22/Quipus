@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 390" role="img" aria-labelledby="title desc">
+  <title id="title">Quipus Waveshare controls, buttons above screen</title>
+  <desc id="desc">With the screen facing you and the buttons along the top, left is PLUS for record and report, middle is PWR for volume down and power, right is BOOT for volume up and flashing.</desc>
+  <rect width="1000" height="390" rx="20" fill="#f6f5f1"/>
+  <g font-family="Arial, sans-serif" text-anchor="middle" fill="#142037">
+    <text x="500" y="32" font-size="16">SCREEN FACING YOU · BUTTON ROW ABOVE DISPLAY</text>
+    <rect x="342" y="106" width="316" height="258" rx="28" fill="white" stroke="#c3c7ca" stroke-width="2"/>
+    <rect x="361" y="126" width="278" height="217" rx="12" fill="#171a20"/>
+    <rect x="402" y="150" width="196" height="169" fill="#fff"/>
+    <text x="500" y="190" font-size="20" font-weight="bold">QUIPUS</text>
+    <circle cx="500" cy="233" r="13" fill="#bc2028"/>
+    <text x="500" y="282" font-size="18" fill="#bc2028">READY</text>
+    <g fill="#fff" stroke="#899098" stroke-width="2">
+      <rect x="377" y="94" width="45" height="16" rx="7"/>
+      <rect x="478" y="94" width="45" height="16" rx="7"/>
+      <rect x="579" y="94" width="45" height="16" rx="7"/>
+    </g>
+    <g fill="none" stroke="#899098" stroke-width="2">
+      <path d="M400 91 V65 H168 V113"/>
+      <path d="M500 91 V63"/>
+      <path d="M602 91 V65 H832 V113"/>
+    </g>
+    <text x="168" y="145" font-size="22" font-weight="bold">LEFT · PLUS</text>
+    <text x="168" y="177" font-size="18">Tap: consent / start / stop</text>
+    <text x="168" y="207" font-size="16">Hold 1.2 s: daily report</text>
+    <text x="500" y="59" font-size="18" font-weight="bold">MIDDLE · PWR</text>
+    <text x="832" y="145" font-size="22" font-weight="bold">RIGHT · BOOT</text>
+    <text x="832" y="177" font-size="18">Tap: volume up</text>
+    <text x="832" y="207" font-size="16">Hold at USB startup: flash</text>
+    <text x="168" y="283" font-size="18">Middle tap: volume down</text>
+    <text x="168" y="313" font-size="16">Middle hold 2 s: power off</text>
+    <text x="832" y="283" font-size="18">Left + right: reset setup</text>
+    <text x="832" y="313" font-size="16">Hold both for 3 s</text>
+  </g>
+</svg>

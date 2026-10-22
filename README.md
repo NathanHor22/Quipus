@@ -1,308 +1,121 @@
 # Quipus
 
-Quipus by Fovea: capture conversations and follow through. The active dashboard uses Home, Conversations, Calendar and Devices. See [the Quipus release notes](docs/quipus-release.md) for branding, hardware controls and tested limitations. Legacy `lantern` protocol identifiers and deployment URLs remain compatible.
+Quipus records conversations with consent and turns them into a transcript,
+meeting brief and follow-up tasks. Review proposed meetings in the dashboard
+before sending Google Calendar invitations.
 
-Quipus turns Malaysian business conversations into a recap, follow-ups, and
-meeting approvals. The dashboard combines captured conversations and upcoming
-meetings in a calendar. Open an approved meeting to review the conversation
-that led to it: bullet points, concerns, promises, and preparation tasks. When
-the original recording is available, replay that conversation from its brief.
+![Illustrative 3D render of the Quipus recorder on a Waveshare ESP32-S3-LCD-1.54](docs/images/waveshare-quipus-render.webp)
 
-This phase implements the dashboard, a completed-transcript API, OpenAI
-extraction, explicit Google Calendar actions, and the first Quipus capture
-loop. It also adds Quipus Relay, a hackathon slice that uses OpenAI to find
-evidence-backed introductions across conversations and holds each one for
-human approval. The ESP32-S3 can open a consented session, publish microphone
-audio to Agora, upload the final captions and original WAV, and ask OpenAI to
-create the dashboard brief. The server supplies the authoritative Malaysia date
-and time when capture starts. See [ARCHITECTURE.md](ARCHITECTURE.md) for the
-boundaries, request contracts, data model, and remaining work.
+*Illustrative device render. The button diagram below defines the controls;
+physical testing is still required for each new firmware build.*
 
-## Run locally
+[Open dashboard](https://quipus-sales-rep-assistant.vercel.app) ·
+[Download firmware](https://github.com/NathanHor22/Quipus/actions/workflows/waveshare-firmware.yml) ·
+[Full Waveshare guide](hardware/lantern-firmware/WAVESHARE.md) ·
+[Developer setup](docs/configuration.md)
 
-1. Install Node.js 22.x, matching `package.json`.
-2. Run `npm install`.
-3. Run `npm run dev` and open `http://localhost:3000`.
+## Start with the recorder
 
-With no Supabase configuration, local development permits credential-free
-access. The sample workspace uses fictional conversations and browser storage.
-Approvals, dismissals, and checklist changes in sample mode make no provider
-calls and send no invitations. Use **Reset sample** to restore the preview.
-The public home page always opens this sample. `/dashboard` remains the
-authenticated live workspace.
+This guide is for the **Waveshare ESP32-S3-LCD-1.54 non-touch board** with
+16 MB flash and 8 MB PSRAM. Other supported boards need their own firmware.
 
-## Configure a live workspace
+1. Insert a **FAT32 microSD card** with the recorder powered off. Recording
+   requires the card; setup and reports can work without it. Back up existing
+   files before formatting a card. Quipus never formats cards automatically.
+2. Connect USB-C power. For firmware **0.10.2**, open a successful
+   [Waveshare firmware build](https://github.com/NathanHor22/Quipus/actions/workflows/waveshare-firmware.yml),
+   download its `quipus-waveshare-lcd-154` artifact, extract it, then extract
+   the firmware ZIP inside. Follow `README.txt` to flash all five images
+   together. The manifest identifies the version, source commit and hashes.
+3. In **Chrome on Windows or Android**, sign in at
+   [Devices](https://quipus-sales-rep-assistant.vercel.app/dashboard/devices), choose
+   **Connect with Bluetooth**, and select `Quipus-BT-XXXX`. Enter the LCD PIN
+   if the operating system asks. Provide a **2.4 GHz Wi-Fi** network and choose
+   **Save and connect**. Wait for this recorder to appear online in your account.
+4. On **iPhone/Safari**, create a pairing code in Devices and use the
+   [Wi-Fi setup fallback](hardware/lantern-firmware/WAVESHARE.md#wi-fi-fallback-and-recording-controls).
+   Bluetooth is used for setup on supported browsers; recordings upload over Wi-Fi.
+5. When the screen says **READY**, tap the **left button** to request recording.
+   Ask everyone for consent and follow the spoken/display prompt. Confirm the
+   screen says **RECORDING** before relying on capture.
+6. Tap **left** again to stop. Keep the recorder powered while it saves and
+   uploads. Open the conversation in the dashboard to check its audio,
+   transcript and brief. Review any proposed meeting before approving an invite.
 
-Copy `.env.example` to `.env.local` and configure the paths you want to exercise.
-Keep server credentials out of `NEXT_PUBLIC_` variables.
+## Which button is which?
 
-Apply these migrations to the target Supabase project in order:
+**Face the screen with its text upright and the three buttons ABOVE it**, as
+in the device photos. In this orientation, the left button is PLUS, the middle
+is PWR, and the right is BOOT. Turn the device around and left/right will reverse.
 
-1. `supabase/migrations/001_initial.sql`
-2. `supabase/migrations/002_worker_hardening.sql`
-3. `supabase/migrations/003_meeting_approvals.sql`
-4. `supabase/migrations/004_lantern_devices.sql`
-5. `supabase/migrations/005_lantern_recording_pipeline.sql`
-6. `supabase/migrations/006_lantern_relay.sql`
-7. `supabase/migrations/007_multi_user_workspaces.sql`
+![Button positions with the button row above the upright Quipus display](docs/images/waveshare-controls.svg)
 
-Migration 003 adds structured schedule details and dismissed approvals. It also
-adds a unique Calendar-action index per follow-up. Reconcile any existing
-duplicate Calendar actions for the same follow-up before applying that index.
+| Position | Tap and release | Hold |
+| --- | --- | --- |
+| **Left — PLUS** | Request consent/start recording; stop recording; interrupt a report | **1.2 s** while ready: play the daily report. During recording: stop. |
+| **Middle — PWR** | **Volume down** | **2 s** while ready: power off/sleep. Pending private recordings block shutdown. |
+| **Right — BOOT** | **Volume up** | During USB connection: enter the flashing bootloader. Leave released for normal startup. |
+| **Left + right together** | — | **3 s**: clear Wi-Fi/pairing. Unsynced private recordings block reset. |
 
-Migration 004 adds one-time Quipus pairing, revocable device credentials,
-telemetry, durable session state, and idempotent device-event records. It does
-not add provider credentials or raw-audio storage to the device.
+Volume taps require **0.10.2 or later**. Each tap changes volume by 10 points;
+`V80` in the top bar means 80%. Zero mutes the speaker, and 100 is the configured
+maximum. It starts at 80 after every restart. Volume affects prompts, reports,
+chimes and replay, including during report playback; microphone gain and
+recorded audio stay unchanged. Reset chords and long holds do not change volume.
 
-Migration 005 adds the Agora session identifiers, staged final captions,
-private device recording linkage, provider retry fields, and completed Quipus
-meeting link used by the first capture pilot.
+The wake phrase is **Computer**, followed by a command. Follow the consent
+prompt before recording. Daily reports need a working paired cloud connection.
 
-Migration 006 stores user-scoped Relay proposals and their pending, dismissed,
-or scheduled state. Re-running Relay preserves a proposal that was already
-dismissed or scheduled.
+## Battery
 
-Migration 007 removes the original single-account restriction, backfills a
-profile for every existing Supabase Auth user, and gives each account isolated
-row-level policies for conversations, devices, recordings, Relay proposals,
-and provider connections.
+USB-C power works without a battery. For portable use, ask for the original
+Waveshare **3.7 V 1000 mAh rechargeable lithium battery** for this exact model,
+with an **MX1.25 2-pin connector**. Confirm pack dimensions and wire polarity
+with the supplier; capacity and a similar-looking plug alone do not establish fit.
+Install the supplied insulating sheet between the battery and PCB.
 
-If an existing deployment reports `column devices.model does not exist` or
-cannot find `public.device_pairings` in the schema cache, that database has the
-base schema but not the Quipus device upgrade. In the Supabase dashboard, open
-**SQL Editor**, run migrations 003 through 007 above in numerical order, and
-wait for each query to finish before starting the next one. Migration 004 is
-the pairing boundary; 005 adds the recording pipeline, 006 adds Relay, and 007
-backfills all Google users and replaces the original owner-only policies. The
-migrations explicitly ask PostgREST to reload its schema cache after the device
-and multi-user changes commit.
+The default firmware does not estimate battery percentage. If you install a
+battery, [enable the battery option and rebuild](hardware/lantern-firmware/WAVESHARE.md#build-and-flash)
+to display the voltage-based estimate. Do not flash another board's image.
 
-The live workspace requires `NEXT_PUBLIC_SUPABASE_URL`,
-`NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`. Every
-successful Supabase Google sign-in creates its own Quipus profile and private
-workspace.
+Sources: [Waveshare product](https://www.waveshare.com/esp32-s3-lcd-1.54.htm),
+[hardware documentation](https://docs.waveshare.com/ESP32-S3-Touch-LCD-1.54),
+[assembly guide](https://docs.waveshare.com/ESP32-S3-Touch-LCD-1.54/Instructions-For-Use).
 
-`NEXT_PUBLIC_SUPABASE_ANON_KEY` may contain Supabase's modern publishable key.
-`SUPABASE_SERVICE_ROLE_KEY` may contain a modern `sb_secret_...` key; the
-variable keeps its legacy name for compatibility. The elevated key is used
-only by server routes and must never use a `NEXT_PUBLIC_` prefix.
+## Develop and maintain
 
-### Google login
-
-Quipus accepts any Google account allowed by the Google Cloud OAuth app. Web
-routes require a valid Supabase session, and server-side data operations resolve
-the user ID from that same session. The public homepage, privacy policy, terms,
-login page, and Supabase callback remain available without signing in.
-
-Enable Google under **Supabase Auth > Providers**, then allow these redirects
-under **Auth > URL Configuration**:
-
-- `http://localhost:3000/auth/callback`
-- `https://YOUR-APP-DOMAIN/auth/callback`
-
-For the Google OAuth client used by Supabase Auth, register the Supabase
-callback shown on its provider page, normally
-`https://YOUR-PROJECT-REF.supabase.co/auth/v1/callback`. The app's
-`/auth/callback` belongs in Supabase's redirect allowlist.
-
-The current production Site URL is `https://quipus-sales-rep-assistant.vercel.app`.
-Set it in the hosted Supabase **Authentication > URL Configuration** page and
-add `https://quipus-sales-rep-assistant.vercel.app/auth/callback` to Redirect URLs.
-The checked-in `supabase/config.toml` does not automatically update hosted Auth.
-Set Vercel's `NEXT_PUBLIC_APP_URL` to that same production origin and redeploy.
-When migrating domains, also update `GOOGLE_REDIRECT_URI` and its Google Console
-entry for the separate Calendar integration, as described below. Keep the
-Supabase project's Google callback URI unchanged. A rejected app callback may
-otherwise fall back to the old Site URL; browser session cookies cannot move
-between the old and new hosts.
-
-Production authentication requires both public Supabase values. Leaving
-both unset disables authentication only in local development; incomplete
-configuration fails closed.
-
-### OpenAI understanding
-
-Set `OPENAI_API_KEY` and, optionally, `OPENAI_EXTRACTION_MODEL` (default
-`gpt-5.4-mini`). The adapter calls the OpenAI Responses API with a strict JSON
-schema and validates the result locally. Its schedule extraction requires an agreed meeting and a
-supporting quote found in the supplied transcript. Human review still decides
-whether the details are correct before an invitation is sent.
-
-`POST /api/conversations` accepts a completed, normalized transcript and
-requires OpenAI and workspace storage. It does not call a speech provider or
-accept raw audio. The contract and an example are in
-[ARCHITECTURE.md](ARCHITECTURE.md#completed-transcript-api).
-
-The configured prototype uses OpenAI for transcription recovery and structured
-meeting extraction. A configured OpenAI failure is reported instead of
-returning sample content. Older provider adapters remain in the source for
-compatibility tests but need no production environment variables.
-
-### Quipus Relay with OpenAI
-
-Set `OPENAI_API_KEY` on the server. `OPENAI_RELAY_MODEL` defaults to
-`gpt-5.4-mini`. Relay calls the OpenAI Responses API with strict structured
-output and `store: false`. It compares up to twelve recent ready conversations,
-accepts at most four proposals, and drops any proposal below a score of 70.
-Each displayed quote must exactly match evidence already saved in Quipus.
-
-```dotenv
-OPENAI_API_KEY=your-openai-api-key
-OPENAI_TRANSCRIPTION_MODEL=gpt-4o-transcribe-diarize
-OPENAI_EXTRACTION_MODEL=gpt-5.4-mini
-OPENAI_RELAY_MODEL=gpt-5.4-mini
-RELAY_EVENT_NAME=AITKL · Agents, Everywhere
-RELAY_EVENT_VENUE=WORQ Bangsar
+```sh
+npm ci
+npm run dev
 ```
 
-Contact email addresses remain on the Quipus server and are added only after
-OpenAI returns valid conversation IDs. Exa is optional: set `EXA_API_KEY` to add
-public company context. Its request receives company names, never transcripts,
-contact details, or recordings.
+Use Node.js 22. Local development without Supabase opens a fictional sample;
+production authentication and provider setup are documented in
+[configuration](docs/configuration.md) and [deployment](docs/deployment.md).
 
-Open **Relay** in the dashboard. Sample mode demonstrates the queue without any
-provider or Calendar call. Live mode requires OpenAI, Supabase, migration 006,
-and at least two ready conversations. Dismissal changes only Quipus state.
-**Approve and send invites** checks that the two attendee emails and source
-conversation still match the reviewed proposal, then creates the Google event
-and marks that proposal scheduled in the same server action.
+| Area | Source |
+| --- | --- |
+| Dashboard and server routes | `app/`, `components/`, `lib/` |
+| Waveshare firmware and GPIO mapping | `hardware/lantern-firmware/` |
+| Portable firmware tests | `scripts/test-firmware-boards.py` |
+| Database migrations | `supabase/migrations/` |
+| Recording worker | `recording-worker/` |
+| System contracts | [ARCHITECTURE.md](ARCHITECTURE.md) |
 
-### Agora wearable transcription
-
-Set `NEXT_PUBLIC_AGORA_APP_ID`, `AGORA_APP_CERTIFICATE`,
-`AGORA_CUSTOMER_ID`, and `AGORA_CUSTOMER_SECRET`, then enable Speech-to-Text
-for that Agora project. The first hardware pilot publishes 16 kHz mono Opus and
-starts Agora Speech-to-Text with `ms-MY,en-SG`. Change
-`AGORA_STT_LANGUAGES` or `AGORA_STT_KEYWORDS` after measuring real Malaysian
-conversations.
-
-The browser never receives Agora REST credentials. The backend creates a
-short-lived device RTC token and subscribes the transcription bot only to that
-device UID. Final Agora protobuf captions are staged until the ESP32 uploads
-its local WAV; OpenAI then receives those captions with the server-stamped
-`Asia/Kuala_Lumpur` date and time.
-
-### Google Calendar
-
-Enable the Calendar API for the Google Cloud project and configure an OAuth
-web client with these server settings:
-
-```dotenv
-GOOGLE_CLIENT_ID=your-client-id
-GOOGLE_CLIENT_SECRET=your-client-secret
-GOOGLE_REDIRECT_URI=http://localhost:3000/api/google/callback
-GOOGLE_CALENDAR_ID=primary
-ACTION_APPROVAL_SECRET=your-random-secret-of-at-least-32-UTF8-bytes
-```
-
-Register `GOOGLE_REDIRECT_URI` in that OAuth client's authorized redirect URIs;
-use `https://quipus-sales-rep-assistant.vercel.app/api/google/callback` in production. The
-same Google Cloud web client may also serve Supabase login when its authorized
-redirect URIs include
-`https://cjogfunwcwytvooycjzv.supabase.co/auth/v1/callback`. Supabase Auth must
-allow `https://quipus-sales-rep-assistant.vercel.app/auth/callback` as an application redirect.
-The Calendar connection remains a separate consent step. Open **Settings >
-Google Calendar** in the live workspace to connect. Credentials are encrypted
-in `provider_connections`; the Google refresh token is created by this step and
-does not need to be copied into Vercel.
-
-For public access, set the Google Auth Platform audience to **External** and
-the publishing status to **In production**. Configure the public homepage,
-privacy policy, and terms as:
-
-- `https://quipus-sales-rep-assistant.vercel.app`
-- `https://quipus-sales-rep-assistant.vercel.app/privacy`
-- `https://quipus-sales-rep-assistant.vercel.app/terms`
-
-Declare only Quipus's active Calendar scopes:
-
-- `https://www.googleapis.com/auth/calendar.events.owned`
-- `https://www.googleapis.com/auth/calendar.events.freebusy`
-
-Calendar access remains subject to Google's sensitive-scope verification. Use
-a custom domain that you control before submitting brand and data-access
-verification, then update the Vercel, Supabase, and Google redirect URLs to
-that domain.
-
-Review or complete the date, time, duration, and attendee emails, then approve.
-The live action creates the Google event with a unique Google Meet link and
-sends attendee updates. Quipus
-saves the event and its source-conversation relationship through the action
-record. The dashboard currently shows Quipus's stored conversations and
-events, not a two-way mirror of everything in Google Calendar. The existing
-availability endpoint is not automatically called by this approval flow.
-
-### Audio uploads and browser capture
-
-**Add recording** uploads audio directly to the private Supabase `recordings`
-bucket using a signed upload token. `/api/process-meeting` receives the storage
-reference, verifies ownership, and downloads the audio server-side. The
-current limit is 25 MiB. Enter the original capture time and duration so
-relative dates can be interpreted against the conversation.
-
-Audio transcription uses OpenAI. Browser microphone capture publishes through
-Agora and records a local
-audio file for this same upload flow. It requires `NEXT_PUBLIC_AGORA_APP_ID`
-and `AGORA_APP_CERTIFICATE`; it is not the future passive wearable transcript
-transport. Completed transcript imports do not require these audio-provider keys.
-
-### Replay original conversations
-
-The conversation brief's **Replay** section plays the original uploaded or
-browser-captured audio. Playback controls include speed, 15-second skips, and
-timestamped transcript entries that jump to the corresponding point. Audio
-remains in the private `recordings` bucket alongside its transcript metadata;
-the player uses a temporary signed URL for access.
-
-Transcript-only imports, sample conversations, and legacy hardware sessions
-without an archived recording show an explicit no-audio state. Quipus does
-not synthesize a replacement voice track from the transcript. No passive
-wearable is connected by this change: future Agora capture must also archive
-the actual conversation audio with timestamps aligned to its transcript.
-See [replay architecture](ARCHITECTURE.md#original-audio-replay).
-
-### Quipus core
-
-Open **Quipus** in the dashboard. Sample mode contains an interactive device
-simulator that records no audio and makes no provider calls. It demonstrates
-the actual transition rules used by the server: recording starts only after a
-current consent prompt, offline buffering is capped at 30 seconds, and a voice
-confirmation creates a pending dashboard approval without sending anything.
-
-In live mode, an authenticated user can create a ten-minute pairing code,
-view device telemetry, and revoke a paired device. Firmware claims that code
-once, stores the returned secret in device NVS, and then uses the device
-heartbeat API. The secret is returned only during the claim; the database
-stores its SHA-256 digest. Request examples and the current hardware status are
-in [HARDWARE.md](HARDWARE.md).
-
-The active ESP32-S3 firmware is in `hardware/lantern-firmware`. Version
-`0.3.1-button-state-machine` keeps the idle microphone private and uses one
-consistent centre-button flow: short press starts spoken consent, either press
-stops an active recording, and long press while ready plays today's status
-report. The provider-connected path records the server capture time, publishes
-audio and captions through Agora, uploads a private WAV, runs OpenAI
-processing, and delivers the dashboard brief. The WAV is uploaded even when
-Agora captions are unavailable, allowing OpenAI diarized transcription to
-recover the meeting before structured extraction runs. Stop and upload retries
-reuse their original event IDs, and summary failures retry in the background.
-The local replay archive is currently the latest 30 seconds; hour-long chunked
-audio, reconnect, and token renewal remain the next reliability phase. Run
-`setup-agora-sdk.ps1` once before a clean firmware build, then build and flash
-the application with `flash.ps1`.
-
-Legacy follow-up and WhatsApp experiments remain in the repository but are not
-part of the Quipus prototype environment or its Calendar approval flow.
-
-## Checks
-
-```text
+```sh
+python3 scripts/test-firmware-boards.py
+python3 hardware/lantern-firmware/generate-setup-portal.py --check
 npm run typecheck
 npm test
 npm run build
 ```
 
-`npm run check` also checks and builds the persistent worker; install its
-dependencies separately with `npm --prefix worker install` first. Automated
-checks do not establish live Agora delivery, OpenAI extraction accuracy, Google account
-connectivity, or hour-long wearable reliability.
+Firmware builds run in GitHub Actions using ESP-IDF 5.2.3. Compilation and
+portable tests do not establish radio pairing, audible output or recording
+reliability on a physical device. Before using a new build in a meeting,
+check consent/start/stop, both volume buttons, a recording over 60 seconds,
+its replay duration, and recovery after loss of Wi-Fi.
+
+Waveshare support incorporates [jinchuntan/quipus](https://github.com/jinchuntan/quipus)
+at `1d92ce5`, alongside this repository's existing firmware repairs.
+See [integration notes](docs/upstream-sync.md) for provenance and validation.

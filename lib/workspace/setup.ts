@@ -31,6 +31,14 @@ export function pairingStorageKey(email: string) {
   return `quipus:pairing:${accountKey(email)}`;
 }
 
+/** Fragments stay in the browser; the recorder's HTTP request contains no code. */
+export function recorderSetupUrl(code?: string | null) {
+  const address = "http://192.168.4.1/";
+  return code && /^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{5}-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{5}$/.test(code)
+    ? `${address}#code=${code}`
+    : address;
+}
+
 export function readSetupPreferences(raw: string | null): SetupPreferences {
   try {
     const value: unknown = JSON.parse(raw || "null");

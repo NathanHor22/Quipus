@@ -31,6 +31,13 @@ void lantern_sd_recording_abort(void);
 
 // True while either writer still owns an unsealed local archive.
 bool lantern_sd_capture_active(void);
+// First capture/queue/finalization error, latched until a fresh recording or
+// recovery is selected. Poll during recording to stop and report SD faults.
+esp_err_t lantern_sd_recording_error(void);
+// True only after both writers, finalization and the PCM queue are idle. Unlike
+// has_private_material(), finalized recordings awaiting upload do not block.
+// The caller must serialize session controls and stop the phone transport first.
+bool lantern_sd_can_power_down(void);
 bool lantern_sd_recording_ready(void);
 const char *lantern_sd_recording_path(void);
 size_t lantern_sd_recording_size(void);

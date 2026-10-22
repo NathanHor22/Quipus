@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { QuipusMark } from "@/components/brand/QuipusMark";
 import { useQuipusMotion } from "@/components/experience/QuipusExperience";
 import { useDismissiblePanel } from "@/components/ui/useDismissiblePanel";
@@ -192,7 +192,7 @@ function CityPanel({ destination, feature, sceneUnavailable, onClose, onResetMod
   </section>;
 }
 
-export default function QuipusLanding() {
+export default function QuipusLanding({ accountControl }: { accountControl: ReactNode }) {
   const { enabled, setScene } = useQuipusMotion();
   const destination = useSyncExternalStore(subscribeNavigation, readDestination, serverDestination);
   const overviewButton = useRef<HTMLButtonElement>(null);
@@ -243,7 +243,7 @@ export default function QuipusLanding() {
     <div className={styles.stage}><CityPoster /><Scene destination={destination} onDestinationChange={chooseDestination} reducedMotion={!enabled} feature={feature} onFeatureChange={setFeature} resetSequence={resetSequence} rotationCommand={rotationCommand} onReady={ready} onUnavailable={unavailable} /></div>
     <div className={styles.readingVeil} aria-hidden="true" />
     <button data-city-ui-reserve="" ref={overviewButton} type="button" className={styles.brand} onClick={reset} aria-label="Quipus city overview"><QuipusMark /><Image src="/quipus-wordmark.png" alt="Quipus" width={780} height={194} priority /></button>
-    <MenuLink data-city-ui-reserve="" href="/login?next=/dashboard" tone="navy" className={styles.signIn}>Sign in</MenuLink>
+    <div data-city-ui-reserve="" className={styles.accountControl}>{accountControl}</div>
 
     {!destination && <div className={styles.homePanel} id="city-content" tabIndex={-1}>
       <section aria-labelledby="city-title" data-city-introduction>

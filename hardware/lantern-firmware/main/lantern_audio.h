@@ -10,6 +10,10 @@ typedef void (*lantern_audio_frame_callback_t)(const int16_t *samples,
                                                size_t count);
 
 esp_err_t lantern_audio_init(void);
+// 0 mutes speaker output; 100 retains the codec's configured maximum.
+// The current value is kept until restart; capture gain is unchanged.
+unsigned lantern_audio_volume(void);
+unsigned lantern_audio_adjust_volume(int delta);
 void lantern_audio_chime(unsigned count);
 esp_err_t lantern_audio_pcm_begin(void);
 esp_err_t lantern_audio_pcm_write(const void *data, size_t length);

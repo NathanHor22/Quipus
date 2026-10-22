@@ -7,6 +7,7 @@
 #include "esp_err.h"
 #include "lantern_display.h"
 #include "lantern_storage.h"
+#include "quipus_setup_form.h"
 
 #define LANTERN_WIFI_SCAN_LIMIT 5
 #define LANTERN_REPORT_LIST_LIMIT 5
@@ -81,6 +82,10 @@ esp_err_t lantern_network_send_heartbeat(const char *state,
                                          int battery_level);
 void lantern_network_set_realtime(bool enabled);
 esp_err_t lantern_network_open_setup_portal(void);
+// Shared validation and atomic save for local HTTP and authenticated BLE setup.
+esp_err_t lantern_network_save_setup(quipus_setup_form_t *form, bool bluetooth,
+                                      char *error, size_t error_capacity);
+bool lantern_network_bluetooth_allowed(void);
 esp_err_t lantern_network_scan_wifi(lantern_wifi_network_t *networks,
                                     size_t capacity, size_t *count);
 esp_err_t lantern_network_connect_wifi(const char *ssid, const char *password);

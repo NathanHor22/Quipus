@@ -9,6 +9,7 @@ import {
   hashLanternSecret,
   normalizePairingCode,
 } from "@/lib/lantern-device-auth";
+import { devicePairingFailure } from "@/lib/device-pairing-errors";
 import { getServerSupabase } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -221,7 +222,7 @@ export async function POST(request: Request) {
             credentialHash,
           )
         : (() => {
-            throw new Error(error.message);
+            throw error;
           })()
       : Array.isArray(data)
         ? data[0]
@@ -231,7 +232,7 @@ export async function POST(request: Request) {
       (await findRepeatedClaim(client, input, codeHash, credentialHash));
     if (!claimed?.device_id) {
       return NextResponse.json(
-        { error: "The pairing code is invalid or has expired." },
+        { code: "PAIRING_CODE_EXPIRED", error: "The pairing code is invalid or has expired." },
         { status: 404, headers: { "cache-control": "no-store" } },
       );
     }
@@ -251,16 +252,16 @@ export async function POST(request: Request) {
       { status: 201, headers: { "cache-control": "no-store" } },
     );
   } catch (error) {
-    console.error("[device-claim]", error);
+    const failure = devicePairingFailure(error);
+    if (failure.status >= 500) {
+      console.error("[device-claim]", error);
+    } else {
+      console.warn("[device-claim]", failure.code);
+    }
     return NextResponse.json(
+      { code: failure.code, error: failure.error },
       {
-        error:
-          error instanceof z.ZodError
-            ? "Quipus claim details are invalid."
-            : "Quipus could not be paired.",
-      },
-      {
-        status: error instanceof z.ZodError ? 400 : 500,
+        status: failure.status,
         headers: { "cache-control": "no-store" },
       },
     );

@@ -1,5 +1,7 @@
 #include "lantern_storage.h"
+#include "lantern_bluetooth.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include "esp_check.h"
@@ -103,9 +105,12 @@ esp_err_t lantern_storage_save_wifi(const char *ssid, const char *password,
     result = nvs_set_str(handle, "wifi_pass", password);
   if (result == ESP_OK)
     result = nvs_set_str(handle, "pair_code", pairing_code ? pairing_code : "");
-  lantern_config_t current;
-  memset(&current, 0, sizeof(current));
-  size_t selected = LANTERN_MAX_WIFI_PROFILES;
+  // Keep only the profile list on this call's stack. The HTTP setup handler
+  // shares its task stack with NVS and must not copy the full device identity.
+  lantern_wifi_profile_t ordered[LANTERN_MAX_WIFI_PROFILES] = {0};
+  snprintf(ordered[0].ssid, sizeof(ordered[0].ssid), "%s", ssid);
+  snprintf(ordered[0].password, sizeof(ordered[0].password), "%s", password);
+  size_t write_index = 1;
   uint8_t old_count = 0;
   if (result == ESP_OK) {
     esp_err_t count_result = nvs_get_u8(handle, "wifi_count", &old_count);
@@ -114,29 +119,23 @@ esp_err_t lantern_storage_save_wifi(const char *ssid, const char *password,
     if (old_count > LANTERN_MAX_WIFI_PROFILES)
       old_count = LANTERN_MAX_WIFI_PROFILES;
   }
+  // Read each saved entry before rewriting any profile keys. Promote the
+  // selected network, retain the others in order, and cap the list at five.
   for (uint8_t index = 0; result == ESP_OK && index < old_count; ++index) {
+    lantern_wifi_profile_t candidate = {0};
     char ssid_key[12], pass_key[12];
     snprintf(ssid_key, sizeof(ssid_key), "w%us", index);
     snprintf(pass_key, sizeof(pass_key), "w%up", index);
-    result = read_string(handle, ssid_key, current.wifi_profiles[index].ssid,
-                         sizeof(current.wifi_profiles[index].ssid));
+    result = read_string(handle, ssid_key, candidate.ssid,
+                         sizeof(candidate.ssid));
     if (result == ESP_OK)
-      result =
-          read_string(handle, pass_key, current.wifi_profiles[index].password,
-                      sizeof(current.wifi_profiles[index].password));
-    if (strcmp(current.wifi_profiles[index].ssid, ssid) == 0)
-      selected = index;
-  }
-  lantern_wifi_profile_t ordered[LANTERN_MAX_WIFI_PROFILES] = {0};
-  snprintf(ordered[0].ssid, sizeof(ordered[0].ssid), "%s", ssid);
-  snprintf(ordered[0].password, sizeof(ordered[0].password), "%s", password);
-  size_t write_index = 1;
-  for (uint8_t index = 0; result == ESP_OK && index < old_count &&
-                          write_index < LANTERN_MAX_WIFI_PROFILES;
-       ++index) {
-    if (index == selected || !current.wifi_profiles[index].ssid[0])
-      continue;
-    ordered[write_index++] = current.wifi_profiles[index];
+      result = read_string(handle, pass_key, candidate.password,
+                           sizeof(candidate.password));
+    if (result == ESP_OK && candidate.ssid[0] &&
+        strcmp(candidate.ssid, ssid) &&
+        write_index < LANTERN_MAX_WIFI_PROFILES) {
+      ordered[write_index++] = candidate;
+    }
   }
   if (result == ESP_OK)
     result = nvs_set_u8(handle, "wifi_count", (uint8_t)write_index);
@@ -209,6 +208,8 @@ esp_err_t lantern_storage_clear_pairing_code(lantern_config_t *config) {
 esp_err_t lantern_storage_clear_device(lantern_config_t *config) {
   if (!config)
     return ESP_ERR_INVALID_ARG;
+  ESP_RETURN_ON_ERROR(lantern_bluetooth_forget_bonds(), "storage",
+                      "clear Bluetooth bonds before device reset");
   nvs_handle_t handle;
   ESP_RETURN_ON_ERROR(nvs_open(STORAGE_NAMESPACE, NVS_READWRITE, &handle),
                       "storage", "open");
@@ -237,6 +238,8 @@ esp_err_t lantern_storage_clear_device(lantern_config_t *config) {
 }
 
 esp_err_t lantern_storage_clear(void) {
+  ESP_RETURN_ON_ERROR(lantern_bluetooth_forget_bonds(), "storage",
+                      "clear Bluetooth bonds before settings reset");
   nvs_handle_t handle;
   ESP_RETURN_ON_ERROR(nvs_open(STORAGE_NAMESPACE, NVS_READWRITE, &handle),
                       "storage", "open");

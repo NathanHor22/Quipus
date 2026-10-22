@@ -48,6 +48,7 @@ typedef struct {
   int wifi_rssi;
   lantern_connectivity_t connectivity;
   bool paired;
+  int volume;
 } display_update_t;
 
 static portMUX_TYPE s_update_lock = portMUX_INITIALIZER_UNLOCKED;
@@ -58,6 +59,7 @@ static display_update_t s_requested = {
   .battery_level = -1,
   .power_state = LANTERN_POWER_UNKNOWN,
   .wifi_rssi = -127,
+  .volume = -1,
 };
 
 // Only this task owns the framebuffer and DMA staging buffer. A one-item
@@ -406,7 +408,23 @@ void lantern_display_show(lantern_screen_t screen, const char *detail) {
   taskENTER_CRITICAL(&s_update_lock);
   s_requested.view = DISPLAY_STATE;
   s_requested.screen = screen;
+  if (screen == LANTERN_SCREEN_SETUP) s_requested.input[0] = '\0';
   memcpy(s_requested.detail, copied_detail, sizeof(s_requested.detail));
+  update = s_requested;
+  taskEXIT_CRITICAL(&s_update_lock);
+  if (s_updates) xQueueOverwrite(s_updates, &update);
+}
+
+void lantern_display_show_setup(const char *ssid, const char *message) {
+  gpio_set_level(LANTERN_DISPLAY_BACKLIGHT_GPIO, 1);
+  display_update_t update;
+  taskENTER_CRITICAL(&s_update_lock);
+  s_requested.view = DISPLAY_STATE;
+  s_requested.screen = LANTERN_SCREEN_SETUP;
+  snprintf(s_requested.detail, sizeof(s_requested.detail), "%s", ssid ? ssid : "");
+  snprintf(s_requested.input, sizeof(s_requested.input), "%s",
+    message ? message : "");
+  ++s_requested.revision;
   update = s_requested;
   taskEXIT_CRITICAL(&s_update_lock);
   if (s_updates) xQueueOverwrite(s_updates, &update);
@@ -490,6 +508,16 @@ void lantern_display_set_awake(bool awake) {
   gpio_set_level(LANTERN_DISPLAY_BACKLIGHT_GPIO, awake ? 1 : 0);
 }
 
+void lantern_display_set_volume(unsigned percent) {
+  display_update_t update;
+  if (percent > 100) percent = 100;
+  taskENTER_CRITICAL(&s_update_lock);
+  s_requested.volume = (int)percent;
+  update = s_requested;
+  taskEXIT_CRITICAL(&s_update_lock);
+  if (s_updates) xQueueOverwrite(s_updates, &update);
+}
+
 void lantern_display_set_charge_eta(int minutes) {
   display_update_t update;
   if (minutes < 0) minutes = -1;
@@ -545,6 +573,7 @@ static void draw_status_bar(
     lantern_connectivity_t connectivity,
     int wifi_rssi,
     bool paired,
+    int volume,
     uint16_t background,
     uint16_t foreground,
     uint16_t green,
@@ -575,6 +604,12 @@ static void draw_status_bar(
   else if (connectivity == LANTERN_CONNECTIVITY_WEAK) connection = "WEAK";
   else if (connectivity == LANTERN_CONNECTIVITY_ONLINE) connection = paired ? "ONLINE" : "WIFI";
   draw_text(28, 9, connection, 1, wifi_connected ? signal_color : red);
+  if (volume >= 0) {
+    char label[8];
+    unsigned percent = volume > 100 ? 100U : (unsigned)volume;
+    snprintf(label, sizeof(label), "V%u", percent);
+    draw_text(80, 9, label, 1, foreground);
+  }
 
   char battery[16];
   if (battery_level >= 0) snprintf(battery, sizeof(battery), "%d%%", battery_level);
@@ -645,6 +680,7 @@ static void render_screen(const display_update_t *update) {
   static int previous_rssi = 1;
   static lantern_connectivity_t previous_connectivity = (lantern_connectivity_t)-1;
   static bool previous_paired;
+  static int previous_volume = -1;
   const lantern_screen_t screen = update->screen;
   const char *detail = update->detail;
   const bool view_changed = (int)update->view != previous_view;
@@ -655,7 +691,7 @@ static void render_screen(const display_update_t *update) {
     update->power_state != previous_power ||
     update->wifi_rssi != previous_rssi ||
     update->connectivity != previous_connectivity ||
-    update->paired != previous_paired;
+    update->paired != previous_paired || update->volume != previous_volume;
   // The setup headline changes from networking to pairing when STA gets an IP.
   if (screen == LANTERN_SCREEN_SETUP && status_changed) screen_changed = true;
   if (!screen_changed && !detail_changed && !status_changed) return;
@@ -673,7 +709,10 @@ static void render_screen(const display_update_t *update) {
 
   switch (screen) {
     case LANTERN_SCREEN_SETUP:
-      status = update->connectivity == LANTERN_CONNECTIVITY_WIFI_ONLY && !update->paired
+      status = !update->paired &&
+        (update->connectivity == LANTERN_CONNECTIVITY_WIFI_ONLY ||
+         update->connectivity == LANTERN_CONNECTIVITY_WEAK ||
+         update->connectivity == LANTERN_CONNECTIVITY_ONLINE)
                    ? "PAIR QUIPUS" : "WIFI SETUP";
       accent = green;
       break;
@@ -700,7 +739,7 @@ static void render_screen(const display_update_t *update) {
     if (status_changed) {
       draw_status_bar(update->battery_level, update->power_state,
         update->connectivity, update->wifi_rssi,
-        update->paired, background, foreground, success, amber, red);
+        update->paired, update->volume, background, foreground, success, amber, red);
       complete = flush_rows(0, 29) && complete;
     }
     if (detail_changed) {
@@ -712,7 +751,7 @@ static void render_screen(const display_update_t *update) {
     fill(background);
     draw_status_bar(update->battery_level, update->power_state,
       update->connectivity, update->wifi_rssi,
-      update->paired, background, foreground, success, amber, red);
+      update->paired, update->volume, background, foreground, success, amber, red);
 
     if (update->view == DISPLAY_SPLASH) {
       centered_text(45, "QUIPUS", 2, foreground);
@@ -782,6 +821,12 @@ static void render_screen(const display_update_t *update) {
       wrapped_text(10, 61, LANTERN_DISPLAY_WIDTH - 20, detail, 16, foreground);
       outline_rect(72, 276, 96, 32, 1, foreground);
       centered_text(288, "BACK", 1, foreground);
+    } else if (screen == LANTERN_SCREEN_BLUETOOTH) {
+      centered_text(46, "PAIR BLUETOOTH", 2, foreground);
+      centered_text(90, "ENTER THIS PIN ON YOUR", 1, foreground);
+      centered_text(108, "PHONE OR COMPUTER", 1, foreground);
+      centered_text(146, detail, 3, green);
+      centered_text(202, "KEEP QUIPUS POWERED ON", 1, foreground);
     } else if (screen == LANTERN_SCREEN_SETUP) {
       const bool tall = LANTERN_DISPLAY_HEIGHT > 240;
       const bool connected = update->connectivity == LANTERN_CONNECTIVITY_WIFI_ONLY ||
@@ -802,12 +847,11 @@ static void render_screen(const display_update_t *update) {
         detail && detail[0] ? detail : "OPEN WIFI OPTIONS", 1, foreground);
       centered_text(tall ? 205 : 179, "OPEN IN YOUR BROWSER", 1, muted);
       centered_text(tall ? 228 : 196, "192.168.4.1", 2, foreground);
-      if (tall) {
-        wrapped_text(18, 265, LANTERN_DISPLAY_WIDTH - 36,
-          update->paired ? "UPDATE YOUR NETWORK. YOUR ACCOUNT STAYS LINKED."
-                         : "ENTER THE PAIRING CODE FROM YOUR QUIPUS DASHBOARD.",
-          3, muted);
-      }
+      const char *instruction = update->input[0] ? update->input :
+        update->paired ? "UPDATE YOUR NETWORK. YOUR ACCOUNT STAYS LINKED."
+                       : "ENTER A FRESH PAIRING CODE FROM YOUR QUIPUS DASHBOARD.";
+      wrapped_text(18, tall ? 265 : 220, LANTERN_DISPLAY_WIDTH - 36,
+        instruction, tall ? 3 : 2, update->input[0] ? red : muted);
     } else {
       if (screen == LANTERN_SCREEN_READY || screen == LANTERN_SCREEN_BOOTING) {
         quipus_mark(LANTERN_DISPLAY_WIDTH / 2, ring_y - 44, accent);
@@ -833,5 +877,6 @@ static void render_screen(const display_update_t *update) {
     previous_rssi = update->wifi_rssi;
     previous_connectivity = update->connectivity;
     previous_paired = update->paired;
+    previous_volume = update->volume;
   }
 }

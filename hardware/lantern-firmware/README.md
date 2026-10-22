@@ -10,6 +10,12 @@ profile is **Quipus Original**, the ZHENGCHEN 1.54-inch M1307/ML307 board. It
 uses the board manufacturer's proven display, microphone, speaker, battery,
 and button pin map.
 
+The **Waveshare ESP32-S3-LCD-1.54** non-touch board has its own profile with
+ES7210 microphone capture, ES8311 playback, ST7789 display, native USB and SD
+recording. See [Waveshare build, pairing and hardware acceptance](WAVESHARE.md).
+Use `build-waveshare.ps1` and `flash-waveshare.ps1`; recordings require a FAT32
+microSD card. Battery telemetry is optional and disabled in the USB default.
+
 The second profile is **Quipus V2**, the LCDWiki ES3C28P. It uses the board's
 240 x 320 ILI9341 display, FT6336G touchscreen, ES8311 microphone/audio codec,
 native USB, 16 MB flash, and an SDIO microSD slot. A battery and microSD card
