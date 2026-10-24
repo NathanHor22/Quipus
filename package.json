@@ -26,7 +26,7 @@
     "recording-worker:test": "tsx --test recording-worker/tests/*.test.ts"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.10.0",
+    "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.106.2",
     "@upstash/redis": "^1.38.0",
     "agora-rtc-sdk-ng": "^4.24.6",
