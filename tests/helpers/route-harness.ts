@@ -10,11 +10,14 @@ const root = realpathSync(process.cwd());
  * Bundles a real Route Handler with selected `@/` modules replaced by inline mocks,
  * so tests exercise production route code without Next's server-only runtime.
  * Each mock source is prefixed with `prelude`, typically a shared-state lookup.
+ * By default only `@/` imports are mocked; `mockRelativeImports` also replaces
+ * relative imports of the same modules (for example `./supabase/session`).
  */
 export async function loadRoute<T>(
   entry: string,
   mocks: Record<string, string>,
   prelude = "",
+  { mockRelativeImports = false } = {},
 ): Promise<{ module: T; cleanup(): void }> {
   const folder = mkdtempSync(path.join(root, ".tmp-route-harness-"));
   const cleanup = () => {
@@ -32,9 +35,8 @@ export async function loadRoute<T>(
           builder.onResolve({ filter: /^@\// }, args => Object.hasOwn(mocks, args.path)
             ? { path: args.path, namespace: "mock" }
             : { path: path.join(root, args.path.slice(2) + ".ts") });
-          // A mock keyed by its `@/` alias also replaces relative imports of the same module.
           builder.onResolve({ filter: /^\.\.?\// }, args => {
-            if (args.namespace !== "file") return undefined;
+            if (!mockRelativeImports || args.namespace !== "file") return undefined;
             const alias = "@/" + path.relative(root, path.join(args.resolveDir, args.path)).split(path.sep).join("/");
             return Object.hasOwn(mocks, alias) ? { path: alias, namespace: "mock" } : undefined;
           });

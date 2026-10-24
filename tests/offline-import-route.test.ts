@@ -1,12 +1,7 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
-import { createRequire } from "node:module";
-import { mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
-import path from "node:path";
-import { build } from "esbuild";
+import { loadRoute } from "./helpers/route-harness";
 
-const root = realpathSync(process.cwd());
-const folder = mkdtempSync(path.join(root, ".tmp-offline-import-route-"));
 const stateKey = Symbol.for("quipus.offline.import.route.test");
 const owner = "11111111-1111-4111-8111-111111111111";
 const device = "22222222-2222-4222-8222-222222222222";
@@ -16,11 +11,10 @@ const state = {
   error: null as { code: string; message: string; details?: string } | null,
 };
 Reflect.set(globalThis, stateKey, state);
+let cleanup = () => {};
 after(() => {
   Reflect.deleteProperty(globalThis, stateKey);
-  const resolved = realpathSync(folder);
-  assert.ok(resolved.startsWith(root + path.sep) && path.basename(resolved).startsWith(".tmp-offline-import-route-"));
-  rmSync(resolved, { recursive: true, force: true });
+  cleanup();
 });
 const prelude = 'const state=globalThis[Symbol.for("quipus.offline.import.route.test")];';
 const mocked: Record<string, string> = {
@@ -33,23 +27,9 @@ const mocked: Record<string, string> = {
 };
 let POST: (request: Request) => Promise<Response>;
 before(async () => {
-  const result = await build({
-    entryPoints: [path.join(root, "app/api/device/v1/sessions/import/route.ts")],
-    bundle: true, platform: "node", format: "cjs", packages: "external", write: false,
-    plugins: [{
-      name: "offline-import-route-edges",
-      setup(builder) {
-        builder.onResolve({ filter: /^@\// }, args => Object.hasOwn(mocked, args.path)
-          ? { path: args.path, namespace: "mock" }
-          : { path: path.join(root, args.path.slice(2) + ".ts") });
-        builder.onLoad({ filter: /.*/, namespace: "mock" }, args => ({ contents: prelude + mocked[args.path], loader: "js" }));
-      },
-    }],
-  });
-  const output = path.join(folder, "route.cjs");
-  writeFileSync(output, result.outputFiles[0].contents);
-  const load = createRequire(path.join(root, "package.json"));
-  POST = (load(output) as { POST(request: Request): Promise<Response> }).POST;
+  const loaded = await loadRoute<{ POST: typeof POST }>("app/api/device/v1/sessions/import/route.ts", mocked, prelude);
+  POST = loaded.module.POST;
+  cleanup = loaded.cleanup;
 });
 function request(overrides: Record<string, unknown> = {}) {
   return new Request("https://quipus.example/api/device/v1/sessions/import", {

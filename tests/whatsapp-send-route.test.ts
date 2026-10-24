@@ -17,6 +17,8 @@ before(async () => {
       "@/lib/supabase/session": `export const getAuthenticatedLanternUser=async()=>state.user;`,
     },
     'const state=globalThis[Symbol.for("quipus.whatsapp.send.route.test")];',
+    // lib/whatsapp-owner-auth loads ./supabase/session relatively.
+    { mockRelativeImports: true },
   );
   POST = loaded.module.POST;
   cleanup = loaded.cleanup;
