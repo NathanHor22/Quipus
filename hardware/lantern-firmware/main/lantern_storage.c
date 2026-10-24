@@ -11,6 +11,8 @@
 /* Kept stable so devices already provisioned under the prototype name retain
  * their Wi-Fi and pairing credentials after the Lantern rebrand. */
 #define STORAGE_NAMESPACE "roxanne"
+// Device-bound values that survive Wi-Fi/pairing reset and ownership transfer.
+#define DEVICE_NAMESPACE "quipus_device"
 
 static esp_err_t read_string(nvs_handle_t handle, const char *key,
                              char *destination, size_t size) {
@@ -309,6 +311,35 @@ esp_err_t lantern_storage_load_archive_identity(char owner[37], char device[37],
                  strlen(device) == 36
              ? ESP_OK
              : ESP_FAIL;
+}
+
+esp_err_t lantern_storage_ensure_setup_password(
+    const uint8_t entropy[QUIPUS_SETUP_PASSWORD_ENTROPY_BYTES],
+    char out[QUIPUS_SETUP_PASSWORD_BUFFER]) {
+  if (!entropy || !out)
+    return ESP_ERR_INVALID_ARG;
+  out[0] = '\0';
+  nvs_handle_t h;
+  esp_err_t result = nvs_open(DEVICE_NAMESPACE, NVS_READWRITE, &h);
+  if (result != ESP_OK)
+    return result;
+  char saved[QUIPUS_SETUP_PASSWORD_BUFFER + 1] = {0};
+  result = read_string(h, "setup_pass", saved, sizeof(saved));
+  if (result == ESP_OK && quipus_setup_password_valid(saved)) {
+    memcpy(out, saved, QUIPUS_SETUP_PASSWORD_BUFFER);
+    nvs_close(h);
+    return ESP_OK;
+  }
+  // First boot (or an unreadable value): create the device's permanent password.
+  char created[QUIPUS_SETUP_PASSWORD_BUFFER];
+  quipus_setup_password_from_entropy(entropy, created);
+  result = nvs_set_str(h, "setup_pass", created);
+  if (result == ESP_OK)
+    result = nvs_commit(h);
+  nvs_close(h);
+  if (result == ESP_OK)
+    memcpy(out, created, sizeof(created));
+  return result;
 }
 
 esp_err_t lantern_storage_clear_archive_identity(void) {

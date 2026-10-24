@@ -90,7 +90,7 @@ static void lantern_display_show(lantern_screen_t screen, const char *detail) {
          screen==LANTERN_SCREEN_SETUP || screen==LANTERN_SCREEN_CONNECTING || screen==LANTERN_SCREEN_BLUETOOTH);
   snprintf(displayed,sizeof(displayed),"%s",detail);
 }
-static void lantern_display_show_setup(const char *ssid,const char *error) { assert(ssid && error); }
+static void lantern_display_show_setup(const char *ssid,const char *password,const char *error) { assert(ssid && password && error); }
 static void sync_idle_wake_listener(void) {
   assert(s_state==LOCAL_READY || s_state==LOCAL_ERROR); ++ready_wake_updates; wake=true;
 }

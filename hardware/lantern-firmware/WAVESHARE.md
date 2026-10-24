@@ -223,7 +223,8 @@ See [Bluetooth setup design and validation](../../docs/bluetooth-setup.md).
 
 1. Sign in at **https://quipus-sales-rep-assistant.vercel.app/dashboard/devices** and create a
    pairing code. Use the deployment configured in your firmware if you changed it.
-   Join `Quipus-XXXX`, password `lanternsetup`, then return to that dashboard
+   Join the `QUIPUS-XXXXXX` network shown on the screen with the password shown
+   under it, then return to that dashboard
    tab and choose **Open recorder setup**. Firmware 0.9.2 and later fill in the code;
    enter 2.4 GHz Wi-Fi/hotspot details and save. Reconnect the phone/laptop to
    normal internet; setup returns to the Quipus website when it is reachable.

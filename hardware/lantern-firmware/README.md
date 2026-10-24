@@ -71,7 +71,8 @@ activation cannot provide consent for the other people in the conversation.
 
 - 240 x 240 ST7789 display with a green Quipus palette
 - I2S microphone capture at 16 kHz and speaker playback at 24 kHz
-- first-boot 2.4 GHz Wi-Fi or phone-hotspot setup through `Quipus-XXXX`
+- first-boot 2.4 GHz Wi-Fi or phone-hotspot setup through a per-device
+  `QUIPUS-XXXXXX` network and password shown on the screen
 - one-time dashboard pairing and authenticated device heartbeats
 - server-bound spoken consent with a second confirmation after the first no
 - Malaysia server time stamped when capture begins
@@ -132,18 +133,19 @@ before flashing this release. See [the coordinated rollout guide](../../docs/rec
 Hold both volume buttons for three seconds on Quipus Original to clear Wi-Fi
 and pairing settings. On touchscreen Quipus V2, hold the screen continuously
 for eight seconds. The screen shows **KEEP HOLDING TO RESET** before erasing the
-saved connection and reopening `Quipus-XXXX`.
+saved connection and reopening its `QUIPUS-XXXXXX` setup network.
 
 ## Wi-Fi and pairing
 
 When no saved Wi-Fi is available, connect your phone or this laptop to the
-device network named `Quipus-XXXX` using password `lanternsetup`, then open
+device network shown on its screen (`QUIPUS-XXXXXX`, unique per device) using
+the password shown under it, then open
 `http://192.168.4.1`. Enter the 2.4 GHz phone hotspot name and password plus the
 one-time pairing code from the live dashboard. The setup page can also install
 a locally built `build/lantern.bin` into the inactive OTA slot.
 
 If the dashboard revokes a device, the next authenticated request clears only
-the rejected device credential and automatically reopens `Quipus-XXXX` while
+the rejected device credential and automatically reopens its `QUIPUS-XXXXXX` setup network while
 preserving the saved Wi-Fi. During re-pairing, submit the new pairing code and
 leave the Wi-Fi fields blank to reuse that connection.
 

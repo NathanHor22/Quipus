@@ -224,7 +224,8 @@ static void wave_tests(display_update_t *u) {
   state(u,LANTERN_SCREEN_LISTENING,"SAY START RECORDING OR STATUS REPORT","listening");
   assert(warm_face_animating(u));
   clock_ms=0; render(u); assert(full_flushes==0 && flushed_rows==28);
-  state(u,LANTERN_SCREEN_SETUP,"Quipus-C44D","setup"); assert(!warm_face_animating(u));
+  snprintf(u->setup_password,sizeof(u->setup_password),"K7M4Q9TXAB");
+  state(u,LANTERN_SCREEN_SETUP,"QUIPUS-A1C44D","setup"); assert(!warm_face_animating(u));
   state(u,LANTERN_SCREEN_BLUETOOTH,"123456","bluetooth"); assert(!warm_face_animating(u));
   // Feed the actual speech API, then the actual display owner. A throttled newer
   // level is still picked up at its bounded timeout without another PCM frame.
