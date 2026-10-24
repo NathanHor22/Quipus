@@ -105,7 +105,7 @@ identity authentication. Invitation/email approvals are separate exchanges.
 The deployment URL, Google OAuth callbacks, `lantern_*` database tables,
 `X-Lantern-*` device headers, environment keys, firmware source directory and
 `roxanne` NVS namespace remain intact. Website screens say Quipus. Existing
-firmware may advertise Quipus-XXXX or Lantern-XXXX depending on its version.
+firmware advertises a unique QUIPUS-XXXXXX network (older versions: Quipus-XXXX or Lantern-XXXX).
 The prototype setup password remains unchanged. Existing accounts, paired
 devices, SD files, recordings and action history are retained.
 

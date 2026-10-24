@@ -42,6 +42,7 @@ idf_component_register(
     ${quipus_local_sources}
     "quipus_network_policy.c"
     "quipus_setup_form.c"
+    "quipus_setup_password.c"
     "quipus_phone_audio.c"
     "quipus_archive.c"
     "quipus_report_cache.c"
@@ -83,6 +84,7 @@ idf_component_register(
     agora_iot_sdk
     bt
     app_update
+    bootloader_support
     driver
     esp_adc
     esp_event

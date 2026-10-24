@@ -21,23 +21,23 @@ int main(void) {
   return 0;
 }
 #else
-// Only the settings and archive namespaces exist in this fake. Any unexpected
-// namespace or archive erase is a test failure, not a successful reset.
+// Only the settings, archive and device namespaces exist in this fake. Any
+// unexpected namespace or archive/device erase is a test failure, not a reset.
 typedef struct {
   char key[16];
   unsigned char value[128];
   size_t length;
 } entry_t;
-static entry_t entries[2][24];
-static bool exists[2];
-static unsigned erases[2], forget_calls;
+static entry_t entries[3][24];
+static bool exists[3], fail_device_write;
+static unsigned erases[3], forget_calls;
 static esp_err_t forget_result;
 static const char *OWNER = "11111111-1111-4111-8111-111111111111";
 static const char *DEVICE = "22222222-2222-4222-8222-222222222222";
 static uint8_t archive_key[32];
 
 static entry_t *entry(nvs_handle_t handle, const char *key, bool create) {
-  assert(handle >= 1 && handle <= 2);
+  assert(handle >= 1 && handle <= 3);
   entry_t *empty = NULL;
   for (unsigned i = 0; i < 24; ++i) {
     entry_t *item = &entries[handle - 1][i];
@@ -51,14 +51,15 @@ static entry_t *entry(nvs_handle_t handle, const char *key, bool create) {
 }
 esp_err_t nvs_flash_init(void) { return ESP_OK; }
 esp_err_t nvs_open(const char *name, int mode, nvs_handle_t *handle) {
-  assert(!strcmp(name, "roxanne") || !strcmp(name, "quipus_keys"));
-  *handle = !strcmp(name, "roxanne") ? 1 : 2;
+  assert(!strcmp(name, "roxanne") || !strcmp(name, "quipus_keys") || !strcmp(name, "quipus_device"));
+  *handle = !strcmp(name, "roxanne") ? 1 : !strcmp(name, "quipus_keys") ? 2 : 3;
   if (!exists[*handle - 1] && mode == NVS_READONLY) return ESP_ERR_NVS_NOT_FOUND;
   exists[*handle - 1] = true;
   return ESP_OK;
 }
-void nvs_close(nvs_handle_t handle) { assert(handle >= 1 && handle <= 2); }
+void nvs_close(nvs_handle_t handle) { assert(handle >= 1 && handle <= 3); }
 esp_err_t nvs_set_blob(nvs_handle_t handle, const char *key, const void *value, size_t size) {
+  if (handle == 3 && fail_device_write) return ESP_FAIL;
   entry_t *item = entry(handle, key, true);
   assert(size <= sizeof(item->value));
   memcpy(item->value, value, size); item->length = size;
@@ -94,7 +95,7 @@ esp_err_t nvs_erase_all(nvs_handle_t handle) {
   return ESP_OK;
 }
 esp_err_t nvs_commit(nvs_handle_t handle) {
-  assert(handle >= 1 && handle <= 2); return ESP_OK;
+  assert(handle >= 1 && handle <= 3); return ESP_OK;
 }
 esp_err_t lantern_bluetooth_forget_bonds(void) {
   ++forget_calls; return forget_result;
@@ -116,7 +117,55 @@ static lantern_config_t fixture(void) {
   lantern_config_t config; assert(lantern_storage_load(&config) == ESP_OK);
   return config;
 }
+static void test_setup_password(void) {
+  // Pure mapping: low five bits select from the 32-symbol alphabet.
+  uint8_t entropy[QUIPUS_SETUP_PASSWORD_ENTROPY_BYTES];
+  char password[QUIPUS_SETUP_PASSWORD_BUFFER];
+  for (unsigned i = 0; i < sizeof(entropy); ++i) entropy[i] = (uint8_t)(i | 0xe0);
+  quipus_setup_password_from_entropy(entropy, password);
+  assert(!strcmp(password, "23456789AB") && quipus_setup_password_valid(password));
+  const char *invalid[] = { "23456789A", "23456789ABC", "23456789aB", "2345678OAB",
+      "23456780AB", "2345678IAB", "23456781AB", "" };
+  for (unsigned i = 0; i < sizeof(invalid) / sizeof(invalid[0]); ++i)
+    assert(!quipus_setup_password_valid(invalid[i]));
+  assert(!quipus_setup_password_valid(NULL));
+
+  // First boot creates and stores the password; later boots keep it.
+  lantern_config_t config = fixture();
+  char first[QUIPUS_SETUP_PASSWORD_BUFFER], again[QUIPUS_SETUP_PASSWORD_BUFFER];
+  for (unsigned i = 0; i < sizeof(entropy); ++i) entropy[i] = (uint8_t)(i * 37 + 11);
+  assert(lantern_storage_ensure_setup_password(entropy, first) == ESP_OK);
+  assert(quipus_setup_password_valid(first));
+  memset(entropy, 0x55, sizeof(entropy));
+  assert(lantern_storage_ensure_setup_password(entropy, again) == ESP_OK);
+  assert(!strcmp(first, again));
+
+  // Pairing and full settings resets never change it (its namespace is never erased).
+  assert(lantern_storage_clear_device(&config) == ESP_OK);
+  assert(lantern_storage_clear() == ESP_OK);
+  assert(lantern_storage_ensure_setup_password(entropy, again) == ESP_OK);
+  assert(!strcmp(first, again) && erases[2] == 0);
+
+  // An unreadable stored value is replaced from fresh entropy.
+  assert(nvs_set_str(3, "setup_pass", "bad") == ESP_OK);
+  assert(lantern_storage_ensure_setup_password(entropy, again) == ESP_OK);
+  assert(!strcmp(again, "PPPPPPPPPP"));
+
+  // A failed write leaves no password, so the caller uses the board fallback.
+  fixture();
+  fail_device_write = true;
+  assert(lantern_storage_ensure_setup_password(entropy, again) == ESP_FAIL);
+  assert(again[0] == '\0');
+  fail_device_write = false;
+  char missing[QUIPUS_SETUP_PASSWORD_BUFFER + 1] = {0};
+  size_t size = sizeof(missing);
+  assert(nvs_get_str(3, "setup_pass", missing, &size) == ESP_ERR_NVS_NOT_FOUND);
+  assert(lantern_storage_ensure_setup_password(NULL, again) == ESP_ERR_INVALID_ARG);
+  puts("PASS: setup password is created once, survives resets, and fails safe");
+}
+
 int main(void) {
+  test_setup_password();
   lantern_config_t config = fixture(), saved = config;
   entry_t before[24]; memcpy(before, entries[0], sizeof(before));
   forget_result = ESP_ERR_INVALID_STATE;

@@ -98,7 +98,8 @@ documented acoustic orientation and electrical/fabrication corrections.
 Keep the existing Vercel domain/OAuth callbacks, `lantern_*` storage/table names,
 `X-Lantern-*` headers, environment keys and `roxanne` NVS namespace. Protocol 3 adds
 `X-Quipus-*` report context headers; older firmware retains its existing path.
-New firmware setup uses `Quipus-XXXX`; older firmware may use `Lantern-XXXX`.
+New firmware setup uses a unique `QUIPUS-XXXXXX` network with a per-device password
+shown on the screen; older firmware uses `Quipus-XXXX` or `Lantern-XXXX` with `lanternsetup`.
 
 Firmware rollback must restore only the backed-up app image on the identified
 board, preserving NVS/models/SD. Coordinate it with the backend because the new
