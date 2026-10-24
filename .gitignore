@@ -81,6 +81,17 @@ Desktop.ini
 # Reproducible local hardware handoff binaries (rebuild from source)
 /output/quipus-upgrade/hardware/
 
+# Local review evidence and browser-automation profiles (never source)
+/output/ui-review/
+/output/wifi-setup/
+**/chromium-*/
+
+# Bundles rebuilt by the PCB and case packaging scripts from adjacent sources.
+# Case v0.1/v0.2 archives stay tracked: they are the only record of those versions.
+/output/pcb/*.zip
+/hardware/lantern-case/Lantern-case-v0.3.zip
+/hardware/lantern-case/Lantern-CASE-ONLY-STL-v0.3.zip
+
 # Temporary dependency audit reports
 /tmp-upgrade-*.json
 

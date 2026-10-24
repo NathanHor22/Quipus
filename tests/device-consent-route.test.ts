@@ -1,16 +1,10 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
-import { createRequire } from "node:module";
-import { mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
-import path from "node:path";
-import { build } from "esbuild";
+import { loadRoute } from "./helpers/route-harness";
 
 // Exercise the actual route, real classifier and real PCM response helper.
 // External auth/transcription edges are stubs; every unintended speech/report
 // call is counted and rejected. No API keys or external connections are used.
-const root = realpathSync(process.cwd());
-const folder = mkdtempSync(path.join(root, ".tmp-consent-route-"));
-const output = path.join(folder, "command.cjs");
 const stateKey = Symbol.for("quipus.consent.route.test");
 const state = {
   authorized: true,
@@ -25,14 +19,10 @@ const state = {
   turnEvents: [] as string[],
 };
 Reflect.set(globalThis, stateKey, state);
+const cleanups: Array<() => void> = [];
 after(() => {
   Reflect.deleteProperty(globalThis, stateKey);
-  const resolved = realpathSync(folder);
-  assert.ok(
-    resolved.startsWith(root + path.sep) &&
-      path.basename(resolved).startsWith(".tmp-consent-route-"),
-  );
-  rmSync(resolved, { recursive: true, force: true });
+  cleanups.forEach((cleanup) => cleanup());
 });
 const statePrelude = 'const state=globalThis[Symbol.for("quipus.consent.route.test")];';
 const mocked: Record<string, string> = {
@@ -61,37 +51,14 @@ mocked["@/lib/device-speech-response"] =
   'export const deviceSpeechPage=async(client,device,input)=>{if(!state.allowReports){state.unexpected.push("deviceSpeechPage");throw Error("Unexpected report speech");}state.speechPages++;return new Response(new Uint8Array([1,0]),{headers:{"content-type":"audio/pcm","x-lantern-command":input.intent,...(input.interactionId?{"x-quipus-interaction-id":input.interactionId}:{})}});};';
 let POST: (request: Request) => Promise<Response>;
 let BRIEFING_POST: typeof POST;
-async function compileRoute(entryPoint: string, target: string) {
-  const result = await build({
-    entryPoints: [path.join(root, entryPoint)],
-    bundle: true,
-    platform: "node",
-    format: "cjs",
-    packages: "external",
-    write: false,
-    plugins: [
-      {
-        name: "consent-route-edges",
-        setup(builder) {
-          builder.onResolve({ filter: /^@\// }, (args) => {
-            if (Object.hasOwn(mocked, args.path)) return { path: args.path, namespace: "mock" };
-            return { path: path.join(root, args.path.slice(2) + ".ts") };
-          });
-          builder.onLoad({ filter: /.*/, namespace: "mock" }, (args) => ({
-            contents: statePrelude + mocked[args.path],
-            loader: "js",
-          }));
-        },
-      },
-    ],
-  });
-  writeFileSync(target, result.outputFiles[0].contents);
-  const load = createRequire(path.join(root, "package.json"));
-  return (load(target) as { POST(request: Request): Promise<Response> }).POST;
+async function compileRoute(entryPoint: string) {
+  const loaded = await loadRoute<{ POST: typeof POST }>(entryPoint, mocked, statePrelude);
+  cleanups.push(loaded.cleanup);
+  return loaded.module.POST;
 }
 before(async () => {
-  POST = await compileRoute("app/api/device/v1/command/route.ts", output);
-  BRIEFING_POST = await compileRoute("app/api/device/v1/briefing/route.ts", path.join(folder, "briefing.cjs"));
+  POST = await compileRoute("app/api/device/v1/command/route.ts");
+  BRIEFING_POST = await compileRoute("app/api/device/v1/briefing/route.ts");
 });
 function request(
   context: string,
