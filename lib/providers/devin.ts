@@ -15,7 +15,7 @@ export const DEVIN_FALLBACK_WARNING =
 
 const compactText = (label: string, maxLength: number) =>
   z
-    .string({ required_error: `${label} is required` })
+    .string({ error: (issue) => (issue.input === undefined ? `${label} is required` : undefined) })
     .trim()
     .min(1, `${label} cannot be empty`)
     .max(maxLength, `${label} must be ${maxLength} characters or fewer`);

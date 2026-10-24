@@ -11,7 +11,7 @@ import type {
 
 const compactText = (label: string, maxLength = 240) =>
   z
-    .string({ required_error: `${label} is required` })
+    .string({ error: (issue) => (issue.input === undefined ? `${label} is required` : undefined) })
     .trim()
     .min(1, `${label} cannot be empty`)
     .max(maxLength, `${label} must be ${maxLength} characters or fewer`);
