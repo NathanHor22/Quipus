@@ -125,7 +125,22 @@ test("status responses are strictly whitelisted before reaching a browser", () =
   );
 });
 
-test("an unbound account cannot pair or disconnect the shared prototype relay", async () => {
+test("while WhatsApp is coming soon, pairing and disconnecting are refused", async () => {
+  delete process.env.NEXT_PUBLIC_WHATSAPP_ENABLED;
+  for (const handler of [disconnectWhatsApp, pairWhatsApp]) {
+    const response = await handler(new Request("http://localhost/api/whatsapp/pair", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ approved: true, phone: "011-5644 4038" }),
+    }));
+    assert.equal(response.status, 403);
+    assert.deepEqual(await response.json(), { error: "WhatsApp delivery is coming soon." });
+  }
+});
+
+test("an unbound account cannot pair or disconnect the shared prototype relay", async (t) => {
+  process.env.NEXT_PUBLIC_WHATSAPP_ENABLED = "true";
+  t.after(() => { delete process.env.NEXT_PUBLIC_WHATSAPP_ENABLED; });
   const missingApproval = await disconnectWhatsApp(
     new Request("http://localhost/api/whatsapp/disconnect", {
       method: "POST",

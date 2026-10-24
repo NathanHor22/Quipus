@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { whatsappEnabled } from "@/lib/features";
 import styles from "./workspace.module.css";
 import deliveryStyles from "./delivery.module.css";
 
@@ -13,7 +14,18 @@ async function readDelivery(signal?: AbortSignal): Promise<DeliveryState> {
   return data;
 }
 
+function ComingSoon() {
+  return <span className={styles.connectionState}><i className={styles.neutralDot} />Coming soon</span>;
+}
+
 export function WhatsAppDelivery({ sample = false }: { sample?: boolean }) {
+  if (!whatsappEnabled()) {
+    return <section className={styles.settingsCard}>
+      <h2>Reports on WhatsApp</h2>
+      <ComingSoon />
+      <p>Receive each completed meeting report, full transcript, and original WAV on WhatsApp. Client sharing will always require a separate approval.</p>
+    </section>;
+  }
   return <WhatsAppDeliverySession key={String(sample)} sample={sample} />;
 }
 
@@ -68,7 +80,16 @@ function WhatsAppDeliverySession({ sample }: { sample: boolean }) {
   </section>;
 }
 
-export function ShareMeetingWhatsApp({ meetingId, title, sample }: { meetingId: string; title: string; sample: boolean }) {
+export function ShareMeetingWhatsApp(props: { meetingId: string; title: string; sample: boolean }) {
+  if (!whatsappEnabled()) {
+    return <section className={deliveryStyles.panel}>
+      <button className={styles.secondaryButton} disabled>Share with client on WhatsApp · Coming soon</button>
+    </section>;
+  }
+  return <ShareMeetingWhatsAppForm {...props} />;
+}
+
+function ShareMeetingWhatsAppForm({ meetingId, title, sample }: { meetingId: string; title: string; sample: boolean }) {
   const [open, setOpen] = useState(false);
   const [phone, setPhone] = useState("");
   const [approved, setApproved] = useState(false);
