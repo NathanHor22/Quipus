@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { env } from "../env";
 import { localeDirective } from "../i18n";
+import { compactText } from "../meeting-schema";
 import type { Commitment, Contact, Locale, MeetingInsight } from "../types";
 
 const DEFAULT_DEVIN_BASE_URL = "https://api.devin.ai";
@@ -12,13 +13,6 @@ const MAX_POLL_INTERVAL_MS = 5_000;
 
 export const DEVIN_FALLBACK_WARNING =
   "Devin is not configured. Quipus generated this deterministic local draft; review it before sending.";
-
-const compactText = (label: string, maxLength: number) =>
-  z
-    .string({ error: (issue) => (issue.input === undefined ? `${label} is required` : undefined) })
-    .trim()
-    .min(1, `${label} cannot be empty`)
-    .max(maxLength, `${label} must be ${maxLength} characters or fewer`);
 
 const contactInputSchema = z.union([
   compactText("contact name", 120),

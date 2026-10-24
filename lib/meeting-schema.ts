@@ -9,7 +9,7 @@ import type {
   TranscriptSegment,
 } from "./types";
 
-const compactText = (label: string, maxLength = 240) =>
+export const compactText = (label: string, maxLength = 240) =>
   z
     .string({ error: (issue) => (issue.input === undefined ? `${label} is required` : undefined) })
     .trim()
