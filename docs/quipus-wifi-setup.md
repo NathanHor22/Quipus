@@ -29,7 +29,7 @@ pressure was addressed and the updated endpoint was tested on the physical board
 - Actual board GET / returned HTTP200 and 16046 bytes for minimal and browser-sized
   requests. GET /status returned HTTP200, Wi-Fi connected and account not paired.
 - Diagnostic laptop Wi-Fi was restored and its temporary WPA2 profile was removed.
-- Evidence and screenshots: output/wifi-setup/.
+- Evidence and screenshots: docs/images/wifi-setup/.
 - No real pairing code or Wi-Fi password was submitted by the automated HTTP tests.
 
 ## User setup
