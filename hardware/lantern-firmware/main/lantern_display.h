@@ -42,7 +42,8 @@ esp_err_t lantern_display_init(void);
 // Non-blocking, task-context only; copies detail and coalesces pending updates.
 void lantern_display_show(lantern_screen_t screen, const char *detail);
 // Pairing/network failures stay beside the setup address, with bounded copies.
-void lantern_display_show_setup(const char *ssid, const char *message);
+void lantern_display_show_setup(const char *ssid, const char *password,
+                                const char *message);
 // Touch-first views use fixed-size copies so rendering never retains caller memory.
 void lantern_display_show_splash(void);
 void lantern_display_show_home(const char *footer);

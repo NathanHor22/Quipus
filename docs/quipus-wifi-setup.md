@@ -34,9 +34,11 @@ pressure was addressed and the updated endpoint was tested on the physical board
 
 ## User setup
 
-On the same phone/laptop used for the browser, join Quipus-1C39 and open
-http://192.168.4.1/ . Stay connected if the OS reports no internet.
-The existing prototype setup-network password remains lanternsetup.
+On the same phone/laptop used for the browser, join the network shown on the
+recorder screen (for example QUIPUS-A1C44D) using the password shown under it,
+then open http://192.168.4.1/ . Stay connected if the OS reports no internet.
+Each recorder creates its own 10-character password once and keeps it through
+resets and transfers. Firmware before 0.14.0 uses Quipus-XXXX and lanternsetup.
 If Wi-Fi is connected but the account is unpaired, enter a new 10-character code
 from the signed-in Quipus dashboard's device setup. Existing Wi-Fi can be reused.
 Only the person's own dashboard should generate the code; never paste keys into chat.

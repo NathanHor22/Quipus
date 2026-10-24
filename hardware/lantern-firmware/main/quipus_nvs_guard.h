@@ -10,7 +10,7 @@
  * local SD archive key, so it is never wiped automatically. Stale (deleted)
  * entries also match, which errs towards keeping data. */
 static inline bool quipus_nvs_has_quipus_data(const uint8_t *data, size_t length) {
-  static const char *const names[] = {"roxanne", "quipus_keys", "quipus_ota"};
+  static const char *const names[] = {"roxanne", "quipus_keys", "quipus_ota", "quipus_device"};
   if (!data) return true;
   for (size_t n = 0; n < sizeof(names) / sizeof(names[0]); ++n) {
     size_t needle = strlen(names[n]) + 1; /* include the terminator */

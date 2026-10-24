@@ -30,7 +30,7 @@ static unsigned redraws;
 static char last_detail[96];
 typedef struct {
   bool setup_portal_active, wifi_connected, paired;
-  char setup_ssid[33], last_error[96];
+  char setup_ssid[33], setup_password[17], last_error[96];
 } lantern_network_status_t;
 static TickType_t xTaskGetTickCount(void) { return now_ticks; }
 static void lantern_wake_set_enabled(bool enabled) { assert(!enabled); ++wake_disables; pending_wake=false; }
@@ -45,8 +45,8 @@ static void lantern_display_show(int screen, const char *detail) {
   snprintf(last_detail, sizeof(last_detail), "%s", detail);
   ++redraws;
 }
-static void lantern_display_show_setup(const char *ssid, const char *error) {
-  assert(ssid && error);
+static void lantern_display_show_setup(const char *ssid, const char *password, const char *error) {
+  assert(ssid && password && error);
 }
 static bool lantern_sd_secure_ready(void) { return true; }
 static void sync_idle_wake_listener(void) {}

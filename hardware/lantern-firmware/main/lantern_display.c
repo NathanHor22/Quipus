@@ -40,6 +40,7 @@ typedef struct {
   char items[LANTERN_DISPLAY_MENU_ITEMS][LANTERN_DISPLAY_MENU_TEXT];
   size_t item_count;
   char input[65];
+  char setup_password[17];
   bool uppercase;
   int charge_eta_minutes;
   uint32_t revision;
@@ -582,13 +583,16 @@ void lantern_display_show(lantern_screen_t screen, const char *detail) {
   if (s_updates) xQueueOverwrite(s_updates, &update);
 }
 
-void lantern_display_show_setup(const char *ssid, const char *message) {
+void lantern_display_show_setup(const char *ssid, const char *password,
+                                const char *message) {
   gpio_set_level(LANTERN_DISPLAY_BACKLIGHT_GPIO, 1);
   display_update_t update;
   taskENTER_CRITICAL(&s_update_lock);
   s_requested.view = DISPLAY_STATE;
   s_requested.screen = LANTERN_SCREEN_SETUP;
   snprintf(s_requested.detail, sizeof(s_requested.detail), "%s", ssid ? ssid : "");
+  snprintf(s_requested.setup_password, sizeof(s_requested.setup_password), "%s",
+    password ? password : "");
   snprintf(s_requested.input, sizeof(s_requested.input), "%s",
     message ? message : "");
   ++s_requested.revision;
@@ -1148,9 +1152,15 @@ static void render_screen(const display_update_t *update) {
       const int panel_y = tall ? 136 : 120;
       rect(12, panel_y, LANTERN_DISPLAY_WIDTH - 24, 47, rgb565(243, 246, 250));
       rect(12, panel_y, 3, 47, green);
-      draw_text(23, panel_y + 9, "JOIN SETUP WIFI", 1, muted);
-      wrapped_text(23, panel_y + 25, LANTERN_DISPLAY_WIDTH - 46,
-        detail && detail[0] ? detail : "OPEN WIFI OPTIONS", 1, foreground);
+      // Each device has its own network name and password; the password is
+      // drawn larger because the user types it on their phone or laptop.
+      draw_text(23, panel_y + 8, "WIFI", 1, muted);
+      draw_text(83, panel_y + 8, detail && detail[0] ? detail : "OPEN WIFI OPTIONS", 1,
+        foreground);
+      if (update->setup_password[0]) {
+        draw_text(23, panel_y + 28, "PASSWORD", 1, muted);
+        draw_text(83, panel_y + 24, update->setup_password, 2, foreground);
+      }
       centered_text(tall ? 205 : 179, "OPEN IN YOUR BROWSER", 1, muted);
       centered_text(tall ? 228 : 196, "192.168.4.1", 2, foreground);
       const char *instruction = update->input[0] ? update->input :
