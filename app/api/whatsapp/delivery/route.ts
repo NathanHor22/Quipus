@@ -34,17 +34,20 @@ export async function POST(request: Request) {
     const input = schema.parse(await request.json());
     if (input.action === "configure") {
       const { error } = await client.from("meeting_delivery_preferences").upsert({ user_id: user.id, phone: env().WHATSAPP_ALLOWED_RECIPIENT, enabled: input.enabled, approved_at: new Date().toISOString() });
-      if (error) throw error;
+      // Database error text can expose schema details; keep it server-side.
+      if (error) throw new Error("Could not save the delivery preference.");
     } else if (input.action === "share") {
       await queueMeetingDelivery(client, user.id, input.meetingId, input.phone);
     } else {
       const { error } = await client.from("meeting_deliveries").update({ state: "queued", attempts: 0, available_at: new Date().toISOString() })
         .eq("id", input.id).eq("user_id", user.id).eq("state", "failed");
-      if (error) throw error;
+      if (error) throw new Error("Could not retry the delivery.");
     }
     after(() => deliverNextMeeting(client));
     return NextResponse.json({ accepted: true });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Could not queue delivery." }, { status: 400 });
+    const message = error instanceof z.ZodError ? "Invalid delivery request."
+      : error instanceof Error ? error.message : "Could not queue delivery.";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }
