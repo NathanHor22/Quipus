@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getAuthenticatedLanternUser } from "@/lib/supabase/session";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { env } from "@/lib/env";
+import { WHATSAPP_COMING_SOON, whatsappEnabled } from "@/lib/features";
 import { deliveryPhone, deliverNextMeeting, queueMeetingDelivery } from "@/lib/meeting-delivery";
 
 export const runtime = "nodejs";
@@ -13,6 +14,7 @@ const schema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("retry"), id: z.string().uuid(), approved: z.literal(true) }).strict(),
 ]);
 export async function GET() {
+  if (!whatsappEnabled()) return NextResponse.json({ available: false, enabled: false, deliveries: [] });
   const user = await getAuthenticatedLanternUser();
   const client = getServerSupabase();
   if (!user || !client) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
@@ -26,6 +28,7 @@ export async function GET() {
   return NextResponse.json({ available, enabled: preference.data?.enabled || false, phone: env().WHATSAPP_ALLOWED_RECIPIENT, deliveries: deliveries.data });
 }
 export async function POST(request: Request) {
+  if (!whatsappEnabled()) return NextResponse.json({ error: WHATSAPP_COMING_SOON }, { status: 403 });
   const user = await getAuthenticatedLanternUser();
   const client = getServerSupabase();
   if (!user || !client) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
