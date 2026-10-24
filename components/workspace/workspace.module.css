@@ -314,6 +314,63 @@
   gap: 5px;
   margin-top: 7px;
 }
+.calendarEntry {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+.calendarEntry .eventChip {
+  flex: 1;
+}
+.calendarRecordingAction {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 5px;
+  border: 1px solid var(--q-line-strong);
+  border-radius: 4px;
+  color: var(--q-muted-strong);
+  background: var(--q-glass);
+  font-size: 11px;
+  transition:
+    background 120ms,
+    border-color 120ms;
+}
+.calendarRecordingAction span {
+  font-size: 20px;
+  line-height: 1;
+}
+.calendarRecordingAction:hover:not(:disabled) {
+  border-color: var(--q-red);
+  background: var(--q-glass-strong);
+  color: var(--q-red);
+}
+.calendarRecordingAction:focus-visible {
+  outline: 2px solid var(--q-red);
+  outline-offset: 2px;
+}
+.calendarRecordingAction:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.agendaEntry {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding-right: 10px;
+  border-bottom: 1px solid var(--q-line);
+}
+.agendaEntry:last-child {
+  border-bottom-color: transparent;
+}
+.agendaEntry .agendaRow {
+  flex: 1;
+  min-width: 0;
+  border-bottom: 0;
+}
 .eventChip {
   display: grid;
   gap: 3px;

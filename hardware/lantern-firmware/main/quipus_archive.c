@@ -75,8 +75,9 @@ static esp_err_t flush_block(quipus_archive_writer_t *w) {
                                 w->cipher, 16, tag) ||
       fwrite(length, 1, 4, w->file) != 4 ||
       fwrite(w->cipher, 1, w->buffered, w->file) != w->buffered ||
-      fwrite(tag, 1, 16, w->file) != 16 || fflush(w->file) ||
-      fsync(fileno(w->file))) {
+      fwrite(tag, 1, 16, w->file) != 16 ||
+      (u32(w->header + 8) != 2 &&
+       (fflush(w->file) || fsync(fileno(w->file))))) {
     w->failed = true;
     return ESP_FAIL;
   }
@@ -85,12 +86,13 @@ static esp_err_t flush_block(quipus_archive_writer_t *w) {
   w->index++;
   return ESP_OK;
 }
-esp_err_t quipus_archive_create(const char *path, const uint8_t key[32],
-                                const char *session, const char *owner,
-                                const char *device, unsigned source,
-                                quipus_archive_writer_t **out) {
-  if (!out || !key || !valid_id(session) || !valid_id(owner) ||
-      !valid_id(device) || source > 1)
+static esp_err_t create_format(const char *path, const uint8_t key[32],
+                               const char *session, const char *owner,
+                               const char *device, unsigned source,
+                               unsigned rate, quipus_archive_writer_t **out) {
+  if (!path || !out || !key || !valid_id(session) || !valid_id(owner) ||
+      !valid_id(device) || !((source <= 1 && rate == 16000) ||
+                              (source == 2 && rate == 24000)))
     return ESP_ERR_INVALID_ARG;
   *out = NULL;
   quipus_archive_writer_t *w =
@@ -101,7 +103,7 @@ esp_err_t quipus_archive_create(const char *path, const uint8_t key[32],
   memcpy(w->header, "QPA1", 4);
   put32(w->header + 4, 1);
   put32(w->header + 8, source);
-  put32(w->header + 12, 16000);
+  put32(w->header + 12, rate);
   memcpy(w->header + 16, session, 36);
   memcpy(w->header + 52, owner, 36);
   memcpy(w->header + 88, device, 36);
@@ -119,6 +121,20 @@ esp_err_t quipus_archive_create(const char *path, const uint8_t key[32],
   }
   *out = w;
   return ESP_OK;
+}
+esp_err_t quipus_archive_create(const char *path, const uint8_t key[32],
+                                const char *session, const char *owner,
+                                const char *device, unsigned source,
+                                quipus_archive_writer_t **out) {
+  if (source > 1)
+    return ESP_ERR_INVALID_ARG;
+  return create_format(path, key, session, owner, device, source, 16000, out);
+}
+esp_err_t quipus_archive_create_report(const char *path, const uint8_t key[32],
+                                       const char *report, const char *owner,
+                                       const char *device,
+                                       quipus_archive_writer_t **out) {
+  return create_format(path, key, report, owner, device, 2, 24000, out);
 }
 esp_err_t quipus_archive_append(quipus_archive_writer_t *w, const void *pcm,
                                 size_t bytes) {
@@ -143,6 +159,11 @@ esp_err_t quipus_archive_finish(quipus_archive_writer_t *w, size_t *pcm_bytes) {
   if (!w)
     return ESP_ERR_INVALID_ARG;
   esp_err_t result = flush_block(w);
+  // Report cache is disposable: defer its durable flush until commit so HTTP
+  // streaming does not fsync every 4 KiB. Recording sources retain that policy.
+  if (result == ESP_OK && u32(w->header + 8) == 2 &&
+      (fflush(w->file) || fsync(fileno(w->file))))
+    result = ESP_FAIL;
   if (result == ESP_OK && pcm_bytes)
     *pcm_bytes = w->total;
   quipus_archive_abort(w);
@@ -184,11 +205,12 @@ static esp_err_t decrypt_block(quipus_archive_reader_t *r, uint32_t index,
   r->cached_bytes = length;
   return ESP_OK;
 }
-esp_err_t quipus_archive_open(const char *path, const uint8_t key[32],
-                              const char *session, const char *owner,
-                              const char *device, unsigned source,
-                              quipus_archive_reader_t **out) {
-  if (!out || !valid_id(session) || !valid_id(owner) || !valid_id(device))
+static esp_err_t open_format(const char *path, const uint8_t key[32],
+                             const char *session, const char *owner,
+                             const char *device, unsigned source, unsigned rate,
+                             quipus_archive_reader_t **out) {
+  if (!path || !key || !out || !valid_id(session) || !valid_id(owner) ||
+      !valid_id(device))
     return ESP_ERR_INVALID_ARG;
   *out = NULL;
   quipus_archive_reader_t *r =
@@ -200,7 +222,7 @@ esp_err_t quipus_archive_open(const char *path, const uint8_t key[32],
   if (!r->file ||
       fread(r->header, 1, sizeof(r->header), r->file) != sizeof(r->header) ||
       memcmp(r->header, "QPA1", 4) || u32(r->header + 4) != 1 ||
-      u32(r->header + 8) != source || u32(r->header + 12) != 16000 ||
+      u32(r->header + 8) != source || u32(r->header + 12) != rate ||
       memcmp(r->header + 16, session, 36) ||
       memcmp(r->header + 52, owner, 36) || memcmp(r->header + 88, device, 36) ||
       set_file_key(&r->gcm, key, r->header))
@@ -242,10 +264,24 @@ invalid:
   quipus_archive_close(r);
   return ESP_FAIL;
 }
+esp_err_t quipus_archive_open(const char *path, const uint8_t key[32],
+                              const char *session, const char *owner,
+                              const char *device, unsigned source,
+                              quipus_archive_reader_t **out) {
+  if (source > 1)
+    return ESP_ERR_INVALID_ARG;
+  return open_format(path, key, session, owner, device, source, 16000, out);
+}
+esp_err_t quipus_archive_open_report(const char *path, const uint8_t key[32],
+                                     const char *report, const char *owner,
+                                     const char *device,
+                                     quipus_archive_reader_t **out) {
+  return open_format(path, key, report, owner, device, 2, 24000, out);
+}
 size_t quipus_archive_size(const quipus_archive_reader_t *r) {
   return r ? r->pcm_bytes + 44 : 0;
 }
-static void wav_header(uint8_t *h, size_t bytes) {
+static void wav_header(uint8_t *h, size_t bytes, uint32_t rate) {
   memset(h, 0, 44);
   memcpy(h, "RIFF", 4);
   put32(h + 4, bytes + 36);
@@ -253,8 +289,8 @@ static void wav_header(uint8_t *h, size_t bytes) {
   put32(h + 16, 16);
   h[20] = 1;
   h[22] = 1;
-  put32(h + 24, 16000);
-  put32(h + 28, 32000);
+  put32(h + 24, rate);
+  put32(h + 28, rate * 2);
   h[32] = 2;
   h[34] = 16;
   memcpy(h + 36, "data", 4);
@@ -272,7 +308,7 @@ size_t quipus_archive_read(quipus_archive_reader_t *r, void *output,
     bytes = total - r->position;
   if (r->position < 44) {
     uint8_t header[44];
-    wav_header(header, r->pcm_bytes);
+    wav_header(header, r->pcm_bytes, u32(r->header + 12));
     size_t n = 44 - r->position;
     if (n > bytes)
       n = bytes;

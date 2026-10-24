@@ -59,15 +59,17 @@ const openAIResponseSchema = z
 export class OpenAITranscriptionProviderError extends Error {
   readonly status?: number;
   readonly providerCode?: string;
+  readonly noSpeechResponses: number;
 
   constructor(
     message: string,
-    options?: { status?: number; providerCode?: string; cause?: unknown },
+    options?: { status?: number; providerCode?: string; noSpeechResponses?: number; cause?: unknown },
   ) {
     super(message, { cause: options?.cause });
     this.name = "OpenAITranscriptionProviderError";
     this.status = options?.status;
     this.providerCode = options?.providerCode;
+    this.noSpeechResponses = options?.noSpeechResponses ?? 0;
   }
 }
 
@@ -183,6 +185,7 @@ async function transcribeSingleWithOpenAI(
     ...TRANSCRIPTION_FALLBACK_MODELS.filter((model) => model !== requestedModel),
   ];
 
+  let noSpeechResponses = 0;
   try {
     for (const [index, model] of models.entries()) {
       let response: Response;
@@ -254,10 +257,12 @@ async function transcribeSingleWithOpenAI(
       // Diarization can occasionally return a successful but empty response
       // for valid speech. Retry the same complete WAV with the standard
       // transcription models before declaring the archive silent.
+      if (!text) noSpeechResponses += 1;
       if (!text && index < models.length - 1) continue;
       if (!text) {
         throw new OpenAITranscriptionProviderError(
           "OpenAI did not detect speech in this recording.",
+          { providerCode: "no_speech", noSpeechResponses },
         );
       }
 

@@ -42,6 +42,8 @@ static bool s_finalized;
 static struct test_stream stream;
 static int semaphore, allocations, fail_allocation, task_creations;
 static bool fail_task, timeout_finish;
+static unsigned cache_busy; // 1=report writer, 2=report reader
+static bool quipus_report_cache_busy(void) { return cache_busy != 0; }
 static esp_err_t append_error, finish_error, journal_error;
 static unsigned worker_waits, append_calls, finish_calls, journal_calls;
 static jmp_buf worker_return;
@@ -108,6 +110,9 @@ int main(void) {
   CHECK(ensure_writer()==ESP_ERR_NO_MEM);CHECK(s_write_stream_storage==storage);CHECK(s_write_block);CHECK(allocations==3);
   fail_task=false;CHECK(ensure_writer()==ESP_OK);CHECK(allocations==3);CHECK(ensure_writer()==ESP_OK);CHECK(task_creations==2);
   CHECK(lantern_sd_can_power_down());
+  cache_busy=1;CHECK(!lantern_sd_can_power_down()); // Inactive-slot download not yet aborted.
+  cache_busy=2;CHECK(!lantern_sd_can_power_down()); // Offline replay reader not yet closed.
+  cache_busy=0;CHECK(lantern_sd_can_power_down()); // Serialized cancellation/close released cache.
   int16_t pcm[320]; for(size_t i=0;i<320;++i)pcm[i]=(int16_t)i;
   start_fixture();CHECK(!lantern_sd_can_power_down());
   lantern_sd_recording_write(pcm,320);CHECK(stream.used==sizeof(pcm));run_writer();
@@ -147,6 +152,6 @@ int main(void) {
   CHECK(lantern_sd_recording_error()==ESP_ERR_TIMEOUT);CHECK(file_size("sd-test.qpa")==sizeof(pcm));
   CHECK(append_calls>=6&&finish_calls==5&&journal_calls==4);
   remove("sd-test.tmp");remove("sd-test.qpa");free(s_write_block);free(s_write_stream_storage);
-  puts("SD coordinator fault tests passed: allocation retry, full-frame queue overflow, I/O failure, retained audio, journal failure, finalization timeout and safe offline shutdown.");
+  puts("SD coordinator fault tests passed: allocation retry, full-frame queue overflow, I/O failure, retained audio, journal failure, finalization timeout, cache writer/reader drain and safe offline shutdown.");
   return 0;
 }

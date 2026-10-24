@@ -36,6 +36,17 @@ config LANTERN_WAVESHARE_BATTERY_INSTALLED
         USB-only boards report an unknown battery level rather than reading
         the unconnected battery divider.
 
+config QUIPUS_EXPERIMENTAL_OFFLINE_DSCNN
+    bool "Experimental offline consent recognizer (bench test only)"
+    depends on LANTERN_BOARD_WAVESHARE_LCD_154
+    default n
+    help
+        Opt in to the separately validated MFCC/DS-CNN candidate. This changes
+        local YES/NO recognition only. Unclear/quiet speech and nearby unknown
+        activity remain limitations; labelled acoustic testing is required.
+        Keep disabled for stable images. Pairing, SD storage and online consent
+        are unchanged. The known-working 0.12.7 image is retained for rollback.
+
 config QUIPUS_PHONE_USB_AUDIO
     bool "USB-C Android phone microphone"
     default n

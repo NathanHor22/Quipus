@@ -68,3 +68,25 @@ export function prepareOfflineSession(input: OfflineSession, now = Date.now()) {
     .digest("hex");
   return { machine, startedAt, captureEndedAt, fingerprint };
 }
+
+/** Log only fixed database diagnostics, never row details or device metadata. */
+export function offlineImportDiagnostic(error: { code?: string; message?: string }) {
+  const code = /^[A-Z0-9_]{3,20}$/u.test(error.code || "") ? error.code! : "UNKNOWN";
+  const knownMessages = [
+    "Invalid device owner", "Invalid offline manifest", "Conflicting offline owner",
+    "Conflicting offline import", "Session identity is already in use", "Event already used",
+  ];
+  const knownConstraints = [
+    "lantern_one_open_session_per_device", "lantern_sessions_pkey",
+    "lantern_device_events_device_id_event_id_key",
+  ];
+  const message = error.message || "";
+  if (knownMessages.includes(message)) return { code, message };
+  const constraint = knownConstraints.find(name =>
+    message === `duplicate key value violates unique constraint "${name}"`);
+  if (constraint) return { code, message: `Unique constraint conflict: ${constraint}` };
+  if (code === "PGRST202" || code === "42883") {
+    return { code, message: "Offline import database function is unavailable." };
+  }
+  return { code, message: "Unrecognized offline import database failure; inspect restricted database logs." };
+}

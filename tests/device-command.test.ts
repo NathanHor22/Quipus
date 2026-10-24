@@ -108,3 +108,38 @@ test("device prompts describe the actual recording and upload states", () => {
     "No command heard. Returning to ready.",
   );
 });
+
+
+test("recording consent accepts complete affirmative English and Malaysian answers", () => {
+  for (const context of ["consent", "consent_retry"] as const) {
+    for (const answer of ["Yes", "YES!", "yes yes yes", "yeah", "yup", "yes please", "we consent", "Yes, we all agree", "I consent to being recorded", "Everyone has agreed", "ya", "boleh", "saya setuju", "Yes, saya setuju", "Ya, semua setuju", "Computer, yes"]) {
+      assert.equal(interpretDeviceCommand(answer, context), "consent_yes", answer);
+    }
+  }
+});
+
+test("recording consent never lets repeated yes override an English or Malaysian refusal", () => {
+  for (const context of ["consent", "consent_retry"] as const) {
+    for (const answer of ["yes yes yes no yes", "not okay", "we have not agreed", "I never consent", "I didn't say yes", "yes but don't record", "we disagree", "yes tapi tak setuju", "tidak", "jangan", "belum", "batal"]) {
+      assert.equal(interpretDeviceCommand(answer, context), "consent_no", answer);
+    }
+  }
+});
+
+test("reported yes, prompt echoes, questions and conditional answers cannot approve recording", () => {
+  for (const context of ["consent", "consent_retry"] as const) {
+    for (const answer of ["she said yes", "I heard yes", 'She said "yes"', '"yes"', "Did I say yes?", "Yes?", "Yes if the client agrees", "yes but change something first", "say yes to continue", "Does everyone agree", "maybe", " "]) {
+      assert.equal(interpretDeviceCommand(answer, context), "unknown", answer);
+    }
+    assert.equal(interpretDeviceCommand("Has everyone agreed to being recorded? Say yes or no.", context), "consent_no");
+  }
+});
+
+
+test("error recovery only accepts retry, cancel, report or network controls", () => {
+  for (const text of ["retry", "Computer, retry upload", "try again", "resume upload", "cuba lagi"]) assert.equal(interpretDeviceCommand(text, "recovery"), "retry_recovery");
+  for (const text of ["cancel", "go back", "return to ready", "batal"]) assert.equal(interpretDeviceCommand(text, "recovery"), "cancel_recovery");
+  assert.equal(interpretDeviceCommand("status report", "recovery"), "status_report");
+  assert.equal(interpretDeviceCommand("wifi setup", "recovery"), "wifi_setup");
+  for (const text of ["start recording", "stop recording", "yes", "no", "send that email", "approve everything", "retry and start recording", ""]) assert.equal(interpretDeviceCommand(text, "recovery"), "unknown", text);
+});

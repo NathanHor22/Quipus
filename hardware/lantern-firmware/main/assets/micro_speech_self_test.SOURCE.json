@@ -1,0 +1,24 @@
+[
+  {
+    "label": "yes",
+    "source": "hardware/lantern-firmware/tests/local-recognizer-host/fixtures/yes.wav",
+    "source_sha256": "b40e137a9d25bbdf135e03fa0f6bff4696d0bfc203aef8bc73b27c9428ba5a92",
+    "pcm_sha256": "7b243fbf84bd2c8197a63969f225a6a6473547383a49f2d660adc1cd4e4dcaa5",
+    "pcm_bytes": 32000,
+    "sample_rate": 16000,
+    "format": "mono signed16 little-endian",
+    "upstream_commit": "dd4085950a119d9e33a6de1d7be1fc7fe29e0cfc",
+    "upstream_url": "https://raw.githubusercontent.com/espressif/esp-tflite-micro/dd4085950a119d9e33a6de1d7be1fc7fe29e0cfc/examples/micro_speech/test_data/yes_1000ms.wav"
+  },
+  {
+    "label": "no",
+    "source": "hardware/lantern-firmware/tests/local-recognizer-host/fixtures/no.wav",
+    "source_sha256": "21e2b640385e4a751d480a87ae5a1633a6ff00e838b0e2ad48b22f8034e946d8",
+    "pcm_sha256": "9940d53ba4877c8cedc68cc44fb1018fc4f0ebaf8d8221d29608c977b3dc1803",
+    "pcm_bytes": 32000,
+    "sample_rate": 16000,
+    "format": "mono signed16 little-endian",
+    "upstream_commit": "dd4085950a119d9e33a6de1d7be1fc7fe29e0cfc",
+    "upstream_url": "https://raw.githubusercontent.com/espressif/esp-tflite-micro/dd4085950a119d9e33a6de1d7be1fc7fe29e0cfc/examples/micro_speech/test_data/no_1000ms.wav"
+  }
+]

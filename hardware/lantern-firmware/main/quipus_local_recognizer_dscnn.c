@@ -1,0 +1,480 @@
+/* Experimental DS-CNN keyword/lexical-ambiguity policy, separate from the
+ * unchanged legacy recognizer. YES needs repeated speech-supported evidence;
+ * NO and other known vocabulary are inspected across the complete response.
+ * UNKNOWN includes noise and untrained speech, so this is not a semantic or
+ * acoustic consent guarantee. Labeled device/correction testing is required. */
+#include "quipus_local_recognizer.h"
+#include "quipus_local_inference.h"
+#include "esp_log.h"
+#include <stdatomic.h>
+#include <string.h>
+
+static atomic_bool s_available;
+static atomic_flag s_owner = ATOMIC_FLAG_INIT;
+static bool s_self_test_active;
+
+/* Prototype admission gates, not measured accuracy. Unknown/silence never vote
+ * YES. Two overlapping confident YES windows are required; any confident NO
+ * wins, and even an uncertain dominant NO prevents affirmative admission.
+ * YES votes require speech support. NO/other vocabulary can veto even in a
+ * context where VAD reports silence; labels are never relabeled as NO. */
+#define TRUSTED_SCORE 200U
+#define TRUSTED_MARGIN 32U
+#define POSSIBLE_NO_SCORE 128U
+
+typedef struct {
+  unsigned yes_votes, silence_votes, windows;
+  bool trusted_no, possible_no, other_word_veto;
+  uint8_t yes_score, no_score, other_word_score, other_word_label;
+  uint16_t other_word_end_ms, other_word_voiced_ms;
+  unsigned other_word_windows;
+} decision_t;
+
+static bool trusted(const uint8_t scores[4], unsigned label) {
+  uint8_t other = 0;
+  for (unsigned i = 0; i < 4; ++i)
+    if (i != label && scores[i] > other) other = scores[i];
+  return scores[label] >= TRUSTED_SCORE && scores[label] >= other + TRUSTED_MARGIN;
+}
+
+static void observe(decision_t *decision, quipus_local_diagnostics_t *diagnostics,
+                    const uint8_t scores[4], uint16_t end_ms, uint16_t rms, uint16_t voiced_ms) {
+  ++decision->windows;
+  if (!s_self_test_active) ESP_LOGI("quipus_local", "window_end_ms=%u rms=%u vad_available=%u voiced_ms=%u scores_silence_unknown_yes_no=%u,%u,%u,%u",
+      end_ms, rms, diagnostics->vad_available, voiced_ms, scores[0], scores[1], scores[2], scores[3]);
+  // Every window is inspected/logged, including the full quiet tail. YES
+  // requires rawVAD support; NO and possibleNO veto on all model contexts.
+  const bool speech_supported = s_self_test_active ||
+      (diagnostics->vad_available && voiced_ms);
+  if (speech_supported && trusted(scores, QUIPUS_LOCAL_YES)) ++decision->yes_votes;
+  diagnostics->yes_windows = (uint16_t)decision->yes_votes;
+  if (trusted(scores, QUIPUS_LOCAL_NO)) {
+    decision->trusted_no = true;
+    if (!diagnostics->no_windows) {
+      diagnostics->first_no_end_ms = end_ms;
+      diagnostics->first_no_rms = rms;
+      diagnostics->first_no_voiced_ms = voiced_ms;
+    }
+    diagnostics->last_no_rms = rms;
+    diagnostics->last_no_voiced_ms = voiced_ms;
+    diagnostics->last_no_end_ms = end_ms;
+    ++diagnostics->no_windows;
+  }
+  if (speech_supported && trusted(scores, QUIPUS_LOCAL_SILENCE)) ++decision->silence_votes;
+  if (scores[QUIPUS_LOCAL_NO] >= POSSIBLE_NO_SCORE) {
+    decision->possible_no = true;
+    ++diagnostics->possible_no_windows;
+  }
+  if (speech_supported && scores[QUIPUS_LOCAL_YES] > decision->yes_score) {
+    diagnostics->peak_yes_end_ms = end_ms;
+    diagnostics->peak_yes_rms = rms;
+    diagnostics->peak_yes_voiced_ms = voiced_ms;
+    memcpy(diagnostics->peak_yes_scores, scores, 4);
+  }
+  if (scores[QUIPUS_LOCAL_NO] > decision->no_score) {
+    diagnostics->peak_no_end_ms = end_ms;
+    diagnostics->peak_no_rms = rms;
+    diagnostics->peak_no_voiced_ms = voiced_ms;
+    memcpy(diagnostics->peak_no_scores, scores, 4);
+  }
+  if (speech_supported && scores[QUIPUS_LOCAL_YES] > decision->yes_score) decision->yes_score = scores[QUIPUS_LOCAL_YES];
+  if (scores[QUIPUS_LOCAL_NO] > decision->no_score) decision->no_score = scores[QUIPUS_LOCAL_NO];
+}
+
+static uint16_t integer_sqrt(uint32_t value) {
+  uint32_t root = 0, bit = 1U << 30;
+  while (bit > value) bit >>= 2;
+  while (bit) {
+    if (value >= root + bit) {
+      value -= root + bit;
+      root = (root >> 1) + bit;
+    } else root >>= 1;
+    bit >>= 2;
+  }
+  return (uint16_t)root;
+}
+
+static uint16_t window_rms(const int16_t *samples, size_t count) {
+  uint64_t energy = 0;
+  for (size_t i = 0; i < count; ++i) {
+    int32_t value = samples[i];
+    energy += (uint64_t)((int64_t)value * value);
+  }
+  return integer_sqrt((uint32_t)(energy / count));
+}
+
+#define SHADOW_VAD_MAX_FRAMES (QUIPUS_LOCAL_MAX_SAMPLES / QUIPUS_LOCAL_FRAME_STRIDE)
+static void shadow_vad(const int16_t *samples, size_t count,
+                       uint8_t voiced[SHADOW_VAD_MAX_FRAMES], quipus_local_diagnostics_t *d) {
+  size_t frames = (count + QUIPUS_LOCAL_FRAME_STRIDE - 1) / QUIPUS_LOCAL_FRAME_STRIDE;
+  for (size_t frame = 0; frame < frames; ++frame) {
+    bool speech = false;
+    const int16_t *input = samples + frame * QUIPUS_LOCAL_FRAME_STRIDE;
+    size_t remaining = count - frame * QUIPUS_LOCAL_FRAME_STRIDE;
+    int16_t partial[QUIPUS_LOCAL_FRAME_STRIDE] = {0};
+    if (remaining < QUIPUS_LOCAL_FRAME_STRIDE) {
+      memcpy(partial, input, remaining * sizeof(int16_t));
+      input = partial;
+    }
+    esp_err_t detected = quipus_local_inference_vad_frame(input, &speech);
+    memset(partial, 0, sizeof(partial));
+    if (detected != ESP_OK) {
+      // Unavailable/partial VAD evidence is never displayed as verified silence.
+      memset(voiced, 0, SHADOW_VAD_MAX_FRAMES);
+      d->vad_available = false;
+      d->vad_frames = d->vad_speech_frames = d->vad_last_speech_end_ms = 0;
+      return;
+    }
+    voiced[frame] = speech;
+    ++d->vad_frames;
+    if (speech) {
+      ++d->vad_speech_frames;
+      size_t end = (frame + 1) * QUIPUS_LOCAL_FRAME_STRIDE;
+      if (end > count) end = count;
+      d->vad_last_speech_end_ms = (uint16_t)(end * 1000U / QUIPUS_LOCAL_SAMPLE_RATE);
+    }
+  }
+  d->vad_available = true;
+}
+
+static uint16_t voiced_overlap_ms(const uint8_t voiced[SHADOW_VAD_MAX_FRAMES],
+                                  size_t first_frame, size_t last_frame) {
+  uint16_t ms = 0;
+  // The model context comprises49 complete20ms blocks plus a final10ms.
+  for (size_t i = first_frame; i <= last_frame; ++i)
+    if (voiced[i]) ms += 20;
+  if (last_frame + 1 < SHADOW_VAD_MAX_FRAMES && voiced[last_frame + 1]) ms += 10;
+  return ms;
+}
+
+/* Conservative background proof for this prototype. Calibrate only the
+ * unvoiced prefix, never let a later quiet refusal raise its own noise floor.
+ * Prefix uncertainty still preventsYES. Later energy/DC/region measurements
+ * are diagnostics only, not proof that background or a refusal was absent. */
+static void qualify_activity(const int16_t *samples, size_t count,
+                             const uint8_t voiced[SHADOW_VAD_MAX_FRAMES],
+                             uint8_t associated[SHADOW_VAD_MAX_FRAMES],
+                             quipus_local_diagnostics_t *d) {
+  if (!d->vad_available) return;
+  size_t frames = (count + QUIPUS_LOCAL_FRAME_STRIDE - 1) / QUIPUS_LOCAL_FRAME_STRIDE;
+  uint16_t prefix[25];
+  size_t first_voice = 0;
+  while (first_voice < frames && !voiced[first_voice]) ++first_voice;
+  // VAD inherently reports an onset late. Reserve100ms from calibration;
+  // those samples are not automatically accepted as speech or background.
+  size_t prefix_limit = first_voice > 5 ? first_voice - 5 : 0;
+  size_t prefix_count = 0;
+  while (prefix_count < prefix_limit && prefix_count < 25) {
+    prefix[prefix_count] = window_rms(samples + prefix_count * QUIPUS_LOCAL_FRAME_STRIDE,
+                                     QUIPUS_LOCAL_FRAME_STRIDE);
+    ++prefix_count;
+  }
+  if (prefix_count < 5) return;
+  for (size_t i = 1; i < prefix_count; ++i) {
+    uint16_t value = prefix[i];
+    size_t j = i;
+    while (j && prefix[j - 1] > value) { prefix[j] = prefix[j - 1]; --j; }
+    prefix[j] = value;
+  }
+  uint16_t floor = prefix[prefix_count / 2];
+  d->background_rms = floor;
+  if (floor > 96) return; // Conservative prototype ceiling; noisy/uncertain means no YES.
+  uint32_t upper = floor ? (3U * floor + 1U) / 2U + 2U : 0;
+  int64_t prefix_sum = 0;
+  for (size_t i = 0; i < prefix_count * QUIPUS_LOCAL_FRAME_STRIDE; ++i) prefix_sum += samples[i];
+  int32_t prefix_dc = (int32_t)(prefix_sum / (int64_t)(prefix_count * QUIPUS_LOCAL_FRAME_STRIDE));
+  uint32_t dc_tolerance = floor > 8 ? floor : 8;
+  // Associate only a contiguous above-floor rise immediately adjoining an
+  // actual VAD onset. A quiet gap stops the walk, and100ms is a hard limit.
+  // Keep onset/region measurements for diagnostics; final keyword admission
+  // does not classify these energy blocks as semantic words or refusals.
+  for (size_t frame = 0; frame < frames; ++frame) {
+    if (!voiced[frame] || (frame && voiced[frame - 1])) continue;
+    for (size_t back = 1; back <= 5 && back <= frame; ++back) {
+      size_t index = frame - back;
+      if (voiced[index]) break;
+      const int16_t *block = samples + index * QUIPUS_LOCAL_FRAME_STRIDE;
+      if (window_rms(block, QUIPUS_LOCAL_FRAME_STRIDE) <= upper) break;
+      if (!associated[index]) { associated[index] = 1; ++d->onset_attached_frames; }
+    }
+  }
+  d->background_verified = true;
+  for (size_t frame = 0; frame < frames; ++frame) {
+    if (associated[frame]) continue;
+    const int16_t *block = samples + frame * QUIPUS_LOCAL_FRAME_STRIDE;
+    size_t remaining = count - frame * QUIPUS_LOCAL_FRAME_STRIDE;
+    size_t block_count = remaining < QUIPUS_LOCAL_FRAME_STRIDE ? remaining : QUIPUS_LOCAL_FRAME_STRIDE;
+    int32_t sum = 0;
+    for (size_t i = 0; i < block_count; ++i) sum += block[i];
+    int32_t dc = sum / (int32_t)block_count - prefix_dc;
+    uint32_t drift = (uint32_t)(dc < 0 ? -dc : dc);
+    uint16_t rms = window_rms(block, block_count);
+    if (rms > upper || drift > dc_tolerance) {
+      size_t end = (frame + 1) * QUIPUS_LOCAL_FRAME_STRIDE;
+      if (end > count) end = count;
+      uint16_t end_ms = (uint16_t)(end * 1000U / QUIPUS_LOCAL_SAMPLE_RATE);
+      if (!d->ambiguous_frames) {
+        d->first_ambiguous_end_ms = end_ms;
+        d->first_ambiguous_rms = rms;
+      }
+      d->last_ambiguous_end_ms = end_ms;
+      d->last_ambiguous_rms = rms;
+      ++d->ambiguous_frames;
+      /* Account for every non-background block as a region that must be
+       * independently explained. It is not automatically speech or consent. */
+      associated[frame] = 1;
+      if (frame < prefix_count) d->background_verified = false;
+    }
+  }
+  unsigned duration_ms = (unsigned)(count * 1000U / QUIPUS_LOCAL_SAMPLE_RATE);
+  /* Experimental KWS contract: end-of-capture speech is measured by rawVAD,
+   * not an arbitrary energy spike. Unvoiced activity remains diagnostic only. */
+  d->response_truncated = d->vad_speech_frames &&
+      (unsigned)d->vad_last_speech_end_ms + 200U > duration_ms;
+}
+
+static void finish_decision(const decision_t *decision, quipus_local_result_t *result,
+                            quipus_local_purpose_t purpose) {
+  const quipus_local_diagnostics_t *d = &result->diagnostics;
+  result->windows = (uint16_t)decision->windows;
+  /* Isolated experiment: background proof and rawVAD capture-edge remain,
+   * but unknown energy/regions are not a semantic refusal classifier. This
+   * can miss a genuineNO that the word model itself misclassifies. */
+  bool consent_activity = d->background_verified && !d->response_truncated;
+  bool affirmative_allowed = s_self_test_active || (d->vad_available &&
+      (purpose == QUIPUS_LOCAL_PURPOSE_NAVIGATION || consent_activity));
+  if (!s_self_test_active) ESP_LOGI("quipus_local", "other_word_veto=%u windows=%u peak_score=%u peak_class=%u peak_end_ms=%u peak_voiced_ms=%u",
+      decision->other_word_veto, decision->other_word_windows, decision->other_word_score,
+      decision->other_word_score ? decision->other_word_label : UINT8_MAX,
+      decision->other_word_end_ms, decision->other_word_voiced_ms);
+  if (decision->trusted_no) {
+    result->intent = QUIPUS_LOCAL_NO;
+    result->confidence = decision->no_score;
+  } else if (decision->yes_votes >= 2 && !decision->possible_no &&
+             !decision->other_word_veto && affirmative_allowed) {
+    result->intent = QUIPUS_LOCAL_YES;
+    result->confidence = decision->yes_score;
+  }
+}
+
+#define MAX_VOICE_REGIONS 8U
+typedef struct {
+  uint16_t first, last;
+  bool explained;
+} voice_region_t;
+typedef struct {
+  voice_region_t items[MAX_VOICE_REGIONS];
+  unsigned count;
+  bool overflow;
+} voice_regions_t;
+
+static voice_regions_t describe_regions(const uint8_t voiced[SHADOW_VAD_MAX_FRAMES], size_t frames) {
+  voice_regions_t regions = {0};
+  size_t previous = SHADOW_VAD_MAX_FRAMES;
+  unsigned total = 0;
+  for (size_t frame = 0; frame < frames; ++frame) {
+    if (!voiced[frame]) continue;
+    // Bridge only gaps shorter than100ms. Keep separated bursts distinct;
+    // grouping may explain them only when one trustedYES context fully contains
+    // every overlapping burst, with no partial region omitted.
+    if (previous == SHADOW_VAD_MAX_FRAMES || frame - previous > 5) {
+      ++total;
+      if (total <= MAX_VOICE_REGIONS) {
+        regions.items[total - 1].first = (uint16_t)frame;
+        regions.count = total;
+      } else regions.overflow = true;
+    }
+    if (total <= MAX_VOICE_REGIONS) regions.items[total - 1].last = (uint16_t)frame;
+    previous = frame;
+  }
+  return regions;
+}
+
+static void explain_isolated_yes(voice_regions_t *regions, size_t start, size_t count) {
+  unsigned overlaps = 0;
+  const size_t end = start + count;
+  /* Every overlapping region must fit wholly in this trustedYES context.
+   * Never explain a partial region, omit overlapping activity, or infer a
+   * region beyond the captured model context. */
+  for (unsigned i = 0; i < regions->count; ++i) {
+    const size_t first = regions->items[i].first * QUIPUS_LOCAL_FRAME_STRIDE;
+    const size_t last = (regions->items[i].last + 1) * QUIPUS_LOCAL_FRAME_STRIDE;
+    if (first >= end || last <= start) continue;
+    ++overlaps;
+    if (first < start || last > end) return;
+  }
+  if (!overlaps) return;
+  for (unsigned i = 0; i < regions->count; ++i) {
+    const size_t first = regions->items[i].first * QUIPUS_LOCAL_FRAME_STRIDE;
+    const size_t last = (regions->items[i].last + 1) * QUIPUS_LOCAL_FRAME_STRIDE;
+    if (first < end && last > start) regions->items[i].explained = true;
+  }
+}
+
+static bool measure(const int16_t *samples, size_t count,
+                    quipus_local_diagnostics_t *diagnostics) {
+  uint64_t energy = 0;
+  int64_t sum = 0;
+  bool constant = true;
+  for (size_t i = 0; i < count; ++i) {
+    int32_t value = samples[i];
+    uint32_t magnitude = (uint32_t)(value < 0 ? -value : value);
+    if (magnitude > diagnostics->peak_abs) diagnostics->peak_abs = (uint16_t)magnitude;
+    energy += (uint64_t)((int64_t)value * value);
+    sum += value;
+    if (value == INT16_MAX || value == INT16_MIN) ++diagnostics->clipped_samples;
+    if (value != samples[0]) constant = false;
+  }
+  diagnostics->rms = integer_sqrt((uint32_t)(energy / count));
+  diagnostics->dc_mean = (int16_t)(sum / (int64_t)count);
+  return constant;
+}
+
+static void log_diagnostics(const quipus_local_result_t *result) {
+  if (s_self_test_active) return;
+  const quipus_local_diagnostics_t *d = &result->diagnostics;
+  ESP_LOGI("quipus_local", "decision=%d windows=%u yes=%u no=%u maybe_no=%u no_end_ms=%u..%u "
+      "yes_peak=%u@%u no_peak=%u@%u pcm_peak=%u rms=%u dc=%d clipped=%lu",
+      result->intent, result->windows, d->yes_windows, d->no_windows, d->possible_no_windows,
+      d->first_no_end_ms, d->last_no_end_ms,
+      d->peak_yes_scores[QUIPUS_LOCAL_YES], d->peak_yes_end_ms,
+      d->peak_no_scores[QUIPUS_LOCAL_NO], d->peak_no_end_ms,
+      d->peak_abs, d->rms, (int)d->dc_mean, (unsigned long)d->clipped_samples);
+  ESP_LOGI("quipus_local", "shadow_vad_available=%u frames=%u speech_frames=%u last_speech_end_ms=%u "
+      "first_no_voiced_ms=%u last_no_voiced_ms=%u peak_yes_voiced_ms=%u peak_no_voiced_ms=%u",
+      d->vad_available, d->vad_frames, d->vad_speech_frames, d->vad_last_speech_end_ms,
+      d->first_no_voiced_ms, d->last_no_voiced_ms, d->peak_yes_voiced_ms, d->peak_no_voiced_ms);
+  ESP_LOGI("quipus_local", "background_verified=%u background_rms=%u ambiguous_frames=%u "
+      "unexplained_speech_frames=%u response_truncated=%u", d->background_verified, d->background_rms,
+      d->ambiguous_frames, d->unexplained_speech_frames, d->response_truncated);
+  ESP_LOGI("quipus_local", "ambiguous_first_end_ms=%u first_rms=%u last_end_ms=%u last_rms=%u onset_attached_frames=%u",
+      d->first_ambiguous_end_ms, d->first_ambiguous_rms,
+      d->last_ambiguous_end_ms, d->last_ambiguous_rms, d->onset_attached_frames);
+  (void)d; // Host fixtures may compile logging out.
+}
+
+static esp_err_t classify_owned(const int16_t *samples, size_t sample_count,
+                                quipus_local_result_t *result);
+static esp_err_t classify_owned_for(const int16_t *samples, size_t sample_count,
+    quipus_local_result_t *result, quipus_local_purpose_t purpose);
+
+bool quipus_local_recognizer_available(void) { return atomic_load(&s_available); }
+
+esp_err_t quipus_local_recognizer_init(void) {
+  if (quipus_local_recognizer_available()) return ESP_OK;
+  if (atomic_flag_test_and_set(&s_owner)) return ESP_ERR_INVALID_STATE;
+  esp_err_t result = quipus_local_inference_init();
+  if (result == ESP_OK) {
+    s_self_test_active = true;
+    result = quipus_local_inference_self_test(classify_owned);
+    s_self_test_active = false;
+  }
+  atomic_store(&s_available, result == ESP_OK);
+  atomic_flag_clear(&s_owner);
+  return result;
+}
+
+static esp_err_t classify_for(const int16_t *samples, size_t sample_count,
+    quipus_local_result_t *result, quipus_local_purpose_t purpose) {
+  if (!result) return ESP_ERR_INVALID_ARG;
+  *result = (quipus_local_result_t){.intent = QUIPUS_LOCAL_UNKNOWN};
+  if (!samples || sample_count > QUIPUS_LOCAL_MAX_SAMPLES) return ESP_ERR_INVALID_ARG;
+  if (sample_count < QUIPUS_LOCAL_SAMPLE_RATE) return ESP_ERR_INVALID_SIZE;
+  if (!quipus_local_recognizer_available()) return ESP_ERR_NOT_SUPPORTED;
+  if (atomic_flag_test_and_set(&s_owner)) return ESP_ERR_INVALID_STATE;
+  esp_err_t status = classify_owned_for(samples, sample_count, result, purpose);
+  atomic_flag_clear(&s_owner);
+  return status;
+}
+
+esp_err_t quipus_local_recognizer_classify(const int16_t *samples,
+    size_t sample_count, quipus_local_result_t *result) {
+  return classify_for(samples, sample_count, result, QUIPUS_LOCAL_PURPOSE_CONSENT);
+}
+
+esp_err_t quipus_local_recognizer_classify_navigation(const int16_t *samples,
+    size_t sample_count, quipus_local_result_t *result) {
+  return classify_for(samples, sample_count, result, QUIPUS_LOCAL_PURPOSE_NAVIGATION);
+}
+
+/* Startup self-testing retains the same strict callback contract. */
+static esp_err_t classify_owned(const int16_t *samples, size_t sample_count,
+                                quipus_local_result_t *result) {
+  return classify_owned_for(samples, sample_count, result, QUIPUS_LOCAL_PURPOSE_CONSENT);
+}
+
+/* Caller already owns the gate, including during the startup self-test. */
+static esp_err_t classify_owned_for(const int16_t *samples, size_t sample_count,
+    quipus_local_result_t *result, quipus_local_purpose_t purpose) {
+  *result = (quipus_local_result_t){.intent = QUIPUS_LOCAL_UNKNOWN};
+  quipus_local_inference_reset();
+  uint8_t voiced[SHADOW_VAD_MAX_FRAMES] = {0};
+  shadow_vad(samples, sample_count, voiced, &result->diagnostics);
+  uint8_t associated[SHADOW_VAD_MAX_FRAMES];
+  memcpy(associated, voiced, sizeof(associated));
+  qualify_activity(samples, sample_count, voiced, associated, &result->diagnostics);
+  bool constant = measure(samples, sample_count, &result->diagnostics);
+  if (constant) {
+    if (samples[0] == 0 && result->diagnostics.vad_available) {
+      result->intent = QUIPUS_LOCAL_SILENCE;
+      result->confidence = 255;
+    }
+    quipus_local_inference_reset();
+    log_diagnostics(result);
+    return ESP_OK;
+  }
+
+  decision_t decision = {0};
+  voice_regions_t regions = describe_regions(associated,
+      (sample_count + QUIPUS_LOCAL_FRAME_STRIDE - 1) / QUIPUS_LOCAL_FRAME_STRIDE);
+  esp_err_t status = ESP_OK;
+  size_t frames = (sample_count - QUIPUS_LOCAL_FRAME_SAMPLES) / QUIPUS_LOCAL_FRAME_STRIDE + 1;
+  for (size_t frame = 0; frame < frames; ++frame) {
+    bool complete = frame + 1 >= QUIPUS_LOCAL_FEATURE_FRAMES;
+    bool infer = complete && ((frame + 1 - QUIPUS_LOCAL_FEATURE_FRAMES) % 5U == 0 || frame + 1 == frames);
+    uint8_t scores[4] = {0};
+    status = quipus_local_inference_frame(samples + frame * QUIPUS_LOCAL_FRAME_STRIDE,
+                                         infer, scores);
+    if (status != ESP_OK) break;
+    if (infer) {
+      uint16_t end_ms = (uint16_t)((frame * QUIPUS_LOCAL_FRAME_STRIDE +
+          QUIPUS_LOCAL_FRAME_SAMPLES) * 1000U / QUIPUS_LOCAL_SAMPLE_RATE);
+      size_t first = (frame + 1 - QUIPUS_LOCAL_FEATURE_FRAMES) * QUIPUS_LOCAL_FRAME_STRIDE;
+      size_t count = (QUIPUS_LOCAL_FEATURE_FRAMES - 1) * QUIPUS_LOCAL_FRAME_STRIDE + QUIPUS_LOCAL_FRAME_SAMPLES;
+      /* Known non-YES vocabulary is lexical ambiguity, not a NO label.
+       * Scan every model context, even when rawVAD reports no speech. */
+      const uint8_t other_word = quipus_local_inference_other_word_score();
+      const uint8_t other_label = quipus_local_inference_other_word_label();
+      const uint16_t window_voiced_ms = voiced_overlap_ms(voiced,
+          frame + 1 - QUIPUS_LOCAL_FEATURE_FRAMES, frame);
+      if (other_word >= POSSIBLE_NO_SCORE) {
+        decision.other_word_veto = true;
+        ++decision.other_word_windows;
+      }
+      if (other_word > decision.other_word_score) {
+        decision.other_word_score = other_word;
+        decision.other_word_label = other_label;
+        decision.other_word_end_ms = end_ms;
+        decision.other_word_voiced_ms = window_voiced_ms;
+      }
+      if (!s_self_test_active) ESP_LOGI("quipus_local", "window_end_ms=%u other_word_score=%u other_word_class=%u voiced_ms=%u veto=%u",
+          end_ms, other_word, other_label, window_voiced_ms, decision.other_word_veto);
+      observe(&decision, &result->diagnostics, scores, end_ms,
+          window_rms(samples + first, count), window_voiced_ms);
+      if (trusted(scores, QUIPUS_LOCAL_YES)) explain_isolated_yes(&regions, first, count);
+    }
+  }
+  /* Clear raw frontend input and derived features before relinquishing owner. */
+  quipus_local_inference_reset();
+  if (status == ESP_OK) {
+    if (regions.overflow) ++result->diagnostics.unexplained_speech_frames;
+    for (unsigned region = 0; region < regions.count; ++region) {
+      if (regions.items[region].explained) continue;
+      for (size_t frame = regions.items[region].first; frame <= regions.items[region].last; ++frame)
+        if (associated[frame]) ++result->diagnostics.unexplained_speech_frames;
+    }
+    finish_decision(&decision, result, purpose);
+  }
+  log_diagnostics(result);
+  return status;
+}

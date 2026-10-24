@@ -1,0 +1,204 @@
+{
+  "prompts": [
+    {
+      "enum": "QUIPUS_PROMPT_CONSENT",
+      "symbol": "consent",
+      "file": "consent_request.adpcm",
+      "text": "Does everyone consent to recording? Say yes or no.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_ERROR",
+      "symbol": "error",
+      "file": "error_help.adpcm",
+      "text": "Something went wrong. Say Computer to try again.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_UPLOADING",
+      "symbol": "uploading",
+      "file": "recording_uploading.adpcm",
+      "text": "Uploading. Please keep Quipus on.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_UPLOADED",
+      "symbol": "uploaded",
+      "file": "recording_uploaded.adpcm",
+      "text": "Your recording is uploaded.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_SAVED_OFFLINE",
+      "symbol": "saved_offline",
+      "file": "recording_saved_offline.adpcm",
+      "text": "Saved safely. I'll upload when connected.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_LISTENING",
+      "symbol": "listening",
+      "file": "listening.adpcm",
+      "text": "I'm listening. Recording, or status report?",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_COMMAND_RETRY",
+      "symbol": "command_retry",
+      "file": "command_retry.adpcm",
+      "text": "Please say start recording, or status report.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_COMMAND_UNCLEAR",
+      "symbol": "command_unclear",
+      "file": "command_unclear.adpcm",
+      "text": "I didn't catch that. Say Computer to try again.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_VOICE_UNAVAILABLE",
+      "symbol": "voice_unavailable",
+      "file": "voice_unavailable.adpcm",
+      "text": "Voice recognition is unavailable. Please try again.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_SD_FAILURE",
+      "symbol": "sd_failure",
+      "file": "sd_failure.adpcm",
+      "text": "I can't save this recording. Please check the SD card.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_CONNECTION_LOST_RECORDING",
+      "symbol": "connection_lost_recording",
+      "file": "connection_lost_recording.adpcm",
+      "text": "Connection lost. I'm still recording.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_UPLOAD_DELAYED",
+      "symbol": "upload_delayed",
+      "file": "upload_delayed.adpcm",
+      "text": "Your recording is safe. I'll retry uploading.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_CONSENT_RETRY",
+      "symbol": "consent_retry",
+      "file": "consent_retry.adpcm",
+      "text": "Not confirmed. Does everyone consent? Say yes or no.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_CONSENT_REFUSED",
+      "symbol": "consent_refused",
+      "file": "consent_refused.adpcm",
+      "text": "Okay. I won't record. Say Computer when ready.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_MEETING_PROCESSING",
+      "symbol": "meeting_processing",
+      "file": "meeting_processing.adpcm",
+      "text": "That meeting is still processing. Try another meeting.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_REPORT_DONE",
+      "symbol": "report_done",
+      "file": "report_done.adpcm",
+      "text": "Okay. Say Computer when you need me.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_NETWORK_REQUIRED",
+      "symbol": "network_required",
+      "file": "network_required.adpcm",
+      "text": "Please connect to Wi-Fi for this request.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_RECOVERY_LISTENING",
+      "symbol": "recovery_listening",
+      "file": "recovery_listening.adpcm",
+      "text": "Say retry, status report, Wi-Fi setup, or cancel.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_SHORT_RECORDING_SKIPPED",
+      "symbol": "short_recording_skipped",
+      "file": "short_recording_skipped.adpcm",
+      "text": "No speech detected. That short recording was skipped.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_OFFLINE_RECORD_CHOICE",
+      "symbol": "offline_record_choice",
+      "file": "offline_record_choice.adpcm",
+      "text": "Offline mode. Start a recording? Say yes or no.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_OFFLINE_REPORT_CHOICE",
+      "symbol": "offline_report_choice",
+      "file": "offline_report_choice.adpcm",
+      "text": "Would you like a status report? Say yes or no.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_RECORDING_STARTED",
+      "symbol": "recording_started",
+      "file": "recording_started.adpcm",
+      "text": "Recording now.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_REPORT_OFFLINE",
+      "symbol": "report_offline",
+      "file": "report_offline.adpcm",
+      "text": "Connect to Wi-Fi for a new report. Your recordings are safe.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_CACHED_REPORT",
+      "symbol": "cached_report",
+      "file": "cached_report.adpcm",
+      "text": "Here is your last saved report. Follow-ups need a connection.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    },
+    {
+      "enum": "QUIPUS_PROMPT_NO_CACHED_REPORT",
+      "symbol": "no_cached_report",
+      "file": "no_cached_report.adpcm",
+      "text": "No report is saved yet. Connect to Wi-Fi for a new report.",
+      "sample_rate": 24000,
+      "codec": "ima-adpcm4"
+    }
+  ]
+}

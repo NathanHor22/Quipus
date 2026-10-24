@@ -1,0 +1,203 @@
+{
+  "asset": "kws_self_test_no.pcm",
+  "format": "Signed PCM16 little-endian, mono,16000Hz",
+  "samples": 16000,
+  "bytes": 32000,
+  "sha256": "a0375cb5062ef60e7eee88dca932c189f1ac2325b57d77c217b4b5d8432fb61d",
+  "dataset": "Google Speech Commands / public AIY contributors",
+  "archive_url": "https://storage.googleapis.com/download.tensorflow.org/data/mini_speech_commands.zip",
+  "archive_member": "mini_speech_commands/no/0362539c_nohash_3.wav",
+  "speaker_id": "0362539c",
+  "original_wav_sha256": "fb34ed2e2e8bc6b811c3cbb8c2928d2327ff52af88bb9fc15585b12a467cb504",
+  "original_samples": 12288,
+  "modifications": "Decode WAV to signed PCM16 and append3712 zero samples; no gain or speech editing",
+  "license": "CC-BY-4.0",
+  "attribution_file": "kws_self_test_no.ATTRIBUTION.txt",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "license_evidence": "https://research.google/blog/launching-the-speech-commands-dataset/",
+  "purpose": "Explicitly selected numerical startup self-test; NOT an unbiased accuracy benchmark, field consent validation or recording authorization",
+  "selection": {
+    "rule": "Highest minimum NO probability across full16000 and crop15840, TensorFlow and native TFLM; all fetched examples and scores retained",
+    "candidates": [
+      {
+        "name": "no_09",
+        "minimum_no_score": 0.99609375
+      },
+      {
+        "name": "no_05",
+        "minimum_no_score": 0.99609375
+      },
+      {
+        "name": "no_07",
+        "minimum_no_score": 0.9921875
+      },
+      {
+        "name": "no_01",
+        "minimum_no_score": 0.9921875
+      },
+      {
+        "name": "no_04",
+        "minimum_no_score": 0.98828125
+      },
+      {
+        "name": "no_10",
+        "minimum_no_score": 0.984375
+      },
+      {
+        "name": "no_06",
+        "minimum_no_score": 0.97265625
+      },
+      {
+        "name": "no_02",
+        "minimum_no_score": 0.94140625
+      },
+      {
+        "name": "no_08",
+        "minimum_no_score": 0.87890625
+      },
+      {
+        "name": "no_03",
+        "minimum_no_score": 0.59765625
+      }
+    ],
+    "selected_name": "no_09",
+    "minimum_no_score": 0.99609375,
+    "selected_pcm": "no_09/crop15840/raw.pcm"
+  },
+  "all_fetched_candidates": [
+    {
+      "name": "no_01_full16000",
+      "top": "no",
+      "no_probability": 0.9921875,
+      "native_no_probability": 0.9921875
+    },
+    {
+      "name": "no_01_crop15840",
+      "top": "no",
+      "no_probability": 0.9921875,
+      "native_no_probability": 0.9921875
+    },
+    {
+      "name": "no_02_full16000",
+      "top": "no",
+      "no_probability": 0.94140625,
+      "native_no_probability": 0.94140625
+    },
+    {
+      "name": "no_02_crop15840",
+      "top": "no",
+      "no_probability": 0.94140625,
+      "native_no_probability": 0.94140625
+    },
+    {
+      "name": "no_03_full16000",
+      "top": "no",
+      "no_probability": 0.59765625,
+      "native_no_probability": 0.59765625
+    },
+    {
+      "name": "no_03_crop15840",
+      "top": "no",
+      "no_probability": 0.59765625,
+      "native_no_probability": 0.59765625
+    },
+    {
+      "name": "no_04_full16000",
+      "top": "no",
+      "no_probability": 0.98828125,
+      "native_no_probability": 0.98828125
+    },
+    {
+      "name": "no_04_crop15840",
+      "top": "no",
+      "no_probability": 0.98828125,
+      "native_no_probability": 0.98828125
+    },
+    {
+      "name": "no_05_full16000",
+      "top": "no",
+      "no_probability": 0.99609375,
+      "native_no_probability": 0.99609375
+    },
+    {
+      "name": "no_05_crop15840",
+      "top": "no",
+      "no_probability": 0.99609375,
+      "native_no_probability": 0.99609375
+    },
+    {
+      "name": "no_06_full16000",
+      "top": "no",
+      "no_probability": 0.97265625,
+      "native_no_probability": 0.97265625
+    },
+    {
+      "name": "no_06_crop15840",
+      "top": "no",
+      "no_probability": 0.97265625,
+      "native_no_probability": 0.97265625
+    },
+    {
+      "name": "no_07_full16000",
+      "top": "no",
+      "no_probability": 0.9921875,
+      "native_no_probability": 0.9921875
+    },
+    {
+      "name": "no_07_crop15840",
+      "top": "no",
+      "no_probability": 0.9921875,
+      "native_no_probability": 0.9921875
+    },
+    {
+      "name": "no_08_full16000",
+      "top": "no",
+      "no_probability": 0.87890625,
+      "native_no_probability": 0.87890625
+    },
+    {
+      "name": "no_08_crop15840",
+      "top": "no",
+      "no_probability": 0.87890625,
+      "native_no_probability": 0.87890625
+    },
+    {
+      "name": "no_09_full16000",
+      "top": "no",
+      "no_probability": 0.99609375,
+      "native_no_probability": 0.99609375
+    },
+    {
+      "name": "no_09_crop15840",
+      "top": "no",
+      "no_probability": 0.99609375,
+      "native_no_probability": 0.99609375
+    },
+    {
+      "name": "no_10_full16000",
+      "top": "no",
+      "no_probability": 0.984375,
+      "native_no_probability": 0.984375
+    },
+    {
+      "name": "no_10_crop15840",
+      "top": "no",
+      "no_probability": 0.984375,
+      "native_no_probability": 0.984375
+    }
+  ],
+  "selected_native_and_tensorflow_output": [
+    -128,
+    -128,
+    -128,
+    127,
+    -128,
+    -128,
+    -128,
+    -128,
+    -128,
+    -128,
+    -128,
+    -127
+  ]
+}

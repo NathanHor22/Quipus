@@ -33,3 +33,30 @@ python scripts/package-supabase-setup.py --check
 After database setup, configure the site's Auth URLs and Google provider using
 [the deployment guide](../../docs/deployment.md), then redeploy Vercel with the
 Supabase and Agora environment variables.
+
+## Existing project: recording and calendar upgrade
+
+For a project that already has migrations **001 through 020**, run
+[quipus-recording-calendar-upgrade.sql](./quipus-recording-calendar-upgrade.sql)
+**once**, as an entire file in Supabase SQL Editor. It contains only migrations
+021 and 022, with their original transaction boundaries and source checksums.
+The final result should show both installation checks as `true`.
+
+The migration itself deletes no recordings or storage objects. It adds a
+service-only decision record for future, positively verified short digital
+silence, plus calendar visibility preferences. Hiding a recording keeps its
+audio, transcript, People history and Google Calendar invitations. It can be
+restored using **Undo** or the calendar's **Hidden** filter.
+
+If migration 021 is already installed, apply only
+[022_recording_calendar_visibility.sql](../migrations/022_recording_calendar_visibility.sql)
+when it is missing. The combined file deliberately refuses to re-run 021.
+If an error occurs, stop and keep the message; an earlier migration may already
+have committed. Do not use the fresh-project bundle on this existing database.
+
+Maintainers can regenerate and verify the existing-project bundle with:
+
+```sh
+python scripts/package-supabase-setup.py --recording-calendar-upgrade
+python scripts/package-supabase-setup.py --recording-calendar-upgrade --check
+```

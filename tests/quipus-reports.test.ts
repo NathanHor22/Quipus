@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { randomUUID } from "node:crypto";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseReportRequest, selectReportMeetings } from "../lib/report-request";
 import { personalGreeting, firstName, validTimezone } from "../lib/quipus-profile";
 import { prepareReportQuery, reportSections, type ReportState } from "../lib/device-report-session";
-import type { AuthenticatedLantern } from "../lib/lantern-device-auth";
+import { answerVoicePrompt } from "../lib/device-dialogue";
+import { device, fixtures, reportSpeech } from "./helpers/report-fixtures";
 
 test("relative report dates use the owner's civil date, including midnight and last Friday", () => {
   const now = new Date("2026-09-21T17:00:00Z");
@@ -37,74 +37,24 @@ test("greetings use actual names and timezone; missing names stay neutral", () =
   assert.equal(validTimezone("imaginary/zone"), "Asia/Kuala_Lumpur");
 });
 
-type Row = Record<string, unknown>;
-type QueryResult = { data: Row | Row[] | null; error: null };
-type Query = {
-  select: () => Query;
-  order: (key: string) => Query;
-  eq: (key: string, value: unknown) => Query;
-  neq: (key: string, value: unknown) => Query;
-  in: (key: string, values: unknown[]) => Query;
-  gt: (key: string, value: string) => Query;
-  gte: (key: string, value: string) => Query;
-  lt: (key: string, value: string) => Query;
-  insert: (row: Row) => Query;
-  upsert: (row: Row) => Query;
-  update: (row: Row) => Query;
-  single: () => Promise<QueryResult>;
-  maybeSingle: () => Promise<QueryResult>;
-  then: (resolve: (value: QueryResult) => unknown) => Promise<unknown>;
-};
-function reportSpeech(tables: Record<string, Row[]>, reportId: string | undefined) {
-  const pages = tables.device_reports.find(row => row.id === reportId)?.pages;
-  assert.ok(Array.isArray(pages) && pages.every((page: unknown) => typeof page === "string"));
-  return pages.join(" ");
-}
-function database(tables: Record<string, Row[]>) {
-  return { from(table: string) {
-    const filters: ((row: Row) => boolean)[] = []; let changes: Row | undefined; let inserted: Row | undefined;
-    let upsert = false; const orders: string[] = [];
-    const execute = (single = false) => {
-      tables[table] ||= [];
-      if (inserted) {
-        const existing = upsert && tables[table].find(row => row.id === inserted!.id);
-        if (existing) Object.assign(existing, structuredClone(inserted));
-        else tables[table].push({ id: randomUUID(), expires_at: new Date(Date.now()+7200000).toISOString(), status: "pending", ...structuredClone(inserted) });
-      }
-      let rows = tables[table].filter(row => filters.every(filter => filter(row)));
-      if (inserted) rows = rows.filter(row => row.id === inserted!.id || (!inserted!.id && row === tables[table].at(-1)));
-      for (const row of rows) if (changes) Object.assign(row, changes);
-      rows.sort((a,b) => { for (const key of orders) { const diff = String(a[key]).localeCompare(String(b[key])); if (diff) return diff; } return 0; });
-      return { data: structuredClone(single ? rows[0] || null : rows), error: null };
-    };
-    const q: Query = {
-      select: () => q, order: (key: string) => { orders.push(key); return q; },
-      eq: (key: string, value: unknown) => { filters.push(row => row[key] === value); return q; },
-      neq: (key: string, value: unknown) => { filters.push(row => row[key] !== value); return q; },
-      in: (key: string, values: unknown[]) => { filters.push(row => values.includes(row[key])); return q; },
-      gt: (key: string, value: string) => { filters.push(row => typeof row[key] === "string" && row[key] > value); return q; },
-      gte: (key: string, value: string) => { filters.push(row => typeof row[key] === "string" && row[key] >= value); return q; },
-      lt: (key: string, value: string) => { filters.push(row => typeof row[key] === "string" && row[key] < value); return q; },
-      insert: (row: Row) => { inserted = row; return q; }, upsert: (row: Row) => { inserted = row; upsert = true; return q; },
-      update: (row: Row) => { changes = row; return q; },
-      single: async () => execute(true), maybeSingle: async () => execute(true),
-      then: (resolve: (value: QueryResult) => unknown) => Promise.resolve(execute()).then(resolve),
-    }; return q;
-  } } as unknown as SupabaseClient;
-}
-const device: AuthenticatedLantern = { id: "board-a", userId: "owner-a", name: "Quipus", state: "ready", stateVersion: 1 };
-function fixtures() {
-  const tables: Record<string, Row[]> = { profiles: [{ id: device.userId, timezone: "Asia/Kuala_Lumpur" }], meetings: [], meeting_insights: [], transcripts: [], device_voice_prompts: [] };
-  for (let i = 0; i < 3; i++) {
-    tables.meetings.push({ id: `m${i}`, user_id: device.userId, title: `Client ${i+1}`, start_at: `2026-09-21T0${i+1}:00:00Z`, status: "ready", recording_id: `r${i}`, source: "hardware" });
-    tables.meeting_insights.push({ user_id: device.userId, meeting_id: `m${i}`, key_points: ["Point one.", "Point two.", `Final detail ${i+1}.`], promised: "A proposal." });
-    tables.transcripts.push({ user_id: device.userId, recording_id: `r${i}` });
-  }
-  return { tables, client: database(tables) };
-}
-test("report snapshots keep the third meeting stable after a late upload and resume the paused page", async () => {
+test("default reports keep every saved detail and resume the same meeting snapshot after a late upload", async () => {
   const { tables, client } = fixtures();
-  const daily = await prepareReportQuery(client, device, { text: "full report for 2026-09-21" });
+  const deliveryPlan = Array.from({ length: 12 }, (_, index) =>
+    `Delivery milestone ${index + 1} requires a demonstration and the client's written approval.`).join(" ");
+  Object.assign(tables.meeting_insights[0], {
+    intent: "Discuss the renewal.", wants: "A staged rollout.", concern: "Training capacity.",
+    next_action: "Confirm the delivery dates.", key_points: ["Point one.", "Point two.", deliveryPlan, "Final detail 1."],
+  });
+  tables.commitments = [{ user_id: device.userId, meeting_id: "m0", owner_type: "user", description: "Bring the demo.", status: "open" }];
+  const daily = await prepareReportQuery(client, device, { text: "report for 2026-09-21" });
+  const dailySpeech = reportSpeech(tables, daily.reportId);
+  for (const detail of ["Discuss the renewal.", "Point one.", "Point two.", deliveryPlan, "Final detail 1.", "Final detail 2.", "Final detail 3.", "A staged rollout.", "Training capacity.", "A proposal.", "Bring the demo.", "Confirm the delivery dates."]) {
+    assert.ok(dailySpeech.includes(detail), `Default report omitted: ${detail}`);
+  }
+  const pages = tables.device_reports.find(row => row.id === daily.reportId)!.pages as string[];
+  assert.ok(pages.length > 4, "Full report must preserve details across multiple speech pages.");
+  assert.ok(pages.every(page => page.length <= 650));
+  assert.match(dailySpeech, /detailed report for Monday, 21 September 2026/);
   tables.meetings.unshift({ ...tables.meetings[0], id: "late", start_at: "2026-09-21T00:00:00Z" });
   const targeted = await prepareReportQuery(client, device, { text: "only the third meeting", contextId: daily.reportContextId, playbackId: daily.reportId, playbackPage: 2 });
   const speech = reportSpeech(tables, targeted.reportId);
@@ -112,6 +62,45 @@ test("report snapshots keep the third meeting stable after a late upload and res
   const resume = await prepareReportQuery(client, device, { text: "continue my daily report", contextId: daily.reportContextId, playbackId: targeted.reportId, playbackPage: 1 });
   assert.equal(resume.reportId, daily.reportId); assert.equal(resume.page, 2);
 });
+for (const description of ["quick report", "overview", "short summary"]) {
+  test(`explicit ${description} stays concise despite the full-report default`, async () => {
+    const { tables, client } = fixtures();
+    const report = await prepareReportQuery(client, device, { text: `${description} for 2026-09-21` });
+    const speech = reportSpeech(tables, report.reportId);
+    assert.match(speech, /Your overview/);
+    assert.match(speech, /Point one/);
+    for (const client of ["Client 1", "Client 2", "Client 3"]) assert.ok(speech.includes(client));
+    assert.doesNotMatch(speech, /Point two|Final detail|A proposal/);
+  });
+}
+
+test("explicit actions-only reports omit the full narrative and preserve the approval boundary", async () => {
+  const { tables, client } = fixtures();
+  tables.follow_ups = [{ id: "action-a", user_id: device.userId, meeting_id: "m0", description: "Send the pricing proposal.", status: "pending" }];
+  tables.commitments = [{ user_id: device.userId, meeting_id: "m0", owner_type: "user", description: "Bring the demo.", status: "open" }];
+  const report = await prepareReportQuery(client, device, { text: "actions only for 2026-09-21" });
+  const speech = reportSpeech(tables, report.reportId);
+  assert.match(speech, /Your action items/);
+  assert.match(speech, /Bring the demo/);
+  assert.match(speech, /Send the pricing proposal/);
+  assert.doesNotMatch(speech, /Point one|Point two|Final detail|A proposal/);
+  assert.match(speech, /Each send needs your approval/);
+  assert.equal(tables.follow_ups[0].status, "pending");
+  assert.equal(tables.device_voice_prompts.some(row => row.status === "executing"), false);
+});
+
+test("a targeted meeting can explicitly request a quick overview", async () => {
+  const { tables, client } = fixtures();
+  const daily = await prepareReportQuery(client, device, { text: "report for 2026-09-21" });
+  const targeted = await prepareReportQuery(client, device, {
+    text: "quick overview of the third meeting", contextId: daily.reportContextId,
+  });
+  const speech = reportSpeech(tables, targeted.reportId);
+  assert.match(speech, /Client 3/);
+  assert.match(speech, /Point one/);
+  assert.doesNotMatch(speech, /Client 1|Client 2|Point two|Final detail/);
+});
+
 test("foreign and expired report contexts reveal nothing; report requests cancel pending send approvals", async () => {
   const { tables, client } = fixtures();
   const daily = await prepareReportQuery(client, device, { text: "full report for 2026-09-21" });
@@ -137,4 +126,19 @@ test("processing and missing-transcript states are spoken honestly", () => {
   ] };
   const speech = reportSections(state, state.meetings, "full").join(" ");
   assert.match(speech, /still processing/); assert.doesNotMatch(speech, /Do not read unfinished/);
+});
+
+
+test("a proved stopped upload can read full older reports while send approvals stay blocked",async()=>{
+  const {tables,client}=fixtures();
+  const stopped={id:"uploading",device_id:device.id,user_id:device.userId,state:"finalising",capture_ended_at:"2026-09-21T05:00:00Z",ended_at:null,offline_import_fingerprint:null};
+  tables.lantern_sessions=[stopped];
+  const before=structuredClone(stopped);const recovering={...device,state:"error" as const};
+  const report=await prepareReportQuery(client,recovering,{text:"full report for 2026-09-21"});
+  const speech=reportSpeech(tables,report.reportId);
+  assert.match(speech,/Client 3/);assert.match(speech,/Final detail 3/);
+  assert.deepEqual(stopped,before);
+  const approval=await answerVoicePrompt(client,recovering,randomUUID(),"yes");
+  assert.match(approval.speech,/Finish the current recording/u);
+  assert.equal(tables.device_voice_prompts.some(row=>row.status==="executing"),false);
 });

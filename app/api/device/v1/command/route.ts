@@ -4,6 +4,7 @@ import { z } from "zod";
 import { loadDeviceBriefing } from "@/lib/device-briefing-service";
 import { answerVoicePrompt, createVoicePrompt } from "@/lib/device-dialogue";
 import { deviceSpeechPage } from "@/lib/device-speech-response";
+import { deviceConsentResponse } from "@/lib/device-consent-response";
 import { createAcknowledgementTone, deviceAudioRate } from "@/lib/device-audio";
 import {
   commandReply,
@@ -16,6 +17,8 @@ import { transcribeWithOpenAI } from "@/lib/providers/openai-transcription";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { prepareReportQuery } from "@/lib/device-report-session";
 import { parseReportRequest } from "@/lib/report-request";
+import { reportProtocol } from "@/lib/report-protocol";
+import { claimReportTurn } from "@/lib/report-turn";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -29,6 +32,7 @@ const contextSchema = z.enum([
   "consent_retry",
   "action",
   "report",
+  "recovery",
 ]);
 const MAX_COMMAND_BYTES = 320 * 1024;
 
@@ -37,6 +41,14 @@ function errorResponse(message: string, status: number) {
     { error: message },
     { status, headers: { "cache-control": "no-store" } },
   );
+}
+
+function dispatchResponse(intent: string, interactionId?: string) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: { "cache-control": "private, no-store", "x-lantern-command": intent,
+      ...(interactionId ? { "x-quipus-interaction-id": interactionId } : {}) },
+  });
 }
 
 function batteryLevel(request: Request) {
@@ -54,6 +66,9 @@ export async function POST(request: Request) {
     const context = contextSchema.parse(
       request.headers.get("x-lantern-command-context") || "ready",
     ) as DeviceCommandContext;
+    const reportMetadata = reportProtocol(request);
+    const wakeDispatch = context === "wake_command" &&
+      request.headers.get("x-quipus-wake-response") === "dispatch";
     const contentType = request.headers.get("content-type")?.toLowerCase() || "";
     if (!contentType.startsWith("audio/wav")) {
       return errorResponse("Quipus voice commands require WAV audio.", 415);
@@ -66,6 +81,11 @@ export async function POST(request: Request) {
     if (bytes.byteLength <= 44 || bytes.byteLength > MAX_COMMAND_BYTES) {
       return errorResponse("Quipus voice command is empty or too long.", 400);
     }
+
+    // Claim the new turn before STT: an abandoned slow request may finish later.
+    const turnClaimed = Boolean(reportMetadata.conversational && reportMetadata.contextId && reportMetadata.interactionId &&
+      (context === "report" || context === "wake_command") &&
+      await claimReportTurn(client, device, reportMetadata.contextId, reportMetadata.interactionId));
 
     const transcription = await transcribeWithOpenAI(
       new Blob([bytes], { type: "audio/wav" }),
@@ -80,23 +100,43 @@ export async function POST(request: Request) {
             ? "Computer. Quipus."
             : context === "consent" || context === "consent_retry" || context === "action"
               ? "Yes. No. Yeah. Ya. Tidak. Boleh. Tak."
-              : "Start recording. Status report. Wi-Fi setup. Full breakdown. Third meeting. Yesterday. At two pm. Continue my report. Stop.",
-        timeoutMs: 45_000,
+              : context === "recovery"
+                ? "Retry upload. Retry. Cancel. Status report. Wi-Fi setup."
+                : "Start recording. Status report. Wi-Fi setup. Full breakdown. Third meeting. Yesterday. At two pm. The one at 1:37 a.m. One thirty-seven a.m. The 1:37 p.m. meeting. What did they ask me to bring? What about twelve pm? Continue my report. I am done. Stop the report.",
+        timeoutMs: context === "consent" || context === "consent_retry" || context === "recovery" || wakeDispatch ? 20_000 : 45_000,
       },
     );
     if (context === "action") {
       const token = z.string().uuid().parse(request.headers.get("x-lantern-review-token"));
       const reply = await answerVoicePrompt(client, device, token, transcription.text);
-      return await deviceSpeechPage(client, device, { ...reply, intent: reply.token === token ? "action_unclear" : "action_reply" });
+      return await deviceSpeechPage(client, device, { ...reply, intent: reply.token === token ? "action_unclear" : "action_reply", interactionId: reportMetadata.interactionId });
     }
     const intent = interpretDeviceCommand(transcription.text, context);
+    if (context === "consent" || context === "consent_retry") {
+      return deviceConsentResponse(
+        intent,
+        request.headers.get("x-quipus-consent-response") === "intent-only",
+      );
+    }
+    if (context === "recovery") return dispatchResponse(intent, reportMetadata.interactionId);
+    if (wakeDispatch) {
+      if (intent === "start_recording" || intent === "wifi_setup") return dispatchResponse(intent, reportMetadata.interactionId);
+      if (intent === "status_report") {
+        const report = parseReportRequest(transcription.text, "Asia/Kuala_Lumpur");
+        // Plain status uses the existing paged briefing endpoint. Keep dates,
+        // people, ordinals and requested depth in the richer report path below.
+        if (report.action === "query" && report.date === undefined &&
+            report.ordinal === undefined && report.minute === undefined &&
+            !report.person && !report.depth) return dispatchResponse(intent, reportMetadata.interactionId);
+      }
+    }
     const protocol3 = request.headers.get("x-lantern-protocol") === "3";
     if (protocol3 && (context === "report" || (context === "wake_command" && intent !== "start_recording" && parseReportRequest(transcription.text, "Asia/Kuala_Lumpur").action !== "unknown"))) {
-      const contextId = z.string().uuid().optional().parse(request.headers.get("x-quipus-context-id") || undefined);
-      const playbackId = z.string().uuid().optional().parse(request.headers.get("x-quipus-playback-id") || undefined);
-      const page = request.headers.get("x-quipus-playback-page");
-      const playbackPage = page === null ? undefined : z.coerce.number().int().min(0).max(10000).parse(page);
-      return await deviceSpeechPage(client, device, await prepareReportQuery(client, device, { text: transcription.text, contextId, playbackId, playbackPage }));
+      const reply = await prepareReportQuery(client, device, { text: transcription.text, ...reportMetadata, ...(turnClaimed ? { turnClaimed: true } : {}) });
+      if (reportMetadata.conversational && reply.intent === "report_stop") {
+        return dispatchResponse("report_stop", reportMetadata.interactionId);
+      }
+      return await deviceSpeechPage(client, device, { ...reply, interactionId: reportMetadata.interactionId });
     }
     if (intent === "status_report") {
       // New firmware fetches the paged report after this short acknowledgement.
@@ -146,6 +186,7 @@ export async function POST(request: Request) {
         "x-lantern-audio-rate": String(deviceAudioRate()),
         "x-lantern-command": intent,
         "x-lantern-voice-output": voiceOutput,
+        ...(reportMetadata.interactionId ? { "x-quipus-interaction-id": reportMetadata.interactionId } : {}),
       },
     });
   } catch (cause) {

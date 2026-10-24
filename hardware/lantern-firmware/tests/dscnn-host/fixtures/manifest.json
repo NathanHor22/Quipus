@@ -1,0 +1,644 @@
+{
+  "schema": 1,
+  "purpose": "Independent TensorFlow golden inputs for actual C frontend/native backend; not field consent accuracy",
+  "model": {
+    "path": ".tmp-local-recognizer/new-model/pinned/benchmark/training/keyword_spotting/trained_models/kws_ref_model.tflite",
+    "sha256": "aeea436800704fce17b17292e4412630ad856e9d777c044c64ef748a880bd0ae",
+    "bytes": 53936,
+    "labels": [
+      "down",
+      "go",
+      "left",
+      "no",
+      "off",
+      "on",
+      "right",
+      "stop",
+      "up",
+      "yes",
+      "silence",
+      "unknown"
+    ],
+    "input_scale": 0.5847029089927673,
+    "input_zero_point": 83,
+    "output_scale": 0.00390625,
+    "output_zero_point": -128
+  },
+  "reference": {
+    "tensorflow": "2.20.0",
+    "numpy": "2.4.6",
+    "python": "3.11.9",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "device": "CPU",
+    "threads": {
+      "intra_op": 1,
+      "inter_op": 1
+    },
+    "oneDNN": false,
+    "fft": "TensorFlow CPU tf.signal.stft/tf.signal.rfft built-in kernels; internal FFT implementation not independently identified",
+    "tflite": "BUILTIN_REF, num_threads=1",
+    "upstream_historical_tensorflow": "2.3.1; this environment2.20.0 is not claimed bitwise identical to historical release"
+  },
+  "source_commit": "0c6a99052cf4bee500cfa47424b8bebde1f69965",
+  "frozen_reference_manifest_sha256": "8654b44df85b0c23adc3e45c6df0be818d34b9d7e7f3186d1be8b12244251f7a",
+  "sources": [
+    {
+      "id": "public_yes",
+      "path": "hardware/lantern-firmware/tests/local-recognizer-host/fixtures/yes.wav",
+      "sha256": "b40e137a9d25bbdf135e03fa0f6bff4696d0bfc203aef8bc73b27c9428ba5a92",
+      "dataset_word": "yes",
+      "license": "CC-BY-4.0",
+      "metadata": "hardware/lantern-firmware/tests/local-recognizer-host/fixtures/SOURCE.json"
+    },
+    {
+      "id": "public_no",
+      "path": "hardware/lantern-firmware/tests/local-recognizer-host/fixtures/no.wav",
+      "sha256": "21e2b640385e4a751d480a87ae5a1633a6ff00e838b0e2ad48b22f8034e946d8",
+      "dataset_word": "no",
+      "license": "CC-BY-4.0",
+      "metadata": "hardware/lantern-firmware/tests/local-recognizer-host/fixtures/SOURCE.json"
+    },
+    {
+      "id": "public_up",
+      "path": "hardware/lantern-firmware/tests/dscnn-host/fixtures/public_up.wav",
+      "sha256": "ad7524a2d2f208e9f16e926b52b194e4e3033ee5e7c59c2f34deb062f665c2a9",
+      "dataset_word": "up",
+      "license": "CC-BY-4.0",
+      "archive": "https://storage.googleapis.com/download.tensorflow.org/data/mini_speech_commands.zip",
+      "archive_member": "mini_speech_commands/up/0132a06d_nohash_2.wav"
+    },
+    {
+      "id": "selected_no",
+      "path": "hardware/lantern-firmware/tests/dscnn-host/fixtures/selected_no.wav",
+      "sha256": "fb34ed2e2e8bc6b811c3cbb8c2928d2327ff52af88bb9fc15585b12a467cb504",
+      "dataset_word": "no",
+      "license": "CC-BY-4.0",
+      "archive": "https://storage.googleapis.com/download.tensorflow.org/data/mini_speech_commands.zip",
+      "archive_member": "mini_speech_commands/no/0362539c_nohash_3.wav"
+    },
+    {
+      "id": "generated_noise",
+      "path": "hardware/lantern-firmware/tests/dscnn-host/fixtures/generated_noise.pcm",
+      "sha256": "ff174cee8068907344313db7b6ad96698228d4ce408192a0d646a0195f83db26",
+      "origin": "Generated NumPy PCG64 seed20261024, integers[-25,25],16000S16samples; frozen raw avoids NumPy dependency in ordinary test",
+      "license": "Project-generated test data"
+    }
+  ],
+  "cases": [
+    {
+      "name": "public_yes",
+      "recipe": "public_yes",
+      "input_samples": 16000,
+      "raw_sha256": "7b243fbf84bd2c8197a63969f225a6a6473547383a49f2d660adc1cd4e4dcaa5",
+      "status": "ok",
+      "origin": "Pinned public Speech Commands yes",
+      "dataset_word": "yes",
+      "expected_top": "yes",
+      "input_sha256": "8fe8d4b729b49bd03616684c5e44d6c3dccb71b0ecb9c9b9ea9d8817d5666e71",
+      "output_sha256": "fd69bd9a77077d4de5da408534a5bbcbedb5a8ca272ba801a3e0933b3464c825"
+    },
+    {
+      "name": "public_yes_990",
+      "recipe": "public_yes_990",
+      "input_samples": 15840,
+      "raw_sha256": "213e9240a0cfa17bf35c00e9734f5c03fbc96d5e79b96be66b4ed2e1aa067dbf",
+      "status": "ok",
+      "origin": "First15840samples; normalize before zero padding to16000",
+      "dataset_word": "yes",
+      "expected_top": "yes",
+      "input_sha256": "8fe8d4b729b49bd03616684c5e44d6c3dccb71b0ecb9c9b9ea9d8817d5666e71",
+      "output_sha256": "fd69bd9a77077d4de5da408534a5bbcbedb5a8ca272ba801a3e0933b3464c825"
+    },
+    {
+      "name": "public_no",
+      "recipe": "public_no",
+      "input_samples": 16000,
+      "raw_sha256": "9940d53ba4877c8cedc68cc44fb1018fc4f0ebaf8d8221d29608c977b3dc1803",
+      "status": "ok",
+      "origin": "Pinned public Speech Commands no",
+      "dataset_word": "no",
+      "expected_top": "go",
+      "input_sha256": "5dc47fbf255002c85c02d73774be5c2fb6ab6575f8d81de9bce57c4879762490",
+      "output_sha256": "c5034ad5d5c1f923f4f4416a3f3d2375f73fb384a21c59a9a5607ff81780e22f"
+    },
+    {
+      "name": "public_no_990",
+      "recipe": "public_no_990",
+      "input_samples": 15840,
+      "raw_sha256": "ce30aee61e2721a3f14564793b8b475ce4f665e435c48de2dcda061704acd1a5",
+      "status": "ok",
+      "origin": "First15840samples; normalize before zero padding to16000",
+      "dataset_word": "no",
+      "expected_top": "go",
+      "input_sha256": "5dc47fbf255002c85c02d73774be5c2fb6ab6575f8d81de9bce57c4879762490",
+      "output_sha256": "c5034ad5d5c1f923f4f4416a3f3d2375f73fb384a21c59a9a5607ff81780e22f"
+    },
+    {
+      "name": "public_up",
+      "recipe": "public_up",
+      "input_samples": 16000,
+      "raw_sha256": "5b55bbe689d451db167b7e18ff4ea2b504bd0df602ab81c8aa74c3582b3529b0",
+      "status": "ok",
+      "origin": "Pinned public Speech Commands up",
+      "dataset_word": "up",
+      "expected_top": "up",
+      "input_sha256": "9e9ecdf65596b3044041695c094f5c552692b6aef6f8e1ca3f81ebfc357ae683",
+      "output_sha256": "be20b310ecb8b3411f97dffbebd8c42302acd3fdd8b1cb0c4f93ad72b5a90f98"
+    },
+    {
+      "name": "public_up_990",
+      "recipe": "public_up_990",
+      "input_samples": 15840,
+      "raw_sha256": "2665dbc829fb4451035382c91ce36ea5bc95a00eabbe7c10b9a89d52bd9761b2",
+      "status": "ok",
+      "origin": "First15840samples; normalize before zero padding to16000",
+      "dataset_word": "up",
+      "expected_top": "up",
+      "input_sha256": "9e9ecdf65596b3044041695c094f5c552692b6aef6f8e1ca3f81ebfc357ae683",
+      "output_sha256": "be20b310ecb8b3411f97dffbebd8c42302acd3fdd8b1cb0c4f93ad72b5a90f98"
+    },
+    {
+      "name": "public_yes_gain_0_03",
+      "recipe": "public_yes_gain_0_03",
+      "input_samples": 16000,
+      "raw_sha256": "29b258fd1abe9082e77d0b406ff408a93f4db73ff58b19843ef247f399ff5c3e",
+      "status": "ok",
+      "origin": "Pinned public yes integer-round scale 0.03",
+      "dataset_word": "yes",
+      "expected_top": "yes",
+      "input_sha256": "3876b3df666174272c8b2199986cd70e98e056f79b321f98c16d4a17bf8ccbc9",
+      "output_sha256": "fd69bd9a77077d4de5da408534a5bbcbedb5a8ca272ba801a3e0933b3464c825"
+    },
+    {
+      "name": "public_yes_gain_0_1",
+      "recipe": "public_yes_gain_0_1",
+      "input_samples": 16000,
+      "raw_sha256": "d6813d24313e9b072a334aba04709146e12acbe29cde8c476993d084cbbec8d7",
+      "status": "ok",
+      "origin": "Pinned public yes integer-round scale 0.1",
+      "dataset_word": "yes",
+      "expected_top": "yes",
+      "input_sha256": "956e64a7e31adddcef0025fbe539bd2a40f3be9c1139bdd88994d2cd4208d848",
+      "output_sha256": "fd69bd9a77077d4de5da408534a5bbcbedb5a8ca272ba801a3e0933b3464c825"
+    },
+    {
+      "name": "public_yes_gain_0_3",
+      "recipe": "public_yes_gain_0_3",
+      "input_samples": 16000,
+      "raw_sha256": "568668470eb5783e96429d82588208da189db00918d3187ccb133b45b805654c",
+      "status": "ok",
+      "origin": "Pinned public yes integer-round scale 0.3",
+      "dataset_word": "yes",
+      "expected_top": "yes",
+      "input_sha256": "f8689aafceb6050dfd1de74d7337784182329cce69d01c5d229926ce7551692e",
+      "output_sha256": "0122fc7fde47c533bd1bcc7529d52ef73cd6fe7eb8d8509bbfa1f6e080054faa"
+    },
+    {
+      "name": "public_no_gain_0_03",
+      "recipe": "public_no_gain_0_03",
+      "input_samples": 16000,
+      "raw_sha256": "8a2bc7fadae0408aac768dcbfbccacc89e79d482172befda26190ea21b98caf1",
+      "status": "ok",
+      "origin": "Pinned public no integer-round scale 0.03",
+      "dataset_word": "no",
+      "expected_top": "go",
+      "input_sha256": "319e84260b424af143fa5b82c9d2607f20c04719bb88c19ca995d800bde6addf",
+      "output_sha256": "0df589903e87cdfcd9477b67e87cfc73046f7e956d601c9c1317984daed7c881"
+    },
+    {
+      "name": "public_no_gain_0_1",
+      "recipe": "public_no_gain_0_1",
+      "input_samples": 16000,
+      "raw_sha256": "c183ff4dd289a1492297ce0455f1af3cf49162067e4dd2885f3f899dcc3f7d12",
+      "status": "ok",
+      "origin": "Pinned public no integer-round scale 0.1",
+      "dataset_word": "no",
+      "expected_top": "go",
+      "input_sha256": "e2bd63795423d972fa3019fd641e3c0b3d03ca752587300225377564e7139cae",
+      "output_sha256": "c5034ad5d5c1f923f4f4416a3f3d2375f73fb384a21c59a9a5607ff81780e22f"
+    },
+    {
+      "name": "public_no_gain_0_3",
+      "recipe": "public_no_gain_0_3",
+      "input_samples": 16000,
+      "raw_sha256": "3ffa6d1530b41082d4abb56274e1305ef1a17d7877cf9a9ee696def45e7289b3",
+      "status": "ok",
+      "origin": "Pinned public no integer-round scale 0.3",
+      "dataset_word": "no",
+      "expected_top": "go",
+      "input_sha256": "5730f6298a543369c7a1663ef55d93e17c322df1b9c6b6a5240e94e4837c072c",
+      "output_sha256": "638a21ce447fa5dd6b587920500c28a3844749e0d1ac2599275c0ce249af1e4c"
+    },
+    {
+      "name": "public_yes_shift_80",
+      "recipe": "public_yes_shift_80",
+      "input_samples": 16000,
+      "raw_sha256": "e26ce1e5f51a999dcce24beddb11c4c2957ac92cb6082e36f7062d1de7eed0e2",
+      "status": "ok",
+      "origin": "Zero-pad front80 samples, truncate right; source publicYES",
+      "dataset_word": "yes",
+      "expected_top": "yes",
+      "input_sha256": "d9163dbe6b3400a58b0a656d8971f98e69773f2282fe90bfe864dbfc60bd6a4d",
+      "output_sha256": "fd69bd9a77077d4de5da408534a5bbcbedb5a8ca272ba801a3e0933b3464c825"
+    },
+    {
+      "name": "public_yes_shift_160",
+      "recipe": "public_yes_shift_160",
+      "input_samples": 16000,
+      "raw_sha256": "61aea8d4e08ddaeca31e1c3d34484443118b8be9b77d0ec253ce5c1c9867b1bc",
+      "status": "ok",
+      "origin": "Zero-pad front160 samples, truncate right; source publicYES",
+      "dataset_word": "yes",
+      "expected_top": "yes",
+      "input_sha256": "07d8d18b9c6f18c2094314a1a7291f436956c96bcdf97db86ce762b55bf95179",
+      "output_sha256": "fd69bd9a77077d4de5da408534a5bbcbedb5a8ca272ba801a3e0933b3464c825"
+    },
+    {
+      "name": "public_yes_shift_1000",
+      "recipe": "public_yes_shift_1000",
+      "input_samples": 16000,
+      "raw_sha256": "47d65d2d66a372eab901f465f074b59fc1ae0b949ee468eb034497b1e64962ef",
+      "status": "ok",
+      "origin": "Zero-pad front1000 samples, truncate right; source publicYES",
+      "dataset_word": "yes",
+      "expected_top": "yes",
+      "input_sha256": "bdbb30ec9fd95c05dbd9b2b5030e3388e3d08ad8002e0168fa3584d397e84652",
+      "output_sha256": "0122fc7fde47c533bd1bcc7529d52ef73cd6fe7eb8d8509bbfa1f6e080054faa"
+    },
+    {
+      "name": "public_yes_shift_1280",
+      "recipe": "public_yes_shift_1280",
+      "input_samples": 16000,
+      "raw_sha256": "3697769671ced51e821ab604e9ac5acc5d6802e6efecf3e3cb618fbf37a5d34e",
+      "status": "ok",
+      "origin": "Zero-pad front1280 samples, truncate right; source publicYES",
+      "dataset_word": "yes",
+      "expected_top": "yes",
+      "input_sha256": "57c340d787a3e0478c387e4e2116e0a610aa10f58a603e59d29bd7081f45a838",
+      "output_sha256": "1ea573223e8c05a1365dc2f9cae8ff5ddc053faba59a737e923d862c7f023456"
+    },
+    {
+      "name": "public_yes_polarity_inverted",
+      "recipe": "public_yes_polarity_inverted",
+      "input_samples": 16000,
+      "raw_sha256": "7060654f88f7ecd5abd659246ab61b094eddc44636a4657372ae7c548b75e81f",
+      "status": "ok",
+      "origin": "PublicYES polarity inversion, clipped S16",
+      "dataset_word": "yes",
+      "expected_top": "yes",
+      "input_sha256": "881589d89872c93e5f7ad88edeb0ec9ea629ec3f03bad21fe7b60a62e4af9cb3",
+      "output_sha256": "0122fc7fde47c533bd1bcc7529d52ef73cd6fe7eb8d8509bbfa1f6e080054faa"
+    },
+    {
+      "name": "zero",
+      "recipe": "zero",
+      "input_samples": 16000,
+      "raw_sha256": "0c92bddb4e96f3ea9ec9f0f64a668255a6c15527ac09f6f119cafde60c7c4a39",
+      "status": "reject_nonpositive_peak",
+      "origin": "Generated digital silence",
+      "dataset_word": null
+    },
+    {
+      "name": "negative_only",
+      "recipe": "negative_only",
+      "input_samples": 16000,
+      "raw_sha256": "b7eb1c536896e7dbc46b4eca0bdfd4d3ec6aacb438ac2430aa21ee958db808c4",
+      "status": "reject_nonpositive_peak",
+      "origin": "Generated all-negative ramp; must safe-reject nonpositive maximum",
+      "dataset_word": null
+    },
+    {
+      "name": "constant_positive",
+      "recipe": "constant_positive",
+      "input_samples": 16000,
+      "raw_sha256": "46cfc99dcb32ec087c2c34625e3746135332c7e62b55fa5a805884e2d7781c79",
+      "status": "ok",
+      "origin": "Generated positive DC; feature test only, not speech",
+      "dataset_word": null,
+      "expected_top": "unknown",
+      "input_sha256": "7bd12a0d7d313c5cc157fdcfbb501cf16b1bd5164343f476326809a063a81bcf",
+      "output_sha256": "bc4aa5d1b34f1e02fcac6697be6e414d1a4a8407f3e691fa5df601d97e24ddbd"
+    },
+    {
+      "name": "sine_1000hz",
+      "recipe": "sine_1000hz",
+      "input_samples": 16000,
+      "raw_sha256": "42d718ca95c0174f06967199d2784dfd18dadf3f071a22de11288e680e1f3a8f",
+      "status": "ok",
+      "origin": "Generated1000Hz sine at16k",
+      "dataset_word": null,
+      "expected_top": "on",
+      "input_sha256": "bb9ea9993333af8925ca82a03b8ee0aec1122b2f922396798722982a397e2167",
+      "output_sha256": "3a70c195aef801567a43b403a7c5f5774558d2af12102c380055bfe777a0fbcb"
+    },
+    {
+      "name": "sine_997hz",
+      "recipe": "sine_997hz",
+      "input_samples": 16000,
+      "raw_sha256": "b00981a39e7c5df07e5b9c8c5b521e51688243bc355e9e5e4703e3e9f8389baf",
+      "status": "ok",
+      "origin": "Generated997Hz non-bin-centred sine at16k",
+      "dataset_word": null,
+      "expected_top": "on",
+      "input_sha256": "4e4900d9724142eda5f4dfa427899e7901d49b7b5460b875154aaf3409be2d07",
+      "output_sha256": "7a573c67634793748309ba53cf6742cec8d7790742b2ceafbb007c1fd12ffbe3"
+    },
+    {
+      "name": "small_noise",
+      "recipe": "small_noise",
+      "input_samples": 16000,
+      "raw_sha256": "ff174cee8068907344313db7b6ad96698228d4ce408192a0d646a0195f83db26",
+      "status": "ok",
+      "origin": "Generated uniforminteger[-25,25],NumPyPCG64 seed20261024",
+      "dataset_word": null,
+      "expected_top": "unknown",
+      "input_sha256": "7b4a7eb651139bf90ffc5ea697ca10f5b57c0f53e379159076fcd7cfd5e8ba33",
+      "output_sha256": "ec51ddeb034a68be188ccd2387666ca5e081aa751533e655a26243894403cbab"
+    },
+    {
+      "name": "public_yes_quiet_plus_noise",
+      "recipe": "public_yes_quiet_plus_noise",
+      "input_samples": 16000,
+      "raw_sha256": "e02c47cb8a33b22b2aa760838e24dd0a57a26e90fe7337e546e8e5296b6f6359",
+      "status": "ok",
+      "origin": "PublicYES0.03gain plus deterministic[-25,25]noise",
+      "dataset_word": "yes",
+      "expected_top": "yes",
+      "input_sha256": "ed167bbc843857ec972904c8ecdfad27430657ace6b6d6db54400a6bac63d35f",
+      "output_sha256": "b6ddc3df713b70f94894ee1240b151013689ff1533d68eae9403e8bdadc76cae"
+    },
+    {
+      "name": "negative_dominant_peak",
+      "recipe": "negative_dominant_peak",
+      "input_samples": 16000,
+      "raw_sha256": "dd3da5f0b7429e50b44d431ac8f0e0270f4b38296c6fa5c56a7a5b5cdf1f59a3",
+      "status": "ok",
+      "origin": "Generated noise with negative32768peak but positive1000maximum",
+      "dataset_word": null,
+      "expected_top": "silence",
+      "input_sha256": "308a5038478d6dee1cb77ef87a69347a62474666c682bc31daba435089ca9523",
+      "output_sha256": "107bfedc8402021832a2b4558e462f71242aeeb0f4f1765ee0bcdb92cf43be03"
+    },
+    {
+      "name": "tail_peak_full16000",
+      "recipe": "tail_peak_full16000",
+      "input_samples": 16000,
+      "raw_sha256": "84d90324b77523966ddbcae9bdcd11d02b3fd0f03aa4a4c6732041330ba485ae",
+      "status": "ok",
+      "origin": "Positive30000peak lies in unusedlast160samples; normalized over all16000",
+      "dataset_word": null,
+      "expected_top": "unknown",
+      "input_sha256": "1d8ba9a67bf8a5ad8536ee33b441d0d19569beeb103df24429923d4c72343f0f",
+      "output_sha256": "60b6380a3b39e8835515b6a5b0892f98d41725da1703a50937f6058636f8a85f"
+    },
+    {
+      "name": "tail_peak_crop15840",
+      "recipe": "tail_peak_crop15840",
+      "input_samples": 15840,
+      "raw_sha256": "ddcea355d547db44f9428244ef95529ee9138a0b851883c94d9a676e3c1951ca",
+      "status": "ok",
+      "origin": "Same signal first15840; normalize before160zero pad; tailpeak excluded",
+      "dataset_word": null,
+      "expected_top": "unknown",
+      "input_sha256": "7b4a7eb651139bf90ffc5ea697ca10f5b57c0f53e379159076fcd7cfd5e8ba33",
+      "output_sha256": "ec51ddeb034a68be188ccd2387666ca5e081aa751533e655a26243894403cbab"
+    },
+    {
+      "name": "impulse_0",
+      "recipe": "impulse_0",
+      "input_samples": 16000,
+      "raw_sha256": "cbd8c67027d0441e4583b0c95bb450efc58d22247319b9693a93d5517ba26236",
+      "status": "ok",
+      "origin": "Generated singlepositive impulse atsample0",
+      "dataset_word": null,
+      "expected_top": "unknown",
+      "input_sha256": "fde8f27fb89a9a3c94bd61a6eca4b7c03bcc79b031388a77697dd8d81bc73f1e",
+      "output_sha256": "46205de4df395752a0bafb1a05573ff5e068d19f53a6a5b8e39f95869f5359c5"
+    },
+    {
+      "name": "impulse_479",
+      "recipe": "impulse_479",
+      "input_samples": 16000,
+      "raw_sha256": "c3eb028ad9df51a533650c30db28350cbee0ec5e0fdda16c3c79403325416db7",
+      "status": "ok",
+      "origin": "Generated singlepositive impulse atsample479",
+      "dataset_word": null,
+      "expected_top": "unknown",
+      "input_sha256": "735bd36e459d361929c1c298409ae32d11cbab86cbd78fe197513f33998b294a",
+      "output_sha256": "a2e0e05d6e4702f0eebb810e40331d58de7c66e25a4d4303d248d45afa56be9d"
+    },
+    {
+      "name": "impulse_480",
+      "recipe": "impulse_480",
+      "input_samples": 16000,
+      "raw_sha256": "477b74995bcbc4c323fd4f8ca7c597195b9534cae12a88ca48357b62f2a730cc",
+      "status": "ok",
+      "origin": "Generated singlepositive impulse atsample480",
+      "dataset_word": null,
+      "expected_top": "unknown",
+      "input_sha256": "42c77e3b2a1135ad7e1173e80e2bb1c460f13cefd4b90a2613a7b3f67d7c48b2",
+      "output_sha256": "ddae6831eeb58f5921ea5863a3a7b67c1a91428c3426c5c59522513786789f80"
+    },
+    {
+      "name": "impulse_15839",
+      "recipe": "impulse_15839",
+      "input_samples": 16000,
+      "raw_sha256": "1c08dd9f1de3f3cf4a80eae63f2d7dfa6e17bfe07dc65263a89408fcc1ca3a20",
+      "status": "ok",
+      "origin": "Generated singlepositive impulse atsample15839",
+      "dataset_word": null,
+      "expected_top": "unknown",
+      "input_sha256": "b1e209516e1d67ac5af7050fb9588142736b1bee3bc6225bff9891c42fcdc2e3",
+      "output_sha256": "9a5b33bc4f049973747d61933a43ad63305d9c98bfa4ffe94c4290a6aa9db91e"
+    },
+    {
+      "name": "impulse_15999",
+      "recipe": "impulse_15999",
+      "input_samples": 16000,
+      "raw_sha256": "a338aef296cc24513b24daf38acac57d546059b94645697fcf120f0e79c6d07a",
+      "status": "ok",
+      "origin": "Generated singlepositive impulse atsample15999",
+      "dataset_word": null,
+      "expected_top": "unknown",
+      "input_sha256": "fde8f27fb89a9a3c94bd61a6eca4b7c03bcc79b031388a77697dd8d81bc73f1e",
+      "output_sha256": "46205de4df395752a0bafb1a05573ff5e068d19f53a6a5b8e39f95869f5359c5"
+    },
+    {
+      "name": "selected_no_full16000",
+      "recipe": "selected_no_full16000",
+      "input_samples": 16000,
+      "raw_sha256": "a0375cb5062ef60e7eee88dca932c189f1ac2325b57d77c217b4b5d8432fb61d",
+      "status": "ok",
+      "origin": "Explicitly selected numerical NO fixture, NOT unbiased accuracy",
+      "dataset_word": "no",
+      "expected_top": "no",
+      "input_sha256": "f9cc0705351e74a6e478b57331eb2db88aa849b93090805eb179c914f22f44e8",
+      "output_sha256": "b0324924ef54123df9898d9ffcb55636558bab1ed647715551635bae53346ffa"
+    },
+    {
+      "name": "selected_no_crop15840",
+      "recipe": "selected_no_crop15840",
+      "input_samples": 15840,
+      "raw_sha256": "f4f9745f3bffb73ff7eb73817d99f66f9c920237b84faa2c2f3caf4b0ee7df2d",
+      "status": "ok",
+      "origin": "Explicitly selected numerical NO fixture, NOT unbiased accuracy",
+      "dataset_word": "no",
+      "expected_top": "no",
+      "input_sha256": "f9cc0705351e74a6e478b57331eb2db88aa849b93090805eb179c914f22f44e8",
+      "output_sha256": "b0324924ef54123df9898d9ffcb55636558bab1ed647715551635bae53346ffa"
+    }
+  ],
+  "selected_no_provenance": {
+    "all_fetched_scores": [
+      {
+        "name": "no_01_full16000",
+        "no_score": 0.9921875,
+        "top": "no"
+      },
+      {
+        "name": "no_01_crop15840",
+        "no_score": 0.9921875,
+        "top": "no"
+      },
+      {
+        "name": "no_02_full16000",
+        "no_score": 0.94140625,
+        "top": "no"
+      },
+      {
+        "name": "no_02_crop15840",
+        "no_score": 0.94140625,
+        "top": "no"
+      },
+      {
+        "name": "no_03_full16000",
+        "no_score": 0.59765625,
+        "top": "no"
+      },
+      {
+        "name": "no_03_crop15840",
+        "no_score": 0.59765625,
+        "top": "no"
+      },
+      {
+        "name": "no_04_full16000",
+        "no_score": 0.98828125,
+        "top": "no"
+      },
+      {
+        "name": "no_04_crop15840",
+        "no_score": 0.98828125,
+        "top": "no"
+      },
+      {
+        "name": "no_05_full16000",
+        "no_score": 0.99609375,
+        "top": "no"
+      },
+      {
+        "name": "no_05_crop15840",
+        "no_score": 0.99609375,
+        "top": "no"
+      },
+      {
+        "name": "no_06_full16000",
+        "no_score": 0.97265625,
+        "top": "no"
+      },
+      {
+        "name": "no_06_crop15840",
+        "no_score": 0.97265625,
+        "top": "no"
+      },
+      {
+        "name": "no_07_full16000",
+        "no_score": 0.9921875,
+        "top": "no"
+      },
+      {
+        "name": "no_07_crop15840",
+        "no_score": 0.9921875,
+        "top": "no"
+      },
+      {
+        "name": "no_08_full16000",
+        "no_score": 0.87890625,
+        "top": "no"
+      },
+      {
+        "name": "no_08_crop15840",
+        "no_score": 0.87890625,
+        "top": "no"
+      },
+      {
+        "name": "no_09_full16000",
+        "no_score": 0.99609375,
+        "top": "no"
+      },
+      {
+        "name": "no_09_crop15840",
+        "no_score": 0.99609375,
+        "top": "no"
+      },
+      {
+        "name": "no_10_full16000",
+        "no_score": 0.984375,
+        "top": "no"
+      },
+      {
+        "name": "no_10_crop15840",
+        "no_score": 0.984375,
+        "top": "no"
+      }
+    ],
+    "selection": {
+      "rule": "Highest minimum NO probability across full16000 and crop15840, TensorFlow and native TFLM; all fetched examples and scores retained",
+      "candidates": [
+        {
+          "name": "no_09",
+          "minimum_no_score": 0.99609375
+        },
+        {
+          "name": "no_05",
+          "minimum_no_score": 0.99609375
+        },
+        {
+          "name": "no_07",
+          "minimum_no_score": 0.9921875
+        },
+        {
+          "name": "no_01",
+          "minimum_no_score": 0.9921875
+        },
+        {
+          "name": "no_04",
+          "minimum_no_score": 0.98828125
+        },
+        {
+          "name": "no_10",
+          "minimum_no_score": 0.984375
+        },
+        {
+          "name": "no_06",
+          "minimum_no_score": 0.97265625
+        },
+        {
+          "name": "no_02",
+          "minimum_no_score": 0.94140625
+        },
+        {
+          "name": "no_08",
+          "minimum_no_score": 0.87890625
+        },
+        {
+          "name": "no_03",
+          "minimum_no_score": 0.59765625
+        }
+      ],
+      "selected_name": "no_09",
+      "minimum_no_score": 0.99609375,
+      "selected_pcm": "no_09/crop15840/raw.pcm"
+    },
+    "caveat": "All ten fetched speakers and both lengths were retained in isolated experiment; this host fixture is explicitly selected, not an accuracy benchmark."
+  }
+}

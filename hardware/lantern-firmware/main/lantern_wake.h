@@ -18,3 +18,12 @@ bool lantern_wake_is_available(void);
 bool lantern_wake_is_enabled(void);
 bool lantern_wake_take_detection(void);
 void lantern_wake_feed(const int16_t *samples, size_t count);
+
+// Counters only: no microphone audio or transcript is retained in diagnostics.
+typedef struct {
+  uint32_t frames;
+  uint32_t activations;
+  uint32_t consumed;
+  bool listening;
+} lantern_wake_diagnostics_t;
+void lantern_wake_get_diagnostics(lantern_wake_diagnostics_t *diagnostics);

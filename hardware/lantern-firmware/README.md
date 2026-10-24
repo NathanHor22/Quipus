@@ -1,5 +1,12 @@
 # Quipus firmware
 
+> Current smaller-board pilot: [Waveshare controls and installation](WAVESHARE.md),
+> [offline recording and voice guide](../../docs/quipus-offline-voice-pilot.md).
+> Firmware 0.12.1 uses one warm, confident female voice and local YES/NO consent
+> on the Waveshare profile. The older board instructions below remain available
+> for the separate demo form factors.
+
+
 Current release and open acceptance checks: [0.8.0 release notes](../../docs/quipus-release.md).
 The source directory and protocol names remain `lantern` for compatibility.
 The actual local wake word remains **Computer**. Natural voice interruption

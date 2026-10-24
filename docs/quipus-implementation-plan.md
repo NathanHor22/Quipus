@@ -1,5 +1,7 @@
 # Quipus implementation plan
 
+The current hardware refinement is tracked in [Quipus hands free firmware plan](quipus-hands-free-firmware-plan.md). It records the latest agreed voice, screen and SD retention direction; earlier release history remains below.
+
 22 September 2026. Approved plan and implementation checklist. The first Quipus
 web release is deployed and firmware `0.8.0-quipus` is installed on the connected
 touchscreen V2. See [release evidence and remaining checks](quipus-release.md).
@@ -194,9 +196,10 @@ Supported requests:
 
 Report rules:
 
-1. Default to a concise daily overview, with access to the full breakdown of
-   every included meeting: people, topics, decisions, concerns, commitments,
-   deadlines and actions. Do not truncate the detailed report to one bullet.
+1. Default to a full daily report covering every saved important detail of
+   each included meeting: people, topics, decisions, concerns, commitments,
+   deadlines and actions. Offer a concise overview or actions-only report when
+   explicitly requested. Do not truncate the detailed report to one bullet.
 2. Resolve relative dates in the user's configured timezone. Say the selected
    date and meeting time so the user can catch a wrong interpretation.
 3. Number meetings chronologically within the selected date/range. Store the

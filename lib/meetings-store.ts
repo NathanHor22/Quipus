@@ -1,6 +1,7 @@
 import "server-only";
 
 import { z } from "zod";
+import { withCalendarVisibility } from "./recording-calendar-visibility";
 import type { Commitment, Contact, FollowUp, Meeting, MeetingEvidence, MeetingInsight, PublicResearchSource, TranscriptSegment } from "@/lib/types";
 import { applySpeakerIdentities } from "@/lib/people-identity";
 import { demoMeetings } from "@/lib/demo-data";
@@ -47,11 +48,14 @@ export async function loadMeetings(): Promise<{ meetings: Meeting[]; source: "su
   if (archivedSessionsResult.error) {
     throw new Error(`Could not load archived Quipus recordings: ${archivedSessionsResult.error.message}`);
   }
-  const meetingRows = meetingsResult.data || [];
   const archivedSessionRows = (archivedSessionsResult.data || []) as ArchivedLanternSession[];
   const sessionByMeetingId = new Map(archivedSessionRows.filter((session) => session.meeting_id).map((session) => [session.meeting_id, session]));
   const sessionByRecordingId = new Map(archivedSessionRows.filter((session) => session.recording_id).map((session) => [session.recording_id, session]));
   const sessionByReference = new Map(archivedSessionRows.map((session) => [`hardware:${session.id}`, session]));
+  const meetingRows = (meetingsResult.data || []).filter(row => {
+    const session = sessionByMeetingId.get(row.id) || sessionByRecordingId.get(row.recording_id) || sessionByReference.get(row.client_reference || row.id);
+    return session?.processing_stage !== "discarded_silence";
+  });
   if (!meetingRows.length && !archivedSessionRows.length) {
     return { meetings: [], source: "supabase" };
   }
@@ -214,5 +218,5 @@ export async function loadMeetings(): Promise<{ meetings: Meeting[]; source: "su
     );
   }
   meetings.sort((left, right) => Date.parse(left.startAt) - Date.parse(right.startAt));
-  return { meetings, source: "supabase" };
+  return { meetings: await withCalendarVisibility(client, userId, meetings), source: "supabase" };
 }

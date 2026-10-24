@@ -1,6 +1,7 @@
 #include "lantern_wake.h"
 
 #include <string.h>
+#include <stdatomic.h>
 
 #include "esp_heap_caps.h"
 #include "esp_log.h"
@@ -15,8 +16,13 @@ static model_iface_data_t *s_model_data;
 static int16_t *s_frame;
 static size_t s_frame_samples;
 static size_t s_frame_filled;
-static volatile bool s_enabled;
-static volatile bool s_detected;
+enum { WAKE_DISABLED, WAKE_LISTENING, WAKE_DETECTED };
+// Phase and epoch share one atomic word so cancellation cannot race detection.
+static atomic_uint s_control;
+static unsigned s_feed_generation;
+static atomic_uint s_frames;
+static atomic_uint s_activations;
+static atomic_uint s_consumed;
 
 esp_err_t lantern_wake_init(void) {
   s_models = esp_srmodel_init("model");
@@ -84,22 +90,18 @@ esp_err_t lantern_wake_init(void) {
 
 void lantern_wake_set_enabled(bool enabled) {
   if (!s_model_data || !s_wakenet) return;
-  // A network event can refresh the idle policy between detection and the
-  // control task consuming it. Preserve that event until consumed or cancelled.
-  if (enabled && s_detected) return;
-  if (enabled && !s_enabled) {
-    s_frame_filled = 0;
-    s_detected = false;
-    // WakeNet9's clean() is not safe for this direct-input model after a
-    // detection. It dereferences an empty internal convolution queue and
-    // reboots the ESP32-S3. Dropping the partial input frame is sufficient to
-    // re-arm detection while retaining the model's allocated state.
+  if (enabled) {
+    unsigned expected = atomic_load(&s_control);
+    while ((expected & 3U) == WAKE_DISABLED &&
+           !atomic_compare_exchange_weak(&s_control, &expected,
+               (expected & ~3U) | WAKE_LISTENING)) {}
+  } else {
+    unsigned expected = atomic_load(&s_control);
+    while (!atomic_compare_exchange_weak(&s_control, &expected,
+        (expected + 4U) & ~3U)) {}
   }
-  s_enabled = enabled;
-  if (!enabled) {
-    s_frame_filled = 0;
-    s_detected = false;
-  }
+  // Only the microphone task owns partial frames and model state. Never call
+  // WakeNet9 clean(): this installed direct-input model cannot safely use it.
 }
 
 bool lantern_wake_is_available(void) {
@@ -107,33 +109,52 @@ bool lantern_wake_is_available(void) {
 }
 
 bool lantern_wake_is_enabled(void) {
-  return s_enabled;
+  return (atomic_load(&s_control) & 3U) == WAKE_LISTENING;
 }
 
 bool lantern_wake_take_detection(void) {
-  if (!s_detected) return false;
-  s_detected = false;
-  return true;
+  unsigned expected = atomic_load(&s_control);
+  bool accepted = (expected & 3U) == WAKE_DETECTED &&
+      atomic_compare_exchange_strong(&s_control, &expected, expected & ~3U);
+  if (accepted) atomic_fetch_add(&s_consumed, 1);
+  return accepted;
+}
+
+void lantern_wake_get_diagnostics(lantern_wake_diagnostics_t *diagnostics) {
+  if (!diagnostics) return;
+  diagnostics->frames = atomic_load(&s_frames);
+  diagnostics->activations = atomic_load(&s_activations);
+  diagnostics->consumed = atomic_load(&s_consumed);
+  diagnostics->listening = lantern_wake_is_enabled();
 }
 
 void lantern_wake_feed(const int16_t *samples, size_t count) {
-  if (!s_enabled || !s_model_data || !s_wakenet || !s_frame || !samples) return;
-
-  while (count && s_enabled) {
+  if (!lantern_wake_is_enabled() || !s_model_data || !s_wakenet || !s_frame || !samples) return;
+  unsigned control = atomic_load(&s_control);
+  unsigned generation = control & ~3U;
+  if (s_feed_generation != generation) {
+    s_frame_filled = 0;
+    s_feed_generation = generation;
+  }
+  while (count && lantern_wake_is_enabled()) {
+    if ((atomic_load(&s_control) & ~3U) != generation) return;
     size_t needed = s_frame_samples - s_frame_filled;
     size_t copied = count < needed ? count : needed;
     memcpy(s_frame + s_frame_filled, samples, copied * sizeof(int16_t));
     s_frame_filled += copied;
     samples += copied;
     count -= copied;
-
     if (s_frame_filled != s_frame_samples) continue;
     s_frame_filled = 0;
+    atomic_fetch_add(&s_frames, 1);
     wakenet_state_t result = s_wakenet->detect(s_model_data, s_frame);
+    if ((atomic_load(&s_control) & ~3U) != generation) return;
     if (result == WAKENET_DETECTED) {
-      s_enabled = false;
-      s_detected = true;
-      ESP_LOGI(TAG, "Wake phrase detected: %s", LANTERN_WAKE_PHRASE);
+      unsigned expected = generation | WAKE_LISTENING;
+      if (atomic_compare_exchange_strong(&s_control, &expected, generation | WAKE_DETECTED)) {
+        atomic_fetch_add(&s_activations, 1);
+        ESP_LOGI(TAG, "Wake phrase detected: %s", LANTERN_WAKE_PHRASE);
+      }
     }
   }
 }

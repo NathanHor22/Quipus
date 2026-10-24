@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { canHideRecording, updateCalendarVisibility } from "@/lib/workspace/calendar-visibility";
 import type { Contact, Meeting, ScheduleDetails } from "@/lib/types";
 import { useBrowserStorageSnapshot } from "@/components/hooks/useBrowserStorageSnapshot";
 import { getBrowserSupabase } from "@/lib/supabase/client";
@@ -45,6 +46,7 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
   const [deviceStatusLoaded, setDeviceStatusLoaded] = useState(false);
   const [approvalReceipt, setApprovalReceipt] = useState<ApprovalReceipt | null>(null);
   const [working, setWorking] = useState<string | null>(null);
+  const [calendarUndo, setCalendarUndo] = useState<string | null>(null);
   const generation = useRef(0);
   const actionLock = useRef(false);
   const liveRefreshRunning = useRef<symbol | null>(null);
@@ -103,6 +105,7 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
     setDevice(null);
     setDeviceStatusLoaded(false);
     setApprovalReceipt(null);
+    setCalendarUndo(null);
     const url = new URL(window.location.href);
     url.searchParams.set("mode", "sample");
     window.history.replaceState({}, "", url);
@@ -434,6 +437,48 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
     }
   };
 
+  const setCalendarVisibility = async (id: string, hidden: boolean): Promise<boolean> => {
+    const meeting = meetings.find(item => item.id === id);
+    if (actionLock.current || !meeting || !canHideRecording(meeting)) return false;
+    actionLock.current = true;
+    if (mode === "live") generation.current++;
+    setWorking(`calendar:${id}`);
+    setError(null);
+    const actionOwner = owner.current;
+    try {
+      if (mode === "live") {
+        if (id.startsWith("sample:")) throw new Error("Sample recordings cannot update your workspace.");
+        const response = await fetch(`/api/meetings/${encodeURIComponent(id)}/calendar-visibility`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ hidden }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (actionOwner !== owner.current) return false;
+        if (!response.ok || !payload.persisted)
+          throw new Error(payload.error || "Calendar visibility could not be saved.");
+        generation.current++;
+      }
+      if (mode === "sample") {
+        const next = updateCalendarVisibility(meetings, id, hidden);
+        setMeetings(next);
+        persistSample(next);
+      } else {
+        setMeetings(current => updateCalendarVisibility(current, id, hidden));
+      }
+      setCalendarUndo(hidden ? id : null);
+      setNotice(hidden ? "Hidden from calendar. Audio and history are kept." : "Recording restored to calendar.");
+      return true;
+    } catch (cause) {
+      if (actionOwner !== owner.current) return false;
+      setError(cause instanceof Error ? cause.message : "Calendar visibility could not be saved.");
+      return false;
+    } finally {
+      actionLock.current = false;
+      setWorking(null);
+    }
+  };
+
   return {
     mode,
     meetings,
@@ -449,6 +494,8 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
     approve,
     patchFollowUp,
     patchContact,
+    setCalendarVisibility,
+    calendarUndo: notice === "Hidden from calendar. Audio and history are kept." ? calendarUndo : null,
     loadSample,
     loadLive,
     setError,

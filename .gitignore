@@ -83,3 +83,9 @@ Desktop.ini
 
 # Temporary dependency audit reports
 /tmp-upgrade-*.json
+
+# Explicit bench-only offline voice build and generated SDK config
+/hardware/lantern-firmware/build-waveshare-offline-test/
+/hardware/lantern-firmware/sdkconfig.waveshare-offline-test
+/hardware/lantern-firmware/sdkconfig.waveshare-offline-test.old
+/hardware/lantern-firmware/build-kws/

@@ -15,7 +15,9 @@
 
 #include "lantern_board.h"
 #include "lantern_board_io.h"
+#include "lantern_display.h"
 #include "quipus_pcm.h"
+#include "quipus_barge_in.h"
 #include "quipus_volume.h"
 
 #define AUDIO_READ_SAMPLES 320
@@ -54,6 +56,10 @@ static atomic_uint s_volume = QUIPUS_VOLUME_DEFAULT;
 static atomic_uint s_volume = 100;
 #endif
 
+unsigned lantern_audio_output_stack_free(void) {
+  return s_pcm_task ? (unsigned)uxTaskGetStackHighWaterMark(s_pcm_task) : 0U;
+}
+
 unsigned lantern_audio_volume(void) {
   return atomic_load_explicit(&s_volume, memory_order_relaxed);
 }
@@ -87,16 +93,33 @@ static i2s_output_sample_t output_sample(int16_t sample) {
 #endif
 
 static esp_err_t speaker_start_silent(void) {
-  i2s_output_sample_t silence[AUDIO_WRITE_SAMPLES * I2S_OUTPUT_CHANNELS] = {0};
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  // Only the owner of s_speaker_lock may inspect/repair the output codec.
+  // This verifies register state, not physical audibility.
+  lantern_board_speaker_state_t state = {0};
+  esp_err_t prepared = lantern_board_speaker_prepare_output(lantern_audio_volume(), &state);
+  ESP_LOGI(TAG, "speaker prepare volume=%u result=%s valid=0x%02x regs31_32_0d_12=%02x,%02x,%02x,%02x "
+      "read_status=%d,%d,%d,%d control=%d repair=%u verified=%u",
+      lantern_audio_volume(), esp_err_to_name(prepared), (unsigned)state.valid_mask,
+      state.values[0], state.values[1], state.values[2], state.values[3],
+      state.read_status[0], state.read_status[1], state.read_status[2], state.read_status[3],
+      state.control_error, state.repair_attempted, state.repair_verified);
+  if (prepared != ESP_OK) return prepared;
+#endif
+  static const i2s_output_sample_t silence[AUDIO_WRITE_SAMPLES * I2S_OUTPUT_CHANNELS] = {0};
 #if LANTERN_AUDIO_SHARED_BUS
   // Keep both directions of the codec's full-duplex clock domain running.
   // Muting is handled by the external amplifier instead of stopping TX.
   size_t bytes_written = 0;
   esp_err_t result = i2s_channel_write(s_speaker, silence, sizeof(silence),
-                                       &bytes_written, pdMS_TO_TICKS(100));
-  if (result == ESP_OK)
-    lantern_board_speaker_enable(true);
-  return result;
+                                       &bytes_written, 100);
+  if (result != ESP_OK || bytes_written != sizeof(silence)) {
+    ESP_LOGE(TAG, "speaker silence preload failed: %s bytes=%u/%u", esp_err_to_name(result),
+        (unsigned)bytes_written, (unsigned)sizeof(silence));
+    return result != ESP_OK ? result : ESP_FAIL;
+  }
+  lantern_board_speaker_enable(true);
+  return ESP_OK;
 #else
   size_t bytes_loaded = 0;
   ESP_RETURN_ON_ERROR(i2s_channel_preload_data(s_speaker, silence,
@@ -114,10 +137,10 @@ static esp_err_t speaker_start_silent(void) {
 }
 
 static void speaker_stop_silent(void) {
-  i2s_output_sample_t silence[AUDIO_WRITE_SAMPLES * I2S_OUTPUT_CHANNELS] = {0};
+  static const i2s_output_sample_t silence[AUDIO_WRITE_SAMPLES * I2S_OUTPUT_CHANNELS] = {0};
   size_t bytes_written = 0;
   if (i2s_channel_write(s_speaker, silence, sizeof(silence), &bytes_written,
-                        pdMS_TO_TICKS(100)) == ESP_OK) {
+                        100) == ESP_OK) {
     vTaskDelay(pdMS_TO_TICKS(20));
   }
   lantern_board_speaker_enable(false);
@@ -126,13 +149,47 @@ static void speaker_stop_silent(void) {
 #endif
 }
 
+// Natural acoustic barge-in has not passed acceptance on the Wave pilot. Keep
+// deterministic speaker/user turns there: echo must never become a command.
+// These gates also avoid allocating or running the unused AEC/VAD pipeline.
+static void report_listener_init(void) {
+#if !CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  esp_err_t echo = quipus_barge_in_init();
+  if (echo != ESP_OK && echo != ESP_ERR_NOT_SUPPORTED)
+    ESP_LOGW(TAG, "Echo listener unavailable: %s; physical interrupt retained", esp_err_to_name(echo));
+#endif
+}
+
+static void report_listener_reference(const int16_t *samples, size_t count) {
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  (void)samples;
+  (void)count;
+#else
+  quipus_barge_in_reference(samples, count);
+#endif
+}
+
+static void report_listener_feed(const int16_t *samples, size_t count) {
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  (void)samples;
+  (void)count;
+#else
+  quipus_barge_in_feed(samples, count);
+#endif
+}
+
 static void pcm_playback_task(void *argument) {
   (void)argument;
-  uint8_t input[AUDIO_WRITE_SAMPLES * sizeof(int16_t)];
-  i2s_output_sample_t output[AUDIO_WRITE_SAMPLES * I2S_OUTPUT_CHANNELS];
+  // This task is the sole owner. Keep fixed payload buffers off its call stack
+  // so codec checks and driver/log calls retain bounded stack headroom.
+  static uint8_t input[AUDIO_WRITE_SAMPLES * sizeof(int16_t)];
+  static i2s_output_sample_t output[AUDIO_WRITE_SAMPLES * I2S_OUTPUT_CHANNELS];
+  static int16_t reference[AUDIO_WRITE_SAMPLES];
   while (true) {
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
     bool speaker_started = false;
+    uint32_t output_frames = 0, written_frames = 0, nonzero_frames = 0;
+    uint16_t output_peak = 0;
     while (s_pcm_playing) {
       if (s_pcm_cancelled)
         break;
@@ -144,7 +201,9 @@ static void pcm_playback_task(void *argument) {
           vTaskDelay(pdMS_TO_TICKS(5));
           continue;
         }
-        if (!available || speaker_start_silent() != ESP_OK) {
+        esp_err_t started = available ? speaker_start_silent() : ESP_ERR_INVALID_SIZE;
+        if (started != ESP_OK) {
+          ESP_LOGE(TAG, "PCM speaker start failed: %s", esp_err_to_name(started));
           s_pcm_failed = true;
           break;
         }
@@ -178,6 +237,7 @@ static void pcm_playback_task(void *argument) {
           source_count * LANTERN_SPK_SAMPLE_RATE / LANTERN_TTS_SAMPLE_RATE;
       if (!sample_count && source_count)
         sample_count = 1;
+      uint32_t speech_absolute = 0;
       for (size_t index = 0; index < sample_count; ++index) {
         size_t source_index =
             index * LANTERN_TTS_SAMPLE_RATE / LANTERN_SPK_SAMPLE_RATE;
@@ -186,6 +246,13 @@ static void pcm_playback_task(void *argument) {
         int16_t sample =
             (int16_t)((uint16_t)input[source_index * 2] |
                       ((uint16_t)input[source_index * 2 + 1] << 8));
+        int32_t audible = speaker_sample(sample);
+        reference[index] = (int16_t)audible;
+        uint32_t magnitude = (uint32_t)(audible < 0 ? -audible : audible);
+        speech_absolute += magnitude;
+        ++output_frames;
+        if (magnitude) ++nonzero_frames;
+        if (magnitude > output_peak) output_peak = (uint16_t)magnitude;
         for (size_t channel = 0; channel < I2S_OUTPUT_CHANNELS; ++channel) {
           output[index * I2S_OUTPUT_CHANNELS + channel] = output_sample(sample);
         }
@@ -194,15 +261,27 @@ static void pcm_playback_task(void *argument) {
       const size_t output_bytes =
           sample_count * I2S_OUTPUT_CHANNELS * sizeof(output[0]);
       esp_err_t result = i2s_channel_write(s_speaker, output, output_bytes,
-                                           &bytes_written, pdMS_TO_TICKS(250));
+                                           &bytes_written, 250);
       if (result != ESP_OK || bytes_written != output_bytes) {
+        ESP_LOGE(TAG, "PCM I2S write failed: %s bytes=%u/%u", esp_err_to_name(result),
+            (unsigned)bytes_written, (unsigned)output_bytes);
         s_pcm_failed = true;
         break;
       }
+      written_frames += (uint32_t)sample_count;
+      // Same post-volume16k samples as the DAC; bounded SPSC reference only.
+      report_listener_reference(reference, sample_count);
+      unsigned level = sample_count ?
+          (unsigned)((speech_absolute / sample_count) * 100U / 4000U) : 0;
+      lantern_display_set_speech_level(level > 100 ? 100 : level, true);
     }
+    lantern_display_set_speech_level(0, false);
 
     if (speaker_started)
       speaker_stop_silent();
+    ESP_LOGI(TAG, "PCM submitted_frames=%lu written_frames=%lu nonzero=%lu peak=%u volume=%u failed=%u cancelled=%u",
+        (unsigned long)output_frames, (unsigned long)written_frames, (unsigned long)nonzero_frames, (unsigned)output_peak,
+        lantern_audio_volume(), s_pcm_failed, s_pcm_cancelled);
     s_pcm_playing = false;
     s_speaker_active = false;
     xSemaphoreGive(s_speaker_lock);
@@ -227,7 +306,7 @@ static void microphone_task(void *argument) {
   while (true) {
     size_t bytes_read = 0;
     esp_err_t result = i2s_channel_read(s_microphone, raw, sizeof(raw),
-                                        &bytes_read, pdMS_TO_TICKS(250));
+                                        &bytes_read, 250);
     if (result != ESP_OK || !bytes_read) {
       if (!capture_logged) {
         ESP_LOGW(TAG, "first microphone read failed: %s, bytes=%u",
@@ -282,6 +361,7 @@ static void microphone_task(void *argument) {
       }
     }
     s_level = samples ? (uint32_t)(absolute_total / samples) : 0;
+    report_listener_feed(converted, samples);
     lantern_audio_frame_callback_t archive = s_archive_callback;
     if (s_recording && archive && samples)
       archive(converted, samples);
@@ -411,10 +491,11 @@ esp_err_t lantern_audio_init(void) {
                                     MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
   if (!s_retry_buffer)
     return ESP_ERR_NO_MEM;
-  if (xTaskCreatePinnedToCore(pcm_playback_task, "lantern_pcm", 4096, NULL, 7,
+  if (xTaskCreatePinnedToCore(pcm_playback_task, "lantern_pcm", 6144, NULL, 7,
                               &s_pcm_task, 1) != pdPASS) {
     return ESP_ERR_NO_MEM;
   }
+  report_listener_init();
   // Agora's synchronous PCM encode/send path runs inside this callback task
   // and needs substantially more stack than the I2S capture loop alone.
   xTaskCreatePinnedToCore(microphone_task, "lantern_mic", 12288, NULL, 6, NULL,
@@ -431,13 +512,19 @@ void lantern_audio_chime(unsigned count) {
       xSemaphoreTake(s_speaker_lock, pdMS_TO_TICKS(500)) != pdTRUE)
     return;
   s_speaker_active = true;
-  if (speaker_start_silent() != ESP_OK) {
+  esp_err_t started = speaker_start_silent();
+  if (started != ESP_OK) {
+    ESP_LOGE(TAG, "chime speaker start failed: %s", esp_err_to_name(started));
     s_speaker_active = false;
     xSemaphoreGive(s_speaker_lock);
     return;
   }
-  i2s_output_sample_t samples[AUDIO_WRITE_SAMPLES * I2S_OUTPUT_CHANNELS];
-  for (unsigned tone = 0; tone < count; ++tone) {
+  // Shared only while this caller owns s_speaker_lock.
+  static i2s_output_sample_t samples[AUDIO_WRITE_SAMPLES * I2S_OUTPUT_CHANNELS];
+  esp_err_t output_result = ESP_OK;
+  uint32_t output_frames = 0;
+  uint32_t microphone_before = lantern_audio_level(), microphone_peak = microphone_before;
+  for (unsigned tone = 0; tone < count && output_result == ESP_OK; ++tone) {
     for (int chunk = 0; chunk < 12; ++chunk) {
       for (size_t index = 0; index < AUDIO_WRITE_SAMPLES; ++index) {
         int phase = (int)((index + chunk * AUDIO_WRITE_SAMPLES) % 48);
@@ -448,13 +535,24 @@ void lantern_audio_chime(unsigned count) {
         }
       }
       size_t bytes_written = 0;
-      i2s_channel_write(s_speaker, samples, sizeof(samples), &bytes_written,
-                        pdMS_TO_TICKS(100));
+      output_result = i2s_channel_write(s_speaker, samples, sizeof(samples), &bytes_written, 100);
+      if (output_result != ESP_OK || bytes_written != sizeof(samples)) {
+        ESP_LOGE(TAG, "chime I2S write failed: %s bytes=%u/%u", esp_err_to_name(output_result),
+            (unsigned)bytes_written, (unsigned)sizeof(samples));
+        if (output_result == ESP_OK) output_result = ESP_FAIL;
+        break;
+      }
+      output_frames += AUDIO_WRITE_SAMPLES;
+      uint32_t microphone_level = lantern_audio_level();
+      if (microphone_level > microphone_peak) microphone_peak = microphone_level;
     }
-    if (tone + 1 < count)
+    if (output_result == ESP_OK && tone + 1 < count)
       vTaskDelay(pdMS_TO_TICKS(90));
   }
   speaker_stop_silent();
+  ESP_LOGI(TAG, "chime output frames=%lu volume=%u status=%s mic_before=%lu mic_peak=%lu",
+      (unsigned long)output_frames, lantern_audio_volume(), esp_err_to_name(output_result),
+      (unsigned long)microphone_before, (unsigned long)microphone_peak);
   s_speaker_active = false;
   xSemaphoreGive(s_speaker_lock);
 }
@@ -507,16 +605,23 @@ void lantern_audio_pcm_cancel(void) {
   // Only the playback task owns the I2S channel; it stops and drains safely.
 }
 
-void lantern_audio_pcm_end(void) {
+esp_err_t lantern_audio_pcm_end(void) {
   if (!s_pcm_playing)
-    return;
+    return s_pcm_failed || s_pcm_cancelled ? ESP_FAIL : ESP_OK;
   s_pcm_input_finished = true;
   xTaskNotifyGive(s_pcm_task);
   if (xSemaphoreTake(s_pcm_finished, pdMS_TO_TICKS(5000)) != pdTRUE) {
     ESP_LOGE(TAG, "PCM playback drain timed out");
     s_pcm_failed = true;
+    // The playback task owns I2S and the speaker lock. Ask it to stop rather
+    // than releasing those resources while a late write may still be active.
+    s_pcm_cancelled = true;
+    xTaskNotifyGive(s_pcm_task);
+    return ESP_ERR_TIMEOUT;
   }
-  ESP_LOGI(TAG, "PCM playback finished%s", s_pcm_failed ? " with errors" : "");
+  bool failed = s_pcm_failed || s_pcm_cancelled;
+  ESP_LOGI(TAG, "PCM playback finished%s", failed ? " with errors" : "");
+  return failed ? ESP_FAIL : ESP_OK;
 }
 
 void lantern_audio_set_recording(bool recording) {
@@ -605,7 +710,7 @@ unsigned lantern_audio_play_latest(unsigned max_seconds) {
     size_t bytes_written = 0;
     i2s_channel_write(s_speaker, output,
                       chunk * I2S_OUTPUT_CHANNELS * sizeof(output[0]),
-                      &bytes_written, pdMS_TO_TICKS(200));
+                      &bytes_written, 200);
     output_offset += chunk;
   }
   speaker_stop_silent();
@@ -625,4 +730,43 @@ void lantern_audio_clear_private_buffer(void) {
     for (size_t i = 0; i < RETRY_BUFFER_SAMPLES; ++i)
       samples[i] = 0;
   }
+}
+
+void lantern_audio_set_report_listening(bool enabled) {
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  (void)enabled;
+#else
+  quipus_barge_in_enable(enabled);
+#endif
+}
+void lantern_audio_reset_report_listening(void) {
+#if !CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  quipus_barge_in_reset();
+#endif
+}
+bool lantern_audio_take_speech_interrupt(void) {
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  return false;
+#else
+  return quipus_barge_in_take_event();
+#endif
+}
+bool lantern_audio_capture_interruption(unsigned maximum_ms) {
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  (void)maximum_ms;
+  return false;
+#else
+  if (!quipus_barge_in_capture_pending()) return false;
+  TickType_t started = xTaskGetTickCount();
+  while (!quipus_barge_in_capture_ready() &&
+         (xTaskGetTickCount() - started) * portTICK_PERIOD_MS < maximum_ms)
+    vTaskDelay(pdMS_TO_TICKS(20));
+  if (!quipus_barge_in_capture_ready()) { quipus_barge_in_reset(); return false; }
+  if (s_recording) return false;
+  size_t count = quipus_barge_in_take_audio(s_retry_buffer, RETRY_BUFFER_SAMPLES);
+  if (!count) return false;
+  s_sample_count = count;
+  s_write_index = count % RETRY_BUFFER_SAMPLES;
+  return true;
+#endif
 }

@@ -247,6 +247,7 @@ export function createSampleWorkspace(now = new Date()): WorkspaceData {
 }
 
 const sampleMeetingSchema = z.object({
+  calendarHidden: z.boolean().optional(),
   id: z.string().startsWith("sample:"),
   title: z.string(),
   startAt: z.string().datetime({ offset: true }),

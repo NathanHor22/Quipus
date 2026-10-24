@@ -39,3 +39,14 @@ esp_err_t quipus_archive_journal_append(const char *path, const uint8_t key[32],
                                         const char *json);
 esp_err_t quipus_archive_journal_read(const char *path, const uint8_t key[32],
                                       char *json, size_t capacity);
+
+// Dedicated report source (2), mono signed-16 PCM at 24 kHz. Recording APIs
+// above remain strictly source 0/1 at 16 kHz; no resampling or format guessing.
+esp_err_t quipus_archive_create_report(const char *path, const uint8_t key[32],
+                                       const char *report_id, const char *owner_id,
+                                       const char *device_id,
+                                       quipus_archive_writer_t **writer);
+esp_err_t quipus_archive_open_report(const char *path, const uint8_t key[32],
+                                     const char *report_id, const char *owner_id,
+                                     const char *device_id,
+                                     quipus_archive_reader_t **reader);

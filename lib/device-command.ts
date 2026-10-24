@@ -6,7 +6,8 @@ export type DeviceCommandContext =
   | "consent"
   | "consent_retry"
   | "action"
-  | "report";
+  | "report"
+  | "recovery";
 export type DeviceCommandIntent =
   | "wake_detected"
   | "status_report"
@@ -15,6 +16,8 @@ export type DeviceCommandIntent =
   | "stop_recording"
   | "consent_yes"
   | "consent_no"
+  | "retry_recovery"
+  | "cancel_recovery"
   | "unknown";
 
 function normalizedCommand(value: string) {
@@ -38,20 +41,37 @@ export function interpretDeviceCommand(
   // offline model still wakes on Computer, not the new product name.
   const hasWakeAddress = /\b(?:computer|quipus|lantern|latern|ring)\b/iu.test(command);
 
+  if (context === "recovery") {
+    const recovery = command.replace(/^(?:computer|quipus|lantern|latern|ring) /u, "");
+    if (/^(?:retry|try again|retry upload|retry the upload|retry uploading|resume upload|resume uploading|upload saved recordings|cuba lagi)$/u.test(recovery)) return "retry_recovery";
+    if (/^(?:cancel|go back|back|return to ready|never mind|nevermind|batal)$/u.test(recovery)) return "cancel_recovery";
+    if (/^(?:status report|daily report|daily briefing|laporan status|laporan hari ini)$/u.test(recovery)) return "status_report";
+    if (/^(?:wi fi setup|wifi setup|set up wi fi|set up wifi|change wi fi|change wifi|network setup|internet setup|setup network)$/u.test(recovery)) return "wifi_setup";
+    return "unknown";
+  }
+
   if (context === "wake_word") {
     return hasWakeAddress ? "wake_detected" : "unknown";
   }
 
   if (context === "consent" || context === "consent_retry") {
+    // Refusal takes precedence even if a long answer also contains "yes".
     if (
-      /\b(?:no|nope|cancel|don't|do not|tak|tidak|jangan|belum|batal)\b/iu.test(command)
+      /\b(?:no|nope|nah|not|never|cancel|stop|don't|dont|do not|cannot|can't|cant|won't|wont|didn't|didnt|disagree|decline|refuse|tak|tidak|jangan|belum|batal)\b/iu.test(command)
     ) {
       return "consent_no";
     }
+    // A reported/quoted yes, question, condition or background conversation
+    // cannot consent on behalf of the room. Match a complete short answer.
+    if (transcript.includes("?") || /["\u201c\u201d]/u.test(transcript)) return "unknown";
+    const answer = command
+      .replace(/^(?:computer|quipus|lantern|latern|ring) /u, "")
+      .replace(/ (?:please|thank you|thanks)$/u, "");
     if (
-      /\b(?:yes|yeah|yep|agree|agreed|consent|okay|ok|boleh|setuju|ya|teruskan|go ahead)\b/iu.test(
-        command,
-      )
+      /^(?:(?:yes|yeah|yep|yup|ya|okay|ok)(?: |$))+$/u.test(answer) ||
+      /^(?:boleh|setuju|teruskan|go ahead|agreed)$/u.test(answer) ||
+      /^(?:(?:yes|yeah|yep|yup|ya|okay|ok) )?(?:i|we|we all|everyone|everybody|all of us) (?:consent|agree|agreed|have agreed|has agreed)(?: to (?:recording|being recorded|the recording))?$/u.test(answer) ||
+      /^(?:(?:yes|yeah|ya|okay|ok) )?(?:saya|kami|semua) setuju$/u.test(answer)
     ) {
       return "consent_yes";
     }
@@ -98,6 +118,10 @@ export function commandReply(
   context: DeviceCommandContext = "ready",
 ) {
   switch (intent) {
+    case "retry_recovery":
+      return "Retrying the saved operation.";
+    case "cancel_recovery":
+      return "Returning to ready. Saved recordings are preserved.";
     case "wake_detected":
       return "I'm listening. Say your command.";
     case "start_recording":

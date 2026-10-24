@@ -81,67 +81,36 @@ test("OpenAI speech requests streamable 24 kHz PCM without exposing its key", as
   assert.equal(request?.url, "https://api.openai.com/v1/audio/speech");
   assert.equal(request?.headers.get("authorization"), "Bearer test-secret-key");
   const body = JSON.parse(await request!.text()) as Record<string, unknown>;
-  assert.equal(body.model, "gpt-4o-mini-tts");
-  assert.equal(body.voice, "cedar");
+  assert.equal(body.model, "gpt-4o-mini-tts-2025-12-15");
+  assert.equal(body.voice, "marin");
   assert.equal(body.response_format, "pcm");
   assert.equal(body.stream_format, "audio");
-  assert.equal(body.speed, 1.08);
+  assert.equal(body.speed, 1.02);
   assert.deepEqual([...new Uint8Array(await response.arrayBuffer())], [0, 0, 1, 0]);
 });
 
-test("OpenAI speech falls back to tts-1 PCM when the project cannot access the preferred model", async () => {
+test("unavailable speech fails explicitly without switching voice or using Chat Completions", async () => {
   const requests: Request[] = [];
-  const response = await createOpenAISpeech("Status report.", {
+  await assert.rejects(createOpenAISpeech("Status report.", {
     apiKey: "test-secret-key",
     fetchImpl: async (input, init) => {
-      const request = new Request(input, init);
-      requests.push(request);
-      if (requests.length === 1) {
-        return Response.json(
-          { error: { code: "model_not_found", message: "not available" } },
-          { status: 403 },
-        );
-      }
-      return new Response(new Uint8Array([2, 0]), { status: 200 });
+      requests.push(new Request(input, init));
+      return Response.json({ error: { code: "model_not_found", message: "private-provider-detail" } }, { status: 403 });
     },
-  });
-  assert.equal(requests.length, 2);
-  const preferred = JSON.parse(await requests[0].text()) as Record<string, unknown>;
-  const fallback = JSON.parse(await requests[1].text()) as Record<string, unknown>;
-  assert.equal(preferred.model, "gpt-4o-mini-tts");
-  assert.equal(fallback.model, "tts-1");
-  assert.equal(fallback.voice, "alloy");
-  assert.equal(fallback.response_format, "pcm");
-  assert.equal(fallback.stream_format, "audio");
-  assert.equal(fallback.speed, 1.08);
-  assert.equal("instructions" in fallback, false);
-  assert.deepEqual([...new Uint8Array(await response.arrayBuffer())], [2, 0]);
+  }), error => error instanceof Error && /No alternate voice was used/.test(error.message) && !error.message.includes("private-provider-detail"));
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].url, "https://api.openai.com/v1/audio/speech");
+  const request = await requests[0].json();
+  assert.equal(request.voice, "marin");
+  assert.equal(request.model, "gpt-4o-mini-tts-2025-12-15");
 });
 
-test("OpenAI speech can use Chat Completions audio when speech models are unavailable", async () => {
-  const requests: Request[] = [];
-  const pcm = new Uint8Array([0, 1, 2, 3]);
-  const response = await createOpenAISpeech("Lantern online.", {
-    apiKey: "test-secret-key",
-    fetchImpl: async (input, init) => {
-      const request = new Request(input, init);
-      requests.push(request);
-      if (request.url.endsWith("/audio/speech")) {
-        return Response.json(
-          { error: { code: "model_not_found", message: "not available" } },
-          { status: 403 },
-        );
-      }
-      return Response.json({
-        choices: [{ message: { audio: { data: Buffer.from(pcm).toString("base64") } } }],
-      });
-    },
-  });
-  assert.equal(requests.length, 3);
-  assert.equal(requests[2].url, "https://api.openai.com/v1/chat/completions");
-  const body = JSON.parse(await requests[2].text()) as Record<string, unknown>;
-  assert.equal(body.model, "gpt-audio-1.5");
-  assert.deepEqual(body.modalities, ["text", "audio"]);
-  assert.deepEqual(body.audio, { voice: "alloy", format: "pcm16" });
-  assert.deepEqual([...new Uint8Array(await response.arrayBuffer())], [...pcm]);
+test("conflicting voice/model overrides are rejected before any provider request", async () => {
+  let calls = 0;
+  for (const override of [{ voice: "alloy" }, { model: "tts-1" }]) {
+    await assert.rejects(createOpenAISpeech("Quipus ready.", { ...override, apiKey: "test",
+      fetchImpl: async () => { calls++; return new Response(); },
+    }), /shared Quipus voice profile/);
+  }
+  assert.equal(calls, 0);
 });

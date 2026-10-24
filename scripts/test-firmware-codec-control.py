@@ -19,13 +19,22 @@ if not (codec / "interface/audio_codec_ctrl_if.h").is_file():
     parser.error("Resolve firmware ESP-IDF components first; the test uses the real codec interface.")
 build = root / ".tmp-codec-control-host"
 build.mkdir(exist_ok=True)
+board = (source / "lantern_board_io.c").read_text()
+start = board.index("  const audio_codec_if_t *codec = NULL;")
+end = board.index("\n#else", start)
+# Use the actual production retry block; only the vendor constructor edge is
+# fault-injected and performs real transfers through the production adapter.
+(build / "codec_constructor_under_test.c").write_text(
+    "static const audio_codec_if_t *production_constructor_retry(es8311_codec_cfg_t codec_config) {\n"
+    "const audio_codec_ctrl_if_t *control = codec_config.ctrl_if;\n" + board[start:end] + "\nreturn codec;\n}\n")
 # ESP-IDF profiles can use different tick rates; a 2 ms delay must never become zero.
 for tick_hz in (1000, 100):
     binary = build / (f"codec-control-{tick_hz}" + (".exe" if os.name == "nt" else ""))
     subprocess.run(compiler + [
-        "-std=c11", "-O1", "-Wall", "-Wextra", "-Werror",
+        "-std=c11", "-O1", "-UNDEBUG", "-Wall", "-Wextra", "-Werror",
         f"-DTEST_TICK_HZ={tick_hz}",
-        "-I" + str(test / "stubs"), "-I" + str(source),
+        "-I" + str(test / "stubs"), "-I" + str(source), "-I" + str(build),
+        "-I" + str(codec / "device/include"),
         "-I" + str(codec / "include"), "-I" + str(codec / "interface"),
         str(test / "codec_control_test.c"), str(source / "quipus_codec_control.c"),
         str(codec / "esp_codec_dev_if.c"), "-o", str(binary),

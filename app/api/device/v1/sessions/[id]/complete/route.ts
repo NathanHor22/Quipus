@@ -1,4 +1,5 @@
 import { archiveVerified } from "@/lib/archive-verification";
+import { verifiedSilenceDiscard } from "@/lib/recording-discard";
 import { usesDedicatedRecordingWorker } from "@/lib/processing-mode";
 import { after, NextResponse } from "next/server";
 import { z } from "zod";
@@ -47,7 +48,13 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       }
     });
     const verified = await archiveVerified(client, id, stored.audio_event_id, stored.recording_id);
-    return reply({ accepted: true, archiveAccepted: true, archiveVerified: verified, processingQueued: stored.processing_stage !== "ready",
+    const discarded = stored.processing_stage === "discarded_silence" && await verifiedSilenceDiscard(client, {
+      sessionId: id, recordingId: stored.recording_id, eventId: stored.audio_event_id,
+      userId: device.userId, deviceId: device.id,
+    });
+    return reply({ sessionId: id, accepted: true, archiveAccepted: true, archiveVerified: verified,
+      processingQueued: stored.processing_stage !== "ready" && !discarded, discarded,
+      ...(discarded ? { discardReason: "short_digital_silence" } : {}),
       duplicate: Boolean(stored.ended_at), conversationId: `hardware:${id}`, meetingId: stored.meeting_id,
       meeting: stored.processing_stage === "ready" ? { status: "ready" } : null, session: machine });
   } catch (cause) {

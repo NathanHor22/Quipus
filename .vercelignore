@@ -28,3 +28,9 @@ hardware/lantern-custom-pcb
 *.tsbuildinfo
 tmp
 output
+hardware/lantern-firmware/build-waveshare
+hardware/lantern-firmware/build-phone
+hardware/lantern-firmware/sdkconfig.waveshare
+hardware/lantern-firmware/sdkconfig.waveshare.old
+hardware/lantern-firmware/sdkconfig.phone
+hardware/lantern-firmware/sdkconfig.phone.old

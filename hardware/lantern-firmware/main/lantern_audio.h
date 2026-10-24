@@ -12,12 +12,15 @@ typedef void (*lantern_audio_frame_callback_t)(const int16_t *samples,
 esp_err_t lantern_audio_init(void);
 // 0 mutes speaker output; 100 retains the codec's configured maximum.
 // The current value is kept until restart; capture gain is unchanged.
+// Minimum unused playback task stack, in ESP-IDF bytes; 0 before startup.
+unsigned lantern_audio_output_stack_free(void);
 unsigned lantern_audio_volume(void);
 unsigned lantern_audio_adjust_volume(int delta);
 void lantern_audio_chime(unsigned count);
 esp_err_t lantern_audio_pcm_begin(void);
 esp_err_t lantern_audio_pcm_write(const void *data, size_t length);
-void lantern_audio_pcm_end(void);
+// Drains the current reply; reports I2S failure, cancellation or timeout.
+esp_err_t lantern_audio_pcm_end(void);
 void lantern_audio_pcm_cancel(void);
 void lantern_audio_set_recording(bool recording);
 void lantern_audio_set_streaming(bool streaming);
@@ -37,3 +40,12 @@ unsigned lantern_audio_play_latest(unsigned max_seconds);
 
 // Idle-only privacy cleanup during verified ownership transfer.
 void lantern_audio_clear_private_buffer(void);
+
+// Report-only speech interruption; never used to approve recording consent.
+// Wave pilot uses deterministic speaker/user turns: natural mid-speech
+// interruption stays disabled until acoustic calibration passes. These APIs
+// never initialize/admit AEC/VAD there; physical report cancellation is separate.
+void lantern_audio_set_report_listening(bool enabled);
+void lantern_audio_reset_report_listening(void);
+bool lantern_audio_take_speech_interrupt(void);
+bool lantern_audio_capture_interruption(unsigned maximum_ms);

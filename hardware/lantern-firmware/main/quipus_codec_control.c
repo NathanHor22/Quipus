@@ -115,6 +115,15 @@ int quipus_codec_control_error(const audio_codec_ctrl_if_t *base) {
   return ((const quipus_codec_control_t *)base)->terminal_error;
 }
 
+int quipus_codec_control_reset_error(const audio_codec_ctrl_if_t *base) {
+  if (!base || base->read_reg != control_read || base->write_reg != control_write)
+    return ESP_CODEC_DEV_INVALID_ARG;
+  quipus_codec_control_t *control = (quipus_codec_control_t *)base;
+  if (!control->opened) return ESP_CODEC_DEV_WRONG_STATE;
+  control->terminal_error = ESP_CODEC_DEV_OK;
+  return ESP_CODEC_DEV_OK;
+}
+
 const audio_codec_ctrl_if_t *quipus_codec_new_i2c_ctrl(const audio_codec_i2c_cfg_t *config) {
   if (!config) return NULL;
   quipus_codec_control_t *control = calloc(1, sizeof(*control));

@@ -1,0 +1,9 @@
+Speech Commands dataset: Google and public contributors via the AIY website.
+Source archive: https://storage.googleapis.com/download.tensorflow.org/data/mini_speech_commands.zip
+Member: mini_speech_commands/no/0362539c_nohash_3.wav
+License: Creative Commons Attribution 4.0 International (CC BY 4.0).
+License URL: https://creativecommons.org/licenses/by/4.0/
+License evidence: https://research.google/blog/launching-the-speech-commands-dataset/
+Contributor is identified only by the public dataset speaker ID 0362539c; no further identity is inferred.
+Changes: decode the original WAV to signed 16-bit mono 16 kHz PCM, then append 3712 zero samples to its 12288 samples. No gain or speech editing.
+This sample was explicitly selected for model-specific numerical startup testing. All ten fetched candidate scores and both input lengths are retained in kws_self_test_no.SOURCE.json; no field-accuracy claim is made.

@@ -59,7 +59,9 @@ export async function POST(request: Request) {
       .from("lantern_sessions")
       .select("id,state,state_version,machine,recording_id,processing_error")
       .eq("device_id", device.id)
+      .eq("user_id", device.userId)
       .is("ended_at", null)
+      .is("offline_import_fingerprint", null)
       .maybeSingle();
     if (activeError) throw new Error(activeError.message);
     let active = activeData;

@@ -1,0 +1,14 @@
+Quipus local YES/NO evaluation model
+Source: https://raw.githubusercontent.com/espressif/esp-tflite-micro/dd4085950a119d9e33a6de1d7be1fc7fe29e0cfc/examples/micro_speech/main/model.cc
+Upstream commit: dd4085950a119d9e33a6de1d7be1fc7fe29e0cfc
+SHA256: 09e5e2a9dfb2d8ed78802bf18ce297bff54281a66ca18e0c23d69ca14f822a83
+Bytes: 18800
+Copyright2020 The TensorFlow Authors. Licensed under Apache License2.0.
+Extracted without model/label modification from upstream g_model.
+Labels: silence, unknown, yes, no.
+Model accuracy on Quipus/malaysian accents/noise is not yet validated.
+
+Matching official audio preprocessor: https://raw.githubusercontent.com/espressif/esp-tflite-micro/dd4085950a119d9e33a6de1d7be1fc7fe29e0cfc/examples/micro_speech/main/audio_preprocessor_int8_model_data.h
+Preprocessor bytes: 8772
+Preprocessor SHA256: 278949d197166fb8b580c0bdc94e902fb709fec0569dcf5766816b28285440e5
+Frontend/classifier workspaces:16KiB +30KiB fixed, following official example.

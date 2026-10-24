@@ -1,0 +1,500 @@
+{
+  "description": "Non-audio numeric trace from a rejected offline consent attempt. User tested YES/YES, NO/NO and YES/NO; this individual trace has no confirmed spoken label.",
+  "sample_rate": 16000,
+  "duration_ms": 5000,
+  "windows": [
+    {
+      "end_ms": 990,
+      "rms": 235,
+      "vad": true,
+      "voiced_ms": 90,
+      "scores": [
+        0,
+        13,
+        190,
+        53
+      ]
+    },
+    {
+      "end_ms": 1090,
+      "rms": 289,
+      "vad": true,
+      "voiced_ms": 190,
+      "scores": [
+        0,
+        4,
+        242,
+        10
+      ]
+    },
+    {
+      "end_ms": 1190,
+      "rms": 291,
+      "vad": true,
+      "voiced_ms": 290,
+      "scores": [
+        0,
+        0,
+        255,
+        1
+      ]
+    },
+    {
+      "end_ms": 1290,
+      "rms": 294,
+      "vad": true,
+      "voiced_ms": 390,
+      "scores": [
+        0,
+        0,
+        255,
+        0
+      ]
+    },
+    {
+      "end_ms": 1390,
+      "rms": 294,
+      "vad": true,
+      "voiced_ms": 490,
+      "scores": [
+        0,
+        0,
+        255,
+        0
+      ]
+    },
+    {
+      "end_ms": 1490,
+      "rms": 295,
+      "vad": true,
+      "voiced_ms": 540,
+      "scores": [
+        0,
+        0,
+        255,
+        0
+      ]
+    },
+    {
+      "end_ms": 1590,
+      "rms": 295,
+      "vad": true,
+      "voiced_ms": 540,
+      "scores": [
+        0,
+        0,
+        255,
+        0
+      ]
+    },
+    {
+      "end_ms": 1690,
+      "rms": 295,
+      "vad": true,
+      "voiced_ms": 540,
+      "scores": [
+        0,
+        0,
+        255,
+        0
+      ]
+    },
+    {
+      "end_ms": 1790,
+      "rms": 294,
+      "vad": true,
+      "voiced_ms": 540,
+      "scores": [
+        0,
+        0,
+        255,
+        0
+      ]
+    },
+    {
+      "end_ms": 1890,
+      "rms": 273,
+      "vad": true,
+      "voiced_ms": 540,
+      "scores": [
+        0,
+        0,
+        255,
+        0
+      ]
+    },
+    {
+      "end_ms": 1990,
+      "rms": 161,
+      "vad": true,
+      "voiced_ms": 440,
+      "scores": [
+        19,
+        4,
+        221,
+        12
+      ]
+    },
+    {
+      "end_ms": 2090,
+      "rms": 58,
+      "vad": true,
+      "voiced_ms": 340,
+      "scores": [
+        99,
+        25,
+        75,
+        57
+      ]
+    },
+    {
+      "end_ms": 2190,
+      "rms": 46,
+      "vad": true,
+      "voiced_ms": 240,
+      "scores": [
+        61,
+        61,
+        46,
+        88
+      ]
+    },
+    {
+      "end_ms": 2290,
+      "rms": 27,
+      "vad": true,
+      "voiced_ms": 140,
+      "scores": [
+        41,
+        71,
+        49,
+        94
+      ]
+    },
+    {
+      "end_ms": 2390,
+      "rms": 21,
+      "vad": true,
+      "voiced_ms": 40,
+      "scores": [
+        19,
+        84,
+        53,
+        100
+      ]
+    },
+    {
+      "end_ms": 2490,
+      "rms": 21,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        17,
+        100,
+        48,
+        91
+      ]
+    },
+    {
+      "end_ms": 2590,
+      "rms": 21,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        12,
+        107,
+        39,
+        98
+      ]
+    },
+    {
+      "end_ms": 2690,
+      "rms": 20,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        6,
+        120,
+        30,
+        100
+      ]
+    },
+    {
+      "end_ms": 2790,
+      "rms": 21,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        2,
+        130,
+        25,
+        99
+      ]
+    },
+    {
+      "end_ms": 2890,
+      "rms": 21,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        1,
+        105,
+        13,
+        138
+      ]
+    },
+    {
+      "end_ms": 2990,
+      "rms": 20,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        128,
+        11,
+        117
+      ]
+    },
+    {
+      "end_ms": 3090,
+      "rms": 20,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        167,
+        8,
+        80
+      ]
+    },
+    {
+      "end_ms": 3190,
+      "rms": 20,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        164,
+        6,
+        86
+      ]
+    },
+    {
+      "end_ms": 3290,
+      "rms": 20,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        179,
+        5,
+        72
+      ]
+    },
+    {
+      "end_ms": 3390,
+      "rms": 20,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        150,
+        3,
+        104
+      ]
+    },
+    {
+      "end_ms": 3490,
+      "rms": 20,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        121,
+        3,
+        132
+      ]
+    },
+    {
+      "end_ms": 3590,
+      "rms": 20,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        120,
+        5,
+        131
+      ]
+    },
+    {
+      "end_ms": 3690,
+      "rms": 20,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        150,
+        2,
+        104
+      ]
+    },
+    {
+      "end_ms": 3790,
+      "rms": 20,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        144,
+        2,
+        110
+      ]
+    },
+    {
+      "end_ms": 3890,
+      "rms": 19,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        171,
+        3,
+        82
+      ]
+    },
+    {
+      "end_ms": 3990,
+      "rms": 19,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        155,
+        4,
+        98
+      ]
+    },
+    {
+      "end_ms": 4090,
+      "rms": 19,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        138,
+        4,
+        115
+      ]
+    },
+    {
+      "end_ms": 4190,
+      "rms": 19,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        141,
+        8,
+        107
+      ]
+    },
+    {
+      "end_ms": 4290,
+      "rms": 19,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        152,
+        8,
+        96
+      ]
+    },
+    {
+      "end_ms": 4390,
+      "rms": 19,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        104,
+        15,
+        137
+      ]
+    },
+    {
+      "end_ms": 4490,
+      "rms": 19,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        40,
+        8,
+        208
+      ]
+    },
+    {
+      "end_ms": 4590,
+      "rms": 19,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        66,
+        10,
+        181
+      ]
+    },
+    {
+      "end_ms": 4690,
+      "rms": 18,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        63,
+        2,
+        191
+      ]
+    },
+    {
+      "end_ms": 4790,
+      "rms": 18,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        51,
+        1,
+        204
+      ]
+    },
+    {
+      "end_ms": 4890,
+      "rms": 18,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        73,
+        1,
+        182
+      ]
+    },
+    {
+      "end_ms": 4990,
+      "rms": 19,
+      "vad": true,
+      "voiced_ms": 0,
+      "scores": [
+        0,
+        73,
+        1,
+        182
+      ]
+    }
+  ],
+  "observed_vad_context": "Speech mask is consistent with speech from900ms to1440ms;20ms frames; later NO-scoring contexts contain0ms detected speech."
+}

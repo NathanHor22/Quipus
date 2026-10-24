@@ -1,4 +1,5 @@
 #include "lantern_sd.h"
+#include "quipus_report_cache.h"
 #include "cJSON.h"
 #include "driver/sdmmc_host.h"
 #include "esp_check.h"
@@ -31,6 +32,9 @@
 #define SD_WRITE_BUFFER_BYTES (128 * 1024)
 #define SD_WRITE_BLOCK_BYTES (16 * 1024)
 #define MANIFEST_JSON_BYTES 4096
+#define SD_RETENTION_SECONDS INT64_C(86400)
+#define SD_CLOCK_MIN INT64_C(1735689600)
+#define SD_CLOCK_MAX INT64_C(4102444800)
 static const char *TAG = "lantern_sd";
 static lantern_sd_status_t s_status;
 static sdmmc_card_t *s_card;
@@ -43,6 +47,17 @@ static uint8_t s_archive_key[32];
 static bool s_secure_ready, s_time_uncertain, s_cloud_stopped, s_audio_uploaded,
     s_phone_uploaded, s_finalized, s_verified;
 static uint64_t s_sequence;
+static int64_t s_first_verified_at, s_delete_after, s_retention_last_seen;
+static bool s_retention_cleanup_started;
+static DIR *s_retention_directory;
+static _Atomic uint32_t s_upload_count_generation, s_upload_count_revision;
+static _Atomic size_t s_upload_count_value;
+static _Atomic TickType_t s_upload_count_checked_at;
+static atomic_bool s_upload_count_valid;
+static void invalidate_upload_count(void) {
+  atomic_fetch_add_explicit(&s_upload_count_generation, 1, memory_order_release);
+}
+
 static lantern_cloud_session_t s_session, s_prepared_session;
 static size_t s_pcm_bytes, s_recording_bytes, s_phone_bytes;
 static volatile bool s_accepting, s_finish_requested, s_writer_failed;
@@ -98,6 +113,12 @@ static void close_active_file(void) {
   s_phone_file = NULL;
 }
 static void unmount_card(void) {
+  quipus_report_cache_detach();
+  invalidate_upload_count();
+  if (s_retention_directory) {
+    closedir(s_retention_directory);
+    s_retention_directory = NULL;
+  }
   close_active_file();
   if (s_status.mounted && s_card)
     esp_vfs_fat_sdcard_unmount(SD_MOUNT_POINT, s_card);
@@ -152,7 +173,7 @@ static esp_err_t pending_marker(const char *stem, const char *session,
   return result;
 }
 static bool stem_has_files(const char *stem) {
-  static const char *extensions[] = {"qpm", "qpa", "qpb", "qpt", "tmp", "qpx"};
+  static const char *extensions[] = {"qpm", "qpc", "qpa", "qpb", "qpt", "tmp", "qpx"};
   for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
     char path[96];
     snprintf(path, sizeof(path), SD_RECORDING_DIRECTORY "/%.8s.%s", stem,
@@ -264,6 +285,10 @@ static esp_err_t mount_card(void) {
 
   s_status.present = true;
   s_status.mounted = true;
+  if (s_secure_ready)
+    (void)quipus_report_cache_configure(SD_MOUNT_POINT "/quipus-reports",
+                                        s_archive_key, s_owner_id, s_device_id);
+  invalidate_upload_count();
   s_status.sector_size = s_card->csd.sector_size;
   s_status.capacity_bytes =
       (uint64_t)s_card->csd.capacity * (uint64_t)s_card->csd.sector_size;
@@ -284,8 +309,8 @@ static esp_err_t mount_card(void) {
   return ESP_OK;
 }
 
-static void add_session(cJSON *json, const lantern_cloud_session_t *session) {
-#define SAVE_FIELD(name) cJSON_AddStringToObject(json, #name, session->name)
+static bool add_session(cJSON *json, const lantern_cloud_session_t *session) {
+#define SAVE_FIELD(name) do { if (!cJSON_AddStringToObject(json, #name, session->name)) return false; } while (0)
   SAVE_FIELD(session_id);
   SAVE_FIELD(prompt_id);
   SAVE_FIELD(begin_event_id);
@@ -300,8 +325,9 @@ static void add_session(cJSON *json, const lantern_cloud_session_t *session) {
   SAVE_FIELD(local_date);
   SAVE_FIELD(local_time);
 #undef SAVE_FIELD
-  cJSON_AddNumberToObject(json, "version", session->version);
-  cJSON_AddBoolToObject(json, "offline_local", session->offline_local);
+  return cJSON_AddNumberToObject(json, "version", session->version) &&
+         cJSON_AddBoolToObject(json, "offline_local", session->offline_local) &&
+         cJSON_AddBoolToObject(json, "discarded", session->discarded);
 }
 static bool json_string(cJSON *json, const char *name, char *out, size_t size,
                         bool required) {
@@ -337,8 +363,61 @@ static bool read_session(cJSON *json, lantern_cloud_session_t *session) {
   session->version = (unsigned)version->valuedouble;
   session->offline_local =
       cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, "offline_local"));
+  // Optional for manifests created before the verified-discard receipt existed.
+  session->discarded = cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, "discarded"));
   return valid_id(session->session_id) && valid_id(session->owner_id);
 }
+static bool retention_clock_valid(int64_t now) {
+  return now >= SD_CLOCK_MIN && now <= SD_CLOCK_MAX - SD_RETENTION_SECONDS;
+}
+
+static bool retention_fields(cJSON *json, int64_t *first, int64_t *after,
+                             int64_t *seen) {
+  cJSON *a = cJSON_GetObjectItemCaseSensitive(json, "firstVerifiedAt");
+  cJSON *b = cJSON_GetObjectItemCaseSensitive(json, "deleteAfter");
+  cJSON *c = cJSON_GetObjectItemCaseSensitive(json, "retentionLastSeenAt");
+  *first = *after = *seen = 0;
+  if (!a && !b && !c) return true; // Legacy proof: no known deletion deadline.
+  if (!cJSON_IsNumber(a) || !cJSON_IsNumber(b) || !cJSON_IsNumber(c) ||
+      !isfinite(a->valuedouble) || !isfinite(b->valuedouble) ||
+      !isfinite(c->valuedouble) || a->valuedouble < 0 ||
+      a->valuedouble > SD_CLOCK_MAX || b->valuedouble < 0 ||
+      b->valuedouble > SD_CLOCK_MAX || c->valuedouble < 0 ||
+      c->valuedouble > SD_CLOCK_MAX)
+    return false;
+  *first = (int64_t)a->valuedouble;
+  *after = (int64_t)b->valuedouble;
+  *seen = (int64_t)c->valuedouble;
+  if ((double)*first != a->valuedouble || (double)*after != b->valuedouble ||
+      (double)*seen != c->valuedouble) return false;
+  if (!*first && !*after && !*seen) return true;
+  return retention_clock_valid(*first) &&
+         *after == *first + SD_RETENTION_SECONDS && *seen >= *first;
+}
+
+static bool retention_set_fields(cJSON *json, int64_t first, int64_t after,
+                                 int64_t seen, bool cleaning) {
+  static const char *names[] = {"firstVerifiedAt", "deleteAfter",
+                                "retentionLastSeenAt", "cleanupStarted"};
+  for (size_t i = 0; i < sizeof(names) / sizeof(names[0]); ++i)
+    cJSON_DeleteItemFromObjectCaseSensitive(json, names[i]);
+  return cJSON_AddNumberToObject(json, "firstVerifiedAt", (double)first) &&
+         cJSON_AddNumberToObject(json, "deleteAfter", (double)after) &&
+         cJSON_AddNumberToObject(json, "retentionLastSeenAt", (double)seen) &&
+         cJSON_AddBoolToObject(json, "cleanupStarted", cleaning);
+}
+
+// A separate extension makes verified retained audio independent of uploads.
+static esp_err_t retain_verified_manifest(const char *stem, const char *from) {
+  char cached[96];
+  snprintf(cached, sizeof(cached), SD_RECORDING_DIRECTORY "/%s.qpc", stem);
+  if (!strcmp(from, cached)) return ESP_OK;
+  if (access(cached, F_OK) == 0) return ESP_ERR_INVALID_STATE;
+  if (rename(from, cached) != 0) return ESP_FAIL;
+  invalidate_upload_count();
+  return ESP_OK;
+}
+
 static esp_err_t write_manifest(void) {
   if (!s_secure_ready || !s_manifest_path[0])
     return ESP_ERR_INVALID_STATE;
@@ -348,22 +427,33 @@ static esp_err_t write_manifest(void) {
     cJSON_Delete(session);
     return ESP_ERR_NO_MEM;
   }
-  add_session(session, &s_session);
-  cJSON_AddItemToObject(json, "session", session);
-  cJSON_AddNumberToObject(json, "format", 1);
-  cJSON_AddStringToObject(json, "owner", s_owner_id);
-  cJSON_AddStringToObject(json, "device", s_device_id);
-  cJSON_AddStringToObject(json, "capturedAt", s_captured_at);
-  cJSON_AddBoolToObject(json, "timeUncertain", s_time_uncertain);
-  cJSON_AddNumberToObject(json, "sequence", (double)s_sequence);
-  cJSON_AddNumberToObject(json, "audioBytes", s_recording_bytes);
-  cJSON_AddNumberToObject(json, "phoneBytes", s_phone_bytes);
-  cJSON_AddStringToObject(json, "phoneTiming", s_phone_timing);
-  cJSON_AddBoolToObject(json, "finalized", s_finalized);
-  cJSON_AddBoolToObject(json, "verified", s_verified);
-  cJSON_AddBoolToObject(json, "cloudStopped", s_cloud_stopped);
-  cJSON_AddBoolToObject(json, "audioUploaded", s_audio_uploaded);
-  cJSON_AddBoolToObject(json, "phoneUploaded", s_phone_uploaded);
+  if (!add_session(session, &s_session) ||
+      !cJSON_AddItemToObject(json, "session", session)) {
+    cJSON_Delete(json);
+    cJSON_Delete(session);
+    return ESP_ERR_NO_MEM;
+  }
+  // A partial authenticated snapshot could strand audio after reboot. Fail
+  // before appending if any field allocation fails, retaining the prior entry.
+  if (!cJSON_AddNumberToObject(json, "format", 1) ||
+      !cJSON_AddStringToObject(json, "owner", s_owner_id) ||
+      !cJSON_AddStringToObject(json, "device", s_device_id) ||
+      !cJSON_AddStringToObject(json, "capturedAt", s_captured_at) ||
+      !cJSON_AddBoolToObject(json, "timeUncertain", s_time_uncertain) ||
+      !cJSON_AddNumberToObject(json, "sequence", (double)s_sequence) ||
+      !cJSON_AddNumberToObject(json, "audioBytes", s_recording_bytes) ||
+      !cJSON_AddNumberToObject(json, "phoneBytes", s_phone_bytes) ||
+      !cJSON_AddStringToObject(json, "phoneTiming", s_phone_timing) ||
+      !cJSON_AddBoolToObject(json, "finalized", s_finalized) ||
+      !cJSON_AddBoolToObject(json, "verified", s_verified) ||
+      !cJSON_AddBoolToObject(json, "cloudStopped", s_cloud_stopped) ||
+      !cJSON_AddBoolToObject(json, "audioUploaded", s_audio_uploaded) ||
+      !cJSON_AddBoolToObject(json, "phoneUploaded", s_phone_uploaded) ||
+      !retention_set_fields(json, s_first_verified_at, s_delete_after,
+                             s_retention_last_seen, s_retention_cleanup_started)) {
+    cJSON_Delete(json);
+    return ESP_ERR_NO_MEM;
+  }
   char *text = cJSON_PrintUnformatted(json);
   cJSON_Delete(json);
   if (!text)
@@ -371,6 +461,7 @@ static esp_err_t write_manifest(void) {
   esp_err_t result =
       quipus_archive_journal_append(s_manifest_path, s_archive_key, text);
   free(text);
+  if (result == ESP_OK) invalidate_upload_count();
   return result;
 }
 static cJSON *load_manifest(const char *path) {
@@ -421,7 +512,16 @@ static bool activate_manifest(cJSON *json, const char *stem) {
       !cJSON_IsNumber(phone) || !isfinite(phone->valuedouble) ||
       phone->valuedouble < 0 || phone->valuedouble > 268435456)
     return false;
+  int64_t first, after, seen;
+  if (!retention_fields(json, &first, &after, &seen) ||
+      (first && !cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, "verified"))))
+    return false;
   paths_for_stem(stem);
+  s_first_verified_at = first;
+  s_delete_after = after;
+  s_retention_last_seen = seen;
+  s_retention_cleanup_started = cJSON_IsTrue(
+      cJSON_GetObjectItemCaseSensitive(json, "cleanupStarted"));
   s_session = session;
   s_sequence = (uint64_t)seq->valuedouble;
   s_recording_bytes = (size_t)audio->valuedouble;
@@ -431,6 +531,12 @@ static bool activate_manifest(cJSON *json, const char *stem) {
   s_finalized =
       cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, "finalized"));
   s_verified = cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, "verified"));
+  if (s_verified && access(s_manifest_path, F_OK) != 0) {
+    char cached[96];
+    snprintf(cached, sizeof(cached), SD_RECORDING_DIRECTORY "/%s.qpc", stem);
+    if (access(cached, F_OK) == 0)
+      snprintf(s_manifest_path, sizeof(s_manifest_path), "%s", cached);
+  }
   s_cloud_stopped =
       cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, "cloudStopped"));
   s_audio_uploaded =
@@ -446,31 +552,57 @@ static bool activate_manifest(cJSON *json, const char *stem) {
               false);
   return true;
 }
-static bool normalize_recovered_phone_timing(void) {
+static esp_err_t normalize_recovered_phone_timing(void) {
   if (s_phone_bytes <= 44)
-    return true;
+    return ESP_OK;
   cJSON *timing = cJSON_Parse(s_phone_timing);
+  // cJSON does not distinguish malformed input from parse allocation failure.
+  // Leave an ambiguous parse failure queued; never quarantine on possible OOM.
+  if (!timing)
+    return ESP_ERR_NO_MEM;
   if (!cJSON_IsObject(timing)) {
     cJSON_Delete(timing);
-    return false;
+    return ESP_ERR_INVALID_ARG;
   }
   cJSON_DeleteItemFromObjectCaseSensitive(timing, "receivedSamples");
-  cJSON_AddNumberToObject(timing, "receivedSamples", (s_phone_bytes - 44) / 2);
+  if (!cJSON_AddNumberToObject(timing, "receivedSamples",
+                              (s_phone_bytes - 44) / 2)) {
+    cJSON_Delete(timing);
+    return ESP_ERR_NO_MEM;
+  }
   cJSON *missing = cJSON_GetObjectItemCaseSensitive(timing, "missingSamples");
   if (cJSON_IsNumber(missing) &&
       missing->valuedouble > (s_phone_bytes - 44) / 2)
     cJSON_SetNumberValue(missing, (s_phone_bytes - 44) / 2);
   cJSON_DeleteItemFromObjectCaseSensitive(timing, "recovered");
-  cJSON_AddBoolToObject(timing, "recovered", true);
+  if (!cJSON_AddBoolToObject(timing, "recovered", true)) {
+    cJSON_Delete(timing);
+    return ESP_ERR_NO_MEM;
+  }
   char *text = cJSON_PrintUnformatted(timing);
   cJSON_Delete(timing);
   if (!text)
-    return false;
+    return ESP_ERR_NO_MEM;
   bool valid = strlen(text) < sizeof(s_phone_timing);
   if (valid)
     snprintf(s_phone_timing, sizeof(s_phone_timing), "%s", text);
   free(text);
-  return valid;
+  return valid ? ESP_OK : ESP_ERR_INVALID_SIZE;
+}
+// Keep the authenticated metadata available for repair, but remove it from
+// automatic selection. Neither encrypted track nor its protected pending marker
+// is changed. Categories are fixed strings; logs never contain private IDs.
+static void quarantine_manifest(const char *stem, const char *category) {
+  char manifest[96], quarantined[96];
+  snprintf(manifest, sizeof(manifest), SD_RECORDING_DIRECTORY "/%s.qpm", stem);
+  snprintf(quarantined, sizeof(quarantined), SD_RECORDING_DIRECTORY "/%s.qpx",
+           stem);
+  const char *result = "already_present";
+  // Never overwrite an earlier quarantine or discard either metadata copy.
+  if (access(quarantined, F_OK) != 0)
+    result = rename(manifest, quarantined) == 0 ? "preserved" : "rename_failed";
+  if (!strcmp(result, "preserved")) invalidate_upload_count();
+  ESP_LOGW(TAG, "SD queue quarantine category=%s result=%s", category, result);
 }
 static esp_err_t recover_track(const char *temporary, const char *finished,
                                bool phone, size_t *bytes) {
@@ -500,6 +632,121 @@ static esp_err_t recover_track(const char *temporary, const char *finished,
   *bytes = recovered;
   if (path == temporary && rename(temporary, finished) != 0)
     return ESP_FAIL;
+  return ESP_OK;
+}
+
+static bool retention_metadata_name(const char *name, char stem[9]) {
+  if (manifest_name(name, stem)) return true;
+  if (!name || strlen(name) != 12 || strcasecmp(name + 8, ".qpc")) return false;
+  char pending[13];
+  snprintf(pending, sizeof(pending), "%.8s.qpm", name);
+  return manifest_name(pending, stem);
+}
+
+static esp_err_t retention_persist(const char *path, cJSON *json,
+                                    const char *stem, int64_t first,
+                                    int64_t after, int64_t seen, bool cleaning) {
+  if (!retention_set_fields(json, first, after, seen, cleaning))
+    return ESP_ERR_NO_MEM;
+  char *text = cJSON_PrintUnformatted(json);
+  if (!text) return ESP_ERR_NO_MEM;
+  esp_err_t result = quipus_archive_journal_append(path, s_archive_key, text);
+  free(text);
+  if (result == ESP_OK && !strcmp(stem, s_stem)) {
+    s_first_verified_at = first;
+    s_delete_after = after;
+    s_retention_last_seen = seen;
+    s_retention_cleanup_started = cleaning;
+  }
+  return result;
+}
+
+static esp_err_t retention_cleanup_record(const char *stem, const char *path,
+                                           cJSON *json, int64_t now,
+                                           bool *removed) {
+  *removed = false;
+  if (!cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, "verified")) ||
+      !cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, "finalized")))
+    return ESP_OK;
+  lantern_cloud_session_t session;
+  int64_t first, after, seen;
+  if (!read_session(cJSON_GetObjectItemCaseSensitive(json, "session"), &session) ||
+      strcmp(session.owner_id, s_owner_id) ||
+      !retention_fields(json, &first, &after, &seen))
+    return ESP_ERR_INVALID_STATE;
+  cJSON *audio_bytes = cJSON_GetObjectItemCaseSensitive(json, "audioBytes");
+  cJSON *phone_bytes = cJSON_GetObjectItemCaseSensitive(json, "phoneBytes");
+  cJSON *counts[] = {audio_bytes, phone_bytes};
+  for (size_t i = 0; i < 2; ++i) {
+    cJSON *count = counts[i];
+    if (!cJSON_IsNumber(count) || !isfinite(count->valuedouble) ||
+        count->valuedouble < 0 || count->valuedouble > 268435456)
+      return ESP_ERR_INVALID_STATE;
+    uint64_t bytes = (uint64_t)count->valuedouble;
+    if ((double)bytes != count->valuedouble ||
+        (i == 0 && bytes <= 44) ||
+        (i == 1 && bytes > 0 && bytes <= 44) ||
+        (bytes > 44 && (bytes - 44) % sizeof(int16_t)))
+      return ESP_ERR_INVALID_STATE;
+  }
+  esp_err_t result = retain_verified_manifest(stem, path);
+  if (result != ESP_OK) return result;
+  char cached[96];
+  snprintf(cached, sizeof(cached), SD_RECORDING_DIRECTORY "/%s.qpc", stem);
+  if (!strcmp(stem, s_stem))
+    snprintf(s_manifest_path, sizeof(s_manifest_path), "%s", cached);
+  if (!first) {
+    // Unknown/legacy verification time cannot justify earlier deletion.
+    return retention_persist(cached, json, stem, now,
+                              now + SD_RETENTION_SECONDS, now, false);
+  }
+  // Authenticated last-seen time survives reboot and protects rollback clocks.
+  if (now < first || now < seen) return ESP_OK;
+  if (now < after) {
+    if (now - seen >= 3600)
+      return retention_persist(cached, json, stem, first, after, now, false);
+    return ESP_OK;
+  }
+  char quarantine[96], pending[96], tracks[4][96];
+  snprintf(quarantine, sizeof(quarantine), SD_RECORDING_DIRECTORY "/%s.qpx", stem);
+  snprintf(pending, sizeof(pending), SD_RECORDING_DIRECTORY "/%s.qpm", stem);
+  // Conflicting metadata/recovery evidence is never removed by expiry.
+  if (access(quarantine, F_OK) == 0 || access(pending, F_OK) == 0)
+    return ESP_ERR_INVALID_STATE;
+  static const char *extensions[] = {"qpa", "qpb", "tmp", "qpt"};
+  for (size_t i = 0; i < 4; ++i)
+    snprintf(tracks[i], sizeof(tracks[i]), SD_RECORDING_DIRECTORY "/%s.%s",
+             stem, extensions[i]);
+  // A nonempty unsealed track is additional unverified recovery evidence.
+  for (size_t i = 2; i < 4; ++i) {
+    struct stat info;
+    if (stat(tracks[i], &info) == 0) {
+      if (info.st_size > QUIPUS_ARCHIVE_HEADER) return ESP_ERR_INVALID_STATE;
+    } else if (errno != ENOENT) return ESP_FAIL;
+  }
+  if (phone_bytes->valuedouble <= 44) {
+    struct stat info;
+    if (stat(tracks[1], &info) == 0) {
+      if (info.st_size > QUIPUS_ARCHIVE_HEADER) return ESP_ERR_INVALID_STATE;
+    } else if (errno != ENOENT) return ESP_FAIL;
+  }
+  // Journal the due deletion before changing files; each removal is idempotent.
+  result = retention_persist(cached, json, stem, first, after, now, true);
+  if (result != ESP_OK ||
+      pending_marker(stem, session.session_id, true, false) != ESP_OK)
+    return ESP_FAIL;
+  for (size_t i = 0; i < 4; ++i)
+    if (remove(tracks[i]) != 0 && errno != ENOENT) return ESP_FAIL;
+  if (remove(cached) != 0 && errno != ENOENT) return ESP_FAIL;
+  if (pending_marker(stem, session.session_id, true, true) != ESP_OK)
+    return ESP_FAIL;
+  if (!strcmp(stem, s_stem)) {
+    s_recording_bytes = s_phone_bytes = 0;
+    s_recording_path[0] = s_manifest_path[0] = s_recording_session_id[0] = 0;
+  }
+  *removed = true;
+  invalidate_upload_count();
+  refresh_space();
   return ESP_OK;
 }
 
@@ -582,6 +829,7 @@ static esp_err_t ensure_writer(void) {
 #endif
 esp_err_t lantern_sd_init(lantern_sd_status_t *status) {
 #if LANTERN_HAS_SD_CARD
+  invalidate_upload_count();
   esp_err_t result = mount_card();
   if (status)
     *status = s_status;
@@ -607,9 +855,16 @@ esp_err_t lantern_sd_configure_identity(const char *owner, const char *device,
 #if LANTERN_HAS_SD_CARD
   if (!valid_id(owner) || !valid_id(device) || !key || s_file || s_phone_file)
     return ESP_ERR_INVALID_ARG;
+  if (s_retention_directory) {
+    closedir(s_retention_directory);
+    s_retention_directory = NULL;
+  }
+  invalidate_upload_count();
   snprintf(s_owner_id, sizeof(s_owner_id), "%s", owner);
   snprintf(s_device_id, sizeof(s_device_id), "%s", device);
   memcpy(s_archive_key, key, 32);
+  (void)quipus_report_cache_configure(SD_MOUNT_POINT "/quipus-reports",
+                                      key, owner, device);
   s_secure_ready = true;
   return ESP_OK;
 #else
@@ -636,6 +891,7 @@ void lantern_sd_set_session(const lantern_cloud_session_t *session) {
 }
 esp_err_t lantern_sd_recording_begin(const char *session_id) {
 #if LANTERN_HAS_SD_CARD
+  invalidate_upload_count();
   if (!s_secure_ready || !valid_id(session_id) ||
       strcmp(session_id, s_prepared_session.session_id) || s_file)
     return ESP_ERR_INVALID_STATE;
@@ -646,9 +902,7 @@ esp_err_t lantern_sd_recording_begin(const char *session_id) {
     char stem[9];
     snprintf(stem, sizeof(stem), "%08lx", (unsigned long)esp_random());
     paths_for_stem(stem);
-    if (access(s_manifest_path, F_OK) != 0 &&
-        access(s_recording_path, F_OK) != 0 &&
-        access(s_temporary_path, F_OK) != 0) {
+    if (!stem_has_files(stem)) {
       selected = true;
       break;
     }
@@ -663,6 +917,8 @@ esp_err_t lantern_sd_recording_begin(const char *session_id) {
   s_pcm_bytes = 0;
   s_finalized = false;
   s_verified = false;
+  s_first_verified_at = s_delete_after = s_retention_last_seen = 0;
+  s_retention_cleanup_started = false;
   s_cloud_stopped = false;
   s_audio_uploaded = false;
   s_phone_uploaded = false;
@@ -769,6 +1025,7 @@ bool lantern_sd_can_power_down(void) {
   // Called by the serialized control owner after capture/phone tasks stop.
   // Pending authenticated files and ownership keys remain intact on SD/NVS.
   return !lantern_sd_capture_active() && !s_accepting &&
+         !quipus_report_cache_busy() &&
          (!s_write_stream || xStreamBufferBytesAvailable(s_write_stream) == 0);
 #else
   return true;
@@ -805,44 +1062,44 @@ bool lantern_sd_recording_matches_session(const char *session_id) {
   return false;
 #endif
 }
-esp_err_t lantern_sd_recording_confirm_uploaded(void) {
+esp_err_t lantern_sd_recording_confirm_uploaded_at(int64_t trusted_verified_at) {
 #if LANTERN_HAS_SD_CARD
-  if (!lantern_sd_recording_ready() || s_phone_file)
+  if (!lantern_sd_recording_ready() || !s_finalized || s_phone_file)
     return ESP_ERR_INVALID_STATE;
-  // Persist trusted proof before either removal can be interrupted by power.
-  if (!s_verified) {
-    s_verified = true;
+  bool verified_before = s_verified;
+  int64_t first_before = s_first_verified_at;
+  s_verified = true;
+  // Never move an existing deadline on retries, reconnection or reboot.
+  if (!s_first_verified_at && retention_clock_valid(trusted_verified_at)) {
+    s_first_verified_at = trusted_verified_at;
+    s_delete_after = trusted_verified_at + SD_RETENTION_SECONDS;
+    s_retention_last_seen = trusted_verified_at;
+  }
+  if (!verified_before || s_first_verified_at != first_before) {
     if (write_manifest() != ESP_OK) {
-      s_verified = false;
+      s_verified = verified_before;
+      s_first_verified_at = first_before;
+      if (!first_before) s_delete_after = s_retention_last_seen = 0;
       return ESP_FAIL;
     }
   }
   if (pending_marker(s_stem, s_recording_session_id, true, false) != ESP_OK)
     return ESP_FAIL;
-  // Call only after both backend manifests passed full SHA verification.
-  if (remove(s_recording_path) != 0 && errno != ENOENT)
-    return ESP_FAIL;
-  if (s_phone_bytes && remove(s_phone_path) != 0 && errno != ENOENT)
-    return ESP_FAIL;
-  if (!s_phone_bytes) {
-    struct stat info;
-    if (stat(s_phone_temporary, &info) == 0 &&
-        info.st_size <= QUIPUS_ARCHIVE_HEADER)
-      remove(s_phone_temporary);
-  }
-  if (remove(s_manifest_path) != 0 && errno != ENOENT)
-    return ESP_FAIL;
-  if (pending_marker(s_stem, s_recording_session_id, true, true) != ESP_OK)
-    return ESP_FAIL;
-  s_recording_bytes = 0;
-  s_phone_bytes = 0;
-  s_recording_path[0] = 0;
-  s_recording_session_id[0] = 0;
-  refresh_space();
-  return ESP_OK;
+  esp_err_t result = retain_verified_manifest(s_stem, s_manifest_path);
+  if (result == ESP_OK)
+    snprintf(s_manifest_path, sizeof(s_manifest_path),
+             SD_RECORDING_DIRECTORY "/%s.qpc", s_stem);
+  return result;
 #else
+  (void)trusted_verified_at;
   return ESP_ERR_NOT_SUPPORTED;
 #endif
+}
+
+esp_err_t lantern_sd_recording_confirm_uploaded(void) {
+  // Existing callers without trustworthy time still leave the upload queue,
+  // but cannot shorten retention. A trusted idle pass starts their full 24 h.
+  return lantern_sd_recording_confirm_uploaded_at(0);
 }
 esp_err_t lantern_sd_checkpoint(const lantern_cloud_session_t *session,
                                 bool stopped, bool audio_uploaded,
@@ -863,6 +1120,48 @@ esp_err_t lantern_sd_checkpoint(const lantern_cloud_session_t *session,
   return ESP_ERR_NOT_SUPPORTED;
 #endif
 }
+size_t lantern_sd_upload_pending_count(void) {
+#if LANTERN_HAS_SD_CARD
+  // Operational queue candidates only. Do not inspect or mutate the trusted
+  // ownership journal: quarantined/orphan evidence still blocks identity reset.
+  if (!s_status.mounted)
+    return 0;
+  uint32_t revision = atomic_load_explicit(&s_upload_count_generation, memory_order_acquire);
+  TickType_t now = xTaskGetTickCount();
+  if (atomic_load_explicit(&s_upload_count_valid, memory_order_acquire) &&
+      atomic_load(&s_upload_count_revision) == revision &&
+      (TickType_t)(now - atomic_load(&s_upload_count_checked_at)) < pdMS_TO_TICKS(60000))
+    return atomic_load(&s_upload_count_value);
+  DIR *dir = opendir(SD_RECORDING_DIRECTORY);
+  if (!dir)
+    return 0;
+  size_t count = 0;
+  struct dirent *entry;
+  while ((entry = readdir(dir))) {
+    char stem[9];
+    if (manifest_name(entry->d_name, stem)) {
+      char path[96];
+      snprintf(path, sizeof(path), SD_RECORDING_DIRECTORY "/%s.qpm", stem);
+      cJSON *json = load_manifest(path);
+      // Unreadable metadata remains pending/protected, never assumed delivered.
+      if (!json || !cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, "verified")))
+        count++;
+      cJSON_Delete(json);
+    }
+  }
+  closedir(dir);
+  // Do not publish a snapshot overtaken by a concurrent manifest mutation.
+  if (revision == atomic_load_explicit(&s_upload_count_generation, memory_order_acquire)) {
+    atomic_store(&s_upload_count_value, count);
+    atomic_store(&s_upload_count_checked_at, now);
+    atomic_store(&s_upload_count_revision, revision);
+    atomic_store_explicit(&s_upload_count_valid, true, memory_order_release);
+  }
+  return count;
+#else
+  return 0;
+#endif
+}
 size_t lantern_sd_pending_count(void) {
 #if LANTERN_HAS_SD_CARD
   if (!s_status.mounted)
@@ -874,7 +1173,7 @@ size_t lantern_sd_pending_count(void) {
   struct dirent *entry;
   while ((entry = readdir(dir))) {
     char stem[9];
-    if (manifest_name(entry->d_name, stem))
+    if (retention_metadata_name(entry->d_name, stem))
       count++;
   }
   closedir(dir);
@@ -884,6 +1183,46 @@ size_t lantern_sd_pending_count(void) {
   return 0;
 #endif
 }
+esp_err_t lantern_sd_retention_cleanup(int64_t now, bool time_trusted,
+                                      size_t scan_limit, size_t *removed) {
+  if (removed) *removed = 0;
+#if LANTERN_HAS_SD_CARD
+  if (!scan_limit) return ESP_ERR_INVALID_ARG;
+  if (!s_secure_ready || !s_status.mounted || !lantern_sd_can_power_down())
+    return ESP_ERR_INVALID_STATE;
+  if (!time_trusted || !retention_clock_valid(now)) return ESP_OK;
+  if (!s_retention_directory)
+    s_retention_directory = opendir(SD_RECORDING_DIRECTORY);
+  if (!s_retention_directory) return ESP_FAIL;
+  if (scan_limit > 8) scan_limit = 8;
+  esp_err_t outcome = ESP_OK;
+  for (size_t scanned = 0; scanned < scan_limit; ++scanned) {
+    struct dirent *entry = readdir(s_retention_directory);
+    if (!entry) {
+      closedir(s_retention_directory);
+      s_retention_directory = NULL;
+      break;
+    }
+    char stem[9], path[96];
+    if (!retention_metadata_name(entry->d_name, stem)) continue;
+    snprintf(path, sizeof(path), SD_RECORDING_DIRECTORY "/%.12s", entry->d_name);
+    cJSON *json = load_manifest(path);
+    if (!json) continue; // Authentication, I/O and allocation failures preserve.
+    bool deleted = false;
+    esp_err_t result = retention_cleanup_record(stem, path, json, now, &deleted);
+    cJSON_Delete(json);
+    if (deleted && removed) ++*removed;
+    if (result != ESP_OK) outcome = result;
+  }
+  return outcome;
+#else
+  (void)now;
+  (void)time_trusted;
+  (void)scan_limit;
+  return ESP_ERR_NOT_SUPPORTED;
+#endif
+}
+
 esp_err_t lantern_sd_next_pending(const char *owner, const char *device,
                                   lantern_cloud_session_t *session,
                                   bool *stopped, bool *audio_uploaded,
@@ -896,7 +1235,6 @@ esp_err_t lantern_sd_next_pending(const char *owner, const char *device,
   if (!dir)
     return ESP_ERR_NOT_FOUND;
   uint64_t sequence = UINT64_MAX;
-  unsigned priority = UINT32_MAX;
   char selected[9] = {0};
   struct dirent *entry;
   while ((entry = readdir(dir))) {
@@ -906,18 +1244,20 @@ esp_err_t lantern_sd_next_pending(const char *owner, const char *device,
     snprintf(path, sizeof(path), SD_RECORDING_DIRECTORY "/%.12s",
              entry->d_name);
     cJSON *json = load_manifest(path);
+    if (json && cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, "verified"))) {
+      // Complete a torn cache handoff without touching any encrypted track.
+      retain_verified_manifest(stem, path);
+      cJSON_Delete(json);
+      continue;
+    }
     cJSON *seq =
         json ? cJSON_GetObjectItemCaseSensitive(json, "sequence") : NULL;
-    unsigned candidate_priority =
-        json && cJSON_IsTrue(
-                    cJSON_GetObjectItemCaseSensitive(json, "audioUploaded"))
-            ? 1
-            : 0;
+    // Finish older meetings before importing newer ones. The cloud permits
+    // one open session per device, including a fully uploaded meeting whose
+    // completion is still pending. Letting a newer offline file jump ahead
+    // would conflict forever and starve that older completion.
     if (cJSON_IsNumber(seq) && seq->valuedouble > 0 &&
-        (candidate_priority < priority ||
-         (candidate_priority == priority &&
-          (uint64_t)seq->valuedouble < sequence))) {
-      priority = candidate_priority;
+        (uint64_t)seq->valuedouble < sequence) {
       sequence = (uint64_t)seq->valuedouble;
       snprintf(selected, sizeof(selected), "%s", stem);
     }
@@ -929,14 +1269,20 @@ esp_err_t lantern_sd_next_pending(const char *owner, const char *device,
   char path[96];
   snprintf(path, sizeof(path), SD_RECORDING_DIRECTORY "/%s.qpm", selected);
   cJSON *json = load_manifest(path);
-  bool valid = json && activate_manifest(json, selected);
-  cJSON_Delete(json);
-  if (!valid)
+  // Loading can fail transiently (I/O or allocation); only authenticated,
+  // successfully loaded metadata is classified as structurally invalid here.
+  if (!json)
     return ESP_FAIL;
+  bool valid = activate_manifest(json, selected);
+  cJSON_Delete(json);
+  if (!valid) {
+    quarantine_manifest(selected, "metadata");
+    return ESP_FAIL;
+  }
   atomic_store_explicit(&s_recording_error, ESP_OK, memory_order_relaxed);
   s_writer_failed = false;
   if (s_verified) {
-    lantern_sd_recording_confirm_uploaded();
+    retain_verified_manifest(selected, s_manifest_path);
     return ESP_ERR_NOT_FOUND;
   }
   bool recovered = !s_finalized;
@@ -944,17 +1290,18 @@ esp_err_t lantern_sd_next_pending(const char *owner, const char *device,
                     &s_recording_bytes) != ESP_OK ||
       recover_track(s_phone_temporary, s_phone_path, true, &s_phone_bytes) !=
           ESP_OK) {
-    // Quarantine the metadata, retaining every encrypted audio byte for repair.
     // One corrupt session must not block subsequent meetings indefinitely.
-    char quarantined[96];
-    snprintf(quarantined, sizeof(quarantined), SD_RECORDING_DIRECTORY "/%s.qpx",
-             selected);
-    if (access(quarantined, F_OK) != 0)
-      rename(s_manifest_path, quarantined);
+    quarantine_manifest(selected, "audio");
     return ESP_FAIL;
   }
-  if (recovered && !normalize_recovered_phone_timing())
-    return ESP_FAIL;
+  if (recovered) {
+    esp_err_t timing = normalize_recovered_phone_timing();
+    if (timing != ESP_OK) {
+      if (timing == ESP_ERR_INVALID_ARG || timing == ESP_ERR_INVALID_SIZE)
+        quarantine_manifest(selected, "phone_timing");
+      return timing;
+    }
+  }
   s_finalized = true;
   if (write_manifest() != ESP_OK)
     return ESP_FAIL;
@@ -1114,7 +1461,8 @@ bool lantern_sd_has_private_material(void) {
   while ((entry = readdir(dir))) {
     const char *extension = strrchr(entry->d_name, '.');
     if (extension &&
-        (!strcasecmp(extension, ".qpm") || !strcasecmp(extension, ".qpa") ||
+        (!strcasecmp(extension, ".qpm") || !strcasecmp(extension, ".qpc") ||
+         !strcasecmp(extension, ".qpa") ||
          !strcasecmp(extension, ".qpb") || !strcasecmp(extension, ".qpt") ||
          !strcasecmp(extension, ".qpx") || !strcasecmp(extension, ".wav") ||
          !strcasecmp(extension, ".tmp"))) {
@@ -1129,7 +1477,13 @@ bool lantern_sd_has_private_material(void) {
 #endif
 }
 void lantern_sd_clear_identity(void) {
+  quipus_report_cache_clear_identity();
 #if LANTERN_HAS_SD_CARD
+  if (s_retention_directory) {
+    closedir(s_retention_directory);
+    s_retention_directory = NULL;
+  }
+  invalidate_upload_count();
   volatile uint8_t *key = s_archive_key;
   for (size_t i = 0; i < sizeof(s_archive_key); ++i)
     key[i] = 0;

@@ -7,9 +7,11 @@
 #include <string.h>
 
 #include "quipus_codec_control.h"
+#include "es8311_codec.h"
 #include "driver/i2c.h"
+#include "esp_log.h"
 
-static unsigned calls, delays, errors, warnings;
+static unsigned calls, delays, errors, warnings, constructor_delays;
 static unsigned failures;
 static esp_err_t injected_error;
 static bool expect_read;
@@ -29,7 +31,7 @@ const char *esp_err_to_name(esp_err_t error) {
 }
 
 void test_codec_log(bool error, const char *tag, const char *format, ...) {
-  assert(strcmp(tag, "quipus_codec_i2c") == 0);
+  assert(strcmp(tag, "quipus_codec_i2c") == 0 || strcmp(tag, "lantern_board_io") == 0);
   if (error) ++errors;
   else ++warnings;
   va_list arguments;
@@ -39,6 +41,7 @@ void test_codec_log(bool error, const char *tag, const char *format, ...) {
 }
 
 void vTaskDelay(TickType_t ticks) {
+  if (ticks == pdMS_TO_TICKS(50)) { ++constructor_delays; return; }
   TickType_t expected = pdMS_TO_TICKS(2);
   assert(ticks == (expected ? expected : 1));
   ++delays;
@@ -89,6 +92,63 @@ static void setup(bool read, uint8_t address, const uint8_t *packet, size_t pack
   failures = fail_count;
   injected_error = error;
   watched_output = NULL;
+}
+
+static unsigned constructor_calls, failed_constructors;
+static bool ignored_constructor_error;
+static const audio_codec_if_t successful_codec = {0};
+const audio_codec_if_t *es8311_codec_new(es8311_codec_cfg_t *config) {
+  assert(config && config->ctrl_if && config->ctrl_if->is_open(config->ctrl_if));
+  ++constructor_calls;
+  // This assertion fails if a failed constructor's error leaks across attempts.
+  assert(quipus_codec_control_error(config->ctrl_if)==ESP_CODEC_DEV_OK);
+  uint8_t byte=0x08;
+  const uint8_t reg[]={0x44}, write[]={0x44,0x08};
+  if (constructor_calls <= failed_constructors) {
+    setup(true,0x18,reg,sizeof(reg),1,20,ESP_FAIL);
+    assert(config->ctrl_if->read_reg(config->ctrl_if,0x44,1,&byte,1)==ESP_CODEC_DEV_READ_FAIL);
+    assert(calls==3 && quipus_codec_control_error(config->ctrl_if)==ESP_CODEC_DEV_READ_FAIL);
+    return NULL; // Vendor constructor frees its object on this path.
+  }
+  if (ignored_constructor_error) {
+    // Emulate a vendor setup routine swallowing an exhausted write failure.
+    setup(false,0x18,write,sizeof(write),0,20,ESP_FAIL);
+    assert(config->ctrl_if->write_reg(config->ctrl_if,0x44,1,&byte,1)==ESP_CODEC_DEV_WRITE_FAIL);
+  }
+  setup(true,0x18,reg,sizeof(reg),1,0,ESP_FAIL);
+  assert(config->ctrl_if->read_reg(config->ctrl_if,0x44,1,&byte,1)==ESP_CODEC_DEV_OK);
+  return &successful_codec;
+}
+#define TAG "lantern_board_io"
+#include "codec_constructor_under_test.c"
+#undef TAG
+
+static void constructor_regressions(void) {
+  for(unsigned fail=0; fail<=3; ++fail) for(unsigned ignored=0; ignored<2; ++ignored) {
+    audio_codec_i2c_cfg_t config={.port=I2C_NUM_0,.addr=0x30};
+    const audio_codec_ctrl_if_t *control=quipus_codec_new_i2c_ctrl(&config); assert(control);
+    es8311_codec_cfg_t codec_config={.ctrl_if=control};
+    constructor_calls=constructor_delays=0; failed_constructors=fail;
+    ignored_constructor_error=ignored!=0;
+    const audio_codec_if_t *codec=production_constructor_retry(codec_config);
+    assert(constructor_calls==(fail<3?fail+1:3));
+    assert(constructor_delays==(fail<3?fail:2));
+    int terminal=quipus_codec_control_error(control);
+    if(fail==3) assert(!codec && terminal==ESP_CODEC_DEV_READ_FAIL);
+    else {
+      assert(codec==&successful_codec);
+      // A recovered FULL constructor is clean, but a real ignored error in the
+      // successful attempt must still block readiness at the production guard.
+      assert(terminal==(ignored ? ESP_CODEC_DEV_WRITE_FAIL : ESP_CODEC_DEV_OK));
+      if(ignored) {
+        uint8_t byte=0; const uint8_t reg[]={0x44};
+        setup(true,0x18,reg,sizeof(reg),1,0,ESP_FAIL);
+        assert(control->read_reg(control,0x44,1,&byte,1)==ESP_CODEC_DEV_OK);
+        assert(quipus_codec_control_error(control)==ESP_CODEC_DEV_WRITE_FAIL);
+      }
+    }
+    assert(audio_codec_delete_ctrl_if(control)==ESP_CODEC_DEV_OK);
+  }
 }
 
 int main(void) {
@@ -173,12 +233,16 @@ int main(void) {
   assert(calls == 0);
 
   assert(control->close(control) == ESP_CODEC_DEV_OK && !control->is_open(control));
+  assert(quipus_codec_control_reset_error(control)==ESP_CODEC_DEV_WRONG_STATE);
+  assert(quipus_codec_control_error(control)==ESP_CODEC_DEV_READ_FAIL);
   assert(control->read_reg(control, 0x44, 1, &byte, 1) == ESP_CODEC_DEV_WRONG_STATE);
   assert(control->write_reg(control, 0x44, 1, &byte, 1) == ESP_CODEC_DEV_WRONG_STATE);
   assert(calls == 0);
   assert(control->open(control, &config, sizeof(config)) == ESP_CODEC_DEV_OK);
   assert(control->is_open(control));
   assert(quipus_codec_control_error(control) == ESP_CODEC_DEV_READ_FAIL);
+  assert(quipus_codec_control_reset_error(control)==ESP_CODEC_DEV_OK);
+  assert(quipus_codec_control_error(control)==ESP_CODEC_DEV_OK && control->is_open(control));
   assert(control->open(control, &config, 0) == ESP_CODEC_DEV_INVALID_ARG);
   assert(control->close(NULL) == ESP_CODEC_DEV_INVALID_ARG);
   assert(!control->is_open(NULL));
@@ -200,6 +264,8 @@ int main(void) {
   assert(quipus_codec_control_error(NULL) == ESP_CODEC_DEV_INVALID_ARG);
   const audio_codec_ctrl_if_t foreign_control = {0};
   assert(quipus_codec_control_error(&foreign_control) == ESP_CODEC_DEV_INVALID_ARG);
+  assert(quipus_codec_control_reset_error(NULL)==ESP_CODEC_DEV_INVALID_ARG);
+  assert(quipus_codec_control_reset_error(&foreign_control)==ESP_CODEC_DEV_INVALID_ARG);
   assert(!quipus_codec_new_i2c_ctrl(NULL));
   config.addr = 0;
   assert(!quipus_codec_new_i2c_ctrl(&config));
@@ -211,6 +277,7 @@ int main(void) {
   config.port = I2C_NUM_0;
   config.bus_handle = &config;
   assert(!quipus_codec_new_i2c_ctrl(&config));
-  puts("Codec I2C control: transactions, bounded retries, failures, bounds and lifecycle passed.");
+  constructor_regressions();
+  puts("Codec I2C control: transactions, bounded retries, recovered full-constructor attempts, preserved ignored-driver errors, bounds and lifecycle passed.");
   return 0;
 }

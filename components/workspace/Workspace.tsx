@@ -11,6 +11,8 @@ import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { getMonthGrid } from "@/lib/calendar";
+import { calendarMeetings, canHideRecording } from "@/lib/workspace/calendar-visibility";
+import { CalendarRecordingAction } from "./CalendarRecordingAction";
 import { workspaceTime } from "@/lib/workspace-time";
 import {
   getApprovals,
@@ -144,6 +146,9 @@ function WorkspaceSession({
   const [selectedDate, setSelectedDate] = useState(() =>
     formatDateKey(clock),
   );
+  const [showHiddenRecordings, setShowHiddenRecordings] = useState(false);
+  const hiddenRecordingCount = calendarMeetings(meetings, true).length;
+  const calendarEntries = calendarMeetings(meetings, showHiddenRecordings);
   const [layoutChoice, setLayout] = useState<"month" | "agenda" | null>(null);
   const smallScreen = useMediaQuery("(max-width: 760px)");
   const layout = layoutChoice ?? (smallScreen ? "agenda" : "month");
@@ -502,6 +507,16 @@ function WorkspaceSession({
 
                             Agenda
                           </button>
+                          {(hiddenRecordingCount > 0 || showHiddenRecordings) && (
+                            <button
+                              type="button"
+                              aria-pressed={showHiddenRecordings}
+                              className={showHiddenRecordings ? styles.toggleActive : ""}
+                              onClick={() => setShowHiddenRecordings(current => !current)}
+                            >
+                              Hidden ({hiddenRecordingCount})
+                            </button>
+                          )}
                         </div>
                       </header>
                       {layout === "month" ? (
@@ -521,7 +536,7 @@ function WorkspaceSession({
                           </div>
                           <div className={styles.monthGrid} {...calendarSwipe}>
                             {grid.map((day) => {
-                              const entries = meetings.filter(
+                              const entries = calendarEntries.filter(
                                 (meeting) =>
                                   formatDateKey(meeting.startAt) ===
                                   day.isoDate,
@@ -544,29 +559,31 @@ function WorkspaceSession({
                                   </button>
                                   <div className={styles.dayEvents}>
                                     {entries.slice(0, 3).map((meeting) => (
-                                      <button
-                                        key={meeting.id}
-                                        className={`${styles.eventChip} ${meeting.source === "calendar" || meeting.status === "upcoming" ? styles.scheduledChip : styles.conversationChip}`}
-                                        onClick={() =>
-                                          openConversation(meeting.id, "Summary", "calendar")
-                                        }
-                                        title={meeting.title}
-                                      >
-                                        <span className={styles.eventTime}>
-                                          {meeting.recordingProgress?.timeUncertain ? "Time unconfirmed" : timeLabel(meeting.startAt)}
-                                        </span>
-                                        <strong>
-                                          {meeting.contacts[0]?.name ||
-                                            meeting.title}
-                                        </strong>
-                                        <small>
-                                          {meeting.source === "calendar"
-                                            ? "Follow-up"
-                                            : isConversation(meeting)
-                                              ? "Conversation"
-                                              : meeting.title}
-                                        </small>
-                                      </button>
+                                      <div className={styles.calendarEntry} key={meeting.id}>
+                                        <button
+                                          className={`${styles.eventChip} ${meeting.source === "calendar" || meeting.status === "upcoming" ? styles.scheduledChip : styles.conversationChip}`}
+                                          onClick={() =>
+                                            openConversation(meeting.id, "Summary", "calendar")
+                                          }
+                                          title={meeting.title}
+                                        >
+                                          <span className={styles.eventTime}>
+                                            {meeting.recordingProgress?.timeUncertain ? "Time unconfirmed" : timeLabel(meeting.startAt)}
+                                          </span>
+                                          <strong>
+                                            {meeting.contacts[0]?.name ||
+                                              meeting.title}
+                                          </strong>
+                                          <small>
+                                            {meeting.source === "calendar"
+                                              ? "Follow-up"
+                                              : isConversation(meeting)
+                                                ? "Conversation"
+                                                : meeting.title}
+                                          </small>
+                                        </button>
+                                        {canHideRecording(meeting) && <CalendarRecordingAction meeting={meeting} disabled={Boolean(working)} onChange={workspace.setCalendarVisibility} />}
+                                      </div>
                                     ))}
                                     {entries.length > 3 && (
                                       <button
@@ -587,7 +604,7 @@ function WorkspaceSession({
                         </>
                       ) : (
                         <div className={styles.agenda} {...calendarSwipe}>
-                          {meetings
+                          {calendarEntries
                             .filter((meeting) =>
                               formatDateKey(meeting.startAt).startsWith(
                                 visibleMonth,
@@ -598,40 +615,42 @@ function WorkspaceSession({
                                 Date.parse(a.startAt) - Date.parse(b.startAt),
                             )
                             .map((meeting) => (
-                              <button
-                                className={styles.agendaRow}
-                                key={meeting.id}
-                                onClick={() => openConversation(meeting.id, "Summary", "calendar")}
-                              >
-                                <span className={styles.agendaDate}>
-                                  {dateLabel(meeting.startAt, {
-                                    day: "2-digit",
-                                  })}
-                                </span>
-                                <span className={styles.agendaCopy}>
-                                  <strong>{meeting.title}</strong>
-                                  <small>
-                                    {meeting.contacts[0]?.company} ·{" "}
-                                    {meeting.recordingProgress?.timeUncertain ? "Time unconfirmed" : timeLabel(meeting.startAt)}
-                                  </small>
-                                </span>
-                                <span className={styles.typePill}>
-                                  {meeting.source === "calendar"
-                                    ? "Meeting"
-                                    : "Conversation"}
-                                </span>
+                              <div className={styles.agendaEntry} key={meeting.id}>
+                                <button
+                                  className={styles.agendaRow}
+                                  onClick={() => openConversation(meeting.id, "Summary", "calendar")}
+                                >
+                                  <span className={styles.agendaDate}>
+                                    {dateLabel(meeting.startAt, {
+                                      day: "2-digit",
+                                    })}
+                                  </span>
+                                  <span className={styles.agendaCopy}>
+                                    <strong>{meeting.title}</strong>
+                                    <small>
+                                      {meeting.contacts[0]?.company} ·{" "}
+                                      {meeting.recordingProgress?.timeUncertain ? "Time unconfirmed" : timeLabel(meeting.startAt)}
+                                    </small>
+                                  </span>
+                                  <span className={styles.typePill}>
+                                    {meeting.source === "calendar"
+                                      ? "Meeting"
+                                      : "Conversation"}
+                                  </span>
 
-                              </button>
+                                </button>
+                                {canHideRecording(meeting) && <CalendarRecordingAction meeting={meeting} disabled={Boolean(working)} onChange={workspace.setCalendarVisibility} />}
+                              </div>
                             ))}
-                          {!meetings.some((meeting) =>
+                          {!calendarEntries.some((meeting) =>
                             formatDateKey(meeting.startAt).startsWith(
                               visibleMonth,
                             ),
                           ) && (
                             <div className={styles.emptyInline}>
 
-                              <h3>A little breathing room</h3>
-                              <p>No meetings or conversations this month.</p>
+                              <h3>{showHiddenRecordings ? "No hidden recordings this month" : "A little breathing room"}</h3>
+                              <p>{showHiddenRecordings ? "Hidden recordings keep their audio and conversation history." : "No meetings or conversations this month."}</p>
                             </div>
                           )}
                         </div>
@@ -993,6 +1012,13 @@ function WorkspaceSession({
         <div className={styles.toast} role="status">
 
           <span>{notice}</span>
+          {workspace.calendarUndo && (
+            <button type="button" disabled={Boolean(working)} onClick={() => {
+              if (workspace.calendarUndo) void workspace.setCalendarVisibility(workspace.calendarUndo, false);
+            }}>
+              Undo
+            </button>
+          )}
           <button
             onClick={() => workspace.setNotice(null)}
             aria-label="Dismiss notification"

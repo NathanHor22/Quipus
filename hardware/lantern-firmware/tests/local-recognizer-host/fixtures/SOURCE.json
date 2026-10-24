@@ -1,0 +1,12 @@
+[
+  {
+    "label": "yes",
+    "url": "https://raw.githubusercontent.com/espressif/esp-tflite-micro/dd4085950a119d9e33a6de1d7be1fc7fe29e0cfc/examples/micro_speech/test_data/yes_1000ms.wav",
+    "sha256": "b40e137a9d25bbdf135e03fa0f6bff4696d0bfc203aef8bc73b27c9428ba5a92"
+  },
+  {
+    "label": "no",
+    "url": "https://raw.githubusercontent.com/espressif/esp-tflite-micro/dd4085950a119d9e33a6de1d7be1fc7fe29e0cfc/examples/micro_speech/test_data/no_1000ms.wav",
+    "sha256": "21e2b640385e4a751d480a87ae5a1633a6ff00e838b0e2ad48b22f8034e946d8"
+  }
+]

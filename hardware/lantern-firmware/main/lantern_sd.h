@@ -43,9 +43,20 @@ const char *lantern_sd_recording_path(void);
 size_t lantern_sd_recording_size(void);
 bool lantern_sd_recording_matches_session(const char *session_id);
 
-// Removes the finalized local file only after the backend verified the complete
-// recording checksum.
+// Commits full backend verification, leaves the upload queue and retains the
+// encrypted local copy for 24 h. A trusted Unix timestamp of 0 means unknown;
+// such copies are preserved until a trusted idle pass starts a full 24 h.
+// Retrying never changes an existing first-verification time/deadline.
+esp_err_t lantern_sd_recording_confirm_uploaded_at(int64_t trusted_verified_at);
 esp_err_t lantern_sd_recording_confirm_uploaded(void);
+
+// Bounded retention maintenance. Call while idle under the session/control lock,
+// with capture, phone transport, upload and local replay stopped. At most eight
+// directory entries are examined per call (scan_limit is clamped). Invalid or
+// untrusted time preserves all data; no-SD boards return NOT_SUPPORTED.
+// Verified retained/recovery material continues blocking account/key reset.
+esp_err_t lantern_sd_retention_cleanup(int64_t now_seconds, bool time_trusted,
+                                      size_t scan_limit, size_t *removed);
 
 // Identity is bound to the paired cloud owner and a server-backed device key.
 esp_err_t lantern_sd_configure_identity(const char *owner_id,
@@ -62,7 +73,15 @@ esp_err_t lantern_sd_next_pending(const char *owner_id, const char *device_id,
                                   lantern_cloud_session_t *session,
                                   bool *cloud_stopped, bool *audio_uploaded,
                                   bool *phone_uploaded);
+// Conservative retained-private-material count for identity/reset protection.
 size_t lantern_sd_pending_count(void);
+// Upload-selection candidates: excludes verified .qpc cache and authenticated
+// verified .qpm proof left by a torn rename; never touches NVS. Unreadable
+// metadata stays pending. Excludes quarantined/orphan evidence; 0 if unavailable.
+// Advisory count is cached for at most 60 s with immediate mutation invalidation;
+// conservative identity/reset checks remain uncached.
+// Never use this narrower count to decide whether identity/keys may be erased.
+size_t lantern_sd_upload_pending_count(void);
 const char *lantern_sd_captured_at(void);
 bool lantern_sd_time_uncertain(void);
 esp_err_t lantern_sd_set_phone_timing(const char *json);

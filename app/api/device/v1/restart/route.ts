@@ -50,7 +50,9 @@ export async function POST(request: Request) {
       .from("lantern_sessions")
       .select("id,state_version,machine,agora_stt_agent_id")
       .eq("device_id", device.id)
+      .eq("user_id", device.userId)
       .is("ended_at", null)
+      .is("offline_import_fingerprint", null)
       .maybeSingle();
     if (activeError) throw new Error(activeError.message);
 

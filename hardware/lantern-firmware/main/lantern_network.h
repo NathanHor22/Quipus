@@ -68,6 +68,8 @@ typedef struct {
   bool offline_local;
   bool archive_accepted;
   bool archive_verified;
+  // True only for a verified short_digital_silence completion receipt.
+  bool discarded;
   bool processing_queued;
   unsigned version;
   char local_date[11];
@@ -92,6 +94,8 @@ esp_err_t lantern_network_connect_wifi(const char *ssid, const char *password);
 esp_err_t lantern_network_get_reports(lantern_report_item_t *items,
                                       size_t capacity, size_t *count);
 esp_err_t lantern_network_play_briefing(const char *kind, int battery_level);
+// Read the last complete, authenticated same-voice report offline. No actions.
+esp_err_t lantern_network_play_cached_report(void);
 bool lantern_network_review_pending(void);
 void lantern_network_cancel_review(void);
 #define LANTERN_REPORT_INTERRUPTED ((esp_err_t)0x7f01)
@@ -118,3 +122,8 @@ esp_err_t lantern_network_prepare_archive_key(void);
 esp_err_t lantern_network_begin_offline(lantern_cloud_session_t *session);
 esp_err_t lantern_network_import_recording(lantern_cloud_session_t *session);
 esp_err_t lantern_network_upload_phone(lantern_cloud_session_t *session);
+
+// One owner calls this when leaving report mode; late PCM generations expire.
+void lantern_network_end_report(void);
+//0 until this boot has a plausible SNTP anchor with no clock jump.
+int64_t lantern_network_trusted_time(void);

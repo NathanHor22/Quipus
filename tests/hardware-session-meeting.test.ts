@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { archivedLanternSessionMeeting } from "../lib/hardware-session-meeting";
+import { archivedLanternSessionMeeting, shouldIncludeArchivedSession } from "../lib/hardware-session-meeting";
 
 test("an archived Lantern session remains replayable when transcription fails", () => {
   const meeting = archivedLanternSessionMeeting(
@@ -51,4 +51,12 @@ test("uncertain offline clock stays explicitly marked independently of audio dur
   const meeting = archivedLanternSessionMeeting({ id: "offline-session", started_at: "2026-10-18T01:00:00Z", capture_ended_at: "2026-10-18T01:05:00Z", recording_id: "recording", processing_error: null, capture_time_uncertain: true }, null, 300);
   assert.equal(meeting.recordingProgress?.timeUncertain, true);
   assert.equal(meeting.recordingProgress?.durationSeconds, 300);
+});
+
+
+test("an explicitly discarded silent fluke is not re-created as a calendar placeholder", () => {
+  const session = { id: "silent-session", started_at: "2026-10-24T01:00:00Z", capture_ended_at: "2026-10-24T01:00:03Z", recording_id: "silent-audio", processing_error: null };
+  assert.equal(shouldIncludeArchivedSession({ ...session, processing_stage: "discarded_silence" }, []), false);
+  assert.equal(shouldIncludeArchivedSession({ ...session, processing_stage: "failed", processing_error: "No speech detected" }, []), true);
+  assert.equal(shouldIncludeArchivedSession({ ...session, processing_stage: "queued" }, []), true);
 });

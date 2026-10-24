@@ -1,0 +1,10 @@
+{
+  "version": "quipus-marin-v1",
+  "textVersion": 1,
+  "model": "gpt-4o-mini-tts-2025-12-15",
+  "voice": "marin",
+  "instructions": "Speak as Quipus, a warm, confident and professional female assistant. Use clear, natural Malaysian English with calm, friendly pacing. Sound assured and conversational, never theatrical or breathy. Read the supplied text exactly; do not add, omit, paraphrase or answer it.",
+  "speed": 1.02,
+  "sampleRate": 24000,
+  "responseFormat": "pcm"
+}

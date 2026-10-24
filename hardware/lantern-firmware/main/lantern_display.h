@@ -53,7 +53,12 @@ void lantern_display_show_keyboard(const char *ssid, const char *password,
 void lantern_display_show_detail(const char *title, const char *body,
                                  const char *footer);
 void lantern_display_set_charge_eta(int minutes);
+// First call initializes the level; later changes briefly show feedback on the
+// Waveshare top strip. Repeated values do not extend or redraw that feedback.
 void lantern_display_set_volume(unsigned percent);
+// Actual PCM playback energy (0-100), task context only. Stop/cancel must pass
+// speaking=false; Waveshare coalesces updates and old display profiles no-op.
+void lantern_display_set_speech_level(unsigned percent, bool speaking);
 void lantern_display_set_awake(bool awake);
 // Updates the persistent top status bar without changing the active screen.
 // battery_level is -1 when measurement is unavailable; wifi_rssi is dBm.

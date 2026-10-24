@@ -1,3 +1,6 @@
+#include "quipus_report_cache.h"
+#include "quipus_voice_profile.h"
+#include "quipus_local_prompts.h"
 #include "lantern_network.h"
 #include "lantern_setup_page.h"
 #include "quipus_network_policy.h"
@@ -10,6 +13,7 @@
 #include <string.h>
 #include <strings.h>
 #include <time.h>
+#include <stdatomic.h>
 
 #include "cJSON.h"
 #include "esp_check.h"
@@ -52,9 +56,19 @@ static bool s_wifi_started;
 static char s_review_token[37];
 static char s_report_id[37];
 static unsigned s_report_page;
+static bool s_paging_has_context;
 static char s_report_context[37];
 static char s_playback_id[37];
 static unsigned s_playback_page;
+static unsigned s_last_spoken_page;
+static bool s_has_last_spoken_page;
+static atomic_uint s_speech_generation;
+static char s_interaction_id[37];
+static portMUX_TYPE s_clock_lock = portMUX_INITIALIZER_UNLOCKED;
+static bool s_clock_synced;
+static int64_t s_clock_anchor_wall;
+static int64_t s_clock_anchor_mono;
+
 static volatile bool s_report_playing;
 static volatile bool s_report_interrupted;
 static volatile bool s_report_request_active;
@@ -63,6 +77,29 @@ static bool s_setup_manual;
 static TaskHandle_t s_connection_task;
 static SemaphoreHandle_t s_setup_mutex;
 static bool s_setup_saved;
+
+static void clock_synchronised(struct timeval *value) {
+  if (!value) return;
+  int64_t mono = esp_timer_get_time();
+  portENTER_CRITICAL(&s_clock_lock);
+  s_clock_anchor_wall = value->tv_sec;
+  s_clock_anchor_mono = mono;
+  s_clock_synced = true;
+  portEXIT_CRITICAL(&s_clock_lock);
+}
+
+int64_t lantern_network_trusted_time(void) {
+  int64_t wall = (int64_t)time(NULL);
+  int64_t mono = esp_timer_get_time();
+  portENTER_CRITICAL(&s_clock_lock);
+  bool synced = s_clock_synced;
+  int64_t anchor_wall = s_clock_anchor_wall, anchor_mono = s_clock_anchor_mono;
+  portEXIT_CRITICAL(&s_clock_lock);
+  if (!synced || wall < 1704067200LL || wall > 4102444800LL || mono < anchor_mono) return 0;
+  int64_t expected = anchor_wall + (mono - anchor_mono) / 1000000;
+  if (wall < expected - 120 || wall > expected + 120) return 0;
+  return wall;
+}
 
 static esp_err_t start_setup_portal(void);
 
@@ -103,6 +140,7 @@ typedef struct {
 typedef struct {
   response_buffer_t response;
   bool content_is_pcm;
+  bool tone_only;
   bool playback_started;
   bool playback_failed;
   size_t audio_bytes;
@@ -114,7 +152,25 @@ typedef struct {
   char playback_id[37];
   unsigned playback_page;
   bool manual_read;
+  bool generation_valid;
+  bool repeat_page;
+  unsigned generation;
+  char interaction_id[37];
+  char voice_profile[40];
+  bool offline_cacheable;
 } audio_response_t;
+
+// One serialized report turn; an incomplete replacement never replaces the prior cache.
+static bool s_report_cache_downloading;
+static char s_report_cache_playback[37], s_report_cache_turn[37];
+static unsigned s_report_cache_next_page, s_report_cache_generation;
+
+static void abort_report_cache_download(void) {
+  quipus_report_cache_abort();
+  s_report_cache_downloading = false;
+  s_report_cache_playback[0] = s_report_cache_turn[0] = 0;
+  s_report_cache_next_page = s_report_cache_generation = 0;
+}
 
 static response_buffer_t *response_buffer_create(void) {
   response_buffer_t *response = heap_caps_calloc(
@@ -193,10 +249,24 @@ static esp_err_t http_event(esp_http_client_event_t *event) {
 
 static esp_err_t audio_http_event(esp_http_client_event_t *event) {
   audio_response_t *audio = event->user_data;
-  if (!audio)
-    return ESP_OK;
+  if (!audio) return ESP_OK;
+  if (audio->generation_valid &&
+      audio->generation != atomic_load(&s_speech_generation)) return ESP_FAIL;
   if (event->event_id == HTTP_EVENT_ON_HEADER && event->header_key &&
       event->header_value) {
+    if (strcasecmp(event->header_key, "x-quipus-voice-profile") == 0)
+      snprintf(audio->voice_profile, sizeof(audio->voice_profile), "%s", event->header_value);
+    if (strcasecmp(event->header_key, "x-quipus-offline-cache") == 0)
+      audio->offline_cacheable = strcmp(event->header_value, "report") == 0;
+    if (strcasecmp(event->header_key, "x-quipus-playback-mode") == 0)
+      audio->repeat_page = strcasecmp(event->header_value, "repeat") == 0;
+    if (strcasecmp(event->header_key, "x-quipus-interaction-id") == 0 &&
+        audio->generation_valid && strcmp(audio->interaction_id, event->header_value)) {
+      audio->playback_failed = true;
+      return ESP_FAIL;
+    }
+    if (strcasecmp(event->header_key, "x-lantern-voice-output") == 0)
+      audio->tone_only = strcasecmp(event->header_value, "tone") == 0;
     if (strcasecmp(event->header_key, "x-quipus-context-id") == 0)
       snprintf(audio->context_id, sizeof(audio->context_id), "%s",
                event->header_value);
@@ -261,10 +331,23 @@ static esp_err_t audio_http_event(esp_http_client_event_t *event) {
 
 bool lantern_network_report_playing(void) { return s_report_playing; }
 void lantern_network_interrupt_report(void) {
-  if (!s_report_playing)
-    return;
+  // Cancel the generation even before response headers arrive. A late response
+  // may not open another PCM stream after a local exit or power request.
+  atomic_fetch_add(&s_speech_generation, 1);
   s_report_interrupted = true;
+  lantern_audio_set_report_listening(false);
   lantern_audio_pcm_cancel();
+}
+
+void lantern_network_end_report(void) {
+  lantern_network_interrupt_report();
+  abort_report_cache_download();
+  lantern_audio_reset_report_listening();
+  s_review_token[0] = s_report_id[0] = s_report_context[0] = s_playback_id[0] = 0;
+  s_playback_page = s_last_spoken_page = 0;
+  s_has_last_spoken_page = false;
+  s_interaction_id[0] = 0;
+  s_paging_has_context = false;
 }
 
 static void remember_report_position(const audio_response_t *audio) {
@@ -272,8 +355,10 @@ static void remember_report_position(const audio_response_t *audio) {
     snprintf(s_report_context, sizeof(s_report_context), "%s",
              audio->context_id);
   if (audio->playback_id[0]) {
+    bool same_report = !strcmp(s_playback_id, audio->playback_id);
+    if (!same_report) s_has_last_spoken_page = false;
     snprintf(s_playback_id, sizeof(s_playback_id), "%s", audio->playback_id);
-    s_playback_page = audio->playback_page;
+    if (!audio->repeat_page || !same_report) s_playback_page = audio->playback_page;
   }
 }
 
@@ -284,36 +369,89 @@ static esp_err_t perform_audio_request(esp_http_client_handle_t client,
                                        audio_response_t *audio,
                                        bool report_request) {
   audio->manual_read = true;
+  if (!audio->generation_valid) {
+    audio->generation = atomic_load(&s_speech_generation);
+    audio->generation_valid = true;
+  }
+  if (audio->generation != atomic_load(&s_speech_generation)) {
+    abort_report_cache_download();
+    return LANTERN_REPORT_INTERRUPTED;
+  }
+  if (s_report_id[0] && s_paging_has_context && s_report_context[0])
+    esp_http_client_set_header(client, "X-Quipus-Context-Id", s_report_context);
+  if (!s_interaction_id[0]) uuid_v4(s_interaction_id);
+  snprintf(audio->interaction_id, sizeof(audio->interaction_id), "%s", s_interaction_id);
+  esp_http_client_set_header(client, "X-Quipus-Interaction-Id", audio->interaction_id);
+  esp_http_client_set_header(client, "X-Quipus-Report-Mode", "conversation");
   s_report_interrupted = false;
   esp_err_t result = esp_http_client_open(client, (int)length);
-  if (result != ESP_OK)
+  if (result != ESP_OK) {
+    abort_report_cache_download();
     return result;
+  }
   size_t written = 0;
   while (written < length) {
+    if (audio->generation != atomic_load(&s_speech_generation)) {
+      abort_report_cache_download();
+      return LANTERN_REPORT_INTERRUPTED;
+    }
     int count = esp_http_client_write(client, (const char *)body + written,
                                       (int)(length - written));
-    if (count <= 0)
+    if (count <= 0) {
+      abort_report_cache_download();
       return ESP_FAIL;
+    }
     written += (size_t)count;
   }
-  if (esp_http_client_fetch_headers(client) < 0)
-    return ESP_FAIL;
-  remember_report_position(audio);
+  if (esp_http_client_fetch_headers(client) < 0) {
+    abort_report_cache_download();
+    return audio->generation != atomic_load(&s_speech_generation)
+        ? LANTERN_REPORT_INTERRUPTED : ESP_FAIL;
+  }
+  if (audio->generation != atomic_load(&s_speech_generation) || audio->playback_failed) {
+    abort_report_cache_download();
+    return LANTERN_REPORT_INTERRUPTED;
+  }
+  if (esp_http_client_get_status_code(client) == 200 && audio->content_is_pcm)
+    remember_report_position(audio);
   s_report_playing =
       report_request || strncmp(audio->command, "report_", 7) == 0;
+  lantern_audio_set_report_listening(s_report_playing && audio->content_is_pcm);
   if (s_report_playing && audio->content_is_pcm)
-    lantern_display_show(LANTERN_SCREEN_STATUS, LANTERN_HAS_TOUCHSCREEN
-                                                    ? "TAP TO INTERRUPT"
-                                                    : "PRESS TO INTERRUPT");
+    lantern_display_show(LANTERN_SCREEN_STATUS, "STATUS REPORT");
+  bool cache_this_page = s_report_playing && audio->content_is_pcm &&
+      esp_http_client_get_status_code(client) == 200 && audio->offline_cacheable &&
+      strcmp(audio->command, "report_answer") == 0 && !audio->repeat_page &&
+      audio->playback_id[0] &&
+      strcmp(audio->voice_profile, QUIPUS_VOICE_PROFILE_VERSION) == 0;
+  if (s_report_cache_downloading &&
+      (!cache_this_page || strcmp(s_report_cache_playback, audio->playback_id) ||
+       strcmp(s_report_cache_turn, audio->interaction_id) ||
+       s_report_cache_generation != audio->generation ||
+       s_report_cache_next_page != audio->playback_page))
+    abort_report_cache_download();
+  if (cache_this_page && !s_report_cache_downloading && audio->playback_page == 0) {
+    char cache_id[37]; uuid_v4(cache_id);
+    s_report_cache_downloading = quipus_report_cache_begin(cache_id,
+        QUIPUS_VOICE_PROFILE_VERSION) == ESP_OK;
+    if (s_report_cache_downloading) {
+      snprintf(s_report_cache_playback, sizeof(s_report_cache_playback), "%s", audio->playback_id);
+      snprintf(s_report_cache_turn, sizeof(s_report_cache_turn), "%s", audio->interaction_id);
+      s_report_cache_next_page = 0;
+      s_report_cache_generation = audio->generation;
+    }
+  }
   esp_http_client_set_timeout_ms(client, 2000);
   char *chunk = heap_caps_malloc(2048, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
   if (!chunk) {
+    abort_report_cache_download();
+    lantern_audio_set_report_listening(false);
     s_report_playing = false;
     return ESP_ERR_NO_MEM;
   }
   TickType_t last_data = xTaskGetTickCount();
   while (true) {
-    if (s_report_interrupted) {
+    if (s_report_interrupted || audio->generation != atomic_load(&s_speech_generation)) {
       result = LANTERN_REPORT_INTERRUPTED;
       break;
     }
@@ -329,7 +467,7 @@ static esp_err_t perform_audio_request(esp_http_client_handle_t client,
       break;
     }
     last_data = xTaskGetTickCount();
-    if (s_report_interrupted) {
+    if (s_report_interrupted || audio->generation != atomic_load(&s_speech_generation)) {
       result = LANTERN_REPORT_INTERRUPTED;
       break;
     }
@@ -342,19 +480,47 @@ static esp_err_t perform_audio_request(esp_http_client_handle_t client,
     audio->manual_read = true;
     if (result != ESP_OK)
       break;
+    if (cache_this_page && s_report_cache_downloading &&
+        quipus_report_cache_append(chunk, (size_t)count) != ESP_OK) {
+      abort_report_cache_download();
+    }
   }
-  if (audio->playback_started)
-    lantern_audio_pcm_end();
+  if (audio->playback_started && lantern_audio_pcm_end() != ESP_OK)
+    audio->playback_failed = true;
   free(chunk);
-  if (s_report_interrupted)
+  if (audio->playback_failed && result == ESP_OK) result = ESP_FAIL;
+  if (s_report_playing && lantern_audio_take_speech_interrupt())
+    lantern_network_interrupt_report();
+  if (s_report_interrupted || audio->generation != atomic_load(&s_speech_generation))
     result = LANTERN_REPORT_INTERRUPTED;
+  if (s_report_cache_downloading) {
+    bool complete = result == ESP_OK && !audio->playback_failed &&
+        esp_http_client_get_status_code(client) == 200 && audio->audio_bytes > 0 &&
+        esp_http_client_is_complete_data_received(client);
+    if (!complete || (audio->report_id[0] &&
+        (audio->playback_page == UINT32_MAX || audio->report_page != audio->playback_page + 1))) {
+      abort_report_cache_download();
+    } else if (!audio->report_id[0]) {
+      if (quipus_report_cache_commit() != ESP_OK)
+        ESP_LOGW(TAG, "optional report cache was not committed");
+      abort_report_cache_download();
+    } else {
+      s_report_cache_next_page = audio->report_page;
+    }
+  }
   // Advance only after the whole PCM page has drained. A disconnect or tap
   // keeps the current page as the resume point; a completed page can never be
   // read again unless the user explicitly asks to repeat it.
-  if (result == ESP_OK && s_report_playing && audio->playback_id[0]) {
+  if (result == ESP_OK && s_report_playing && audio->playback_id[0] &&
+      esp_http_client_get_status_code(client) == 200 && audio->content_is_pcm &&
+      audio->playback_started && audio->audio_bytes > 0 && !audio->playback_failed) {
     snprintf(s_playback_id, sizeof(s_playback_id), "%s", audio->playback_id);
-    s_playback_page = audio->playback_page + 1;
+    s_last_spoken_page = audio->playback_page;
+    s_has_last_spoken_page = true;
+    if (!audio->repeat_page || s_playback_page < audio->playback_page + 1)
+      s_playback_page = audio->playback_page + 1;
   }
+  lantern_audio_set_report_listening(false);
   s_report_playing = false;
   if (result == LANTERN_REPORT_INTERRUPTED) {
     s_review_token[0] = '\0';
@@ -1107,6 +1273,7 @@ static void wifi_event(void *argument, esp_event_base_t base, int32_t id,
     if (!esp_sntp_enabled()) {
       esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
       esp_sntp_setservername(0, "pool.ntp.org");
+      esp_sntp_set_time_sync_notification_cb(clock_synchronised);
       esp_sntp_init();
     }
     ESP_LOGI(TAG, "Wi-Fi connected at %s", s_status.ip_address);
@@ -1552,17 +1719,26 @@ esp_err_t lantern_network_send_heartbeat(const char *state,
 }
 
 static esp_err_t play_briefing_page(const char *kind, int battery_level,
-                                    bool interruptible) {
+                                    bool interruptible, unsigned turn_generation) {
+  if (turn_generation != atomic_load(&s_speech_generation)) {
+    abort_report_cache_download();
+    return LANTERN_REPORT_INTERRUPTED;
+  }
   if (!kind || !s_config || !s_status.wifi_connected ||
       !lantern_storage_is_paired(s_config)) {
+    abort_report_cache_download();
     return ESP_ERR_INVALID_STATE;
   }
   char url[256];
   snprintf(url, sizeof(url), "%s/api/device/v1/briefing", LANTERN_API_BASE_URL);
   audio_response_t *audio = heap_caps_calloc(
       1, sizeof(audio_response_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-  if (!audio)
+  if (!audio) {
+    abort_report_cache_download();
     return ESP_ERR_NO_MEM;
+  }
+  audio->generation_valid = true;
+  audio->generation = turn_generation;
   esp_http_client_config_t config = {
       .url = url,
       .event_handler = audio_http_event,
@@ -1574,6 +1750,7 @@ static esp_err_t play_briefing_page(const char *kind, int battery_level,
   };
   esp_http_client_handle_t client = esp_http_client_init(&config);
   if (!client) {
+    abort_report_cache_download();
     free(audio);
     return ESP_FAIL;
   }
@@ -1606,11 +1783,12 @@ static esp_err_t play_briefing_page(const char *kind, int battery_level,
     return result;
   }
   int status = result == ESP_OK ? esp_http_client_get_status_code(client) : -1;
-  if (audio->playback_started)
-    lantern_audio_pcm_end();
+  if (audio->playback_started && lantern_audio_pcm_end() != ESP_OK)
+    audio->playback_failed = true;
   bool success = result == ESP_OK && status == 200 && audio->content_is_pcm &&
                  audio->audio_bytes > 0 && !audio->playback_failed;
   if (!success) {
+    abort_report_cache_download();
     ESP_LOGW(TAG, "briefing %s failed HTTP %d: %.192s", kind, status,
              audio->response.data);
     recover_rejected_credential(status);
@@ -1619,11 +1797,72 @@ static esp_err_t play_briefing_page(const char *kind, int battery_level,
              (unsigned)audio->audio_bytes);
     snprintf(s_report_id, sizeof(s_report_id), "%s", audio->report_id);
     s_report_page = audio->report_page;
+    s_paging_has_context = audio->context_id[0] != 0;
     snprintf(s_review_token, sizeof(s_review_token), "%s", audio->review_token);
   }
   esp_http_client_cleanup(client);
   free(audio);
+  if (turn_generation != atomic_load(&s_speech_generation)) {
+    abort_report_cache_download();
+    return LANTERN_REPORT_INTERRUPTED;
+  }
   return success ? ESP_OK : ESP_FAIL;
+}
+
+esp_err_t lantern_network_play_cached_report(void) {
+  if (!s_config || !lantern_storage_is_paired(s_config) ||
+      lantern_audio_is_recording() || lantern_sd_capture_active())
+    return ESP_ERR_INVALID_STATE;
+  // Offline audio cannot retain an approval token or resume a cloud dialogue.
+  // Latch cancellation before the authenticated SD scan, which may take time.
+  const unsigned generation = atomic_load(&s_speech_generation) + 1u;
+  lantern_network_end_report(); // Exactly one increment is ours; any other is cancellation.
+  if (generation != atomic_load(&s_speech_generation))
+    return LANTERN_REPORT_INTERRUPTED;
+  quipus_report_cache_reader_t *reader = NULL;
+  esp_err_t result = quipus_report_cache_open(QUIPUS_VOICE_PROFILE_VERSION, &reader);
+  if (result != ESP_OK) return result;
+  if (generation != atomic_load(&s_speech_generation)) {
+    quipus_report_cache_close(reader);
+    return LANTERN_REPORT_INTERRUPTED;
+  }
+  const size_t expected = quipus_report_cache_size(reader);
+  if (!expected || expected % 2 || expected > QUIPUS_REPORT_CACHE_MAX_PCM) {
+    quipus_report_cache_close(reader);
+    return ESP_FAIL;
+  }
+  uint8_t *chunk = heap_caps_malloc(2048, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  if (!chunk) { quipus_report_cache_close(reader); return ESP_ERR_NO_MEM; }
+  s_report_interrupted = false; s_report_playing = true;
+  bool started = false;
+  size_t delivered = 0;
+  result = generation == atomic_load(&s_speech_generation)
+      ? quipus_play_prompt(QUIPUS_PROMPT_CACHED_REPORT) : LANTERN_REPORT_INTERRUPTED;
+  if (result == ESP_OK && generation == atomic_load(&s_speech_generation)) {
+    result = lantern_audio_pcm_begin(); started = result == ESP_OK;
+  }
+  while (result == ESP_OK && started && delivered < expected) {
+    if (generation != atomic_load(&s_speech_generation) || s_report_interrupted) {
+      result = LANTERN_REPORT_INTERRUPTED; break;
+    }
+    size_t remaining = expected - delivered;
+    size_t bytes = quipus_report_cache_read(reader, chunk, remaining < 2048 ? remaining : 2048);
+    if (generation != atomic_load(&s_speech_generation) || s_report_interrupted) {
+      result = LANTERN_REPORT_INTERRUPTED; break;
+    }
+    if (!bytes || bytes > remaining || bytes % 2) { result = ESP_FAIL; break; }
+    result = lantern_audio_pcm_write(chunk, bytes);
+    if (result == ESP_OK) delivered += bytes;
+  }
+  if (generation != atomic_load(&s_speech_generation) || s_report_interrupted)
+    result = LANTERN_REPORT_INTERRUPTED;
+  if (result != ESP_OK) lantern_audio_pcm_cancel();
+  if (started && lantern_audio_pcm_end() != ESP_OK && result == ESP_OK) result = ESP_FAIL;
+  if (generation != atomic_load(&s_speech_generation) || s_report_interrupted)
+    result = LANTERN_REPORT_INTERRUPTED;
+  if (result == ESP_OK && delivered != expected) result = ESP_FAIL;
+  quipus_report_cache_close(reader); free(chunk); s_report_playing = false;
+  return result;
 }
 
 bool lantern_network_review_pending(void) { return s_review_token[0] != '\0'; }
@@ -1635,12 +1874,17 @@ void lantern_network_cancel_review(void) {
 esp_err_t lantern_network_play_briefing(const char *kind, int battery_level) {
   if (s_report_request_active)
     return ESP_ERR_INVALID_STATE;
+  const unsigned turn_generation = atomic_load(&s_speech_generation);
   s_report_request_active = true;
+  uuid_v4(s_interaction_id); // One turn, including every paged response.
   lantern_network_cancel_review();
   do {
-    esp_err_t result =
-        play_briefing_page(kind, battery_level, strcmp(kind, "status") == 0);
+    esp_err_t result = play_briefing_page(kind, battery_level,
+        strcmp(kind, "status") == 0, turn_generation);
+    if (turn_generation != atomic_load(&s_speech_generation))
+      result = LANTERN_REPORT_INTERRUPTED;
     if (result != ESP_OK) {
+      abort_report_cache_download();
       lantern_network_cancel_review();
       s_report_request_active = false;
       return result;
@@ -1665,7 +1909,7 @@ esp_err_t lantern_network_play_prompt(const char *kind) {
       .url = url,
       .event_handler = audio_http_event,
       .user_data = audio,
-      .timeout_ms = 60000,
+      .timeout_ms = strcmp(kind, "consent_request") == 0 ? 8000 : 60000,
       .crt_bundle_attach = esp_crt_bundle_attach,
       .disable_auto_redirect = true,
       .buffer_size = 4096,
@@ -1685,10 +1929,16 @@ esp_err_t lantern_network_play_prompt(const char *kind) {
   esp_http_client_set_post_field(client, body, (int)strlen(body));
   esp_err_t result = esp_http_client_perform(client);
   int status = result == ESP_OK ? esp_http_client_get_status_code(client) : -1;
-  if (audio->playback_started)
-    lantern_audio_pcm_end();
+  if (audio->playback_started && lantern_audio_pcm_end() != ESP_OK)
+    audio->playback_failed = true;
   bool success = result == ESP_OK && status == 200 && audio->content_is_pcm &&
                  audio->audio_bytes > 0 && !audio->playback_failed;
+  // A beep cannot communicate the consent question. Let the controller show
+  // explicit confirmation controls instead of silently opening the microphone.
+  if (success && audio->tone_only && strcmp(kind, "consent_request") == 0) {
+    ESP_LOGW(TAG, "consent speech unavailable; explicit confirmation required");
+    success = false;
+  }
   if (!success) {
     ESP_LOGW(TAG, "prompt %s failed HTTP %d: %.192s", kind, status,
              audio->response.data);
@@ -1710,9 +1960,18 @@ esp_err_t lantern_network_run_voice_command(const char *context,
     return ESP_ERR_INVALID_ARG;
   }
   intent[0] = '\0';
-  size_t samples = lantern_audio_buffered_samples();
-  if (!samples)
-    return ESP_ERR_INVALID_STATE;
+  const unsigned turn_generation = atomic_load(&s_speech_generation);
+  uuid_v4(s_interaction_id); // A new spoken request supersedes earlier synthesis.
+  bool consent_context = strcmp(context, "consent") == 0 ||
+                         strcmp(context, "consent_retry") == 0;
+  bool recovery_context = strcmp(context, "recovery") == 0;
+  size_t buffered = lantern_audio_buffered_samples();
+  if (!buffered) return ESP_ERR_INVALID_STATE;
+  // A report may wait30s for the first word. Send at most the last8s,
+  // including onset preroll, under the server's320KiB command ceiling.
+  size_t limit = LANTERN_MIC_SAMPLE_RATE * 8U;
+  size_t samples = buffered < limit ? buffered : limit;
+  size_t offset = buffered - samples;
   size_t data_bytes = samples * sizeof(int16_t);
   size_t wav_size = 44 + data_bytes;
   uint8_t *wav =
@@ -1732,7 +1991,7 @@ esp_err_t lantern_network_run_voice_command(const char *context,
   wav_u16(wav + 34, 16);
   memcpy(wav + 36, "data", 4);
   wav_u32(wav + 40, (uint32_t)data_bytes);
-  size_t copied = lantern_audio_copy_samples((int16_t *)(wav + 44), 0, samples);
+  size_t copied = lantern_audio_copy_samples((int16_t *)(wav + 44), offset, samples);
   if (copied != samples) {
     free(wav);
     return ESP_FAIL;
@@ -1748,11 +2007,16 @@ esp_err_t lantern_network_run_voice_command(const char *context,
     free(wav);
     return ESP_ERR_NO_MEM;
   }
+  audio->generation_valid = true;
+  audio->generation = turn_generation;
   esp_http_client_config_t config = {
       .url = url,
       .event_handler = audio_http_event,
       .user_data = audio,
-      .timeout_ms = 120000,
+      // Consent is a bounded decision. Wake commands can also request a full
+      // report: keep their original long budget while negotiated plain idle
+      // commands dispatch immediately after transcription, without cloud TTS.
+      .timeout_ms = consent_context || recovery_context ? 25000 : 120000,
       .crt_bundle_attach = esp_crt_bundle_attach,
       .disable_auto_redirect = true,
       // Report replies carry context/playback headers as well as PCM audio.
@@ -1771,6 +2035,10 @@ esp_err_t lantern_network_run_voice_command(const char *context,
   esp_http_client_set_header(client, "Authorization", authorization);
   esp_http_client_set_header(client, "X-Lantern-Command-Context", context);
   esp_http_client_set_header(client, "X-Lantern-Protocol", "3");
+  if (consent_context)
+    esp_http_client_set_header(client, "X-Quipus-Consent-Response", "intent-only");
+  if (strcmp(context, "wake_command") == 0)
+    esp_http_client_set_header(client, "X-Quipus-Wake-Response", "dispatch");
   if ((strcmp(context, "report") == 0 ||
        strcmp(context, "wake_command") == 0) &&
       s_report_context[0]) {
@@ -1779,6 +2047,10 @@ esp_err_t lantern_network_run_voice_command(const char *context,
     char page[12];
     snprintf(page, sizeof(page), "%u", s_playback_page);
     esp_http_client_set_header(client, "X-Quipus-Playback-Page", page);
+    if (s_has_last_spoken_page) {
+      snprintf(page, sizeof(page), "%u", s_last_spoken_page);
+      esp_http_client_set_header(client, "X-Quipus-Last-Spoken-Page", page);
+    }
   }
   if (strcmp(context, "action") == 0 && s_review_token[0])
     esp_http_client_set_header(client, "X-Lantern-Review-Token",
@@ -1788,14 +2060,71 @@ esp_err_t lantern_network_run_voice_command(const char *context,
   esp_err_t result = perform_audio_request(client, wav, wav_size, audio,
                                            strcmp(context, "report") == 0);
   int status = result == ESP_OK ? esp_http_client_get_status_code(client) : -1;
-  if (audio->playback_started)
-    lantern_audio_pcm_end();
+  if (audio->playback_started && lantern_audio_pcm_end() != ESP_OK)
+    audio->playback_failed = true;
   esp_http_client_cleanup(client);
   free(wav);
+  if (turn_generation != atomic_load(&s_speech_generation)) {
+    abort_report_cache_download();
+    result = LANTERN_REPORT_INTERRUPTED;
+  }
   if (result == LANTERN_REPORT_INTERRUPTED) {
     snprintf(intent, intent_capacity, "report_answer");
     free(audio);
     return result;
+  }
+  if (consent_context) {
+    // Consent is a decision, not a speech response. New servers return 204;
+    // legacy servers may return a short PCM acknowledgement with the same header.
+    bool known_intent = strcmp(audio->command, "consent_yes") == 0 ||
+                        strcmp(audio->command, "consent_no") == 0 ||
+                        strcmp(audio->command, "unknown") == 0;
+    bool complete = status == 204 ||
+        (status == 200 && audio->content_is_pcm && audio->audio_bytes &&
+         !audio->playback_failed);
+    if (result == ESP_OK && complete && known_intent) {
+      snprintf(intent, intent_capacity, "%s", audio->command);
+      ESP_LOGI(TAG, "voice consent decision=%s HTTP %d", intent, status);
+      free(audio);
+      return ESP_OK;
+    }
+    recover_rejected_credential(status);
+    ESP_LOGW(TAG, "voice consent failed result=%s HTTP %d",
+             esp_err_to_name(result), status);
+    free(audio);
+    return ESP_FAIL;
+  }
+  if (recovery_context) {
+    bool known_intent = strcmp(audio->command, "retry_recovery") == 0 ||
+                        strcmp(audio->command, "cancel_recovery") == 0 ||
+                        strcmp(audio->command, "status_report") == 0 ||
+                        strcmp(audio->command, "wifi_setup") == 0 ||
+                        strcmp(audio->command, "unknown") == 0;
+    if (result == ESP_OK && status == 204 && known_intent) {
+      snprintf(intent, intent_capacity, "%s", audio->command);
+      ESP_LOGI(TAG, "voice recovery decision=%s", intent);
+      free(audio);
+      return ESP_OK;
+    }
+    recover_rejected_credential(status);
+    free(audio);
+    return ESP_FAIL;
+  }
+  if (result == ESP_OK && status == 204 &&
+      strcmp(context, "report") == 0 && !strcmp(audio->command, "report_stop")) {
+    snprintf(intent, intent_capacity, "report_stop");
+    free(audio);
+    return ESP_OK;
+  }
+  if (result == ESP_OK && status == 204 &&
+      strcmp(context, "wake_command") == 0 &&
+      (strcmp(audio->command, "start_recording") == 0 ||
+       strcmp(audio->command, "status_report") == 0 ||
+       strcmp(audio->command, "wifi_setup") == 0)) {
+    snprintf(intent, intent_capacity, "%s", audio->command);
+    ESP_LOGI(TAG, "voice command %s dispatched without remote speech", intent);
+    free(audio);
+    return ESP_OK;
   }
   if (result == ESP_OK && status == 204) {
     ESP_LOGI(TAG, "cloud wake verifier ignored a non-Quipus utterance");
@@ -1821,16 +2150,26 @@ esp_err_t lantern_network_run_voice_command(const char *context,
   snprintf(s_review_token, sizeof(s_review_token), "%s", audio->review_token);
   snprintf(s_report_id, sizeof(s_report_id), "%s", audio->report_id);
   s_report_page = audio->report_page;
+    s_paging_has_context = audio->context_id[0] != 0;
   ESP_LOGI(TAG, "voice command %s played %u PCM bytes", intent,
            (unsigned)audio->audio_bytes);
   free(audio);
   while (s_report_id[0]) {
     esp_err_t page_result = play_briefing_page("status", battery_level,
-                                               strcmp(context, "action") != 0);
+                                               strcmp(context, "action") != 0,
+                                               turn_generation);
+    if (turn_generation != atomic_load(&s_speech_generation))
+      page_result = LANTERN_REPORT_INTERRUPTED;
     if (page_result != ESP_OK) {
+      abort_report_cache_download();
       lantern_network_cancel_review();
       return page_result;
     }
+  }
+  if (turn_generation != atomic_load(&s_speech_generation)) {
+    abort_report_cache_download();
+    lantern_network_cancel_review();
+    return LANTERN_REPORT_INTERRUPTED;
   }
   return ESP_OK;
 }
@@ -2486,10 +2825,15 @@ esp_err_t lantern_network_upload_audio(lantern_cloud_session_t *session) {
 
 esp_err_t lantern_network_complete_session(lantern_cloud_session_t *session,
                                            bool *transcript_ready) {
-  if (!session || !session->session_id[0])
-    return ESP_ERR_INVALID_ARG;
-  if (transcript_ready)
-    *transcript_ready = false;
+  if (transcript_ready) *transcript_ready = false;
+  if (!session) return ESP_ERR_INVALID_ARG;
+  // Every completion attempt needs a fresh receipt. A failed retry must not
+  // reuse a previous verification or turn a discarded session into an upload.
+  session->archive_accepted = false;
+  session->archive_verified = false;
+  session->processing_queued = false;
+  session->discarded = false;
+  if (!session->session_id[0]) return ESP_ERR_INVALID_ARG;
   char path[160], authorization[140], body[80];
   if (!session->completion_event_id[0])
     uuid_v4(session->completion_event_id);
@@ -2516,16 +2860,51 @@ esp_err_t lantern_network_complete_session(lantern_cloud_session_t *session,
     free(response);
     return ESP_FAIL;
   }
-  bool valid = parse_session_response(response->data, session, NULL);
-  cJSON *root = valid ? cJSON_Parse(response->data) : NULL;
-  session->archive_accepted =
-      root &&
-      cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(root, "archiveAccepted"));
-  session->archive_verified =
-      root &&
+  cJSON *root = cJSON_Parse(response->data);
+  cJSON *machine = root ? cJSON_GetObjectItemCaseSensitive(root, "session") : NULL;
+  cJSON *identity = cJSON_IsObject(machine)
+      ? cJSON_GetObjectItemCaseSensitive(machine, "sessionId") : NULL;
+  cJSON *envelope_id = root ? cJSON_GetObjectItemCaseSensitive(root, "sessionId") : NULL;
+  cJSON *conversation = root ? cJSON_GetObjectItemCaseSensitive(root, "conversationId") : NULL;
+  char expected_conversation[46];
+  snprintf(expected_conversation, sizeof(expected_conversation), "hardware:%s", session->session_id);
+  bool envelope_matches = cJSON_IsString(envelope_id) &&
+      !strcmp(envelope_id->valuestring, session->session_id);
+  bool conversation_matches = cJSON_IsString(conversation) &&
+      !strcmp(conversation->valuestring, expected_conversation);
+  bool envelope_bound = envelope_matches || conversation_matches;
+  bool envelope_consistent =
+      (!envelope_id || cJSON_IsNull(envelope_id) || envelope_matches) &&
+      (!conversation || cJSON_IsNull(conversation) || conversation_matches);
+  cJSON *machine_state = cJSON_IsObject(machine)
+      ? cJSON_GetObjectItemCaseSensitive(machine, "state") : NULL;
+  bool completed_machine = cJSON_IsString(machine_state) &&
+      (!strcmp(machine_state->valuestring, "ready") ||
+       !strcmp(machine_state->valuestring, "report_ready"));
+  // PROCESSING_QUEUED deliberately resets machine.sessionId to null. Bind the
+  // completion envelope to this recording before accepting that idle machine;
+  // legacy servers may instead bind it through hardware:<recording UUID>.
+  bool machine_bound =
+      (cJSON_IsString(identity) && !strcmp(identity->valuestring, session->session_id)) ||
+      (cJSON_IsNull(identity) && envelope_bound && completed_machine);
+  bool valid = envelope_consistent && machine_bound &&
+      parse_session_response(response->data, session, NULL);
+  // parse_session_response leaves the requested local ID intact for null IDs.
+  cJSON *discard = root ? cJSON_GetObjectItemCaseSensitive(root, "discarded") : NULL;
+  cJSON *reason = root ? cJSON_GetObjectItemCaseSensitive(root, "discardReason") : NULL;
+  bool verified = root &&
       cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(root, "archiveVerified"));
-  session->processing_queued =
-      root &&
+  bool short_silence = cJSON_IsTrue(discard) && cJSON_IsString(reason) &&
+      !strcmp(reason->valuestring, "short_digital_silence") && verified;
+  // Unknown discard reasons and mistyped flags cannot become normal delivery
+  // success. Old servers may omit discarded or explicitly return false.
+  if ((discard && !cJSON_IsBool(discard)) ||
+      (cJSON_IsTrue(discard) && !short_silence)) valid = false;
+  session->archive_accepted = valid &&
+      cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(root, "archiveAccepted"));
+  session->archive_verified = valid && verified;
+  session->discarded = valid && short_silence;
+  session->processing_queued = valid && !session->discarded &&
       cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(root, "processingQueued"));
   cJSON *meeting =
       root ? cJSON_GetObjectItemCaseSensitive(root, "meeting") : NULL;
@@ -2533,10 +2912,13 @@ esp_err_t lantern_network_complete_session(lantern_cloud_session_t *session,
       cJSON_IsObject(meeting)
           ? cJSON_GetObjectItemCaseSensitive(meeting, "status")
           : NULL;
-  if (transcript_ready && cJSON_IsString(meeting_status) &&
+  if (transcript_ready && valid && !session->discarded && cJSON_IsString(meeting_status) &&
       strcmp(meeting_status->valuestring, "ready") == 0) {
     *transcript_ready = true;
   }
+  if (!valid)
+    ESP_LOGW(TAG, "Completion receipt rejected HTTP=%d bound=%d machine=%d discard=%d",
+             status, envelope_bound, machine_bound, cJSON_IsTrue(discard));
   cJSON_Delete(root);
   free(response);
   return valid ? ESP_OK : ESP_FAIL;
@@ -2683,6 +3065,10 @@ esp_err_t lantern_network_import_recording(lantern_cloud_session_t *session) {
                          response);
   bool valid = (status == 200 || status == 201) &&
                parse_session_response(response->data, session, NULL);
+  if (status != 200 && status != 201)
+    provider_error("Import saved recording", status, response);
+  else if (!valid)
+    set_error("Saved recording response was invalid");
   free(response);
   if (valid)
     session->offline_local = false;

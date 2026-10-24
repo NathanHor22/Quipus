@@ -132,6 +132,7 @@ export interface RecordingProgressState {
 }
 
 export interface Meeting {
+  calendarHidden?: boolean;
   id: string;
   title: string;
   startAt: string;

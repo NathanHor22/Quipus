@@ -4,7 +4,11 @@
 
 #include "sdkconfig.h"
 
-#define LANTERN_FIRMWARE_VERSION "0.10.3-quipus"
+#if CONFIG_QUIPUS_EXPERIMENTAL_OFFLINE_DSCNN
+#define LANTERN_FIRMWARE_VERSION "0.12.9-quipus-experimental"
+#else
+#define LANTERN_FIRMWARE_VERSION "0.12.7-quipus"
+#endif
 #ifdef CONFIG_LANTERN_API_BASE_URL
 #define LANTERN_API_BASE_URL CONFIG_LANTERN_API_BASE_URL
 #else

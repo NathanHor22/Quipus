@@ -1,4 +1,5 @@
 import { z } from "zod";
+import voiceProfile from "./quipus-voice-profile.json";
 
 const optionalUrl = z.string().url().optional().or(z.literal(""));
 
@@ -18,8 +19,8 @@ const serverEnvSchema = z.object({
   OPENAI_TRANSCRIPTION_MODEL: z.string().default("gpt-4o-transcribe-diarize"),
   OPENAI_EXTRACTION_MODEL: z.string().default("gpt-5.4-mini"),
   OPENAI_RELAY_MODEL: z.string().default("gpt-5.4-mini"),
-  OPENAI_SPEECH_MODEL: z.string().default("gpt-4o-mini-tts"),
-  OPENAI_SPEECH_VOICE: z.string().default("cedar"),
+  OPENAI_SPEECH_MODEL: z.string().default(voiceProfile.model),
+  OPENAI_SPEECH_VOICE: z.string().default(voiceProfile.voice),
   EXA_API_KEY: z.string().optional(),
   RELAY_EVENT_NAME: z.string().trim().min(1).max(160).default("AITKL · Agents, Everywhere"),
   RELAY_EVENT_VENUE: z.string().trim().min(1).max(200).default("WORQ Bangsar"),

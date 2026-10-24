@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { authenticateLantern } from "@/lib/lantern-device-auth";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { offlineSessionSchema, prepareOfflineSession } from "@/lib/offline-session";
+import { offlineImportDiagnostic, offlineSessionSchema, prepareOfflineSession } from "@/lib/offline-session";
 import { conversationClock } from "@/lib/conversation-clock";
 import { enforceUserRateLimit } from "@/lib/server-rate-limit";
 
@@ -46,7 +46,8 @@ export async function POST(request: Request) {
       p_fingerprint: prepared.fingerprint,
       p_audio_sources: input.audioSources,
     });
-    if (error)
+    if (error) {
+      console.error("[quipus-offline-import]", offlineImportDiagnostic(error));
       return NextResponse.json(
         {
           error:
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
         },
         { status: error.code === "23505" || error.code === "P0001" ? 409 : 503, headers },
       );
+    }
     return NextResponse.json(
       {
         session: data,

@@ -5,16 +5,8 @@ import { voiceApprovalDecision } from "./voice-approval";
 import { googleCalendarEventSchema } from "./providers/google-calendar";
 import { sendApprovedEmail } from "./email-action";
 
-export interface VoiceReply { speech: string; token?: string; }
-export async function createVoicePrompt(client: SupabaseClient, device: AuthenticatedLantern,
-  kind: string, payload: Record<string, unknown>, remaining: string[], speech: string): Promise<VoiceReply> {
-  const { data, error } = await client.from("device_voice_prompts").insert({
-    user_id: device.userId, device_id: device.id, kind, payload, remaining_ids: remaining,
-    expires_at: new Date(Date.now() + (kind === "review" ? 7200000 : 300000)).toISOString(),
-  }).select("id").single();
-  if (error || !data) throw new Error("Could not prepare voice approval.");
-  return { speech, token: data.id };
-}
+import { createVoicePrompt, type VoiceReply } from "./device-voice-prompt";
+export { createVoicePrompt, type VoiceReply } from "./device-voice-prompt";
 
 async function nextAction(client: SupabaseClient, device: AuthenticatedLantern, ids: string[], prefix = ""): Promise<VoiceReply> {
   for (let index = 0; index < ids.length; index++) {

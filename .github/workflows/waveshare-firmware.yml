@@ -7,6 +7,9 @@ on:
       - 'hardware/lantern-firmware/**'
       - 'hardware/firmware/setup-agora-sdk.py'
       - 'scripts/package-hardware-artifacts.py'
+      - 'scripts/test-hardware-package.py'
+      - 'lib/quipus-voice-profile.json'
+      - 'lib/quipus-prompt-text.json'
       - 'scripts/test-firmware-*.py'
       - '.github/workflows/waveshare-firmware.yml'
   pull_request:
@@ -14,6 +17,9 @@ on:
       - 'hardware/lantern-firmware/**'
       - 'hardware/firmware/setup-agora-sdk.py'
       - 'scripts/package-hardware-artifacts.py'
+      - 'scripts/test-hardware-package.py'
+      - 'lib/quipus-voice-profile.json'
+      - 'lib/quipus-prompt-text.json'
       - 'scripts/test-firmware-*.py'
       - '.github/workflows/waveshare-firmware.yml'
 permissions:
@@ -46,8 +52,32 @@ jobs:
           python3 scripts/test-firmware-network.py
           python3 scripts/test-firmware-wake.py
           python3 scripts/test-firmware-sd.py
+          python3 scripts/test-firmware-sd-queue.py
+          python3 scripts/test-firmware-sd-retention.py
+          python3 scripts/test-firmware-barge-in.py
+          python3 scripts/test-firmware-report-playback.py
+          python3 scripts/test-firmware-report-recovery.py
+          python3 scripts/test-firmware-report-dialogue.py
+          python3 scripts/test-firmware-audio-admission.py
           python3 scripts/test-firmware-storage.py
           python3 scripts/test-firmware-codec-control.py
+          python3 scripts/test-firmware-speaker-output.py
+          python3 scripts/test-firmware-audio-output.py
+          python3 scripts/test-firmware-mic-startup.py
+          python3 scripts/test-firmware-consent.py
+          python3 scripts/test-firmware-consent-transport.py
+          python3 scripts/test-firmware-recording-start.py
+          python3 scripts/test-firmware-adpcm.py
+          python3 scripts/test-firmware-local-recognizer.py
+          python3 scripts/test-firmware-offline-voice.py
+          python3 scripts/test-firmware-report-cache.py
+          python3 scripts/test-firmware-prompts.py
+          python3 scripts/test-hardware-package.py
+          python3 scripts/test-firmware-delivery.py
+          python3 scripts/test-firmware-completion.py
+          python3 scripts/test-firmware-sync-policy.py
+          python3 scripts/test-firmware-recovery.py
+          python3 scripts/test-firmware-display.py
       - name: Package and verify all five flash images
         run: python3 scripts/package-hardware-artifacts.py --profile waveshare
       - uses: actions/upload-artifact@v4

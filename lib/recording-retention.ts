@@ -17,9 +17,23 @@ export function validateRetentionPaths(paths: unknown, ownerId: string): string[
 export async function purgeExpiredRecordingAudio(client: SupabaseClient, batchSize = 20) {
   const { data: jobs, error } = await client.rpc("claim_recording_audio_deletions", { p_limit: batchSize });
   if (error) throw new Error("Could not claim audio retention work.");
+  return removeClaimedAudio(client, jobs || []);
+}
+
+/** Immediate cleanup is limited to one authoritative discard decision. */
+export async function purgeDiscardedRecordingAudio(client: SupabaseClient, recordingId: string, ownerId: string) {
+  const { data: jobs, error } = await client.rpc("claim_quipus_silence_cleanup", {
+    p_recording_id: recordingId, p_user_id: ownerId,
+  });
+  if (error) throw new Error("Could not claim confirmed silence cleanup.");
+  return removeClaimedAudio(client, jobs || []);
+}
+
+type AudioDeletionJob = { recording_id: string; user_id: string; object_paths: unknown; lease_token: string };
+async function removeClaimedAudio(client: SupabaseClient, jobs: AudioDeletionJob[]) {
   let deleted = 0;
   let deferred = 0;
-  for (const job of jobs || []) {
+  for (const job of jobs) {
     try {
       const paths = validateRetentionPaths(job.object_paths, job.user_id);
       if (paths.length) {

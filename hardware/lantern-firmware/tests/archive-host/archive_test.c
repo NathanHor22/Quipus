@@ -39,5 +39,11 @@ int main(void){
   CHECK(quipus_archive_journal_read(journal,key,json,sizeof(json))==ESP_OK);CHECK(!strcmp(json,"{\"state\":2}"));
   tamper(journal,25);CHECK(quipus_archive_journal_read(journal,key,json,sizeof(json))!=ESP_OK);
   CHECK(quipus_archive_journal_append(journal,key,"{\"state\":3}")!=ESP_OK);
+  // Retention proof is encrypted/authenticated and survives a torn append.
+  remove(journal);
+  const char *retention="{\"verified\":true,\"firstVerifiedAt\":1792800000,\"deleteAfter\":1792886400,\"retentionLastSeenAt\":1792800000}";
+  CHECK(quipus_archive_journal_append(journal,key,retention)==ESP_OK);
+  f=fopen(journal,"ab");CHECK(f);fwrite("QPM1bad",1,7,f);fclose(f);
+  char proof[512];CHECK(quipus_archive_journal_read(journal,key,proof,sizeof(proof))==ESP_OK);CHECK(!strcmp(proof,retention));
   if(getenv("QUIPUS_ARCHIVE_TEST_KEEP"))fresh(file);else remove(file);remove(journal);puts("Archive host tests passed: full replay, seek, keys, owner binding, tamper rejection, torn audio and metadata recovery.");return 0;
 }

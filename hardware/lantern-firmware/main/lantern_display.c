@@ -49,6 +49,12 @@ typedef struct {
   lantern_connectivity_t connectivity;
   bool paired;
   int volume;
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  unsigned speech_level;
+  bool speaking;
+  TickType_t volume_changed_at;
+  bool volume_feedback;
+#endif
 } display_update_t;
 
 static portMUX_TYPE s_update_lock = portMUX_INITIALIZER_UNLOCKED;
@@ -65,14 +71,33 @@ static display_update_t s_requested = {
 // Only this task owns the framebuffer and DMA staging buffer. A one-item
 // mailbox keeps the latest state instead of replaying stale progress screens.
 static void render_screen(const display_update_t *update);
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+static bool warm_face_animating(const display_update_t *update);
+static TickType_t volume_feedback_remaining(const display_update_t *update);
+#endif
 
 static void display_task(void *argument) {
   (void)argument;
-  display_update_t update;
+  display_update_t update = {0};
   while (true) {
-    if (xQueueReceive(s_updates, &update, portMAX_DELAY) == pdTRUE) {
-      render_screen(&update);
+    TickType_t wait = portMAX_DELAY;
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+    // Reuse the display owner for an occasional blink. Recording and idle have
+    // no animation wakeups; PCM updates arrive through the existing mailbox.
+    if (warm_face_animating(&update)) wait = pdMS_TO_TICKS(120);
+    TickType_t volume_wait = volume_feedback_remaining(&update);
+    if (volume_wait && volume_wait < wait) wait = volume_wait;
+#endif
+    if (xQueueReceive(s_updates, &update, wait) != pdTRUE) {
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+      taskENTER_CRITICAL(&s_update_lock);
+      update = s_requested;
+      taskEXIT_CRITICAL(&s_update_lock);
+#else
+      continue;
+#endif
     }
+    render_screen(&update);
   }
 }
 
@@ -204,6 +229,110 @@ static void ring(int center_x, int center_y, int outer_radius, int thickness, ui
   }
 }
 
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+static bool warm_face_visible(const display_update_t *update) {
+  return update->view == DISPLAY_STATE &&
+         update->screen != LANTERN_SCREEN_SETUP &&
+         update->screen != LANTERN_SCREEN_BLUETOOTH;
+}
+
+static bool warm_face_animating(const display_update_t *update) {
+  return warm_face_visible(update) &&
+         update->screen != LANTERN_SCREEN_RECORDING &&
+         (update->speaking || update->screen == LANTERN_SCREEN_LISTENING);
+}
+
+static void warm_face_eyes(bool closed, uint16_t color) {
+  if (closed) {
+    rect(71, 95, 18, 3, color);
+    rect(151, 95, 18, 3, color);
+  } else {
+    ring(80, 96, 9, 9, color);
+    ring(160, 96, 9, 9, color);
+  }
+}
+
+static void warm_face_mouth(unsigned level, uint16_t color, uint16_t background) {
+  if (!level) {
+    // A short, almost-flat mouth with soft upturned ends, never a broad grin.
+    for (int x = -31; x <= 31; ++x) {
+      const int y = 147 - (x * x * 6) / (31 * 31);
+      ring(120 + x, y, 2, 2, color);
+    }
+    return;
+  }
+  if (level > 4) level = 4;
+  const int radius_x = 12 + (int)level * 2;
+  const int radius_y = 2 + (int)level * 2;
+  for (int y = -radius_y; y <= radius_y; ++y) {
+    for (int x = -radius_x; x <= radius_x; ++x) {
+      if (x*x*radius_y*radius_y + y*y*radius_x*radius_x <=
+          radius_x*radius_x*radius_y*radius_y) {
+        const int inner_x = radius_x - 2, inner_y = radius_y - 2;
+        bool inner = inner_y > 0 &&
+          x*x*inner_y*inner_y + y*y*inner_x*inner_x <=
+            inner_x*inner_x*inner_y*inner_y;
+        pixel(120 + x, 145 + y, inner ? background : color);
+      }
+    }
+  }
+}
+
+static void warm_face_caption(const display_update_t *update, char caption[32]) {
+  const char *text = "Starting up";
+  const char *detail = update->detail;
+  switch (update->screen) {
+    case LANTERN_SCREEN_READY:
+      text = strstr(detail, "COMPUTER") ? "Ready / say Computer" :
+             strstr(detail, "OFFLINE") ? "Offline / press" :
+             strstr(detail, "PRESS") ? "Ready / press middle" : "Ready";
+      break;
+    case LANTERN_SCREEN_CONNECTING: text = "Connecting"; break;
+    case LANTERN_SCREEN_LISTENING: text = "Listening"; break;
+    case LANTERN_SCREEN_UNDERSTANDING: text = "One moment"; break;
+    case LANTERN_SCREEN_CONSENT: text = "Say yes or no"; break;
+    case LANTERN_SCREEN_RECORDING: {
+      unsigned minutes = 0, seconds = 0;
+      if (sscanf(detail, "%u:%u", &minutes, &seconds) == 2 &&
+          minutes <= 9999 && seconds < 60) {
+        snprintf(caption, 32, "Recording %02u:%02u", minutes, seconds);
+        return;
+      }
+      text = "Recording";
+      break;
+    }
+    case LANTERN_SCREEN_STATUS: text = "Status report"; break;
+    case LANTERN_SCREEN_ERROR: text = "Please try again"; break;
+    case LANTERN_SCREEN_COMPLETE:
+      text = strstr(detail, "SAVED LOCALLY") || strstr(detail, "SAVED OFFLINE") ? "Saved offline" :
+             strstr(detail, "VERIFICATION PENDING") ? "Upload pending" :
+             strstr(detail, "UPLOADED") ? "Uploaded" :
+             strstr(detail, "PROCESSING") ? "Processing" : "Saved";
+      break;
+    case LANTERN_SCREEN_SAVING:
+      text = strstr(detail, "UPLOADING") ? "Uploading" :
+             strstr(detail, "VERIFYING") ? "Verifying upload" :
+             strstr(detail, "CHECKING") ? "Preparing upload" :
+             strstr(detail, "PROCESSING") ? "Processing" :
+             strstr(detail, "RECONNECTING") ? "Reconnecting" :
+             strstr(detail, "CONNECTING") ? "Connecting" :
+             strstr(detail, "SYNCING") ? "Syncing" :
+             strstr(detail, "POWERING OFF") ? "Powering off" : "Saving";
+      if (strncmp(detail, "UPLOADING AUDIO ", 16) == 0) {
+        char *end = NULL;
+        unsigned long percent = strtoul(detail + 16, &end, 10);
+        if (end != detail + 16 && end[0] == '%' && end[1] == '\0' && percent <= 100) {
+          snprintf(caption, 32, "Uploading / %lu%%", percent);
+          return;
+        }
+      }
+      break;
+    default: break;
+  }
+  snprintf(caption, 32, "%s", text);
+}
+#endif
+
 static void quipus_mark(int center_x, int top, uint16_t color) {
   // Static connected threads. Draw only when the screen state changes.
   const int ends_x[] = {82, 76, 64, 46, 24};
@@ -292,6 +421,20 @@ static void centered_text(int y, const char *text, int scale, uint16_t color) {
   draw_text(x < 0 ? 0 : x, y, text, scale, color);
 }
 
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+static void draw_face_caption(const char *caption, uint16_t color) {
+  // A single 14-pixel-high caption. Slightly tighter tracking keeps the whole
+  // "Ready / say Computer" hint readable without a second line or heading.
+  const size_t length = strlen(caption);
+  if (!length) return;
+  int x = (LANTERN_DISPLAY_WIDTH - ((int)length * 11 - 1)) / 2;
+  for (size_t i = 0; i < length; ++i) {
+    char character[2] = {caption[i], 0};
+    draw_text(x + (int)i * 11, 214, character, 2, color);
+  }
+}
+#endif
+
 static void wrapped_text(int x, int y, int width, const char *text, int max_lines,
                          uint16_t color) {
   if (!text || !text[0] || width < 12) return;
@@ -313,6 +456,30 @@ static void wrapped_text(int x, int y, int width, const char *text, int max_line
     cursor += length;
   }
 }
+
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+static void centered_wrapped_text(int y, int width, const char *text, int max_lines,
+                                  uint16_t color) {
+  if (!text || !text[0] || width < 12) return;
+  const int capacity = width / 6;
+  char line[48];
+  const char *cursor = text;
+  for (int row = 0; row < max_lines && *cursor; ++row) {
+    while (*cursor == ' ') ++cursor;
+    size_t length = strlen(cursor);
+    if (length > (size_t)capacity) {
+      length = (size_t)capacity;
+      while (length > 4 && cursor[length] != ' ') --length;
+      if (length <= 4) length = (size_t)capacity;
+    }
+    if (length >= sizeof(line)) length = sizeof(line) - 1;
+    memcpy(line, cursor, length);
+    line[length] = '\0';
+    centered_text(y + row * 12, line, 1, color);
+    cursor += length;
+  }
+}
+#endif
 
 esp_err_t lantern_display_init(void) {
   gpio_config_t backlight = {
@@ -511,11 +678,62 @@ void lantern_display_set_awake(bool awake) {
 void lantern_display_set_volume(unsigned percent) {
   display_update_t update;
   if (percent > 100) percent = 100;
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  TickType_t now = xTaskGetTickCount();
+#endif
   taskENTER_CRITICAL(&s_update_lock);
+  if (s_requested.volume == (int)percent) {
+    taskEXIT_CRITICAL(&s_update_lock);
+    return;
+  }
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  // The first value initializes the status, not a user interaction. Further
+  // changes get a short acknowledgement; holding at a limit cannot extend it.
+  if (s_requested.volume >= 0) {
+    s_requested.volume_changed_at = now;
+    s_requested.volume_feedback = true;
+  }
+#endif
   s_requested.volume = (int)percent;
   update = s_requested;
   taskEXIT_CRITICAL(&s_update_lock);
   if (s_updates) xQueueOverwrite(s_updates, &update);
+}
+
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+static TickType_t volume_feedback_remaining(const display_update_t *update) {
+  const TickType_t lifetime = pdMS_TO_TICKS(1500);
+  const TickType_t elapsed = xTaskGetTickCount() - update->volume_changed_at;
+  return update->volume_feedback && elapsed < lifetime ? lifetime - elapsed : 0;
+}
+#endif
+
+void lantern_display_set_speech_level(unsigned percent, bool speaking) {
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  if (percent > 100) percent = 100;
+  const unsigned level = !speaking || !percent ? 0 :
+    percent < 10 ? 1 : percent < 25 ? 2 : percent < 50 ? 3 : 4;
+  static TickType_t last_sent;
+  const TickType_t now = xTaskGetTickCount();
+  display_update_t update;
+  taskENTER_CRITICAL(&s_update_lock);
+  bool changed = s_requested.speaking != speaking ||
+                 s_requested.speech_level != level;
+  bool transition = s_requested.speaking != speaking;
+  s_requested.speaking = speaking;
+  s_requested.speech_level = level;
+  if (!changed || (!transition && now - last_sent < pdMS_TO_TICKS(100))) {
+    taskEXIT_CRITICAL(&s_update_lock);
+    return;
+  }
+  last_sent = now;
+  update = s_requested;
+  taskEXIT_CRITICAL(&s_update_lock);
+  if (s_updates) xQueueOverwrite(s_updates, &update);
+#else
+  (void)percent;
+  (void)speaking;
+#endif
 }
 
 void lantern_display_set_charge_eta(int minutes) {
@@ -581,22 +799,51 @@ static void draw_status_bar(
     uint16_t red) {
   const uint16_t dim = rgb565(103, 120, 138);
   rect(0, 0, LANTERN_DISPLAY_WIDTH, 29, background);
+#if !CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
   rect(0, 28, LANTERN_DISPLAY_WIDTH, 1, dim);
+#endif
 
   int bars = 0;
   bool wifi_connected = connectivity == LANTERN_CONNECTIVITY_WIFI_ONLY ||
     connectivity == LANTERN_CONNECTIVITY_WEAK ||
     connectivity == LANTERN_CONNECTIVITY_ONLINE;
-  if (wifi_connected) {
+  if (wifi_connected
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+      && wifi_rssi > -127 && wifi_rssi < 0
+#endif
+  ) {
     bars = wifi_rssi >= -60 ? 3 : wifi_rssi >= -72 ? 2 : 1;
   }
   uint16_t signal_color = !wifi_connected ? red :
     (connectivity == LANTERN_CONNECTIVITY_WEAK || bars == 1) ? amber : green;
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  if (!paired && wifi_connected) signal_color = amber;
+#endif
   const int heights[] = {4, 8, 12};
   for (int index = 0; index < 3; ++index) {
     rect(7 + index * 6, 21 - heights[index], 3, heights[index],
       index < bars ? signal_color : dim);
   }
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  // Connection strength stays in the icon; keep the narrow top strip quiet.
+  if (!wifi_connected) rect(7, 23, 15, 1, red);
+  if (volume >= 0) {
+    char label[12];
+    snprintf(label, sizeof(label), "VOL %u%%", volume > 100 ? 100U : (unsigned)volume);
+    draw_text(76, 9, label, 1, foreground);
+  }
+  if (battery_level < 0) {
+#if LANTERN_BATTERY_INSTALLED
+    const char *power = "PWR";
+#else
+    // This hardware profile is explicitly USB powered; do not invent a cell,
+    // percentage, charging state or charging ETA from an unconnected ADC.
+    const char *power = "USB";
+#endif
+    draw_text(LANTERN_DISPLAY_WIDTH - 7 - text_width(power, 1), 9, power, 1, dim);
+    return;
+  }
+#else
   const char *connection = "OFFLINE";
   if (connectivity == LANTERN_CONNECTIVITY_RECONNECTING) connection = "LINKING";
   else if (connectivity == LANTERN_CONNECTIVITY_SETUP) connection = "SETUP";
@@ -610,6 +857,7 @@ static void draw_status_bar(
     snprintf(label, sizeof(label), "V%u", percent);
     draw_text(80, 9, label, 1, foreground);
   }
+#endif
 
   char battery[16];
   if (battery_level >= 0) snprintf(battery, sizeof(battery), "%d%%", battery_level);
@@ -687,14 +935,39 @@ static void render_screen(const display_update_t *update) {
   bool screen_changed = (int)screen != previous_screen || view_changed ||
     update->revision != previous_revision;
   const bool detail_changed = strcmp(detail, previous_detail) != 0;
-  const bool status_changed = update->battery_level != previous_battery ||
+  bool status_changed = update->battery_level != previous_battery ||
     update->power_state != previous_power ||
     update->wifi_rssi != previous_rssi ||
     update->connectivity != previous_connectivity ||
     update->paired != previous_paired || update->volume != previous_volume;
   // The setup headline changes from networking to pairing when STA gets an IP.
   if (screen == LANTERN_SCREEN_SETUP && status_changed) screen_changed = true;
+  int status_volume = update->volume;
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  static bool previous_volume_visible;
+  const bool volume_visible = volume_feedback_remaining(update) > 0;
+  status_volume = volume_visible ? update->volume : -1;
+  status_changed = status_changed || volume_visible != previous_volume_visible;
+  static bool previous_eyes_closed;
+  static unsigned previous_mouth_level;
+  static char previous_caption[32];
+  const bool face_visible = warm_face_visible(update);
+  const unsigned mouth_level = screen == LANTERN_SCREEN_RECORDING ? 3 :
+    update->speaking ? update->speech_level : 0;
+  const TickType_t phase_ms =
+    (xTaskGetTickCount() * portTICK_PERIOD_MS) % 5000;
+  const bool eyes_closed = warm_face_animating(update) &&
+                          phase_ms >= 4700 && phase_ms < 4840;
+  const bool eyes_changed = face_visible && eyes_closed != previous_eyes_closed;
+  const bool mouth_changed = face_visible && mouth_level != previous_mouth_level;
+  char heading[32];
+  warm_face_caption(update, heading);
+  const bool heading_changed = face_visible && strcmp(heading, previous_caption);
+  if (!screen_changed && !detail_changed && !status_changed &&
+      !eyes_changed && !mouth_changed && !heading_changed) return;
+#else
   if (!screen_changed && !detail_changed && !status_changed) return;
+#endif
 
   const uint16_t background = rgb565(255, 255, 255);
   // Legacy parameter name remains local; this is Quipus's red brand accent.
@@ -731,7 +1004,11 @@ static void render_screen(const display_update_t *update) {
 
   const int ring_y = LANTERN_DISPLAY_HEIGHT > 240 ? 130 : 108;
   const int status_y = LANTERN_DISPLAY_HEIGHT > 240 ? 220 : 162;
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  const int detail_y = 184;
+#else
   const int detail_y = LANTERN_DISPLAY_HEIGHT > 240 ? 274 : 214;
+#endif
   bool complete = true;
   if (!screen_changed) {
     // Status and progress strips are independent, avoiding a full-screen DMA
@@ -739,19 +1016,46 @@ static void render_screen(const display_update_t *update) {
     if (status_changed) {
       draw_status_bar(update->battery_level, update->power_state,
         update->connectivity, update->wifi_rssi,
-        update->paired, update->volume, background, foreground, success, amber, red);
+        update->paired, status_volume, background, foreground, success, amber, red);
       complete = flush_rows(0, 29) && complete;
     }
-    if (detail_changed) {
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+    if (face_visible && heading_changed) {
+      rect(0, 207, LANTERN_DISPLAY_WIDTH, 26, background);
+      draw_face_caption(heading, foreground);
+      complete = flush_rows(207, 233) && complete;
+    }
+    if (eyes_changed) {
+      rect(64, 82, 112, 28, background);
+      warm_face_eyes(eyes_closed, foreground);
+      complete = flush_rows(82, 110) && complete;
+    }
+    if (mouth_changed) {
+      rect(82, 132, 76, 28, background);
+      warm_face_mouth(mouth_level, foreground, background);
+      complete = flush_rows(132, 160) && complete;
+    }
+#endif
+    if (detail_changed
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+        && !face_visible
+#endif
+    ) {
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+      rect(0, detail_y, LANTERN_DISPLAY_WIDTH, 36, background);
+      centered_wrapped_text(detail_y, LANTERN_DISPLAY_WIDTH - 24, detail, 3, foreground);
+      complete = flush_rows(detail_y, detail_y + 36) && complete;
+#else
       rect(0, detail_y, LANTERN_DISPLAY_WIDTH, 7, background);
       if (detail && detail[0]) centered_text(detail_y, detail, 1, foreground);
       complete = flush_rows(detail_y, detail_y + 7) && complete;
+#endif
     }
   } else {
     fill(background);
     draw_status_bar(update->battery_level, update->power_state,
       update->connectivity, update->wifi_rssi,
-      update->paired, update->volume, background, foreground, success, amber, red);
+      update->paired, status_volume, background, foreground, success, amber, red);
 
     if (update->view == DISPLAY_SPLASH) {
       centered_text(45, "QUIPUS", 2, foreground);
@@ -821,6 +1125,12 @@ static void render_screen(const display_update_t *update) {
       wrapped_text(10, 61, LANTERN_DISPLAY_WIDTH - 20, detail, 16, foreground);
       outline_rect(72, 276, 96, 32, 1, foreground);
       centered_text(288, "BACK", 1, foreground);
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+    } else if (face_visible) {
+      warm_face_eyes(eyes_closed, foreground);
+      warm_face_mouth(mouth_level, foreground, background);
+      draw_face_caption(heading, foreground);
+#endif
     } else if (screen == LANTERN_SCREEN_BLUETOOTH) {
       centered_text(46, "PAIR BLUETOOTH", 2, foreground);
       centered_text(90, "ENTER THIS PIN ON YOUR", 1, foreground);
@@ -863,7 +1173,11 @@ static void render_screen(const display_update_t *update) {
       }
       centered_text(36, title, 2, foreground);
       centered_text(status_y, status, 2, accent);
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+      centered_wrapped_text(detail_y, LANTERN_DISPLAY_WIDTH - 24, detail, 3, foreground);
+#else
       if (detail && detail[0]) centered_text(detail_y, detail, 1, foreground);
+#endif
     }
     complete = flush_rows(0, LANTERN_DISPLAY_HEIGHT);
   }
@@ -878,5 +1192,11 @@ static void render_screen(const display_update_t *update) {
     previous_connectivity = update->connectivity;
     previous_paired = update->paired;
     previous_volume = update->volume;
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+    previous_volume_visible = volume_visible;
+    previous_eyes_closed = eyes_closed;
+    previous_mouth_level = mouth_level;
+    snprintf(previous_caption, sizeof(previous_caption), "%s", heading);
+#endif
   }
 }

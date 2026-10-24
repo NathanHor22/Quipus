@@ -1,0 +1,51 @@
+{
+  "asset": "kws_ref_model.tflite",
+  "bytes": 53936,
+  "sha256": "aeea436800704fce17b17292e4412630ad856e9d777c044c64ef748a880bd0ae",
+  "source_project": "MLCommons Tiny",
+  "source_commit": "0c6a99052cf4bee500cfa47424b8bebde1f69965",
+  "source_path": "benchmark/training/keyword_spotting/trained_models/kws_ref_model.tflite",
+  "source_url": "https://raw.githubusercontent.com/mlcommons/tiny/0c6a99052cf4bee500cfa47424b8bebde1f69965/benchmark/training/keyword_spotting/trained_models/kws_ref_model.tflite",
+  "license": "Apache-2.0",
+  "license_text": "kws.APACHE-2.0.txt",
+  "model_changes": "None; byte-for-byte pinned public model",
+  "labels": [
+    "down",
+    "go",
+    "left",
+    "no",
+    "off",
+    "on",
+    "right",
+    "stop",
+    "up",
+    "yes",
+    "silence",
+    "unknown"
+  ],
+  "input": {
+    "dtype": "int8",
+    "shape": [
+      1,
+      49,
+      10,
+      1
+    ],
+    "scale": 0.5847029089927673,
+    "zero_point": 83
+  },
+  "output": {
+    "dtype": "int8",
+    "shape": [
+      1,
+      12
+    ],
+    "scale": 0.00390625,
+    "zero_point": -128
+  },
+  "usage": "Experimental offline keyword model behind default-OFF build configuration; not unrestricted speech recognition or field-validated recording consent",
+  "known_limit": "The retained original public micro_speech NO fixture classifies as GO in this model. Do not remap it or describe startup fixture success as accuracy.",
+  "license_source_url": "https://raw.githubusercontent.com/mlcommons/tiny/0c6a99052cf4bee500cfa47424b8bebde1f69965/LICENSE.md",
+  "license_source_git_blob": "f433b1a53f5b830a205fd2df78e2b34974656c7b",
+  "license_text_sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+}

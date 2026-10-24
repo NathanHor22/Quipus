@@ -44,7 +44,7 @@ export function withSessionRecordingProgress(meeting: Meeting, session: Archived
 
 /** A stored meeting and its unlinked legacy session represent one recording. */
 export function shouldIncludeArchivedSession(session: ArchivedLanternSession, meetings: Meeting[]): boolean {
-  return !session.meeting_id && !meetings.some((meeting) =>
+  return session.processing_stage !== "discarded_silence" && !session.meeting_id && !meetings.some((meeting) =>
     meeting.id === `hardware:${session.id}` || Boolean(session.recording_id && meeting.recordingId === session.recording_id),
   );
 }

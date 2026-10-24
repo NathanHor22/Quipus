@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "driver/gpio.h"
 #include "driver/rtc_io.h"
@@ -36,7 +37,11 @@ static adc_cali_handle_t s_battery_calibration;
 #include "lantern_wake.h"
 #include "quipus_phone_audio.h"
 #include "quipus_button_tap.h"
+#include "quipus_controls.h"
+#include "quipus_local_prompts.h"
+#include "quipus_local_recognizer.h"
 #include "quipus_volume.h"
+#include "quipus_sync_policy.h"
 
 typedef enum {
   LOCAL_READY,
@@ -85,6 +90,7 @@ static int s_battery_raw_average = -1;
 #endif
 static TickType_t s_state_entered_at;
 static TickType_t s_last_summary_retry_at;
+static TickType_t s_summary_retry_delay = pdMS_TO_TICKS(30000);
 static lantern_cloud_session_t s_cloud_session;
 static lantern_cloud_session_t s_pending_completion;
 static unsigned s_last_recording_second = UINT32_MAX;
@@ -94,11 +100,15 @@ static bool s_summary_retry_pending;
 static bool s_pair_announcement_shown;
 static bool s_agora_active;
 static bool s_used_agora;
+static volatile bool s_power_off_requested;
+static volatile bool s_boot_complete;
 static bool s_transcript_uploaded;
 static bool s_audio_uploaded;
 static bool s_phone_uploaded;
 static SemaphoreHandle_t s_control_mutex;
 static TaskHandle_t s_button_task;
+static TaskHandle_t s_input_task;
+static volatile TickType_t s_input_polled_at;
 static bool s_wake_available;
 static bool s_sd_recording_active;
 static bool s_sd_archive_required;
@@ -120,6 +130,15 @@ static TickType_t s_charge_anchor_time;
 static int s_charge_minutes_per_percent_tenths;
 static TickType_t s_last_interaction_at;
 static bool s_display_asleep;
+static bool s_wifi_screen_open;
+static char s_last_error_detail[96];
+static recovery_action_t s_announced_recovery;
+static char s_announced_error[96];
+static TickType_t s_error_announced_at;
+static bool s_recording_connection_notice;
+// One boot allocation, reused and wiped after each local voice decision.
+static int16_t *s_local_voice_samples;
+
 
 // Both tasks can own the serialized SD + HTTPS control path. Reserve bounded
 // internal stack for its deepest TLS/crypto call chains; bulk data uses PSRAM.
@@ -136,6 +155,10 @@ static void finalise_recording(void);
 static void upload_current_session(bool announce_upload);
 static void play_status_report(void);
 static void capture_wake_command(void);
+static void capture_recovery_command(void);
+static void retry_error(void);
+static void cancel_error(void);
+static void sync_idle_wake_listener(void);
 static bool ready_for_cloud_action(void);
 static void handle_short_press(void);
 static void open_wifi_screen(void);
@@ -145,21 +168,27 @@ static void open_report_screen(void);
 static void handle_touch_release(uint16_t x, uint16_t y);
 #endif
 
-static bool capture_short_utterance(unsigned maximum_ms) {
+static bool capture_utterance(unsigned maximum_ms, bool stop_on_silence) {
   lantern_audio_set_recording(true);
   TickType_t started_at = xTaskGetTickCount();
   TickType_t last_voice_at = started_at;
+  TickType_t first_voice_at = started_at;
   bool heard_voice = false;
-  while ((xTaskGetTickCount() - started_at) * portTICK_PERIOD_MS < maximum_ms) {
+  while (!s_power_off_requested &&
+         (xTaskGetTickCount() - started_at) * portTICK_PERIOD_MS < maximum_ms) {
     TickType_t now = xTaskGetTickCount();
-    unsigned elapsed_ms = (unsigned)((now - started_at) * portTICK_PERIOD_MS);
     if (lantern_audio_level() >= VOICE_ACTIVITY_LEVEL) {
+      if (!heard_voice) first_voice_at = now;
       heard_voice = true;
       last_voice_at = now;
-    } else if (heard_voice && elapsed_ms >= VOICE_MIN_CAPTURE_MS &&
+    } else if (stop_on_silence && heard_voice &&
+               (now - first_voice_at) * portTICK_PERIOD_MS >= VOICE_MIN_CAPTURE_MS &&
                (now - last_voice_at) * portTICK_PERIOD_MS >= VOICE_SILENCE_MS) {
       break;
     }
+    //30s is a listening/inactivity allowance, not a30s cloud-command upload.
+    if (stop_on_silence && heard_voice && maximum_ms > 7000 &&
+        (now - first_voice_at) * portTICK_PERIOD_MS >= 7000) break;
     vTaskDelay(pdMS_TO_TICKS(20));
   }
   lantern_audio_set_recording(false);
@@ -167,6 +196,10 @@ static bool capture_short_utterance(unsigned maximum_ms) {
            (unsigned)((xTaskGetTickCount() - started_at) * portTICK_PERIOD_MS),
            heard_voice ? "yes" : "no", (unsigned)lantern_audio_level());
   return heard_voice;
+}
+
+static bool capture_short_utterance(unsigned maximum_ms) {
+  return capture_utterance(maximum_ms, true);
 }
 
 static unsigned elapsed_state_seconds(void) {
@@ -188,8 +221,8 @@ static void show_recording_progress(void) {
   const char *source = phone_receiving              ? "QUIPUS + PHONE"
                        : phone.received_samples > 0 ? "QUIPUS; PHONE LOST"
                                                     : "QUIPUS MIC";
-  snprintf(detail, sizeof(detail), "%02u:%02u %s", elapsed / 60, elapsed % 60,
-           source);
+  snprintf(detail, sizeof(detail), "%02u:%02u", elapsed / 60, elapsed % 60);
+  (void)source; // Source loss remains in diagnostics, not a duplicate caption.
   lantern_display_show(LANTERN_SCREEN_RECORDING, detail);
 }
 
@@ -229,13 +262,39 @@ static void show_error(recovery_action_t recovery, const char *detail,
   s_recovery = recovery;
   s_state = LOCAL_ERROR;
   s_state_entered_at = xTaskGetTickCount();
-  lantern_display_show(LANTERN_SCREEN_ERROR,
-                       detail ? detail : "PRESS TO RETRY");
-  if (!prompt || lantern_network_play_prompt(prompt) != ESP_OK)
-    lantern_audio_chime(3);
+  snprintf(s_last_error_detail, sizeof(s_last_error_detail), "%s",
+           detail ? detail : "PLEASE RETRY");
+  ESP_LOGE(TAG, "device error recovery=%d detail=%s sd_error=%s pending=%u",
+           recovery, s_last_error_detail,
+           esp_err_to_name(lantern_sd_recording_error()),
+           (unsigned)lantern_sd_pending_count());
+  lantern_display_show(LANTERN_SCREEN_READY, "READY - SAY COMPUTER");
+  // Keep diagnostics private. Retry loops speak the same incident only once.
+  bool repeated = recovery == s_announced_recovery &&
+      !strcmp(s_last_error_detail, s_announced_error) &&
+      xTaskGetTickCount() - s_error_announced_at < pdMS_TO_TICKS(60000);
+  (void)prompt;
+  if (!repeated) {
+    s_announced_recovery = recovery;
+    snprintf(s_announced_error, sizeof(s_announced_error), "%s", s_last_error_detail);
+    s_error_announced_at = xTaskGetTickCount();
+    quipus_prompt_t cue = strstr(s_last_error_detail, "SD ")
+        ? QUIPUS_PROMPT_SD_FAILURE
+        : recovery == RECOVERY_COMMAND
+            ? QUIPUS_PROMPT_VOICE_UNAVAILABLE : QUIPUS_PROMPT_ERROR;
+    if (quipus_play_prompt(cue) != ESP_OK) lantern_audio_chime(3);
+  }
+  if (recovery == RECOVERY_STATUS || recovery == RECOVERY_COMMAND) {
+    // A read-only voice failure must not block the durable upload queue.
+    // Saved archives keep their own manifest/retry state, independently.
+    show_ready();
+    return;
+  }
+  sync_idle_wake_listener();
 }
 
 static void clear_active_session(void) {
+
   memset(&s_cloud_session, 0, sizeof(s_cloud_session));
   s_agora_active = false;
   s_used_agora = false;
@@ -364,10 +423,17 @@ static lantern_power_state_t battery_power_state(void) {
 static void sync_idle_wake_listener(void) {
   lantern_network_status_t network;
   lantern_network_get_status(&network);
-  bool enabled = s_wake_available && s_state == LOCAL_READY &&
-                 network.paired && network.wifi_connected;
+  // Error listening must not overwrite a pending RAM-only recording.
+  bool error_voice_safe = LANTERN_HAS_SD_CARD || s_audio_uploaded ||
+      (s_recovery != RECOVERY_UPLOAD && s_recovery != RECOVERY_STOP);
+  bool listening_state = s_state == LOCAL_READY ||
+      (s_state == LOCAL_ERROR && error_voice_safe);
+  // Local wake survives Internet loss; only commands still need cloud STT.
+  bool enabled = s_boot_complete && s_wake_available && listening_state &&
+                 network.paired && !s_power_off_requested && !s_wifi_screen_open;
 #if LANTERN_HAS_TOUCHSCREEN
-  enabled = enabled && (s_ui_view == UI_SPLASH || s_ui_view == UI_HOME);
+  enabled = enabled && (s_state == LOCAL_ERROR ||
+                        s_ui_view == UI_SPLASH || s_ui_view == UI_HOME);
 #endif
   // Connectivity and view changes share this policy. Reconnecting must restore
   // idle listening without redrawing the screen or enabling it in a submenu.
@@ -375,10 +441,15 @@ static void sync_idle_wake_listener(void) {
 }
 
 static void show_ready(void) {
-  lantern_wake_set_enabled(false);
+  if (!s_boot_complete) return;
+  // Repainting an already-idle face must not erase a pending wake event.
+  if (s_state != LOCAL_READY) {
+    lantern_wake_set_enabled(false);
+    lantern_network_end_report();
+  }
   lantern_network_set_realtime(false);
   s_display_asleep = false;
-  s_last_interaction_at = xTaskGetTickCount();
+  // Network/heartbeat redraws must not reset the real user-input clock.
   lantern_network_status_t network;
   lantern_network_get_status(&network);
   s_state = LOCAL_READY;
@@ -401,20 +472,18 @@ static void show_ready(void) {
     return;
   }
 #endif
-  if (network.setup_portal_active &&
-      (!network.wifi_connected || !network.paired)) {
+  if (s_wifi_screen_open ||
+      (network.setup_portal_active && !network.paired)) {
     lantern_display_show_setup(network.setup_ssid, network.last_error);
-  } else if (network.wifi_connected && network.paired) {
-    lantern_display_show(
-        LANTERN_SCREEN_READY,
-        s_wake_available ? (LANTERN_HAS_TOUCHSCREEN ? "SAY COMPUTER OR TAP"
-                                                    : "SAY COMPUTER OR PRESS")
-                         : (LANTERN_HAS_TOUCHSCREEN ? "TAP SCREEN TO START"
-                                                    : "PRESS " LANTERN_PRIMARY_BUTTON_LABEL " TO START"));
+  } else if (network.paired) {
+    lantern_display_show(LANTERN_SCREEN_READY,
+        s_wake_available ? "READY - SAY COMPUTER" : "READY - PRESS TO START");
   } else if (network.wifi_connected) {
-    lantern_display_show(LANTERN_SCREEN_READY, "PAIR IN DASHBOARD");
+    lantern_display_show(LANTERN_SCREEN_SETUP, "PAIR IN DASHBOARD");
+  } else if (network.paired && LANTERN_HAS_SD_CARD && lantern_sd_secure_ready()) {
+    lantern_display_show(LANTERN_SCREEN_READY, "VOICE OFFLINE - CONNECT WIFI");
   } else {
-    lantern_display_show(LANTERN_SCREEN_CONNECTING, "WAIT OR OPEN WIFI SETUP");
+    lantern_display_show(LANTERN_SCREEN_CONNECTING, "CONNECTING TO WIFI");
   }
   sync_idle_wake_listener();
 }
@@ -431,62 +500,117 @@ static void network_changed(const lantern_network_status_t *status) {
 static esp_err_t open_quick_consent(void) {
   lantern_network_status_t network;
   lantern_network_get_status(&network);
-  // Wi-Fi association is independent of dashboard ownership. Both online and
-  // encrypted offline recording require an authenticated device pairing.
-  if (!network.paired) {
-    clear_active_session();
+  if (!network.paired || s_power_off_requested) {
     show_ready();
     return ESP_ERR_INVALID_STATE;
   }
+  // Ask locally first. No cloud session or SD recording exists before YES.
+  clear_active_session();
   lantern_wake_set_enabled(false);
   lantern_network_set_realtime(true);
-  lantern_display_show(LANTERN_SCREEN_CONNECTING, "OPENING SESSION");
-  if (LANTERN_HAS_SD_CARD && !lantern_sd_secure_ready()) {
-    if (lantern_network_prepare_archive_key() != ESP_OK) {
+  s_state = LOCAL_AWAITING_CONSENT;
+  s_state_entered_at = xTaskGetTickCount();
+  lantern_display_show(LANTERN_SCREEN_CONSENT, "SAY YES WE CONSENT OR NO");
+  return ESP_OK;
+}
+
+static esp_err_t begin_recording_session(void) {
+  lantern_display_show(LANTERN_SCREEN_CONNECTING, "STARTING SESSION");
+#if LANTERN_HAS_SD_CARD
+  // Provisioning happens during setup, never between accepted consent and
+  // capture. A newly inserted card may be mounted locally without any HTTP.
+  if (!lantern_sd_secure_ready()) {
+    if (lantern_sd_init(NULL) != ESP_OK || !lantern_sd_secure_ready()) {
       show_error(RECOVERY_SESSION_START, "CONNECT ONCE TO SECURE SD", NULL);
       return ESP_FAIL;
     }
   }
-  if (lantern_network_begin_quick(&s_cloud_session) != ESP_OK) {
-    if (lantern_network_begin_offline(&s_cloud_session) == ESP_OK) {
-      s_state = LOCAL_AWAITING_CONSENT;
-      s_state_entered_at = xTaskGetTickCount();
-      lantern_display_show(LANTERN_SCREEN_CONSENT,
-                           "CONSENT CONFIRMED? TAP TO START");
-      lantern_audio_chime(1);
-      return ESP_OK;
-    }
-    lantern_network_get_status(&network);
-    if (!network.paired) {
-      clear_active_session();
-      show_ready();
-      return ESP_FAIL;
-    }
-    show_error(RECOVERY_SESSION_START, "SESSION START FAILED", "session_error");
-    return ESP_FAIL;
+  // Every SD-backed meeting starts locally, even online. Its unique session and
+  // the post-consent manifest are durable before the first microphone sample;
+  // the existing import/upload queue synchronizes it after capture finishes.
+  if (lantern_network_begin_offline(&s_cloud_session) == ESP_OK) return ESP_OK;
+#else
+  // Original RAM-only demonstration hardware retains its existing cloud flow.
+  if (lantern_network_begin_quick(&s_cloud_session) == ESP_OK) return ESP_OK;
+#endif
+  show_error(RECOVERY_SESSION_START, "SESSION START FAILED", NULL);
+  return ESP_FAIL;
+}
+
+static bool local_voice_ready(void) {
+  return s_local_voice_samples && quipus_local_recognizer_available();
+}
+
+static esp_err_t classify_local_yes_no(quipus_local_purpose_t purpose,
+                                      quipus_local_result_t *answer) {
+  if (!answer) return ESP_ERR_INVALID_ARG;
+  *answer = (quipus_local_result_t){.intent = QUIPUS_LOCAL_UNKNOWN};
+  if (!local_voice_ready()) return ESP_ERR_NOT_SUPPORTED;
+  size_t buffered = lantern_audio_buffered_samples();
+  if (!buffered) return ESP_ERR_INVALID_SIZE;
+  // A final I2S block may straddle the 5-second deadline. Keep the newest
+  // bounded window so a late NO remains visible without overrunning scratch.
+  size_t count = buffered < QUIPUS_LOCAL_MAX_SAMPLES ? buffered : QUIPUS_LOCAL_MAX_SAMPLES;
+  int64_t classified_at = esp_timer_get_time();
+  size_t copied = lantern_audio_copy_samples(s_local_voice_samples, buffered - count, count);
+  esp_err_t result = ESP_FAIL;
+  if (copied == count) {
+    result = purpose == QUIPUS_LOCAL_PURPOSE_NAVIGATION
+        ? quipus_local_recognizer_classify_navigation(s_local_voice_samples, count, answer)
+        : quipus_local_recognizer_classify(s_local_voice_samples, count, answer);
   }
-  s_state = LOCAL_AWAITING_CONSENT;
-  s_state_entered_at = xTaskGetTickCount();
-  lantern_display_show(LANTERN_SCREEN_CONSENT, "SAY YES WE CONSENT OR NO");
-  ESP_LOGI(TAG, "quick mode awaiting spoken consent");
-  return ESP_OK;
+  // Private utterance PCM never stays in the classifier scratch between turns.
+  volatile int16_t *samples = s_local_voice_samples;
+  for (size_t i = 0; i < count; ++i) samples[i] = 0;
+  if (result != ESP_OK) answer->intent = QUIPUS_LOCAL_UNKNOWN;
+  ESP_LOGI(TAG, "local yes/no result=%d confidence=%u windows=%u elapsed_ms=%lld",
+      answer->intent, (unsigned)answer->confidence, (unsigned)answer->windows,
+      (long long)((esp_timer_get_time() - classified_at) / 1000));
+  (void)classified_at; // Host fixtures may compile logging out.
+  return result;
 }
 
 static esp_err_t capture_consent_response(const char *context,
                                           char intent[32]) {
+  intent[0] = 0;
   lantern_display_show(LANTERN_SCREEN_CONSENT, "SAY YES WE CONSENT OR NO");
   lantern_audio_chime(1);
   vTaskDelay(pdMS_TO_TICKS(250));
-  capture_short_utterance(3000);
-  if (lantern_audio_buffered_samples() < LANTERN_MIC_SAMPLE_RATE / 2)
+  // Capture the full room response, including a later refusal. Connected
+  // consent keeps the proven full-utterance recognizer as its authority; the
+  // stock local keyword model must not veto or approve that online decision.
+  bool heard_voice = capture_utterance(5000, false);
+  if (s_power_off_requested || !heard_voice ||
+      lantern_audio_buffered_samples() < LANTERN_MIC_SAMPLE_RATE / 2) {
+    lantern_audio_clear_private_buffer();
     return ESP_FAIL;
-  lantern_display_show(LANTERN_SCREEN_CONNECTING, "VERIFYING CONSENT");
-  return lantern_network_run_voice_command(context, s_battery_level, intent,
-                                           32);
+  }
+  lantern_network_status_t network;
+  lantern_network_get_status(&network);
+  if (network.wifi_connected) {
+    lantern_display_show(LANTERN_SCREEN_CONNECTING, "VERIFYING CONSENT");
+    esp_err_t result = lantern_network_run_voice_command(context, s_battery_level, intent, 32);
+    lantern_audio_clear_private_buffer();
+    return result;
+  }
+
+  // Offline pilot: only explicit local YES/NO are meaningful. Unknown, silence
+  // or inference failure never inherit an earlier menu choice or grant consent.
+  quipus_local_result_t answer;
+  esp_err_t result = classify_local_yes_no(QUIPUS_LOCAL_PURPOSE_CONSENT, &answer);
+  if (s_power_off_requested) {
+    lantern_audio_clear_private_buffer();
+    return ESP_ERR_INVALID_STATE;
+  }
+  snprintf(intent, 32, "%s", result == ESP_OK && answer.intent == QUIPUS_LOCAL_YES
+      ? "consent_yes" : result == ESP_OK && answer.intent == QUIPUS_LOCAL_NO
+          ? "consent_no" : "unknown");
+  lantern_audio_clear_private_buffer();
+  return ESP_OK;
 }
 
 static void cancel_pending_consent(void) {
-  if (s_cloud_session.session_id[0] &&
+  if (!s_cloud_session.offline_local && s_cloud_session.session_id[0] &&
       lantern_network_confirm_consent(&s_cloud_session, false, NULL) !=
           ESP_OK) {
     ESP_LOGW(TAG,
@@ -498,12 +622,17 @@ static void cancel_pending_consent(void) {
 }
 
 static esp_err_t accept_recording_consent(void) {
+  if (s_power_off_requested) return ESP_ERR_INVALID_STATE;
+  if (begin_recording_session() != ESP_OK || s_power_off_requested)
+    return ESP_FAIL;
   lantern_agora_transport_t transport;
   memset(&transport, 0, sizeof(transport));
   bool offline = s_cloud_session.offline_local;
   lantern_display_show(LANTERN_SCREEN_CONNECTING, "STARTING RECORDING");
-  if (!offline && lantern_network_confirm_consent(&s_cloud_session, true,
-                                                  &transport) != ESP_OK) {
+  esp_err_t confirmed = offline ? ESP_OK :
+      lantern_network_confirm_consent(&s_cloud_session, true, &transport);
+  if (s_power_off_requested) return ESP_ERR_INVALID_STATE;
+  if (confirmed != ESP_OK) {
     show_error(RECOVERY_RECORDING_START, "RECORDING START FAILED",
                "session_error");
     return ESP_FAIL;
@@ -512,30 +641,40 @@ static esp_err_t accept_recording_consent(void) {
   lantern_transcript_reset();
   s_agora_active = !offline && lantern_agora_start(&transport) == ESP_OK;
   s_used_agora = s_agora_active;
+  if (s_power_off_requested) return ESP_ERR_INVALID_STATE;
   if (!s_agora_active && !offline) {
     ESP_LOGW(TAG,
              "Agora device join failed; continuing with the local WAV archive");
-    if (lantern_network_play_prompt("local_recording") != ESP_OK)
-      lantern_audio_chime(1);
+    esp_err_t prompted = lantern_network_play_prompt("local_recording");
+    if (s_power_off_requested) return ESP_ERR_INVALID_STATE;
+    if (prompted != ESP_OK) lantern_audio_chime(1);
   }
-  if (!offline && lantern_network_capture_started(&s_cloud_session) != ESP_OK) {
+  esp_err_t clock_synced = offline ? ESP_OK :
+      lantern_network_capture_started(&s_cloud_session);
+  if (s_power_off_requested) return ESP_ERR_INVALID_STATE;
+  if (clock_synced != ESP_OK) {
     show_error(RECOVERY_RECORDING_START, "CLOCK SYNC FAILED", "session_error");
     return ESP_FAIL;
   }
 
   snprintf(s_cloud_session.owner_id, sizeof(s_cloud_session.owner_id), "%s",
            s_config.owner_id);
+  if (s_power_off_requested) return ESP_ERR_INVALID_STATE;
   lantern_sd_set_session(&s_cloud_session);
   esp_err_t sd_start = lantern_sd_recording_begin(s_cloud_session.session_id);
   s_sd_recording_active = sd_start == ESP_OK;
   s_sd_archive_required = s_sd_recording_active;
   s_recording_duration_seconds = 0;
+  if (s_power_off_requested) {
+    stop_local_capture();
+    return ESP_ERR_INVALID_STATE;
+  }
 #if LANTERN_HAS_SD_CARD
   if (!s_sd_recording_active) {
     ESP_LOGE(TAG, "microSD archive is required on this board: %s",
              esp_err_to_name(sd_start));
-    ESP_ERROR_CHECK_WITHOUT_ABORT(
-        lantern_network_abort_session(&s_cloud_session));
+    if (!s_cloud_session.offline_local)
+      ESP_ERROR_CHECK_WITHOUT_ABORT(lantern_network_abort_session(&s_cloud_session));
     clear_active_session();
     show_error(RECOVERY_NONE, "SD CARD REQUIRED", "upload_error");
     return ESP_FAIL;
@@ -547,11 +686,22 @@ static esp_err_t accept_recording_consent(void) {
   }
 #endif
 
+  if (quipus_play_prompt(QUIPUS_PROMPT_RECORDING_STARTED) != ESP_OK)
+    lantern_audio_chime(1);
+  if (s_power_off_requested) {
+    stop_local_capture();
+    return ESP_ERR_INVALID_STATE;
+  }
   if (s_sd_recording_active &&
       quipus_phone_audio_begin(s_cloud_session.session_id) != ESP_OK) {
     ESP_LOGW(TAG, "Phone microphone unavailable; onboard recording continues");
   }
+  if (s_power_off_requested) {
+    stop_local_capture();
+    return ESP_ERR_INVALID_STATE;
+  }
   s_state = LOCAL_RECORDING;
+  s_recording_connection_notice = false;
   s_recovery = RECOVERY_NONE;
   s_state_entered_at = xTaskGetTickCount();
   s_last_recording_second = UINT32_MAX;
@@ -567,39 +717,68 @@ static esp_err_t accept_recording_consent(void) {
 }
 
 static void capture_spoken_consent(void) {
-  unsigned rejection_count = 0;
-  for (unsigned attempt = 0; attempt < 3; ++attempt) {
-    char consent[32];
-    const char *context = rejection_count ? "consent_retry" : "consent";
-    if (capture_consent_response(context, consent) != ESP_OK) {
-      show_error(RECOVERY_CONSENT_CAPTURE, "CONSENT CHECK FAILED",
-                 "consent_error");
-      return;
-    }
-    if (strcmp(consent, "consent_yes") == 0) {
+  for (unsigned attempt = 0; attempt < 2; ++attempt) {
+    char consent[32] = {0};
+    if (s_power_off_requested) return;
+    esp_err_t result = capture_consent_response(
+        attempt ? "consent_retry" : "consent", consent);
+    if (s_power_off_requested) return;
+    if (result == ESP_OK && strcmp(consent, "consent_yes") == 0) {
       accept_recording_consent();
       return;
     }
-    if (strcmp(consent, "consent_no") == 0 && ++rejection_count >= 2) {
-      cancel_pending_consent();
-      return;
+    if (result == ESP_OK && strcmp(consent, "consent_no") == 0) {
+      ESP_LOGI(TAG, "spoken consent refused, attempt=%u", attempt + 1);
+    } else {
+      ESP_LOGW(TAG, "spoken consent not confirmed, attempt=%u result=%s",
+               attempt + 1, esp_err_to_name(result));
     }
+    // One repeated question, including after an explicit first NO. No button
+    // approval and no reboot: a second refusal simply returns to the main screen.
+    if (attempt == 0 &&
+        quipus_play_prompt(QUIPUS_PROMPT_CONSENT_RETRY) != ESP_OK) break;
   }
-  if (lantern_network_play_prompt("consent_failure") != ESP_OK)
-    lantern_audio_chime(2);
+  (void)quipus_play_prompt(QUIPUS_PROMPT_CONSENT_REFUSED);
   cancel_pending_consent();
 }
 
 static void start_spoken_consent(bool announce_request) {
-  if (open_quick_consent() != ESP_OK)
+  if (s_power_off_requested || open_quick_consent() != ESP_OK) return;
+  esp_err_t spoken = announce_request ? quipus_play_consent_prompt() : ESP_OK;
+  if (s_power_off_requested) return;
+  lantern_network_status_t network;
+  lantern_network_get_status(&network);
+  if (spoken != ESP_OK || (!local_voice_ready() && !network.wifi_connected)) {
+    ESP_LOGW(TAG, "voice consent unavailable: prompt=%s wifi=%d; not recording",
+             esp_err_to_name(spoken), network.wifi_connected);
+    (void)quipus_play_prompt(QUIPUS_PROMPT_NETWORK_REQUIRED);
+    cancel_pending_consent();
     return;
-  if (s_cloud_session.offline_local)
-    return; // explicit local button confirmation
-  if (announce_request &&
-      lantern_network_play_prompt("consent_request") != ESP_OK) {
-    lantern_audio_chime(1);
   }
+  ESP_LOGI(TAG, "local consent question played; listening for yes or no");
   capture_spoken_consent();
+}
+
+// Delivery announcements are once per session, local, and bounded. Retrying a
+// network request must not keep speaking the same notification every 30 seconds.
+static char s_upload_notice_session[37], s_uploaded_notice_session[37];
+static void announce_upload_started(const lantern_cloud_session_t *session) {
+  if (!session || !session->session_id[0] ||
+      !strcmp(s_upload_notice_session, session->session_id)) return;
+  snprintf(s_upload_notice_session, sizeof(s_upload_notice_session), "%s",
+           session->session_id);
+  if (quipus_play_uploading_prompt() != ESP_OK) lantern_audio_chime(1);
+}
+
+static void announce_upload_verified(const lantern_cloud_session_t *session) {
+  if (!session || !session->archive_verified || !session->session_id[0] ||
+      !strcmp(s_uploaded_notice_session, session->session_id)) return;
+  snprintf(s_uploaded_notice_session, sizeof(s_uploaded_notice_session), "%s",
+           session->session_id);
+  esp_err_t spoken = session->discarded
+      ? quipus_play_prompt(QUIPUS_PROMPT_SHORT_RECORDING_SKIPPED)
+      : quipus_play_uploaded_prompt();
+  if (spoken != ESP_OK) lantern_audio_chime(2);
 }
 
 static void session_complete(bool processing_pending) {
@@ -608,28 +787,32 @@ static void session_complete(bool processing_pending) {
                                   : lantern_audio_buffered_seconds();
   s_state = LOCAL_COMPLETE;
   s_recovery = RECOVERY_NONE;
-  lantern_display_show(LANTERN_SCREEN_COMPLETE, processing_pending
-                                                    ? "SUMMARY PROCESSING"
-                                                    : "UPLOADED TO DASHBOARD");
-  if (lantern_network_play_prompt(processing_pending
-                                      ? "processing_pending"
-                                      : "upload_complete") != ESP_OK) {
-    lantern_audio_chime(2);
-  }
+  // Storage acknowledgement alone is not the full completion receipt. Keep the
+  // local archive and distinguish verification pending from verified delivery.
+  const char *detail = s_cloud_session.archive_verified
+      ? (s_cloud_session.discarded ? "SHORT RECORDING SKIPPED"
+          : processing_pending ? "UPLOADED - SUMMARY PROCESSING"
+                               : "UPLOADED TO DASHBOARD")
+      : "AUDIO SENT - VERIFICATION PENDING";
+  lantern_display_show(LANTERN_SCREEN_COMPLETE, detail);
+  announce_upload_verified(&s_cloud_session);
   s_state_entered_at = xTaskGetTickCount();
-  ESP_LOGI(TAG, "session upload complete; full archive contains %u seconds",
-           captured_seconds);
+  ESP_LOGI(TAG, "session delivery seconds=%u verified=%d processing_pending=%d",
+           captured_seconds, s_cloud_session.archive_verified, processing_pending);
   clear_active_session();
+  show_ready();
 }
 
 static void upload_current_session(bool announce_upload) {
+  lantern_wake_set_enabled(false);
+  s_summary_retry_delay = pdMS_TO_TICKS(
+      quipus_sync_retry_delay_ms(QUIPUS_SYNC_FAILED));
   int64_t measured_at = esp_timer_get_time();
   s_state = LOCAL_SAVING;
   s_state_entered_at = xTaskGetTickCount();
-  if (announce_upload &&
-      lantern_network_play_prompt("recording_uploading") != ESP_OK) {
-    lantern_audio_chime(1);
-  }
+  // Progress is immediate; cloud TTS must not delay the WAV transfer.
+  lantern_display_show(LANTERN_SCREEN_SAVING, "UPLOADING AUDIO - PREPARING");
+  if (announce_upload) announce_upload_started(&s_cloud_session);
   ESP_LOGI(TAG, "Save timing announcement_ms=%lld",
            (long long)((esp_timer_get_time() - measured_at) / 1000));
 
@@ -661,7 +844,11 @@ static void upload_current_session(bool announce_upload) {
       return;
     }
     s_audio_uploaded = true;
-    lantern_sd_checkpoint(&s_cloud_session, true, true, s_phone_uploaded);
+    if (LANTERN_HAS_SD_CARD && lantern_sd_recording_ready() &&
+        lantern_sd_checkpoint(&s_cloud_session, true, true, s_phone_uploaded) != ESP_OK) {
+      show_error(RECOVERY_UPLOAD, "UPLOAD RECEIPT SAVE FAILED", "upload_error");
+      return;
+    }
   }
   if (!s_phone_uploaded && lantern_sd_phone_size() > 44) {
     lantern_display_show(LANTERN_SCREEN_SAVING, "UPLOADING PHONE AUDIO");
@@ -671,7 +858,10 @@ static void upload_current_session(bool announce_upload) {
       return;
     }
     s_phone_uploaded = true;
-    lantern_sd_checkpoint(&s_cloud_session, true, s_audio_uploaded, true);
+    if (lantern_sd_checkpoint(&s_cloud_session, true, s_audio_uploaded, true) != ESP_OK) {
+      show_error(RECOVERY_UPLOAD, "PHONE RECEIPT SAVE FAILED", "upload_error");
+      return;
+    }
   }
 
   lantern_display_show(LANTERN_SCREEN_SAVING, "PROCESSING SUMMARY");
@@ -692,9 +882,9 @@ static void upload_current_session(bool announce_upload) {
     return;
   }
   if (s_cloud_session.archive_verified && lantern_sd_recording_ready()) {
-    if (lantern_sd_recording_confirm_uploaded() != ESP_OK) {
+    if (lantern_sd_recording_confirm_uploaded_at(lantern_network_trusted_time()) != ESP_OK) {
       ESP_LOGW(TAG, "processed cloud WAV is ready but the local SD copy could "
-                    "not be removed");
+                    "not be cached");
     }
   } else if (lantern_sd_recording_ready()) {
     ESP_LOGW(TAG,
@@ -703,19 +893,25 @@ static void upload_current_session(bool announce_upload) {
   if (!s_cloud_session.archive_verified && lantern_sd_recording_ready()) {
     s_pending_completion = s_cloud_session;
     s_summary_retry_pending = true;
+    s_summary_retry_delay = pdMS_TO_TICKS(
+        quipus_sync_retry_delay_ms(QUIPUS_SYNC_VERIFICATION_PENDING));
     s_last_summary_retry_at = xTaskGetTickCount();
   }
   session_complete(s_cloud_session.processing_queued);
 }
 
 static void saved_for_later(void) {
+  s_summary_retry_delay = pdMS_TO_TICKS(
+      quipus_sync_retry_delay_ms(QUIPUS_SYNC_FAILED));
+  s_last_summary_retry_at = xTaskGetTickCount();
   s_state = LOCAL_COMPLETE;
   s_recovery = RECOVERY_NONE;
   s_state_entered_at = xTaskGetTickCount();
   lantern_display_show(LANTERN_SCREEN_COMPLETE,
-                       "SAVED LOCALLY - WILL SYNC ON WIFI");
-  lantern_audio_chime(2);
+                       "SAVED LOCALLY - UPLOAD PENDING");
+  if (quipus_play_saved_offline_prompt() != ESP_OK) lantern_audio_chime(2);
   clear_active_session();
+  show_ready();
 }
 static void continue_after_stop(void) {
   lantern_network_status_t network;
@@ -727,7 +923,11 @@ static void continue_after_stop(void) {
                   ? lantern_network_import_recording(&s_cloud_session) == ESP_OK
                   : lantern_network_stop_recording(&s_cloud_session) == ESP_OK;
   }
-  lantern_sd_checkpoint(&s_cloud_session, stopped, false, false);
+  if (LANTERN_HAS_SD_CARD && lantern_sd_recording_ready() &&
+      lantern_sd_checkpoint(&s_cloud_session, stopped, false, false) != ESP_OK) {
+    show_error(RECOVERY_STOP, "SESSION RECEIPT SAVE FAILED", "stop_error");
+    return;
+  }
   if (!stopped && lantern_sd_recording_ready()) {
     saved_for_later();
     return;
@@ -739,7 +939,7 @@ static void continue_after_stop(void) {
   upload_current_session(true);
 }
 
-static void finalise_recording(void) {
+static bool finish_local_recording(void) {
   unsigned expected_seconds = elapsed_state_seconds();
   s_state = LOCAL_SAVING;
   s_state_entered_at = xTaskGetTickCount();
@@ -748,7 +948,7 @@ static void finalise_recording(void) {
     ESP_LOGW(TAG, "Phone capture interrupted; preserving captured samples");
   if (!quipus_phone_audio_idle()) {
     show_error(RECOVERY_NONE, "PHONE AUDIO STILL SAVING", "upload_error");
-    return;
+    return false;
   }
   if (LANTERN_HAS_SD_CARD && checkpoint_phone_timing() != ESP_OK)
     ESP_LOGW(TAG, "Phone timing checkpoint unavailable; archive retained");
@@ -760,7 +960,7 @@ static void finalise_recording(void) {
                     "will not be uploaded");
       clear_active_session();
       show_error(RECOVERY_NONE, "SD ARCHIVE FAILED", "upload_error");
-      return;
+      return false;
     }
     s_sd_recording_active = false;
     size_t archive_bytes = lantern_sd_recording_size();
@@ -779,11 +979,16 @@ static void finalise_recording(void) {
                s_recording_duration_seconds, expected_seconds);
       clear_active_session();
       show_error(RECOVERY_NONE, "SD RECORDING INCOMPLETE", "upload_error");
-      return;
+      return false;
     }
   } else {
     s_recording_duration_seconds = lantern_audio_buffered_seconds();
   }
+  return true;
+}
+
+static void finalise_recording(void) {
+  if (!finish_local_recording()) return;
   lantern_display_show(LANTERN_SCREEN_SAVING, "FINALISING SPEECH");
   // Leave the live microphone path open briefly so Agora can finalize the last
   // sentence. The local archive ends exactly at the centre-button press.
@@ -795,142 +1000,329 @@ static void finalise_recording(void) {
   continue_after_stop();
 }
 
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+static void power_off_safely(void) {
+  lantern_wake_set_enabled(false);
+  bool captured = s_state == LOCAL_RECORDING;
+  if (captured && !finish_local_recording()) {
+    s_power_off_requested = false;
+    return;
+  }
+  lantern_audio_set_streaming(false);
+  lantern_agora_stop();
+  s_agora_active = false;
+  // The controller owns report-cache teardown. A report can be between HTTP
+  // pages with no speaker activity while its encrypted writer is still open.
+  // Close it before checking SD quiescence; never do this in the input task.
+  lantern_network_end_report();
+  if (!quipus_phone_audio_idle() || !lantern_sd_can_power_down()) {
+    s_power_off_requested = false;
+    show_error(RECOVERY_NONE, "STILL SAVING - TRY POWER AGAIN", NULL);
+    return;
+  }
+  if (captured && lantern_sd_checkpoint(&s_cloud_session, false, false, false) != ESP_OK) {
+    s_power_off_requested = false;
+    show_error(RECOVERY_NONE, "SD SAVE FAILED - POWER STAYS ON", NULL);
+    return;
+  }
+  // An unconfirmed empty cloud session can expire or be reclaimed next boot.
+  // Audio already on SD keeps its owner/key and is resumed after reconnection.
+  lantern_display_show(LANTERN_SCREEN_SAVING, "SAVED - POWERING OFF");
+  if (s_boot_complete) lantern_audio_chime(1);
+  vTaskDelay(pdMS_TO_TICKS(200));
+  lantern_display_set_awake(false);
+  lantern_board_speaker_enable(false);
+  ESP_ERROR_CHECK(esp_sleep_enable_ext0_wakeup(LANTERN_POWER_BUTTON_GPIO, 0));
+  ESP_ERROR_CHECK(rtc_gpio_pullup_en(LANTERN_POWER_BUTTON_GPIO));
+  ESP_ERROR_CHECK(rtc_gpio_pulldown_dis(LANTERN_POWER_BUTTON_GPIO));
+  gpio_set_level(LANTERN_POWER_HOLD_GPIO, 0);
+  while (gpio_get_level(LANTERN_POWER_BUTTON_GPIO) == 0)
+    vTaskDelay(pdMS_TO_TICKS(20));
+  ESP_LOGI(TAG, "safe shutdown complete; entering sleep");
+  esp_deep_sleep_start();
+}
+#endif
+
 static void review_spoken_actions(void) {
   unsigned unanswered = 0;
-  while (lantern_network_review_pending() && unanswered < 2) {
+  const char *failure = NULL;
+  while (!s_power_off_requested && lantern_network_review_pending() &&
+         unanswered < 2) {
+    if (s_power_off_requested) break;
+    if (lantern_audio_is_speaker_active()) {
+      failure = "REPORT AUDIO BUSY";
+      break;
+    }
+    // Discard report/preroll audio before the local prompt. The fresh capture
+    // below resets the RAM window again, after the chime and acoustic tail.
+    lantern_audio_reset_report_listening();
+    if (s_power_off_requested) break;
     lantern_display_show(LANTERN_SCREEN_LISTENING, "APPROVE? SAY YES OR NO");
+    if (s_power_off_requested) break;
     lantern_audio_chime(1);
+    if (s_power_off_requested) break;
     vTaskDelay(pdMS_TO_TICKS(250));
-    capture_short_utterance(4000);
-    if (lantern_audio_buffered_samples() < LANTERN_MIC_SAMPLE_RATE / 2) {
+    if (s_power_off_requested) break;
+    if (lantern_audio_is_speaker_active()) {
+      failure = "REPORT AUDIO BUSY";
+      break;
+    }
+    bool heard = capture_short_utterance(4000);
+    if (s_power_off_requested) break;
+    if (!heard || lantern_audio_buffered_samples() < LANTERN_MIC_SAMPLE_RATE / 2) {
       ++unanswered;
       continue;
     }
-    lantern_display_show(LANTERN_SCREEN_UNDERSTANDING, "REVIEWING ACTION");
-    char reply[32];
-    if (lantern_network_run_voice_command("action", s_battery_level, reply,
-                                          sizeof(reply)) != ESP_OK) {
-      lantern_network_cancel_review();
-      show_error(RECOVERY_STATUS, "ACTION NOT CONFIRMED", "status_error");
-      return;
+    if (lantern_audio_is_speaker_active()) {
+      failure = "REPORT AUDIO BUSY";
+      break;
     }
-    ++unanswered;
-    // Every answer has a bounded capture window; a new prompt is a new review.
-    if (strcmp(reply, "action_reply") == 0)
-      unanswered = 0;
+    lantern_display_show(LANTERN_SCREEN_UNDERSTANDING, "REVIEWING ACTION");
+    if (s_power_off_requested) break;
+    char reply[32] = {0};
+    esp_err_t result = lantern_network_run_voice_command(
+        "action", s_battery_level, reply, sizeof(reply));
+    if (s_power_off_requested) break;
+    if (result != ESP_OK) {
+      failure = "ACTION NOT CONFIRMED";
+      break;
+    }
+    // Only genuinely classified review replies renew the bounded opportunity.
+    // Silence/unknown answers cancel; meaningful action reviews may continue.
+    unanswered = strcmp(reply, "action_reply") == 0 ? 0 : unanswered + 1;
   }
   lantern_network_cancel_review();
+  if (failure && !s_power_off_requested)
+    show_error(RECOVERY_STATUS, failure, "status_error");
 }
 
 static void report_dialogue(esp_err_t result) {
-  for (unsigned turn = 0; turn < 8; ++turn) {
-    if (result == ESP_ERR_NOT_FOUND) {
-      show_ready();
-      return;
-    }
+  unsigned unclear_turns = 0;
+  // Meaningful questions may continue; silence and repeated unknown replies end
+  // the dialogue. Speaker audio must never become a fresh user request.
+  while (!s_power_off_requested) {
+    if (result == ESP_ERR_NOT_FOUND) { show_ready(); return; }
     s_state = LOCAL_STATUS;
     s_recovery = RECOVERY_NONE;
     if (result != ESP_OK && result != LANTERN_REPORT_INTERRUPTED) {
       show_error(RECOVERY_STATUS, "REPORT UNAVAILABLE", "status_error");
       return;
     }
-    if (result == ESP_OK)
+    bool interrupted_speech = false;
+    if (result == LANTERN_REPORT_INTERRUPTED) {
+      interrupted_speech = lantern_audio_capture_interruption(7500);
+      // A physical cancel is an exit, not permission to capture another turn.
+      if (!interrupted_speech) { show_ready(); return; }
+    } else {
       review_spoken_actions();
-    if (s_state == LOCAL_ERROR)
-      return;
+    }
+    if (s_state != LOCAL_STATUS || s_power_off_requested) return;
     lantern_network_cancel_review();
-    lantern_display_show(LANTERN_SCREEN_LISTENING, "ASK A MEETING OR SAY STOP");
-    lantern_audio_chime(1);
-    vTaskDelay(pdMS_TO_TICKS(250));
-    if (!capture_short_utterance(7000)) {
+    if (!interrupted_speech) {
+      lantern_audio_reset_report_listening();
+      // Network playback has drained before returning. Refuse overlapping capture
+      // and allow its acoustic tail to settle before opening a new user buffer.
+      if (lantern_audio_is_speaker_active()) {
+        show_error(RECOVERY_STATUS, "REPORT AUDIO BUSY", "status_error");
+        return;
+      }
+      vTaskDelay(pdMS_TO_TICKS(250));
+      if (s_power_off_requested) return;
+      if (lantern_audio_is_speaker_active()) {
+        show_error(RECOVERY_STATUS, "REPORT AUDIO BUSY", "status_error");
+        return;
+      }
+      lantern_display_show(LANTERN_SCREEN_LISTENING, "LISTENING");
+      // set_recording(true) resets the RAM window; no playback/preroll is reused.
+      if (!capture_short_utterance(30000)) { show_ready(); return; }
+    } else {
+      lantern_display_show(LANTERN_SCREEN_LISTENING, "LISTENING");
+    }
+    if (s_power_off_requested) return;
+    lantern_display_show(LANTERN_SCREEN_UNDERSTANDING, "ONE MOMENT");
+    char reply[32] = {0};
+    result = lantern_network_run_voice_command("report", s_battery_level,
+                                               reply, sizeof(reply));
+    if (result == ESP_OK && strcmp(reply, "report_stop") == 0) {
+      (void)quipus_play_prompt(QUIPUS_PROMPT_REPORT_DONE);
       show_ready();
       return;
     }
-    lantern_display_show(LANTERN_SCREEN_UNDERSTANDING, "FINDING YOUR MEETING");
-    char reply[32];
-    result = lantern_network_run_voice_command("report", s_battery_level, reply,
-                                               sizeof(reply));
-    if (result == ESP_OK && strcmp(reply, "report_stop") == 0) {
-      show_ready();
-      return;
+    if (result == ESP_OK && strcmp(reply, "report_clarify") == 0) {
+      if (++unclear_turns >= 2) { show_ready(); return; }
+    } else if (result == ESP_OK) {
+      unclear_turns = 0;
     }
   }
-  show_ready();
+}
+
+// Flush only the stopped capture receipt before a report. Never upload/delete
+// audio here: the normal durable queue remains responsible for full delivery.
+static esp_err_t reconcile_report_capture_receipt(void) {
+#if LANTERN_HAS_SD_CARD
+  if (s_state == LOCAL_RECORDING || s_sd_recording_active ||
+      lantern_sd_capture_active() || !quipus_phone_audio_idle())
+    return ESP_ERR_INVALID_STATE;
+  if (!lantern_sd_secure_ready() || !lantern_sd_upload_pending_count()) return ESP_OK;
+  lantern_cloud_session_t pending;
+  bool stopped = false, audio_uploaded = false, phone_uploaded = false;
+  esp_err_t selected = lantern_sd_next_pending(s_config.owner_id, s_config.device_id,
+      &pending, &stopped, &audio_uploaded, &phone_uploaded);
+  if (selected == ESP_ERR_NOT_FOUND) return ESP_OK;
+  if (selected != ESP_OK) return selected;
+  if (stopped) return ESP_OK;
+  esp_err_t result = pending.offline_local
+      ? lantern_network_import_recording(&pending)
+      : lantern_network_stop_recording(&pending);
+  if (result != ESP_OK) return result;
+  return lantern_sd_checkpoint(&pending, true, audio_uploaded, phone_uploaded);
+#else
+  return ESP_OK;
+#endif
 }
 
 static void play_status_report(void) {
+  // Defensive boundary: no caller can turn an active recording into a report.
+  if (s_power_off_requested || s_state == LOCAL_RECORDING || lantern_audio_is_recording() ||
+      s_sd_recording_active || lantern_sd_capture_active() || !quipus_phone_audio_idle())
+    return;
   lantern_wake_set_enabled(false);
   lantern_network_set_realtime(true);
   s_state = LOCAL_STATUS;
   s_recovery = RECOVERY_NONE;
   s_state_entered_at = xTaskGetTickCount();
-  lantern_display_show(LANTERN_SCREEN_STATUS, "LOADING TODAY");
+  lantern_display_show(LANTERN_SCREEN_STATUS, "STATUS REPORT");
+  lantern_network_status_t network;
+  lantern_network_get_status(&network);
+  if (!network.wifi_connected) {
+    // Offline playback is the last complete, owner-bound saved report only.
+    // Never open a cloud action dialogue or mutate a pending capture receipt.
+    esp_err_t cached = lantern_network_play_cached_report();
+    if (cached != ESP_OK && cached != LANTERN_REPORT_INTERRUPTED && !s_power_off_requested)
+      (void)quipus_play_prompt(QUIPUS_PROMPT_REPORT_OFFLINE);
+    if (!s_power_off_requested) show_ready();
+    return;
+  }
+  esp_err_t receipt = reconcile_report_capture_receipt();
+  if (receipt != ESP_OK)
+    ESP_LOGW(TAG, "report capture receipt remains pending: %s", esp_err_to_name(receipt));
   report_dialogue(lantern_network_play_briefing("status", s_battery_level));
 }
 
 static void command_not_recognised(void) {
   s_state = LOCAL_COMMAND_PROCESSING;
-  s_state_entered_at = xTaskGetTickCount();
-  lantern_display_show(LANTERN_SCREEN_UNDERSTANDING, "COMMAND NOT RECOGNISED");
-  lantern_audio_chime(2);
-  vTaskDelay(pdMS_TO_TICKS(1200));
+  lantern_display_show(LANTERN_SCREEN_LISTENING, "TRY AGAIN");
+  (void)quipus_play_prompt(QUIPUS_PROMPT_COMMAND_UNCLEAR);
   show_ready();
 }
 
-static void capture_wake_command(void) {
-  if (s_state != LOCAL_READY || !ready_for_cloud_action())
-    return;
-  lantern_wake_set_enabled(false);
+static quipus_local_intent_t ask_local_choice(quipus_prompt_t question) {
+  if (s_power_off_requested) return QUIPUS_LOCAL_UNKNOWN;
   s_state = LOCAL_COMMAND_LISTENING;
-  s_recovery = RECOVERY_NONE;
-  s_state_entered_at = xTaskGetTickCount();
-  lantern_display_show(LANTERN_SCREEN_LISTENING, "START RECORDING OR STATUS");
-  lantern_audio_chime(1);
-  vTaskDelay(pdMS_TO_TICKS(250));
-
-  capture_short_utterance(4000);
-  if (lantern_audio_buffered_samples() < LANTERN_MIC_SAMPLE_RATE / 2) {
-    command_not_recognised();
-    return;
+  lantern_display_show(LANTERN_SCREEN_LISTENING, "SAY YES OR NO");
+  if (quipus_play_prompt(question) != ESP_OK) return QUIPUS_LOCAL_UNKNOWN;
+  if (s_power_off_requested) return QUIPUS_LOCAL_UNKNOWN;
+  vTaskDelay(pdMS_TO_TICKS(150));
+  // Navigation is not consent. Its bounded early-silence capture supplies at
+  // least one second of model context; strict consent always captures all5s.
+  bool heard = capture_short_utterance(5000);
+  if (s_power_off_requested) {
+    lantern_audio_clear_private_buffer();
+    return QUIPUS_LOCAL_UNKNOWN;
   }
+  quipus_local_result_t answer = {.intent = QUIPUS_LOCAL_UNKNOWN};
+  esp_err_t classified = heard
+      ? classify_local_yes_no(QUIPUS_LOCAL_PURPOSE_NAVIGATION, &answer) : ESP_FAIL;
+  // A menu selection is never recording consent. Its PCM is erased before
+  // the separate question and fresh, strict consent capture.
+  lantern_audio_clear_private_buffer();
+  ESP_LOGI(TAG, "local navigation phase=%s heard=%u result=%d status=%s",
+      question == QUIPUS_PROMPT_OFFLINE_RECORD_CHOICE ? "record" : "report",
+      (unsigned)heard, answer.intent, esp_err_to_name(classified));
+  if (s_power_off_requested) return QUIPUS_LOCAL_UNKNOWN;
+  return classified == ESP_OK ? answer.intent : QUIPUS_LOCAL_UNKNOWN;
+}
 
-  s_state = LOCAL_COMMAND_PROCESSING;
-  s_state_entered_at = xTaskGetTickCount();
-  lantern_display_show(LANTERN_SCREEN_UNDERSTANDING, "CHECKING COMMAND");
-  char intent[32];
-  esp_err_t result = lantern_network_run_voice_command(
-      "wake_command", s_battery_level, intent, sizeof(intent));
-  if (result == LANTERN_REPORT_INTERRUPTED ||
-      (result == ESP_OK && strcmp(intent, "report_answer") == 0)) {
-    report_dialogue(result);
-    return;
-  }
-  if (result == ESP_OK && strcmp(intent, "report_stop") == 0) {
+static void capture_offline_wake_menu(void) {
+  if (!local_voice_ready()) {
+    (void)quipus_play_prompt(QUIPUS_PROMPT_NETWORK_REQUIRED);
     show_ready();
     return;
   }
-  if (result == ESP_ERR_NOT_FOUND) {
-    command_not_recognised();
-    return;
-  }
-  if (result != ESP_OK) {
-    show_error(RECOVERY_COMMAND, "COMMAND SERVICE OFFLINE", "command_error");
-    return;
-  }
-
-  if (strcmp(intent, "start_recording") == 0) {
+  quipus_local_intent_t choice = ask_local_choice(QUIPUS_PROMPT_OFFLINE_RECORD_CHOICE);
+  if (s_power_off_requested) return;
+  if (choice == QUIPUS_LOCAL_YES) {
     start_spoken_consent(true);
     return;
   }
-  if (strcmp(intent, "status_report") == 0) {
-    play_status_report();
-    return;
-  }
-  if (strcmp(intent, "wifi_setup") == 0) {
-    open_wifi_screen();
-    return;
+  if (choice == QUIPUS_LOCAL_NO) {
+    choice = ask_local_choice(QUIPUS_PROMPT_OFFLINE_REPORT_CHOICE);
+    if (s_power_off_requested) return;
+    if (choice == QUIPUS_LOCAL_YES) {
+      play_status_report();
+      return;
+    }
+    if (choice == QUIPUS_LOCAL_NO) { show_ready(); return; }
   }
   command_not_recognised();
+}
+
+static void capture_wake_command(void) {
+  if (s_state != LOCAL_READY || s_power_off_requested) return;
+  lantern_wake_set_enabled(false);
+  lantern_network_set_realtime(true);
+  s_state = LOCAL_COMMAND_LISTENING;
+  s_recovery = RECOVERY_NONE;
+  s_state_entered_at = xTaskGetTickCount();
+  lantern_network_status_t network;
+  lantern_network_get_status(&network);
+  if (!network.paired) { show_ready(); return; }
+  if (!network.wifi_connected) {
+    capture_offline_wake_menu();
+    return;
+  }
+  lantern_display_show(LANTERN_SCREEN_LISTENING, "LISTENING");
+  // Exact start/status phrases keep online STT until a verified local command
+  // model exists. Offline navigation truthfully uses the trained YES/NO menu.
+  if (quipus_play_prompt(QUIPUS_PROMPT_LISTENING) != ESP_OK) {
+    show_ready(); return;
+  }
+  for (unsigned attempt = 0; attempt < 2 && !s_power_off_requested; ++attempt) {
+    if (attempt) {
+      lantern_display_show(LANTERN_SCREEN_LISTENING, "LISTENING");
+      if (quipus_play_prompt(QUIPUS_PROMPT_COMMAND_RETRY) != ESP_OK) break;
+    }
+    vTaskDelay(pdMS_TO_TICKS(150)); // Room echo settles after speaker drain.
+    bool heard = capture_short_utterance(5000);
+    if (s_power_off_requested) return;
+    if (!heard || lantern_audio_buffered_samples() < LANTERN_MIC_SAMPLE_RATE / 2) continue;
+    s_state = LOCAL_COMMAND_PROCESSING;
+    lantern_display_show(LANTERN_SCREEN_UNDERSTANDING, "ONE MOMENT");
+    char intent[32] = {0};
+    esp_err_t result = lantern_network_run_voice_command(
+        "wake_command", s_battery_level, intent, sizeof(intent));
+    if (s_power_off_requested) return;
+    if (result == LANTERN_REPORT_INTERRUPTED ||
+        (result == ESP_OK && !strcmp(intent, "report_answer"))) {
+      report_dialogue(result); return;
+    }
+    if (result == ESP_OK && !strcmp(intent, "report_stop")) { show_ready(); return; }
+    if (result == ESP_ERR_NOT_FOUND) continue;
+    if (result != ESP_OK) {
+      // Wi-Fi association is not proof of Internet reachability. A failed
+      // command request still leaves the local recording path available.
+      if (local_voice_ready()) capture_offline_wake_menu();
+      else show_error(RECOVERY_COMMAND, "COMMAND SERVICE OFFLINE", "command_error");
+      return;
+    }
+    if (!strcmp(intent, "start_recording")) { start_spoken_consent(true); return; }
+    if (!strcmp(intent, "status_report")) {
+      if (ready_for_cloud_action()) play_status_report();
+      return;
+    }
+    if (!strcmp(intent, "wifi_setup")) { open_wifi_screen(); return; }
+  }
+  if (!s_power_off_requested) command_not_recognised();
 }
 
 static void retry_pending_summary(bool user_requested) {
@@ -947,6 +1339,8 @@ static void retry_pending_summary(bool user_requested) {
     esp_err_t result =
         lantern_network_complete_session(&s_pending_completion, &ready);
     s_last_summary_retry_at = xTaskGetTickCount();
+    s_summary_retry_delay = pdMS_TO_TICKS(
+        quipus_sync_retry_delay_ms(QUIPUS_SYNC_FAILED));
     if (result == ESP_OK) {
       s_summary_retry_pending = false;
       memset(&s_pending_completion, 0, sizeof(s_pending_completion));
@@ -969,13 +1363,17 @@ static void retry_pending_summary(bool user_requested) {
   if (lantern_sd_capture_active())
     stop_local_capture();
   s_summary_retrying = true;
-  s_last_summary_retry_at = xTaskGetTickCount();
+  s_summary_retry_delay = pdMS_TO_TICKS(
+      quipus_sync_retry_delay_ms(QUIPUS_SYNC_FAILED));
   lantern_cloud_session_t pending;
   bool stopped = false, audio_uploaded = false, phone_uploaded = false;
   esp_err_t selected =
       lantern_sd_next_pending(s_config.owner_id, s_config.device_id, &pending,
                               &stopped, &audio_uploaded, &phone_uploaded);
   if (selected != ESP_OK) {
+    ESP_LOGW(TAG, "pending archive selection failed: %s pending=%u",
+             esp_err_to_name(selected), (unsigned)lantern_sd_pending_count());
+    s_last_summary_retry_at = xTaskGetTickCount();
     s_summary_retrying = false;
     return;
   }
@@ -994,6 +1392,7 @@ static void retry_pending_summary(bool user_requested) {
       goto retained;
   }
   if (!audio_uploaded) {
+    announce_upload_started(&pending);
     if (lantern_network_upload_audio(&pending) != ESP_OK)
       goto retained;
     audio_uploaded = true;
@@ -1009,18 +1408,31 @@ static void retry_pending_summary(bool user_requested) {
   }
   bool ready = false;
   if (lantern_network_complete_session(&pending, &ready) == ESP_OK) {
-    lantern_sd_checkpoint(&pending, true, audio_uploaded, phone_uploaded);
-    if (pending.archive_verified &&
-        lantern_sd_recording_matches_session(pending.session_id))
-      lantern_sd_recording_confirm_uploaded();
+    if (lantern_sd_checkpoint(&pending, true, audio_uploaded, phone_uploaded) !=
+        ESP_OK)
+      goto retained;
+    if (pending.archive_verified) {
+      lantern_display_show(LANTERN_SCREEN_COMPLETE,
+          pending.discarded ? "SHORT RECORDING SKIPPED" : "UPLOADED TO DASHBOARD");
+      announce_upload_verified(&pending);
+      if (lantern_sd_recording_matches_session(pending.session_id) &&
+          lantern_sd_recording_confirm_uploaded_at(lantern_network_trusted_time()) == ESP_OK)
+        s_summary_retry_delay = pdMS_TO_TICKS(
+            quipus_sync_retry_delay_ms(QUIPUS_SYNC_NEXT_ARCHIVE));
+    } else {
+      s_summary_retry_delay = pdMS_TO_TICKS(
+          quipus_sync_retry_delay_ms(QUIPUS_SYNC_VERIFICATION_PENDING));
+    }
   }
 retained:
-  s_summary_retry_pending = lantern_sd_pending_count() > 0;
+  s_summary_retry_pending = lantern_sd_upload_pending_count() > 0;
   s_summary_retrying = false;
   show_ready();
+  s_last_summary_retry_at = xTaskGetTickCount();
 }
 
 static void retry_error(void) {
+  lantern_wake_set_enabled(false);
   recovery_action_t action = s_recovery;
   switch (action) {
   case RECOVERY_SESSION_START:
@@ -1055,6 +1467,7 @@ static void retry_error(void) {
     play_status_report();
     break;
   case RECOVERY_SUMMARY:
+    s_state = LOCAL_READY;
     retry_pending_summary(true);
     break;
   case RECOVERY_NONE:
@@ -1064,12 +1477,65 @@ static void retry_error(void) {
   }
 }
 
+static void restore_recovery_error(recovery_action_t recovery,
+                                    const char *detail) {
+  s_state = LOCAL_ERROR;
+  s_recovery = recovery;
+  s_state_entered_at = xTaskGetTickCount();
+  snprintf(s_last_error_detail, sizeof(s_last_error_detail), "%s", detail);
+  lantern_display_show(LANTERN_SCREEN_READY, "READY - SAY COMPUTER");
+  sync_idle_wake_listener();
+}
+
+static void capture_recovery_command(void) {
+  lantern_network_status_t network;
+  lantern_network_get_status(&network);
+  if (s_state != LOCAL_ERROR || s_power_off_requested || !network.paired) return;
+  if (!network.wifi_connected) {
+    (void)quipus_play_prompt(QUIPUS_PROMPT_NETWORK_REQUIRED);
+    sync_idle_wake_listener();
+    return;
+  }
+  if (!LANTERN_HAS_SD_CARD && !s_audio_uploaded &&
+      (s_recovery == RECOVERY_UPLOAD || s_recovery == RECOVERY_STOP)) return;
+  recovery_action_t recovery = s_recovery;
+  char detail[sizeof(s_last_error_detail)];
+  snprintf(detail, sizeof(detail), "%s", s_last_error_detail);
+  lantern_wake_set_enabled(false);
+  s_last_interaction_at = xTaskGetTickCount();
+  s_state = LOCAL_COMMAND_LISTENING;
+  lantern_display_show(LANTERN_SCREEN_LISTENING, "SAY RETRY, STATUS OR CANCEL");
+  if (quipus_play_prompt(QUIPUS_PROMPT_RECOVERY_LISTENING) != ESP_OK) {
+    restore_recovery_error(recovery, detail); return;
+  }
+  vTaskDelay(pdMS_TO_TICKS(150));
+  bool heard = capture_short_utterance(5000);
+  if (s_power_off_requested) return;
+  if (!heard || lantern_audio_buffered_samples() < LANTERN_MIC_SAMPLE_RATE / 2) {
+    restore_recovery_error(recovery, detail);
+    return;
+  }
+  s_state = LOCAL_COMMAND_PROCESSING;
+  lantern_display_show(LANTERN_SCREEN_UNDERSTANDING, "CHECKING RECOVERY COMMAND");
+  char intent[32] = {0};
+  esp_err_t result = lantern_network_run_voice_command(
+      "recovery", s_battery_level, intent, sizeof(intent));
+  if (s_power_off_requested) return;
+  // Unexpected commands cannot approve consent, start capture or clear SD.
+  restore_recovery_error(recovery, detail);
+  if (result != ESP_OK) return;
+  if (strcmp(intent, "retry_recovery") == 0) retry_error();
+  else if (strcmp(intent, "cancel_recovery") == 0) cancel_error();
+  else if (strcmp(intent, "status_report") == 0) play_status_report();
+  else if (strcmp(intent, "wifi_setup") == 0) open_wifi_screen();
+}
+
 static bool ready_for_cloud_action(void) {
   lantern_network_status_t network;
   lantern_network_get_status(&network);
   if (!network.wifi_connected || !network.paired) {
+    (void)quipus_play_prompt(QUIPUS_PROMPT_NETWORK_REQUIRED);
     show_ready();
-    lantern_audio_chime(1);
     return false;
   }
   return true;
@@ -1339,7 +1805,9 @@ static void handle_touch_release(uint16_t x, uint16_t y) {
 }
 #else
 static void open_wifi_screen(void) {
+  lantern_wake_set_enabled(false);
   if (lantern_network_open_setup_portal() == ESP_OK) {
+    s_wifi_screen_open = true;
     lantern_network_status_t network;
     lantern_network_get_status(&network);
     lantern_display_show(LANTERN_SCREEN_SETUP, network.setup_ssid);
@@ -1350,6 +1818,12 @@ static void open_wifi_screen(void) {
 #endif
 
 static void handle_short_press(void) {
+  if (!s_boot_complete || s_power_off_requested) return;
+  if (s_wifi_screen_open) {
+    s_wifi_screen_open = false;
+    show_ready();
+    return;
+  }
   switch (s_state) {
   case LOCAL_READY:
     if (!LANTERN_HAS_SD_CARD && !ready_for_cloud_action())
@@ -1367,8 +1841,7 @@ static void handle_short_press(void) {
     retry_error();
     break;
   case LOCAL_AWAITING_CONSENT:
-    if (s_cloud_session.offline_local)
-      accept_recording_consent();
+    // Only capture_spoken_consent can approve. Presses never imply consent.
     break;
   case LOCAL_COMMAND_LISTENING:
   case LOCAL_COMMAND_PROCESSING:
@@ -1393,13 +1866,16 @@ static void cancel_error(void) {
   }
   clear_active_session();
   s_summary_retry_pending =
-      s_summary_retry_pending || lantern_sd_pending_count() > 0;
+      s_summary_retry_pending || lantern_sd_upload_pending_count() > 0;
   if (!s_summary_retry_pending)
     memset(&s_pending_completion, 0, sizeof(s_pending_completion));
   show_ready();
 }
 
 static void handle_long_press(void) {
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  return; // A 2 s middle hold is handled independently by the power monitor.
+#endif
   switch (s_state) {
   case LOCAL_READY:
     if (ready_for_cloud_action())
@@ -1416,6 +1892,7 @@ static void handle_long_press(void) {
     show_ready();
     break;
   case LOCAL_AWAITING_CONSENT:
+    break;
   case LOCAL_COMMAND_LISTENING:
   case LOCAL_COMMAND_PROCESSING:
   case LOCAL_SAVING:
@@ -1453,6 +1930,9 @@ static void button_task(void *argument) {
   // Opening the CH340 serial port briefly drives BOOT. Ignore that transition.
   vTaskDelay(pdMS_TO_TICKS(800));
   bool was_pressed = false;
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  bool primary_armed = gpio_get_level(LANTERN_BUTTON_MAIN_GPIO) != 0;
+#endif
   bool reset_started = false;
   bool reset_consumed = false;
 #if LANTERN_HAS_TOUCHSCREEN
@@ -1462,7 +1942,7 @@ static void button_task(void *argument) {
 #endif
   TickType_t pressed_at = 0;
   TickType_t reset_at = 0;
-#if LANTERN_HAS_POWER_BUTTON
+#if LANTERN_HAS_POWER_BUTTON && !CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
   bool power_was_pressed = false;
   TickType_t power_pressed_at = 0;
 #endif
@@ -1473,12 +1953,17 @@ static void button_task(void *argument) {
       vTaskDelay(pdMS_TO_TICKS(20));
       continue;
     }
-    if (s_state == LOCAL_READY && lantern_wake_take_detection()) {
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+    if (s_power_off_requested) power_off_safely();
+#endif
+    if ((s_state == LOCAL_READY || s_state == LOCAL_ERROR) &&
+        lantern_wake_take_detection()) {
       ESP_LOGI(TAG, "WakeNet activation accepted; opening command window");
       s_display_asleep = false;
       s_last_interaction_at = xTaskGetTickCount();
       lantern_display_set_awake(true);
-      capture_wake_command();
+      if (s_state == LOCAL_ERROR) capture_recovery_command();
+      else capture_wake_command();
     }
     bool pressed = false;
     bool up_pressed = false;
@@ -1493,10 +1978,17 @@ static void button_task(void *argument) {
     uint16_t touch_x = 0, touch_y = 0;
     pressed = lantern_board_touch_read(&touch_x, &touch_y);
 #endif
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+    if (!primary_armed) {
+      if (!pressed) primary_armed = true;
+      pressed = false;
+    }
+#endif
     if (LANTERN_RESET_USES_MAIN_AND_UP && up_pressed && pressed)
       reset_consumed = true;
     if (pressed && !was_pressed) {
       pressed_at = xTaskGetTickCount();
+      s_last_interaction_at = pressed_at;
 #if LANTERN_HAS_TOUCHSCREEN
       touch_down_x = touch_x;
       touch_down_y = touch_y;
@@ -1564,8 +2056,17 @@ static void button_task(void *argument) {
       if (!reset_started) {
         reset_started = true;
         reset_at = xTaskGetTickCount();
-      } else if ((xTaskGetTickCount() - reset_at) * portTICK_PERIOD_MS >=
+      } else if (!reset_consumed && (xTaskGetTickCount() - reset_at) * portTICK_PERIOD_MS >=
                  3000) {
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+        // A discoverable, non-destructive recovery path. Pairing and SD keys
+        // survive: holding volume buttons can never factory-reset this board.
+        reset_consumed = true;
+        if (s_state == LOCAL_READY || s_state == LOCAL_ERROR) {
+          s_state = LOCAL_READY;
+          open_wifi_screen();
+        }
+#else
         lantern_display_show(LANTERN_SCREEN_SETUP, "CLEARING SETTINGS");
         if (lantern_sd_has_private_material()) {
           lantern_display_show(LANTERN_SCREEN_ERROR,
@@ -1584,14 +2085,15 @@ static void button_task(void *argument) {
         }
         vTaskDelay(pdMS_TO_TICKS(500));
         esp_restart();
+#endif
       }
     } else {
       reset_started = false;
     }
-    if (!pressed && !up_pressed)
+    if (!pressed && !up_pressed && !down_pressed)
       reset_consumed = false;
 
-#if LANTERN_HAS_POWER_BUTTON
+#if LANTERN_HAS_POWER_BUTTON && !CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
     bool power_pressed = gpio_get_level(LANTERN_POWER_BUTTON_GPIO) == 0;
     if (power_pressed && !power_was_pressed)
       power_pressed_at = xTaskGetTickCount();
@@ -1629,7 +2131,7 @@ static void button_task(void *argument) {
         // The manifest retains the failed recording for recovery. A new session
         // must get a fresh BEGIN event rather than replaying its old consent.
         clear_active_session();
-        s_summary_retry_pending |= lantern_sd_pending_count() > 0;
+        s_summary_retry_pending |= lantern_sd_upload_pending_count() > 0;
       } else {
         show_recording_progress();
       }
@@ -1644,38 +2146,52 @@ static void button_task(void *argument) {
   }
 }
 
-static void report_interrupt_task(void *argument) {
+static void input_monitor_task(void *argument) {
   (void)argument;
   unsigned pressed_samples = 0;
 #if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
-  quipus_button_tap_t volume_down = {0}, volume_up = {0};
+  quipus_volume_button_t volume_down = {0}, volume_up = {0};
+  quipus_power_hold_t power_hold = {.pressed = true, .suppressed = true};
   // button_task ignores the first 800 ms after GPIO setup. Do the same here
   // so a held power-on/boot button cannot become a volume change.
   while (!s_controls_ready) vTaskDelay(pdMS_TO_TICKS(30));
   vTaskDelay(pdMS_TO_TICKS(800));
-  volume_down.suppressed = volume_up.suppressed = true;
-  volume_down.pressed = gpio_get_level(LANTERN_POWER_BUTTON_GPIO) == 0;
-  volume_up.pressed = gpio_get_level(LANTERN_BUTTON_UP_GPIO) == 0;
+  volume_down.tap.suppressed = volume_up.tap.suppressed = true;
+  volume_down.tap.pressed = gpio_get_level(LANTERN_BUTTON_DOWN_GPIO) == 0;
+  volume_up.tap.pressed = gpio_get_level(LANTERN_BUTTON_UP_GPIO) == 0;
 #endif
   while (true) {
+    s_input_polled_at = xTaskGetTickCount();
 #if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
     // This task remains responsive while a cloud report owns s_control_mutex.
-    // PWR/BOOT taps adjust playback; PLUS and multi-button chords take priority.
+    // Outer buttons always control volume; the middle is session/power only.
     uint32_t now_ms = (uint32_t)(esp_timer_get_time() / 1000);
     bool main = gpio_get_level(LANTERN_BUTTON_MAIN_GPIO) == 0;
-    bool power = gpio_get_level(LANTERN_POWER_BUTTON_GPIO) == 0;
+    bool down = gpio_get_level(LANTERN_BUTTON_DOWN_GPIO) == 0;
     bool boot = gpio_get_level(LANTERN_BUTTON_UP_GPIO) == 0;
-    bool quieter = quipus_button_tap_update(&volume_down, power,
-                                           main || boot, now_ms);
-    bool louder = quipus_button_tap_update(&volume_up, boot,
-                                          main || power, now_ms);
+    if (quipus_power_hold_update(&power_hold, main, down || boot, now_ms)) {
+      s_power_off_requested = true;
+      lantern_audio_pcm_cancel();
+      lantern_network_interrupt_report();
+      ESP_LOGI(TAG, "middle hold requested safe shutdown");
+    }
+    bool quieter = quipus_volume_button_update(&volume_down, down,
+                                               main || boot, now_ms);
+    bool louder = quipus_volume_button_update(&volume_up, boot,
+                                              main || down, now_ms);
     if (quieter || louder) {
       unsigned volume = lantern_audio_adjust_volume(
           quieter ? -QUIPUS_VOLUME_STEP : QUIPUS_VOLUME_STEP);
       lantern_display_set_volume(volume);
+      s_last_interaction_at = xTaskGetTickCount();
       ESP_LOGI(TAG, "speaker volume %u%%", volume);
     }
 #endif
+    if (lantern_network_report_playing() && lantern_audio_take_speech_interrupt()) {
+      lantern_network_interrupt_report();
+      s_last_interaction_at = xTaskGetTickCount();
+      ESP_LOGI(TAG, "near-end speech interrupted report");
+    }
     if (s_controls_ready && lantern_network_report_playing() &&
         lantern_audio_is_speaker_active()) {
       bool pressed = false;
@@ -1759,6 +2275,12 @@ static void telemetry_task(void *argument) {
       lantern_network_get_status(&network);
       if (!network.paired)
         s_pair_announcement_shown = false;
+      if (s_state == LOCAL_RECORDING && !network.wifi_connected &&
+          s_sd_recording_active && !s_recording_connection_notice) {
+        s_recording_connection_notice = true;
+        // The persistent status bar changes immediately. Spoken saved/retry
+        // guidance follows Stop, avoiding Quipus speaking over client audio.
+      }
       if (s_state == LOCAL_READY) {
 #if LANTERN_HAS_TOUCHSCREEN
         bool announced = false;
@@ -1769,16 +2291,19 @@ static void telemetry_task(void *argument) {
 #if LANTERN_HAS_TOUCHSCREEN
           announced = true;
 #endif
-          // Hold the control state while the one-time boot greeting plays.
-          // Otherwise a wake or tap could start overlapping cloud requests.
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+          // READY must not hide a blocking cloud greeting. A local chime is
+          // enough; the next tap or wake can immediately open a consent flow.
+          lantern_audio_chime(1);
+#else
           s_state = LOCAL_COMMAND_PROCESSING;
           lantern_wake_set_enabled(false);
           lantern_display_show(LANTERN_SCREEN_READY, "QUIPUS READY");
-          if (lantern_network_play_briefing("boot", s_battery_level) !=
-              ESP_OK) {
+          if (lantern_network_play_briefing("boot", s_battery_level) != ESP_OK) {
             lantern_audio_chime(2);
             vTaskDelay(pdMS_TO_TICKS(700));
           }
+#endif
         }
 #if LANTERN_HAS_TOUCHSCREEN
         // A connectivity event only changes the persistent status bar. Do not
@@ -1811,6 +2336,24 @@ static void telemetry_task(void *argument) {
                (unsigned)heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
                (unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT), s_state,
                lantern_wake_is_enabled(), s_wake_available);
+      lantern_wake_diagnostics_t wake_health;
+      lantern_wake_get_diagnostics(&wake_health);
+      ESP_LOGI(TAG, "wake health frames=%u detections=%u consumed=%u",
+          (unsigned)wake_health.frames, (unsigned)wake_health.activations,
+          (unsigned)wake_health.consumed);
+      static size_t protected_count;
+      if (seconds % 60 == 5) protected_count = lantern_sd_pending_count();
+      ESP_LOGI(TAG,
+               "archive health protected=%u queued=%u ready=%d secure=%d sd_error=%s recovery=%d",
+               (unsigned)protected_count,
+               (unsigned)lantern_sd_upload_pending_count(), lantern_sd_recording_ready(),
+               lantern_sd_secure_ready(), esp_err_to_name(lantern_sd_recording_error()),
+               s_recovery);
+      ESP_LOGI(TAG, "speaker health volume=%u active=%u controls_ready=%u input_age_ms=%lu input_stack=%u pcm_stack=%u reset_reason=%d",
+          lantern_audio_volume(), lantern_audio_is_speaker_active(), s_controls_ready,
+          (unsigned long)((xTaskGetTickCount() - s_input_polled_at) * portTICK_PERIOD_MS),
+          s_input_task ? (unsigned)uxTaskGetStackHighWaterMark(s_input_task) : 0U,
+          lantern_audio_output_stack_free(), (int)esp_reset_reason());
       ESP_LOGI(TAG,
                "stack minimum free buttons=%u health=%u bytes internal_max=%u",
                (unsigned)uxTaskGetStackHighWaterMark(s_button_task),
@@ -1843,12 +2386,50 @@ static void telemetry_task(void *argument) {
       show_ready();
       xSemaphoreGive(s_control_mutex);
     }
+    if (LANTERN_HAS_SD_CARD && seconds % 60 == 0 && s_state == LOCAL_READY &&
+        !s_summary_retrying && !s_power_off_requested &&
+        xSemaphoreTake(s_control_mutex, 0) == pdTRUE) {
+      if (s_state == LOCAL_READY && quipus_phone_audio_idle()) {
+        int64_t trusted_now = lantern_network_trusted_time();
+        size_t removed = 0;
+        esp_err_t cleanup = lantern_sd_retention_cleanup(
+            trusted_now, trusted_now > 0, 4, &removed);
+        if (cleanup != ESP_OK) ESP_LOGW(TAG, "cache cleanup deferred: %s", esp_err_to_name(cleanup));
+        if (removed) ESP_LOGI(TAG, "expired verified local caches removed=%u", (unsigned)removed);
+      }
+      xSemaphoreGive(s_control_mutex);
+    }
     if (LANTERN_HAS_SD_CARD)
-      s_summary_retry_pending = lantern_sd_pending_count() > 0;
-    if (s_summary_retry_pending && !s_summary_retrying &&
-        s_state == LOCAL_READY &&
-        (xTaskGetTickCount() - s_last_summary_retry_at) * portTICK_PERIOD_MS >=
-            30000) {
+      s_summary_retry_pending = lantern_sd_upload_pending_count() > 0;
+    // Only recover network-stage errors with a finalized retained archive.
+    // Incomplete/corrupt capture stays visible and is never silently approved.
+    if (s_state == LOCAL_ERROR && LANTERN_HAS_SD_CARD &&
+        (s_recovery == RECOVERY_UPLOAD || s_recovery == RECOVERY_STOP ||
+         s_recovery == RECOVERY_SUMMARY) &&
+        s_summary_retry_pending && !s_summary_retrying &&
+        !s_power_off_requested && lantern_sd_recording_ready() &&
+        display_network.paired && display_network.wifi_connected &&
+        (xTaskGetTickCount() - s_state_entered_at) >= pdMS_TO_TICKS(30000) &&
+        (xTaskGetTickCount() - s_last_summary_retry_at) >= pdMS_TO_TICKS(30000) &&
+        xSemaphoreTake(s_control_mutex, 0) == pdTRUE) {
+      if (s_state == LOCAL_ERROR && quipus_phone_audio_idle() &&
+          lantern_sd_recording_ready()) {
+        ESP_LOGI(TAG, "retrying paused upload from retained SD archive");
+        s_state = LOCAL_READY;
+        retry_pending_summary(false);
+      }
+      xSemaphoreGive(s_control_mutex);
+    }
+    quipus_sync_input_t sync_input = {
+        .pending = s_summary_retry_pending,
+        .busy = s_summary_retrying,
+        .ready = s_boot_complete && s_state == LOCAL_READY,
+        .shutdown = s_power_off_requested,
+        .user_idle_ticks = (uint32_t)(xTaskGetTickCount() - s_last_interaction_at),
+        .retry_idle_ticks = (uint32_t)(xTaskGetTickCount() - s_last_summary_retry_at),
+        .retry_delay_ticks = (uint32_t)s_summary_retry_delay,
+    };
+    if (quipus_sync_due(&sync_input, pdMS_TO_TICKS(30000))) {
       lantern_network_status_t network;
       lantern_network_get_status(&network);
       if (network.wifi_connected && network.paired &&
@@ -1858,6 +2439,98 @@ static void telemetry_task(void *argument) {
       }
     }
     vTaskDelay(pdMS_TO_TICKS(1000));
+  }
+}
+
+// Audio initialization can fail after allocating I2S/codec resources. Never
+// retry it in-process or reboot automatically: retain setup and saved archives
+// until the user explicitly restarts or powers off. Normal control tasks have
+// not been created, so no path here can authorize/start a recording.
+static void audio_startup_fault(esp_err_t error) {
+  (void)error; // Logging can be disabled in production or host builds.
+  s_boot_complete = false;
+  s_controls_ready = false;
+  s_wake_available = false;
+  s_state = LOCAL_ERROR;
+  s_recovery = RECOVERY_NONE;
+  ESP_LOGE(TAG, "audio startup unavailable: %s; explicit restart required", esp_err_to_name(error));
+  bool inputs_ready = false;
+#if LANTERN_HAS_PHYSICAL_BUTTONS
+#if LANTERN_HAS_POWER_BUTTON
+  ESP_ERROR_CHECK_WITHOUT_ABORT(rtc_gpio_deinit(LANTERN_POWER_BUTTON_GPIO));
+#endif
+  gpio_config_t button = {
+      .pin_bit_mask = 1ULL << LANTERN_BUTTON_MAIN_GPIO,
+      .mode = GPIO_MODE_INPUT,
+      .pull_up_en = GPIO_PULLUP_ENABLE,
+  };
+  inputs_ready = gpio_config(&button) == ESP_OK;
+#elif LANTERN_HAS_TOUCHSCREEN
+  inputs_ready = lantern_board_touch_init() == ESP_OK;
+#endif
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  const char *instructions = "Tap middle: restart. Hold middle: power off. Saved recordings kept.";
+#elif LANTERN_HAS_PHYSICAL_BUTTONS
+  const char *instructions = "Tap button to restart. Saved recordings kept.";
+#else
+  const char *instructions = "Tap screen to restart. Saved recordings kept.";
+#endif
+  if (!inputs_ready) instructions = "Use RESET to restart. Saved recordings kept.";
+  lantern_display_show_detail("MICROPHONE OFFLINE", instructions, NULL);
+  esp_err_t network = lantern_network_start(&s_config, NULL);
+  if (network == ESP_OK) {
+    // Setup remains usable without claiming voice readiness or changing the
+    // fault screen through the normal network/UI callback.
+    ESP_ERROR_CHECK_WITHOUT_ABORT(lantern_network_open_setup_portal());
+  } else {
+    ESP_LOGW(TAG, "setup network unavailable in audio fault: %s", esp_err_to_name(network));
+  }
+  quipus_button_tap_t restart_tap = {0};
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+  quipus_power_hold_t power_hold = {0};
+#endif
+  bool armed = false; // A power-on hold must be released before any action.
+  TickType_t status_at = xTaskGetTickCount();
+  TickType_t diagnostic_at = status_at;
+  for (;;) {
+    bool pressed = false;
+#if LANTERN_HAS_PHYSICAL_BUTTONS
+    pressed = inputs_ready && gpio_get_level(LANTERN_BUTTON_MAIN_GPIO) == 0;
+#elif LANTERN_HAS_TOUCHSCREEN
+    uint16_t x = 0, y = 0;
+    pressed = inputs_ready && lantern_board_touch_read(&x, &y);
+#endif
+    if (!pressed) armed = true;
+    uint32_t now = (uint32_t)(esp_timer_get_time() / 1000);
+    if (armed) {
+#if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
+      if (quipus_power_hold_update(&power_hold, pressed, false, now)) {
+        if (lantern_sd_can_power_down()) {
+          s_power_off_requested = true;
+          power_off_safely();
+        } else {
+          lantern_display_show_detail("MICROPHONE OFFLINE", "Still saving. Release, then try again.", NULL);
+        }
+      }
+#endif
+      if (quipus_button_tap_update(&restart_tap, pressed, false, now)) {
+        if (lantern_sd_can_power_down()) esp_restart();
+        else lantern_display_show_detail("MICROPHONE OFFLINE", "Still saving. Tap again to restart.", NULL);
+      }
+    }
+    if (network == ESP_OK && xTaskGetTickCount() - status_at >= pdMS_TO_TICKS(1000)) {
+      lantern_network_status_t current;
+      lantern_network_get_status(&current);
+      update_battery_level();
+      lantern_display_set_status(s_battery_level, battery_power_state(),
+          current.connectivity, current.wifi_rssi, current.paired);
+      status_at = xTaskGetTickCount();
+    }
+    if (xTaskGetTickCount() - diagnostic_at >= pdMS_TO_TICKS(10000)) {
+      ESP_LOGI(TAG, "audio fault idle capture_disabled=1 sd_safe=%d", lantern_sd_can_power_down());
+      diagnostic_at = xTaskGetTickCount();
+    }
+    vTaskDelay(pdMS_TO_TICKS(20));
   }
 }
 
@@ -1871,6 +2544,8 @@ void app_main(void) {
   update_battery_level();
   ESP_ERROR_CHECK(lantern_storage_init());
   ESP_ERROR_CHECK(lantern_storage_load(&s_config));
+  ESP_ERROR_CHECK(lantern_display_init());
+  lantern_display_show(LANTERN_SCREEN_BOOTING, "CHECKING SD CARD");
   lantern_sd_status_t sd_status;
   esp_err_t sd_result = lantern_sd_init(&sd_status);
   if (sd_result != ESP_OK && sd_result != ESP_ERR_NOT_SUPPORTED) {
@@ -1886,13 +2561,32 @@ void app_main(void) {
     lantern_sd_configure_identity(archive_owner, archive_device, archive_key);
   }
   memset(archive_key, 0, sizeof(archive_key));
-  s_summary_retry_pending = lantern_sd_pending_count() > 0;
-  ESP_ERROR_CHECK(lantern_display_init());
-  ESP_ERROR_CHECK(lantern_audio_init());
+  s_summary_retry_pending = lantern_sd_upload_pending_count() > 0;
+  lantern_display_show(LANTERN_SCREEN_BOOTING, "STARTING AUDIO");
+  esp_err_t audio_result = lantern_audio_init();
+  if (audio_result != ESP_OK) {
+    audio_startup_fault(audio_result);
+    return;
+  }
 #if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
   lantern_display_set_volume(lantern_audio_volume());
+  // Read-only board routing/clock evidence before any interaction can begin.
+  ESP_ERROR_CHECK_WITHOUT_ABORT(lantern_board_speaker_startup_diagnostics());
+  // A short local tone tests output before WakeNet is enabled or any session
+  // can start. It does not record, persist or upload microphone audio.
+  lantern_audio_chime(1);
 #endif
   lantern_audio_set_archive_callback(lantern_sd_recording_write);
+  lantern_display_show(LANTERN_SCREEN_BOOTING, "STARTING VOICE RECOGNITION");
+  esp_err_t local_voice = quipus_local_recognizer_init();
+  if (local_voice == ESP_OK) {
+    s_local_voice_samples = heap_caps_malloc(
+        QUIPUS_LOCAL_MAX_SAMPLES * sizeof(int16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (!s_local_voice_samples)
+      ESP_LOGW(TAG, "Local voice scratch unavailable; online recognition retained");
+  } else {
+    ESP_LOGW(TAG, "Local YES/NO unavailable: %s; online recognition retained", esp_err_to_name(local_voice));
+  }
   if (lantern_wake_init() == ESP_OK) {
     s_wake_available = true;
     lantern_audio_set_monitor_callback(lantern_wake_feed);
@@ -1912,8 +2606,8 @@ void app_main(void) {
                               &s_button_task) == pdPASS
                       ? ESP_OK
                       : ESP_ERR_NO_MEM);
-  ESP_ERROR_CHECK(xTaskCreate(report_interrupt_task, "quipus_interrupt", 3072,
-                              NULL, 5, NULL) == pdPASS
+  ESP_ERROR_CHECK(xTaskCreate(input_monitor_task, "quipus_inputs", 3072,
+                              NULL, 5, &s_input_task) == pdPASS
                       ? ESP_OK
                       : ESP_ERR_NO_MEM);
   ESP_ERROR_CHECK(xTaskCreate(telemetry_task, "lantern_health",
@@ -1921,10 +2615,12 @@ void app_main(void) {
                               NULL) == pdPASS
                       ? ESP_OK
                       : ESP_ERR_NO_MEM);
+  lantern_display_show(LANTERN_SCREEN_BOOTING, "CONNECTING");
   ESP_ERROR_CHECK(lantern_network_start(&s_config, network_changed));
+  s_boot_complete = true;
   show_ready();
   ESP_LOGI(TAG,
-           "bring-up complete; wake phrase=%s, short press=start/stop, long "
-           "press=status/cancel",
-           s_wake_available ? LANTERN_WAKE_PHRASE : "disabled");
+           "bring-up complete; wake phrase=%s, primary=%s, tap=start/stop, "
+           "hold=power on Waveshare",
+           s_wake_available ? LANTERN_WAKE_PHRASE : "disabled", LANTERN_PRIMARY_BUTTON_LABEL);
 }

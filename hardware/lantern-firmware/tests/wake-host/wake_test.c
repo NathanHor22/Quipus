@@ -16,6 +16,7 @@ static const char *scenario;
 static srmodel_list_t models;
 static model_iface_data_t model;
 static unsigned detect_calls, destroy_calls, deinit_calls;
+static bool cancel_during_detect;
 static int16_t last_frame[4];
 static const int16_t trigger[4] = {1001, 1002, 1003, 1004};
 static const int16_t ordinary[4] = {11, 12, 13, 14};
@@ -75,6 +76,11 @@ static wakenet_state_t detect(model_iface_data_t *input, int16_t *samples) {
   CHECK(input == &model);
   memcpy(last_frame, samples, sizeof(last_frame));
   detect_calls++;
+  if (cancel_during_detect) {
+    cancel_during_detect = false;
+    lantern_wake_set_enabled(false);
+    lantern_wake_set_enabled(true);
+  }
   return !memcmp(samples, trigger, sizeof(trigger))
     ? WAKENET_DETECTED : WAKENET_NO_DETECT;
 }
@@ -177,6 +183,18 @@ static void normal_operation(void) {
     CHECK(lantern_wake_is_enabled());
   }
   CHECK(detect_calls == 54);
+  // Cancellation while the model runs must discard that generation's result.
+  cancel_during_detect = true;
+  lantern_wake_feed(trigger, 4);
+  CHECK(!lantern_wake_take_detection());
+  CHECK(lantern_wake_is_enabled());
+  lantern_wake_feed(trigger, 4);
+  CHECK(lantern_wake_take_detection());
+  lantern_wake_diagnostics_t diagnostics;
+  lantern_wake_get_diagnostics(&diagnostics);
+  CHECK(diagnostics.frames == detect_calls);
+  CHECK(diagnostics.activations == 53);
+  CHECK(diagnostics.consumed == 52);
 }
 
 int main(int argc, char **argv) {

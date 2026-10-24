@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { wrapArchiveKey, unwrapArchiveKey } from "../lib/device-archive-key";
-import { offlineSessionSchema, prepareOfflineSession } from "../lib/offline-session";
+import { offlineImportDiagnostic, offlineSessionSchema, prepareOfflineSession } from "../lib/offline-session";
 const owner = "11111111-1111-4111-8111-111111111111";
 const device = "22222222-2222-4222-8222-222222222222";
 const secret = "archive-wrapping-test-secret-32-characters";
@@ -48,4 +48,18 @@ test("future and expired recordings cannot spoof current meeting dates", () => {
     consentAccepted: true,
   });
   assert.throws(() => prepareOfflineSession(input, Date.parse("2026-10-18T10:00:00Z")));
+});
+
+test("offline import diagnostics identify known conflicts without exposing database row details", () => {
+  for (const message of ["Conflicting offline import", "Conflicting offline owner", "Session identity is already in use", "Event already used"]) {
+    assert.deepEqual(offlineImportDiagnostic({ code: "P0001", message }), { code: "P0001", message });
+  }
+  assert.deepEqual(offlineImportDiagnostic({
+    code: "23505", message: 'duplicate key value violates unique constraint "lantern_one_open_session_per_device"',
+  }), { code: "23505", message: "Unique constraint conflict: lantern_one_open_session_per_device" });
+  const diagnostic = offlineImportDiagnostic({ code: "P0001", message: `Private row ${owner} contains a private token` });
+  assert.doesNotMatch(JSON.stringify(diagnostic), /11111111|private token/u);
+  assert.equal(diagnostic.code, "P0001");
+  assert.equal(offlineImportDiagnostic({ code: "Invalid private token" }).code, "UNKNOWN");
+  assert.match(offlineImportDiagnostic({ code: "PGRST202", message: "Private schema detail" }).message, /function is unavailable/u);
 });

@@ -27,13 +27,13 @@
 #define LANTERN_POWER_HOLD_GPIO GPIO_NUM_2
 #define LANTERN_CHARGING_GPIO GPIO_NUM_3
 
-// PLUS is the primary control. BOOT + PLUS resets saved settings after 3 s.
-// PWR remains a separate idle-only power control.
-#define LANTERN_BUTTON_MAIN_GPIO GPIO_NUM_4
+// Middle PWR is the session control and safe shutdown button.
+// Outer PLUS/BOOT remain volume down/up; their3s chord opens Wi-Fi setup.
+#define LANTERN_BUTTON_MAIN_GPIO GPIO_NUM_5
 #define LANTERN_BUTTON_UP_GPIO GPIO_NUM_0
-#define LANTERN_BUTTON_DOWN_GPIO GPIO_NUM_NC
-#define LANTERN_RESET_USES_MAIN_AND_UP 1
-#define LANTERN_PRIMARY_BUTTON_LABEL "PLUS"
+#define LANTERN_BUTTON_DOWN_GPIO GPIO_NUM_4
+#define LANTERN_RESET_USES_MAIN_AND_UP 0
+#define LANTERN_PRIMARY_BUTTON_LABEL "MIDDLE"
 
 #define LANTERN_DISPLAY_DRIVER_ST7789 1
 #define LANTERN_DISPLAY_DRIVER_ILI9341 0

@@ -12,12 +12,15 @@ import { conversationClock } from "./conversation-clock";
 import { env } from "./env";
 import { transcriptionResultSchema, type TranscriptionResult } from "./meeting-schema";
 import { persistFailedHardwareMeeting, persistProcessedMeeting } from "./persistence";
-import { transcribeWithOpenAI } from "./providers/openai-transcription";
+import { transcribeWithOpenAI, OpenAITranscriptionProviderError } from "./providers/openai-transcription";
+import { inspectShortDigitalSilence, canDiscardShortSilence, type DigitalSilenceEvidence } from "./short-silence";
+import { purgeDiscardedRecordingAudio } from "./recording-retention";
 import { extractConversationInsights } from "./providers/meeting-extraction";
 import { setProcessingState } from "./redis";
 import type { Meeting } from "./types";
 
 class AudioExpiredError extends Error {}
+class SilenceDispositionDeferredError extends Error {}
 
 /** A job owns one archived session, never the current state of its device. */
 export async function processNextRecording(
@@ -126,6 +129,8 @@ export async function processNextRecording(
     }
     temporary = await recordingTempDirectory();
     let recognitionSource = temporary.path("onboard.wav");
+    const silenceSources: (DigitalSilenceEvidence | null)[] = [];
+    let combinedSilence = true;
     if (!manifest.verified_at || !session.final_transcription) {
       await stage("audio_processing");
       await downloadVerifiedRecording({
@@ -147,6 +152,8 @@ export async function processNextRecording(
         .maybeSingle();
       if (verifiedError || !verified)
         throw new Error("Could not mark the recording integrity check complete.");
+      if (!session.final_transcription)
+        silenceSources.push(await inspectShortDigitalSilence(recognitionSource, "onboard", String(manifest.sha256)));
     }
     if (
       Array.isArray(session.expected_audio_sources) &&
@@ -182,6 +189,7 @@ export async function processNextRecording(
         if (markError || !marked)
           throw new Error("Phone recording verification could not be saved.");
         if (!session.final_transcription) {
+          silenceSources.push(await inspectShortDigitalSilence(phonePath, "phone", String(source.sha256)));
           const combinedPath = temporary.path("combined.wav");
           await consolidateRecordingFiles(
             recognitionSource,
@@ -189,6 +197,9 @@ export async function processNextRecording(
             combinedPath,
             source.timing_manifest,
           );
+          // Timing offsets can make two short tracks a longer recording. The
+          // whole combined duration must also satisfy the strict five-second limit.
+          combinedSilence = Boolean(await inspectShortDigitalSilence(combinedPath, "onboard", String(manifest.sha256)));
           if (!recording.consolidated_storage_path) {
             const playbackPath = await publishConsolidatedRecording({
               client,
@@ -263,6 +274,28 @@ export async function processNextRecording(
           },
         );
       } catch (cause) {
+        const noSpeechResponses = cause instanceof OpenAITranscriptionProviderError && cause.providerCode === "no_speech"
+          ? cause.noSpeechResponses : 0;
+        if (!existing && canDiscardShortSilence({ sources: silenceSources,
+          expectedSources: session.expected_audio_sources || [], successfulNoSpeechResponses: noSpeechResponses,
+          priorSpeech: !combinedSilence || Boolean(session.final_transcription || session.transcript_segments?.length),
+        })) {
+          // One transaction binds the proof to this lease, owner, device and all
+          // verified original source hashes. Neither duration nor empty STT alone
+          // can authorize cleanup. No meeting, follow-up or transcript is made.
+          const { data: discarded, error: discardError } = await client.rpc("discard_quipus_short_silence", {
+            p_session_id: session.id, p_user_id: job.user_id, p_device_id: session.device_id,
+            p_lease_token: job.lease_token, p_evidence: silenceSources, p_no_speech_responses: noSpeechResponses,
+          });
+          if (discardError || discarded !== true) throw new SilenceDispositionDeferredError("Silence cleanup is waiting for its database migration or verification; the original recording is preserved.");
+          // The durable decision/job completion already committed. An unavailable
+          // storage service must only delay cleanup, never turn it into a meeting.
+          await Promise.allSettled([
+            setProcessingState(job.user_id, recording.id, { stage: "discarded_silence", progress: 100, sessionId: session.id }),
+            purgeDiscardedRecordingAudio(client, recording.id, job.user_id),
+          ]);
+          return true;
+        }
         if (job.attempts < 3 || !session.transcript_segments?.length) throw cause;
         transcription = transcriptionResultSchema.parse({
           text: session.transcript_segments
@@ -296,8 +329,8 @@ export async function processNextRecording(
     const meeting: Meeting = {
       id: reference,
       title: contacts[0]
-        ? `${contacts[0].name}${contacts[0].company ? ` · ${contacts[0].company}` : ""}`
-        : `Conversation · ${clock.localDate} ${clock.localTime.slice(0, 5)}`,
+        ? `${contacts[0].name}${contacts[0].company ? ` Ãƒâ€šÃ‚Â· ${contacts[0].company}` : ""}`
+        : `Conversation Ãƒâ€šÃ‚Â· ${clock.localDate} ${clock.localTime.slice(0, 5)}`,
       startAt: clock.startedAt,
       endAt,
       status: "ready",
@@ -353,13 +386,22 @@ export async function processNextRecording(
       });
       return true;
     }
+    if (cause instanceof SilenceDispositionDeferredError) {
+      // Deploying code before migration021 must not lose an audio file or create
+      // a permanent failed-meeting placeholder. Reset only this job's retry
+      // budget and retry slowly; no discard was authorized by the failed RPC.
+      await stage("queued", { processing_error: message });
+      await updateJob({ state: "queued", attempts: 0, lease_until: null, last_error: message,
+        available_at: new Date(Date.now() + 5 * 60_000).toISOString() });
+      return true;
+    }
     const failed = cause instanceof AudioExpiredError || job.attempts >= 3;
     await stage(failed ? "failed" : "queued", { processing_error: message });
     if (failed && recording?.storage_path && !(cause instanceof AudioExpiredError)) {
       const saved = await persistFailedHardwareMeeting(client, {
         ownerUserId: job.user_id,
         clientReference: reference,
-        title: `Conversation · ${clock.localDate} ${clock.localTime.slice(0, 5)}`,
+        title: `Conversation Ãƒâ€šÃ‚Â· ${clock.localDate} ${clock.localTime.slice(0, 5)}`,
         startAt: clock.startedAt,
         endAt,
         recordingId: recording.id,

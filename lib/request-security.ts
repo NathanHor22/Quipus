@@ -20,5 +20,6 @@ export function browserMutationError(request: Request): { error: string; status:
 /** Only explicit machine-authenticated routes bypass browser origin checks. */
 export function isMachineAuthenticatedPath(path: string): boolean {
   return path.startsWith("/api/device/v1/") ||
-    path === "/api/internal/process-recordings" || path === "/api/internal/recording-retention";
+    path === "/api/internal/process-recordings" || path === "/api/internal/recording-retention" ||
+    /^\/api\/internal\/voice-build\/[a-z_]{1,48}$/u.test(path);
 }
