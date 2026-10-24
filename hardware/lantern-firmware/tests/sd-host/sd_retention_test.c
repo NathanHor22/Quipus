@@ -65,6 +65,7 @@ static void *json_malloc(size_t size){return ++json_allocations==fail_json_at?NU
 static char marker_session[37];
 static void *heap_caps_malloc(size_t n,int caps){(void)caps;return malloc(n);}
 static size_t xStreamBufferBytesAvailable(void *stream){(void)stream;return 0;}
+static bool quipus_report_cache_busy(void){return false;}
 static void refresh_space(void){}
 static file_t *find_file(const char *path){for(size_t i=0;i<40;++i)if(files[i].exists&&!strcmp(path,files[i].path))return &files[i];return NULL;}
 static file_t *create_file(const char *path,size_t bytes){file_t *f=find_file(path);if(f)return f;for(size_t i=0;i<40;++i)if(!files[i].exists){f=&files[i];memset(f,0,sizeof(*f));f->exists=true;f->bytes=bytes;snprintf(f->path,sizeof(f->path),"%s",path);for(size_t j=0;j<32;++j)f->pcm[j]=(uint8_t)(j*7+3);return f;}CHECK(false);return NULL;}
