@@ -48,7 +48,11 @@ export function isPublicAuthPath(pathname: string): boolean {
     isPublicContentPath(pathname) ||
     pathname === "/login" ||
     pathname === "/auth/callback" ||
-    pathname === "/api/auth/logout"
+    pathname === "/api/auth/logout" ||
+    // Mobile Google connection runs in a session-less system browser. These two
+    // routes accept only an encrypted ticket/state, and save nothing themselves.
+    pathname === "/api/google/mobile/authorize" ||
+    pathname === "/api/google/mobile/callback"
   );
 }
 

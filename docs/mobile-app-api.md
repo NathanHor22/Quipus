@@ -32,9 +32,38 @@ or meeting store.
 | `POST /api/devices/pairing` | `{ name }` only; returns `{ pairing: { id, code, expiresAt } }` (10 minutes) |
 | `GET /api/meetings` | Meetings with transcript, insights, follow-ups and recording progress |
 | `GET /api/recordings/:id/playback` | Short-lived (5 minute) signed URL for the original audio |
+| Website routes for follow-ups, approvals, contacts, people, preparation, speakers, calendar visibility, devices and Google status | The same actions as the website |
+| `POST /api/google/mobile` → `GET /api/google/mobile/authorize` → `GET /api/google/mobile/callback` → `POST /api/google/mobile/complete` | Google Calendar/Gmail connection from the app (below) |
+
+## Google connection from the app
+
+The website callback is bound to the browser's Quipus session cookie, which a
+system browser opened by the app does not have. The mobile flow binds the
+result to the app instead:
+
+1. The signed-in app sends `SHA-256(verifier)` and receives a two-minute
+   encrypted ticket URL.
+2. `/api/google/mobile/authorize` turns the ticket into the usual encrypted
+   OAuth state (with the challenge) and nonce cookie, then redirects to Google.
+3. `/api/google/mobile/callback` exchanges the code and seals the credentials
+   for `quipus://google/callback`. It saves nothing.
+4. The app posts the sealed result, its verifier and its bearer token to
+   `/api/google/mobile/complete`, which saves only for that same user.
+
+A start link sent to someone else cannot attach their Google account to the
+sender's workspace, and an intercepted deep link is useless without the
+verifier and the user's session. The website callback and its proxy
+protection are unchanged.
 
 Wi-Fi credentials are sent only from the app to the recorder over encrypted
 Bluetooth. They never reach these routes.
+
+## Google Cloud configuration
+
+On the existing OAuth client, add a second **Authorized redirect URI**:
+`<website origin>/api/google/mobile/callback`, e.g.
+`https://quipus-sales-rep-assistant.vercel.app/api/google/mobile/callback`.
+Keep the existing website callback.
 
 ## Supabase configuration
 
