@@ -77,7 +77,7 @@ static DIR *fake_opendir(const char *path){CHECK(!strcmp(path,SD_RECORDING_DIREC
 static struct dirent *fake_readdir(DIR *dir){CHECK(dir&&dir->open);while(dir->index<40){file_t *f=&files[dir->index++];if(!f->exists)continue;++scanned;snprintf(entry.d_name,sizeof(entry.d_name),"%.31s",strrchr(f->path,'/')+1);return &entry;}return NULL;}
 static int fake_closedir(DIR *dir){CHECK(dir&&dir->open);dir->open=false;return 0;}
 static esp_err_t quipus_archive_journal_append(const char *path,const uint8_t *key,const char *json){(void)key;++writes;if(writes==fail_write_at)return ESP_FAIL;file_t *f=create_file(path,512);snprintf(f->json,sizeof(f->json),"%s",json);return ESP_OK;}
-static esp_err_t quipus_archive_journal_read(const char *path,const uint8_t *key,char *out,size_t cap){(void)key;file_t *f=find_file(path);if(!f||f->tampered||strlen(f->json)>=cap)return ESP_FAIL;snprintf(out,cap,"%s",f->json);return ESP_OK;}
+static esp_err_t quipus_archive_journal_read(const char *path,const uint8_t *key,char *out,size_t cap){(void)key;file_t *f=find_file(path);size_t n;if(!f||f->tampered||(n=strlen(f->json))>=cap)return ESP_FAIL;memcpy(out,f->json,n+1);return ESP_OK;}
 static esp_err_t pending_marker(const char *stem,const char *id,bool verified,bool erase){CHECK(!strcmp(stem,"11111111"));++marker_calls;if(fail_marker||marker_calls==fail_marker_at)return ESP_FAIL;if(erase){marker=false;verified_marker=false;}else{marker=true;verified_marker=verified;snprintf(marker_session,sizeof(marker_session),"%s",id);}return ESP_OK;}
 static size_t pending_marker_count(void){return marker?1:0;}
 #define access fake_access
