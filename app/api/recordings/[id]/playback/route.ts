@@ -22,13 +22,13 @@ export async function GET(
   const source = playbackSourceSchema.safeParse(new URL(request.url).searchParams.get("source") || "combined");
   if (!source.success) return playbackJson({ error: "Invalid recording source." }, 400);
   try {
-    // The cookie-backed anon client enforces storage/database RLS in addition
-    // to the explicit ownership checks in recordingPlaybackResponse.
-    const { createSessionSupabase } = await import("@/lib/supabase/session");
+    // The session's anon client (browser cookie or app bearer token) enforces storage/
+    // database RLS in addition to the explicit ownership checks in recordingPlaybackResponse.
+    const { createSessionSupabase, getAuthenticatedLanternUser } = await import("@/lib/supabase/session");
     const client = await createSessionSupabase();
     if (!client) return playbackJson({ error: "Private recording storage is not configured." }, 503);
-    const { data: { user }, error } = await client.auth.getUser();
-    if (error || !user) return playbackJson({ error: "Authentication required." }, 401);
+    const user = await getAuthenticatedLanternUser();
+    if (!user) return playbackJson({ error: "Authentication required." }, 401);
     const ownerId = user.id;
     const { enforceUserRateLimit } = await import("@/lib/server-rate-limit");
     const limited = await enforceUserRateLimit(ownerId, "recording-playback");

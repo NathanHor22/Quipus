@@ -1,7 +1,9 @@
 import "server-only";
 
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { createClient } from "@supabase/supabase-js";
+import { cookies, headers } from "next/headers";
+import { readBearerCredential, type BearerCredential } from "./bearer";
 
 export type AuthenticatedLanternUser = {
   id: string;
@@ -16,10 +18,27 @@ export function publicSupabaseConfig() {
   return { url, anonKey };
 }
 
-/** Cookie-backed, anon-key Supabase client for the signed-in browser session. */
+async function requestBearerCredential(): Promise<BearerCredential> {
+  return readBearerCredential((await headers()).get("authorization"));
+}
+
+/**
+ * Anon-key Supabase client for the signed-in user. Browsers use cookies; the
+ * native app sends its access token, and then cookies are never consulted.
+ */
 export async function createSessionSupabase() {
   const { url, anonKey } = publicSupabaseConfig();
   if (!url || !anonKey) return null;
+
+  const bearer = await requestBearerCredential();
+  if (bearer.kind === "invalid") return null;
+  if (bearer.kind === "token") {
+    // RLS and storage policies run as the token's user, exactly as for cookies.
+    return createClient(url, anonKey, {
+      global: { headers: { Authorization: `Bearer ${bearer.token}` } },
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    });
+  }
 
   const cookieStore = await cookies();
   return createServerClient(url, anonKey, {
@@ -47,15 +66,19 @@ export async function createSessionSupabase() {
   });
 }
 
-/** Returns the Google-backed user represented by the current request cookies. */
+/** Returns the Google-backed user represented by the request's cookies or bearer token. */
 export async function getAuthenticatedLanternUser(): Promise<AuthenticatedLanternUser | null> {
   const supabase = await createSessionSupabase();
   if (!supabase) return null;
 
+  // A bearer client has no stored session, so the token is verified explicitly.
+  const bearer = await requestBearerCredential();
   const {
     data: { user },
     error,
-  } = await supabase.auth.getUser();
+  } = bearer.kind === "token"
+    ? await supabase.auth.getUser(bearer.token)
+    : await supabase.auth.getUser();
   if (error || !user) return null;
 
   const rawName =
