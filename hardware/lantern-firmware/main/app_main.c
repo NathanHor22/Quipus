@@ -515,7 +515,7 @@ static esp_err_t open_quick_consent(void) {
   lantern_network_set_realtime(true);
   s_state = LOCAL_AWAITING_CONSENT;
   s_state_entered_at = xTaskGetTickCount();
-  lantern_display_show(LANTERN_SCREEN_CONSENT, "SAY YES WE CONSENT OR NO");
+  lantern_display_show(LANTERN_SCREEN_CONSENT, "SAY YES OR NO");
   return ESP_OK;
 }
 
@@ -578,7 +578,7 @@ static esp_err_t classify_local_yes_no(quipus_local_purpose_t purpose,
 static esp_err_t capture_consent_response(const char *context,
                                           char intent[32]) {
   intent[0] = 0;
-  lantern_display_show(LANTERN_SCREEN_CONSENT, "SAY YES WE CONSENT OR NO");
+  lantern_display_show(LANTERN_SCREEN_CONSENT, "SAY YES OR NO");
   lantern_audio_chime(1);
   vTaskDelay(pdMS_TO_TICKS(250));
   // Capture the full room response, including a later refusal. Connected
@@ -747,8 +747,24 @@ static void capture_spoken_consent(void) {
   cancel_pending_consent();
 }
 
+// Never ask for consent the recorder cannot act on: every session saves to
+// the secured card first. A newly inserted card may mount locally.
+static bool sd_ready_for_recording(void) {
+#if LANTERN_HAS_SD_CARD
+  if (lantern_sd_secure_ready()) return true;
+  if (lantern_sd_init(NULL) == ESP_OK && lantern_sd_secure_ready()) return true;
+  ESP_LOGW(TAG, "recording unavailable before consent: SD card missing or not yet secured");
+  (void)quipus_play_prompt(QUIPUS_PROMPT_SD_FAILURE);
+  show_ready();
+  return false;
+#else
+  return true;
+#endif
+}
+
 static void start_spoken_consent(bool announce_request) {
-  if (s_power_off_requested || open_quick_consent() != ESP_OK) return;
+  if (s_power_off_requested || !sd_ready_for_recording() ||
+      open_quick_consent() != ESP_OK) return;
   esp_err_t spoken = announce_request ? quipus_play_consent_prompt() : ESP_OK;
   if (s_power_off_requested) return;
   lantern_network_status_t network;
@@ -1497,7 +1513,9 @@ static void capture_recovery_command(void) {
   lantern_network_get_status(&network);
   if (s_state != LOCAL_ERROR || s_power_off_requested || !network.paired) return;
   if (!network.wifi_connected) {
-    (void)quipus_play_prompt(QUIPUS_PROMPT_NETWORK_REQUIRED);
+    // Name the real blocker: an SD fault needs the card, not Wi-Fi.
+    (void)quipus_play_prompt(strstr(s_last_error_detail, "SD ")
+        ? QUIPUS_PROMPT_SD_FAILURE : QUIPUS_PROMPT_NETWORK_REQUIRED);
     sync_idle_wake_listener();
     return;
   }

@@ -15,6 +15,10 @@ static bool s_self_test_active;
 #define TRUSTED_SCORE 200U
 #define TRUSTED_MARGIN 32U
 #define POSSIBLE_NO_SCORE 128U
+// A weak (untrusted) NO vetoes YES only with real speech in its context; a
+// quiet tail holding the last few ms of an explained word is not a refusal.
+// A trusted NO still wins with any voiced support.
+#define POSSIBLE_NO_VOICED_MS 100U
 
 typedef struct {
   unsigned yes_votes, silence_votes, windows;
@@ -52,7 +56,8 @@ static void observe(decision_t *decision, quipus_local_diagnostics_t *diagnostic
     ++diagnostics->no_windows;
   }
   if (trusted(scores, QUIPUS_LOCAL_SILENCE)) ++decision->silence_votes;
-  if (scores[QUIPUS_LOCAL_NO] >= POSSIBLE_NO_SCORE) {
+  if (scores[QUIPUS_LOCAL_NO] >= POSSIBLE_NO_SCORE &&
+      (s_self_test_active || voiced_ms >= POSSIBLE_NO_VOICED_MS)) {
     decision->possible_no = true;
     ++diagnostics->possible_no_windows;
   }
@@ -141,14 +146,14 @@ static uint16_t voiced_overlap_ms(const uint8_t voiced[SHADOW_VAD_MAX_FRAMES],
 /* Conservative background proof for this prototype. Calibrate from the
  * unvoiced prefix or, when the answer starts at once, from 500ms of silence
  * that begins 200ms after the last voiced frame. A noisy room, DC drift, a
- * sustained above-floor run or a strong burst prevents YES; these bounds cannot
+ * sustained above-floor or DC-drift run, or a strong burst, prevents YES; these bounds cannot
  * prove speech below the background was absent. */
 #define CALIBRATION_FRAMES 25U
 #define MIN_PREFIX_FRAMES 5U
 #define VAD_GUARD_FRAMES 5U
-// A spoken syllable lasts longer than60ms; shorter, weaker fluctuations are
-// room noise. Anything stronger than STRONG_RATIO x floor + margin counts at once.
-#define AMBIGUOUS_RUN_FRAMES 3U
+// Any spoken word, including a quiet "no", lasts well over100ms; shorter,
+// weaker fluctuations are room noise. Above 3 x floor + 8 counts at once.
+#define AMBIGUOUS_RUN_FRAMES 5U
 // Unvoiced word endings (the /s/ of "yes") often fall silent to VAD; a
 // contiguous above-floor tail of up to200ms belongs to the preceding word.
 #define VAD_OFFSET_FRAMES 10U
@@ -241,13 +246,17 @@ static void qualify_activity(const int16_t *samples, size_t count,
     uint32_t drift = (uint32_t)(dc < 0 ? -dc : dc);
     uint16_t rms = window_rms(block, block_count);
     level_rms[frame] = rms;
-    if (rms > strong || drift > dc_tolerance) level[frame] = 2;
-    else if (rms > upper) level[frame] = 1;
+    // A 20ms mechanical bump shifts DC briefly; real drift persists, so it
+    // counts like above-floor activity unless the block is also strong.
+    if (rms > strong) level[frame] = 2;
+    else if (rms > upper || drift > dc_tolerance) level[frame] = 1;
   }
   for (size_t frame = 0; frame < frames;) {
     if (!level[frame]) { ++frame; continue; }
     size_t run_end = frame;
     while (run_end < frames && level[run_end]) ++run_end;
+    if (run_end - frame > d->longest_above_floor_frames)
+      d->longest_above_floor_frames = (uint16_t)(run_end - frame);
     bool sustained = run_end - frame >= AMBIGUOUS_RUN_FRAMES;
     for (; frame < run_end; ++frame) {
       if (!sustained && level[frame] != 2) continue;
@@ -369,9 +378,10 @@ static void log_diagnostics(const quipus_local_result_t *result) {
   ESP_LOGI("quipus_local", "background_verified=%u background_rms=%u ambiguous_frames=%u "
       "unexplained_speech_frames=%u response_truncated=%u", d->background_verified, d->background_rms,
       d->ambiguous_frames, d->unexplained_speech_frames, d->response_truncated);
-  ESP_LOGI("quipus_local", "ambiguous_first_end_ms=%u first_rms=%u last_end_ms=%u last_rms=%u onset_attached_frames=%u",
+  ESP_LOGI("quipus_local", "ambiguous_first_end_ms=%u first_rms=%u last_end_ms=%u last_rms=%u onset_attached_frames=%u longest_above_floor_frames=%u",
       d->first_ambiguous_end_ms, d->first_ambiguous_rms,
-      d->last_ambiguous_end_ms, d->last_ambiguous_rms, d->onset_attached_frames);
+      d->last_ambiguous_end_ms, d->last_ambiguous_rms, d->onset_attached_frames,
+      d->longest_above_floor_frames);
   (void)d; // Host fixtures may compile logging out.
 }
 
