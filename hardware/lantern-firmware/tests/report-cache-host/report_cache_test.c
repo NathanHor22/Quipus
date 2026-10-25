@@ -1,6 +1,7 @@
 #include "quipus_report_cache.h"
 #include "quipus_archive.h"
 #include "cJSON.h"
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -161,7 +162,8 @@ int main(void) {
   CHECK(!mkdir("cache/report1.qpm", 0700));
 #endif
   CHECK(quipus_report_cache_commit() != ESP_OK);
-  CHECK(!rmdir("cache/report1.qpm")); replay(pcm, sizeof(pcm));
+  // Abort cleanup may already remove the empty directory (POSIX and FatFs remove() do).
+  CHECK(!rmdir("cache/report1.qpm") || errno == ENOENT); replay(pcm, sizeof(pcm));
   checked_case("metadata commit I/O failure leaves previous committed report intact");
 
   cJSON_Hooks hooks = {fail_all, free}; cJSON_InitHooks(&hooks);
