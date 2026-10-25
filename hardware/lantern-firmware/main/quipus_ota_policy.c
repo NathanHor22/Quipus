@@ -2,6 +2,13 @@
 
 #include <string.h>
 
+// strnlen is POSIX, not C11; host tests build with -std=c11.
+static size_t bounded_length(const char *text, size_t limit) {
+  size_t length = 0;
+  while (length < limit && text[length]) length++;
+  return length;
+}
+
 static bool parse_number(const char **cursor, unsigned *value) {
   const char *p = *cursor;
   if (*p < '0' || *p > '9') return false;
@@ -19,7 +26,7 @@ static bool parse_number(const char **cursor, unsigned *value) {
 
 bool quipus_version_parse(const char *text, quipus_version_t *version) {
   if (!text || !version) return false;
-  size_t length = strnlen(text, QUIPUS_OTA_VERSION_CAPACITY);
+  size_t length = bounded_length(text, QUIPUS_OTA_VERSION_CAPACITY);
   if (!length || length >= QUIPUS_OTA_VERSION_CAPACITY) return false;
   const char *p = text;
   quipus_version_t parsed;
@@ -46,7 +53,7 @@ int quipus_version_compare(const quipus_version_t *a, const quipus_version_t *b)
 }
 
 static bool lower_hex(const char *text, size_t length) {
-  if (strnlen(text, length + 1) != length) return false;
+  if (bounded_length(text, length + 1) != length) return false;
   for (size_t i = 0; i < length; i++) {
     char c = text[i];
     if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) return false;
@@ -76,7 +83,7 @@ quipus_ota_offer_result_t quipus_ota_validate_offer(
     return QUIPUS_OTA_OFFER_NOT_NEWER;
   if (offer->size > slot_bytes) return QUIPUS_OTA_OFFER_TOO_LARGE;
   size_t prefix = strlen(trusted_prefix);
-  size_t url = strnlen(offer->url, QUIPUS_OTA_URL_CAPACITY);
+  size_t url = bounded_length(offer->url, QUIPUS_OTA_URL_CAPACITY);
   if (prefix < 9 || strncmp(trusted_prefix, "https://", 8) || trusted_prefix[prefix - 1] != '/' ||
       url >= QUIPUS_OTA_URL_CAPACITY || url <= prefix ||
       strncmp(offer->url, trusted_prefix, prefix) || !url_safe(offer->url))
