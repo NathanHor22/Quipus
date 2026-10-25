@@ -20,6 +20,18 @@ typedef struct {
 // Mounts a FAT16/FAT32 card without formatting it. Calling this again is safe;
 // recording_begin also retries the mount so a card inserted after boot is used.
 esp_err_t lantern_sd_init(lantern_sd_status_t *status);
+
+typedef enum {
+  LANTERN_SD_UNCHANGED = 0,
+  LANTERN_SD_INSERTED,
+  LANTERN_SD_REMOVED,
+} lantern_sd_change_t;
+
+// Detects a card being removed or inserted (the slot has no detect pin). Call
+// from an idle context only; it does nothing while a recording or phone
+// archive is open. A new card is mounted with the same checks as at boot and
+// is never formatted. Repeated failed probes are not logged.
+lantern_sd_change_t lantern_sd_poll(void);
 void lantern_sd_get_status(lantern_sd_status_t *status);
 
 // Streams canonical 16 kHz mono, signed 16-bit PCM into a temporary file. The

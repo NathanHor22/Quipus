@@ -840,6 +840,42 @@ esp_err_t lantern_sd_init(lantern_sd_status_t *status) {
   return ESP_ERR_NOT_SUPPORTED;
 #endif
 }
+lantern_sd_change_t lantern_sd_poll(void) {
+#if LANTERN_HAS_SD_CARD
+  if (s_file || s_phone_file || s_accepting || s_finish_requested)
+    return LANTERN_SD_UNCHANGED;
+  if (s_status.mounted) {
+    if (s_card && sdmmc_get_status(s_card) == ESP_OK)
+      return LANTERN_SD_UNCHANGED;
+    ESP_LOGW(TAG, "microSD removed; recordings stay on that card");
+    unmount_card();
+    memset(&s_status, 0, sizeof(s_status));
+    return LANTERN_SD_REMOVED;
+  }
+  // An empty slot fails every probe; keep the driver's per-attempt errors
+  // out of the log, and report only the outcome.
+  const char *const quiet[] = {"sdmmc_common", "sdmmc_sd", "sdmmc_init",
+                                      "vfs_fat_sdmmc", "diskio_sdmmc", TAG};
+  esp_log_level_t previous[sizeof(quiet) / sizeof(quiet[0])];
+  for (size_t i = 0; i < sizeof(quiet) / sizeof(quiet[0]); ++i) {
+    previous[i] = esp_log_level_get(quiet[i]);
+    esp_log_level_set(quiet[i], ESP_LOG_NONE);
+  }
+  invalidate_upload_count();
+  esp_err_t mounted = mount_card();
+  for (size_t i = 0; i < sizeof(quiet) / sizeof(quiet[0]); ++i)
+    esp_log_level_set(quiet[i], previous[i]);
+  if (mounted != ESP_OK) return LANTERN_SD_UNCHANGED;
+  ESP_LOGI(TAG, "microSD inserted name=%s capacity=%llu MiB free=%llu MiB",
+           s_status.name[0] ? s_status.name : "unknown",
+           s_status.capacity_bytes / (1024ULL * 1024ULL),
+           s_status.free_bytes / (1024ULL * 1024ULL));
+  return LANTERN_SD_INSERTED;
+#else
+  return LANTERN_SD_UNCHANGED;
+#endif
+}
+
 void lantern_sd_get_status(lantern_sd_status_t *status) {
   if (!status)
     return;
