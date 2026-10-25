@@ -6,6 +6,7 @@ import { BluetoothRecorderSetup } from "./BluetoothRecorderSetup";
 import { Dialog } from "@/components/ui/Dialog";
 import { useBrowserStorageSnapshot } from "@/components/hooks/useBrowserStorageSnapshot";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { firmwareUpdateLabel, type FirmwareUpdateStatus } from "@/lib/firmware-updates";
 import { lanternStateLabel, type LanternState } from "@/lib/lantern-state";
 import type { WorkspaceMode } from "@/lib/workspace/model";
 import {
@@ -23,6 +24,7 @@ interface DeviceRecord {
   name: string;
   model: string | null;
   firmware_version: string | null;
+  firmware_update?: FirmwareUpdateStatus | null;
   last_seen_at: string | null;
   status: string;
   device_state: LanternState;
@@ -331,7 +333,7 @@ function DeviceSession({
       <section className={styles.deviceDetails}>
         <header><div><span className={styles.kicker}>DEVICE DETAILS</span><h3>Your recorder</h3></div><button className={styles.secondaryAction} type="button" disabled={checkingConnection} onClick={() => void loadDevices()}>{checkingConnection ? "Checking…" : "Refresh status"}</button></header>
         <dl><div><dt>Paired account</dt><dd>{accountEmail || "This workspace"}</dd></div><div><dt>Last contact</dt><dd>{lastSeen}</dd></div></dl>
-        <details className={styles.help}><summary>Hardware and firmware details</summary><dl><div><dt>Firmware</dt><dd>{primaryDevice.firmware_version || "Not reported"}</dd></div><div><dt>Model</dt><dd>{primaryDevice.model || "ESP32-S3"}</dd></div><div><dt>Free firmware memory</dt><dd>{heapLabel(primaryDevice.free_heap_bytes)}</dd></div></dl></details>
+        <details className={styles.help}><summary>Hardware and firmware details</summary><dl><div><dt>Firmware</dt><dd>{primaryDevice.firmware_version || "Not reported"}</dd></div>{firmwareUpdateLabel(primaryDevice.firmware_update, primaryDevice.firmware_version) && <div><dt>Wireless update</dt><dd>{firmwareUpdateLabel(primaryDevice.firmware_update, primaryDevice.firmware_version)}</dd></div>}<div><dt>Model</dt><dd>{primaryDevice.model || "ESP32-S3"}</dd></div><div><dt>Free firmware memory</dt><dd>{heapLabel(primaryDevice.free_heap_bytes)}</dd></div></dl></details>
         {primaryDevice.last_error && <div className={styles.lastError}><span><strong>Last reported error</strong><p>{primaryDevice.last_error}</p></span></div>}
       </section>
       <aside className={styles.connectionCard}>

@@ -65,3 +65,13 @@ CONFIG_LWIP_MAX_SOCKETS=16
 CONFIG_HTTPD_MAX_REQ_HDR_LEN=2048
 
 CONFIG_HTTPD_MAX_URI_LEN=512
+
+# Wireless updates: dual app slots, rollback of an image that never checks in,
+# and RSA-signed apps verified on update. No eFuses are burned; the trusted key
+# is the one that signed the running app. Images are signed after the build by
+# sign-firmware.ps1 so the private key never enters the repository or CI.
+CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y
+CONFIG_SECURE_SIGNED_APPS_NO_SECURE_BOOT=y
+CONFIG_SECURE_SIGNED_APPS_RSA_SCHEME=y
+CONFIG_SECURE_SIGNED_ON_UPDATE_NO_SECURE_BOOT=y
+# CONFIG_SECURE_BOOT_BUILD_SIGNED_BINARIES is not set

@@ -46,5 +46,6 @@ with tempfile.TemporaryDirectory(prefix="quipus-audio-boot-fault-") as folder:
         subprocess.run(compiler+["-std=c11","-O1","-UNDEBUG","-Wall","-Wextra","-Werror","-Wno-unknown-warning-option","-Wno-clobbered",
             f"-DTEST_WAVE={wave}",f"-DTEST_TOUCH={touch}","-I"+str(build),
             "-I"+str(root/"hardware/lantern-firmware/main"),
-            str(root/"hardware/lantern-firmware/tests/audio_startup_fault_test.c"),"-o",str(binary)],check=True,cwd=build)
+            str(root/"hardware/lantern-firmware/tests/audio_startup_fault_test.c"),
+            str(root/"hardware/lantern-firmware/main/quipus_ota_policy.c"),"-o",str(binary)],check=True,cwd=build)
         subprocess.run([str(binary)],check=True,cwd=build)

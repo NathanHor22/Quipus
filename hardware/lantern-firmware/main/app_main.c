@@ -42,6 +42,8 @@ static adc_cali_handle_t s_battery_calibration;
 #include "quipus_local_recognizer.h"
 #include "quipus_volume.h"
 #include "quipus_sync_policy.h"
+#include "quipus_ota_policy.h"
+#include "lantern_ota.h"
 
 typedef enum {
   LOCAL_READY,
@@ -2367,6 +2369,31 @@ static void telemetry_task(void *argument) {
         lantern_network_send_heartbeat("ready", 0, s_battery_level);
       xSemaphoreGive(s_control_mutex);
     }
+    // A wireless update waits for an idle, powered recorder with nothing
+    // unsent; it restarts on success and returns to READY on any failure.
+    if (seconds % 15 == 7 && s_state == LOCAL_READY && lantern_ota_offer_ready()) {
+      quipus_ota_window_t window = {
+          .ready = s_boot_complete && s_state == LOCAL_READY,
+          .recording = lantern_audio_is_recording() || s_sd_recording_active,
+          .uploads_pending = s_summary_retry_pending,
+          .sync_busy = s_summary_retrying,
+          .phone_audio_idle = quipus_phone_audio_idle(),
+          .shutting_down = s_power_off_requested,
+          .external_power = battery_power_state() == LANTERN_POWER_CHARGING,
+          .battery_level = s_battery_level,
+          .user_idle_ms = pdTICKS_TO_MS(xTaskGetTickCount() - s_last_interaction_at),
+      };
+      if (quipus_ota_window_open(&window) &&
+          xSemaphoreTake(s_control_mutex, 0) == pdTRUE) {
+        if (s_state == LOCAL_READY) {
+          s_state = LOCAL_COMMAND_PROCESSING;
+          lantern_wake_set_enabled(false);
+          lantern_ota_install();
+          show_ready();
+        }
+        xSemaphoreGive(s_control_mutex);
+      }
+    }
 
 #if LANTERN_HAS_TOUCHSCREEN
     if (!s_display_asleep && s_state == LOCAL_READY &&
@@ -2492,6 +2519,8 @@ static void audio_startup_fault(esp_err_t error) {
   bool armed = false; // A power-on hold must be released before any action.
   TickType_t status_at = xTaskGetTickCount();
   TickType_t diagnostic_at = status_at;
+  TickType_t heartbeat_at = status_at;
+  TickType_t pressed_at = status_at;
   for (;;) {
     bool pressed = false;
 #if LANTERN_HAS_PHYSICAL_BUTTONS
@@ -2501,6 +2530,7 @@ static void audio_startup_fault(esp_err_t error) {
     pressed = inputs_ready && lantern_board_touch_read(&x, &y);
 #endif
     if (!pressed) armed = true;
+    else pressed_at = xTaskGetTickCount();
     uint32_t now = (uint32_t)(esp_timer_get_time() / 1000);
     if (armed) {
 #if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
@@ -2526,6 +2556,26 @@ static void audio_startup_fault(esp_err_t error) {
           current.connectivity, current.wifi_rssi, current.paired);
       status_at = xTaskGetTickCount();
     }
+    // Keep checking in so the dashboard shows the fault and a fixed firmware
+    // can still arrive wirelessly. Nothing here records or uploads audio.
+    if (network == ESP_OK && xTaskGetTickCount() - heartbeat_at >= pdMS_TO_TICKS(15000)) {
+      heartbeat_at = xTaskGetTickCount();
+      update_battery_level();
+      lantern_network_send_heartbeat("error", 0, s_battery_level);
+      quipus_ota_window_t window = {
+          .ready = true,
+          .uploads_pending = !lantern_sd_can_power_down(),
+          .phone_audio_idle = true,
+          .shutting_down = s_power_off_requested,
+          .external_power = battery_power_state() == LANTERN_POWER_CHARGING,
+          .battery_level = s_battery_level,
+          .user_idle_ms = pdTICKS_TO_MS(xTaskGetTickCount() - pressed_at),
+      };
+      if (lantern_ota_offer_ready() && quipus_ota_window_open(&window)) {
+        lantern_ota_install();
+        lantern_display_show_detail("MICROPHONE OFFLINE", instructions, NULL);
+      }
+    }
     if (xTaskGetTickCount() - diagnostic_at >= pdMS_TO_TICKS(10000)) {
       ESP_LOGI(TAG, "audio fault idle capture_disabled=1 sd_safe=%d", lantern_sd_can_power_down());
       diagnostic_at = xTaskGetTickCount();
@@ -2543,6 +2593,7 @@ void app_main(void) {
   power_and_battery_init();
   update_battery_level();
   ESP_ERROR_CHECK(lantern_storage_init());
+  lantern_ota_boot();
   ESP_ERROR_CHECK(lantern_storage_load(&s_config));
   ESP_ERROR_CHECK(lantern_display_init());
   lantern_display_show(LANTERN_SCREEN_BOOTING, "CHECKING SD CARD");
