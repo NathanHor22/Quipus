@@ -3,7 +3,9 @@
 #endif
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include "esp_partition.h"
 #include "lantern_bluetooth.h"
 #include "lantern_storage.h"
 #include "nvs.h"
@@ -49,7 +51,62 @@ static entry_t *entry(nvs_handle_t handle, const char *key, bool create) {
   strcpy(empty->key, key);
   return empty;
 }
-esp_err_t nvs_flash_init(void) { return ESP_OK; }
+// Settings partition fake: queued init results, raw bytes and erase count.
+static esp_err_t init_results[4];
+static unsigned init_count, init_calls, partition_erases;
+static uint8_t raw_partition[16384];
+static esp_partition_t nvs_partition = {.size = sizeof(raw_partition)};
+static bool partition_present = true, read_fails;
+esp_err_t nvs_flash_init(void) {
+  ++init_calls;
+  return init_calls <= init_count ? init_results[init_calls - 1] : ESP_OK;
+}
+esp_err_t nvs_flash_erase(void) { ++partition_erases; memset(raw_partition, 0xff, sizeof(raw_partition)); return ESP_OK; }
+void *heap_caps_malloc(size_t size, unsigned caps) { (void)caps; return malloc(size); }
+const esp_partition_t *esp_partition_find_first(esp_partition_type_t type,
+    esp_partition_subtype_t subtype, const char *label) {
+  assert(type == ESP_PARTITION_TYPE_DATA && subtype == ESP_PARTITION_SUBTYPE_DATA_NVS && !label);
+  return partition_present ? &nvs_partition : NULL;
+}
+esp_err_t esp_partition_read(const esp_partition_t *partition, size_t offset, void *destination, size_t size) {
+  assert(partition == &nvs_partition && offset == 0 && size == sizeof(raw_partition));
+  if (read_fails) return ESP_FAIL;
+  memcpy(destination, raw_partition, size);
+  return ESP_OK;
+}
+static void settings(const char *text, esp_err_t first, esp_err_t second) {
+  memset(raw_partition, 0xff, sizeof(raw_partition));
+  if (text) memcpy(raw_partition + 9000, text, strlen(text) + 1);
+  init_results[0] = first; init_results[1] = second;
+  init_count = 2; init_calls = partition_erases = 0; partition_present = true; read_fails = false;
+}
+static void storage_init_suite(void) {
+  // Healthy settings are never inspected or erased.
+  settings(NULL, ESP_OK, ESP_OK);
+  assert(lantern_storage_init() == ESP_OK && init_calls == 1 && partition_erases == 0);
+  // A factory demo's full or foreign-format settings start fresh once.
+  settings("lvgl_demo", ESP_ERR_NVS_NO_FREE_PAGES, ESP_OK);
+  assert(lantern_storage_init() == ESP_OK && partition_erases == 1 && init_calls == 2);
+  settings("phy", ESP_ERR_NVS_NEW_VERSION_FOUND, ESP_OK);
+  assert(lantern_storage_init() == ESP_OK && partition_erases == 1);
+  // Any Quipus namespace (pairing, SD archive keys, updates) is kept.
+  const char *quipus[] = {"roxanne", "quipus_keys", "quipus_ota"};
+  for (unsigned i = 0; i < 3; ++i) {
+    settings(quipus[i], ESP_ERR_NVS_NO_FREE_PAGES, ESP_OK);
+    assert(lantern_storage_init() == ESP_ERR_NVS_NO_FREE_PAGES && partition_erases == 0 && init_calls == 1);
+  }
+  // A name that only begins like a namespace is not one.
+  settings("roxanneX", ESP_ERR_NVS_NO_FREE_PAGES, ESP_OK);
+  assert(lantern_storage_init() == ESP_OK && partition_erases == 1);
+  // Unreadable or missing partitions, and other errors, are never erased.
+  settings(NULL, ESP_ERR_NVS_NO_FREE_PAGES, ESP_OK); read_fails = true;
+  assert(lantern_storage_init() == ESP_ERR_NVS_NO_FREE_PAGES && partition_erases == 0);
+  settings(NULL, ESP_ERR_NVS_NO_FREE_PAGES, ESP_OK); partition_present = false;
+  assert(lantern_storage_init() == ESP_ERR_NVS_NO_FREE_PAGES && partition_erases == 0);
+  settings(NULL, ESP_FAIL, ESP_OK);
+  assert(lantern_storage_init() == ESP_FAIL && partition_erases == 0 && init_calls == 1);
+  init_count = 0; init_calls = 0;
+}
 esp_err_t nvs_open(const char *name, int mode, nvs_handle_t *handle) {
   assert(!strcmp(name, "roxanne") || !strcmp(name, "quipus_keys"));
   *handle = !strcmp(name, "roxanne") ? 1 : 2;
@@ -117,6 +174,7 @@ static lantern_config_t fixture(void) {
   return config;
 }
 int main(void) {
+  storage_init_suite();
   lantern_config_t config = fixture(), saved = config;
   entry_t before[24]; memcpy(before, entries[0], sizeof(before));
   forget_result = ESP_ERR_INVALID_STATE;
@@ -142,7 +200,7 @@ int main(void) {
   unsigned calls = forget_calls;
   assert(lantern_storage_clear_device(NULL) == ESP_ERR_INVALID_ARG);
   assert(forget_calls == calls);
-  puts("PASS: device/settings reset gates on BLE cleanup and preserves archive keys");
+  puts("PASS: device/settings reset gates on BLE cleanup and preserves archive keys; only foreign settings storage is wiped");
   return 0;
 }
 #endif

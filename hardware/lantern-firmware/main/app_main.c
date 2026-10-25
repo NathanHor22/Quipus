@@ -2627,6 +2627,18 @@ static void audio_startup_fault(esp_err_t error) {
   }
 }
 
+// Settings storage that still holds Quipus data is never wiped (it may hold
+// the only SD archive key). Say so on screen instead of restarting forever;
+// a USB reflash or support recovery is required.
+static void storage_fault(esp_err_t error) {
+  ESP_LOGE(TAG, "settings storage unavailable: %s; holding without restart",
+           esp_err_to_name(error));
+  if (lantern_display_init() == ESP_OK)
+    lantern_display_show_detail("SETTINGS NEED SERVICE",
+        "Saved recordings are kept. Contact Quipus support.", NULL);
+  for (;;) vTaskDelay(pdMS_TO_TICKS(1000));
+}
+
 void app_main(void) {
   const lantern_board_profile_t *board = lantern_board_profile();
   ESP_LOGI(TAG, "Quipus %s booting on %s (%s, storage=%s)",
@@ -2635,7 +2647,8 @@ void app_main(void) {
   s_state_entered_at = xTaskGetTickCount();
   power_and_battery_init();
   update_battery_level();
-  ESP_ERROR_CHECK(lantern_storage_init());
+  esp_err_t storage = lantern_storage_init();
+  if (storage != ESP_OK) storage_fault(storage);
   lantern_ota_boot();
   ESP_ERROR_CHECK(lantern_storage_load(&s_config));
   ESP_ERROR_CHECK(lantern_display_init());

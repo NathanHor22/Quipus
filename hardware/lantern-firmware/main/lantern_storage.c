@@ -2,11 +2,16 @@
 #include "lantern_bluetooth.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "esp_check.h"
+#include "esp_heap_caps.h"
+#include "esp_log.h"
+#include "esp_partition.h"
 #include "nvs.h"
 #include "nvs_flash.h"
+#include "quipus_nvs_guard.h"
 
 /* Kept stable so devices already provisioned under the prototype name retain
  * their Wi-Fi and pairing credentials after the Lantern rebrand. */
@@ -25,11 +30,30 @@ static esp_err_t read_string(nvs_handle_t handle, const char *key,
 
 esp_err_t lantern_storage_init(void) {
   esp_err_t result = nvs_flash_init();
-  // Never erase NVS automatically: it may hold the only local archive key.
-  // A damaged/full partition is a recoverable service condition, not permission
-  // to destroy pending private recordings. Server recovery is separately bound.
-
-  return result;
+  if (result != ESP_ERR_NVS_NO_FREE_PAGES && result != ESP_ERR_NVS_NEW_VERSION_FOUND)
+    return result;
+  // Never erase Quipus settings automatically: they may hold the only local
+  // archive key, and wiping them would strand pending private recordings. A
+  // partition that never held a Quipus namespace is another firmware's
+  // leftovers (e.g. a factory demo), so it alone is wiped to start fresh.
+  const esp_partition_t *partition = esp_partition_find_first(
+      ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_NVS, NULL);
+  if (!partition) return result;
+  uint8_t *raw = heap_caps_malloc(partition->size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  if (!raw) raw = malloc(partition->size);
+  if (!raw) return result;
+  bool quipus = esp_partition_read(partition, 0, raw, partition->size) != ESP_OK ||
+                quipus_nvs_has_quipus_data(raw, partition->size);
+  free(raw);
+  if (quipus) {
+    ESP_LOGE("lantern_storage", "settings storage unusable (%s); Quipus data kept",
+             esp_err_to_name(result));
+    return result;
+  }
+  ESP_LOGW("lantern_storage", "settings storage held another firmware's data (%s); starting fresh",
+           esp_err_to_name(result));
+  ESP_RETURN_ON_ERROR(nvs_flash_erase(), "lantern_storage", "erase foreign settings");
+  return nvs_flash_init();
 }
 
 esp_err_t lantern_storage_load(lantern_config_t *config) {
