@@ -40,7 +40,20 @@ function sendRequest() {
   });
 }
 
-test("sending through the linked WhatsApp relay is limited to its configured owner", async () => {
+test("while WhatsApp is coming soon, even the owner cannot send", async () => {
+  delete process.env.NEXT_PUBLIC_WHATSAPP_ENABLED;
+  process.env.WHATSAPP_OWNER_USER_ID = "11111111-1111-4111-8111-111111111111";
+  state.user = { id: "11111111-1111-4111-8111-111111111111" };
+  const response = await POST(sendRequest());
+  assert.equal(response.status, 403);
+  assert.deepEqual(await response.json(), { error: "WhatsApp delivery is coming soon." });
+  assert.equal(state.databaseCalls, 0);
+});
+
+test("sending through the linked WhatsApp relay is limited to its configured owner", async (t) => {
+  process.env.NEXT_PUBLIC_WHATSAPP_ENABLED = "true";
+  t.after(() => { delete process.env.NEXT_PUBLIC_WHATSAPP_ENABLED; });
+  state.user = null;
   delete process.env.WHATSAPP_OWNER_USER_ID;
   const unconfigured = await POST(sendRequest());
   assert.equal(unconfigured.status, 403);
