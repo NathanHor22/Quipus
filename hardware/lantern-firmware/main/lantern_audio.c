@@ -1,4 +1,5 @@
 #include "lantern_audio.h"
+#include "quipus_resample.h"
 
 #include <limits.h>
 #include <stdatomic.h>
@@ -188,8 +189,11 @@ static void pcm_playback_task(void *argument) {
   static uint8_t input[AUDIO_WRITE_SAMPLES * sizeof(int16_t)];
   static i2s_output_sample_t output[AUDIO_WRITE_SAMPLES * I2S_OUTPUT_CHANNELS];
   static int16_t reference[AUDIO_WRITE_SAMPLES];
+  static int16_t converted[AUDIO_WRITE_SAMPLES];
+  static quipus_resample_3_2_t resampler;
   while (true) {
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    quipus_resample_3_2_reset(&resampler);
     bool speaker_started = false;
     uint32_t output_frames = 0, written_frames = 0, nonzero_frames = 0, starved = 0;
     bool rebuffering = false;
@@ -245,19 +249,28 @@ static void pcm_playback_task(void *argument) {
       size_t received = xStreamBufferReceive(s_pcm_stream, input, wanted, 0);
       received &= ~(size_t)1;
       size_t source_count = received / sizeof(int16_t);
+      for (size_t index = 0; index < source_count; ++index)
+        reference[index] = (int16_t)((uint16_t)input[index * 2] |
+                                     ((uint16_t)input[index * 2 + 1] << 8));
+#if LANTERN_TTS_SAMPLE_RATE * 2 == LANTERN_SPK_SAMPLE_RATE * 3
+      size_t sample_count = quipus_resample_3_2(&resampler, reference, source_count,
+                                                converted, AUDIO_WRITE_SAMPLES);
+#else
       size_t sample_count =
           source_count * LANTERN_SPK_SAMPLE_RATE / LANTERN_TTS_SAMPLE_RATE;
       if (!sample_count && source_count)
         sample_count = 1;
-      uint32_t speech_absolute = 0;
       for (size_t index = 0; index < sample_count; ++index) {
         size_t source_index =
             index * LANTERN_TTS_SAMPLE_RATE / LANTERN_SPK_SAMPLE_RATE;
         if (source_index >= source_count)
           source_index = source_count - 1;
-        int16_t sample =
-            (int16_t)((uint16_t)input[source_index * 2] |
-                      ((uint16_t)input[source_index * 2 + 1] << 8));
+        converted[index] = reference[source_index];
+      }
+#endif
+      uint32_t speech_absolute = 0;
+      for (size_t index = 0; index < sample_count; ++index) {
+        int16_t sample = converted[index];
         int32_t audible = speaker_sample(sample);
         reference[index] = (int16_t)audible;
         uint32_t magnitude = (uint32_t)(audible < 0 ? -audible : audible);

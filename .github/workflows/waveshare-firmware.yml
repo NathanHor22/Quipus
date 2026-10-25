@@ -51,6 +51,7 @@ jobs:
         run: |
           python3 scripts/test-firmware-network.py
           python3 scripts/test-firmware-ota-policy.py
+          python3 scripts/test-firmware-resample.py
           python3 scripts/test-firmware-wake.py
           python3 scripts/test-firmware-sd.py
           python3 scripts/test-firmware-sd-queue.py
