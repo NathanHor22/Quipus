@@ -25,7 +25,6 @@ export function WorkspaceSetup({ account, calendarConnected, devicePaired, hasRe
   const key = setupStorageKey(account.email);
   const stored = useBrowserStorageSnapshot(key, { eventName: SETUP_PREFERENCES_EVENT });
   const [memoryPreferences, setMemoryPreferences] = useState<{ key: string; value: SetupPreferences } | null>(null);
-  const [expandedAccount, setExpandedAccount] = useState<string | null>(null);
   const preferences = memoryPreferences?.key === key ? memoryPreferences.value : readSetupPreferences(stored);
   const setPreferences = (update: (current: SetupPreferences) => SetupPreferences) => {
     const next = update(preferences);
@@ -49,24 +48,17 @@ export function WorkspaceSetup({ account, calendarConnected, devicePaired, hasRe
     : checkingCalendar ? "Checking your calendar connection." : "Checking your recorder.";
   const count = Number(devicePaired === true) + Number(hasRecording) + Number(calendarConnected === true || preferences.calendarSkipped);
 
-  const expanded = expandedAccount === key && !preferences.collapsed;
-  if (!expanded) {
-    return <section className={styles.resume} aria-label="Get started">
-      <div><strong>Get started</strong><span>{count} of 3 complete</span></div>
-      <button className={styles.secondary} type="button" aria-expanded={false} onClick={() => {
-        setPreferences(current => ({ ...current, collapsed: false }));
-        setExpandedAccount(key);
-      }}>Continue setup</button>
+  if (preferences.collapsed) {
+    return <section className={styles.resume} aria-label="Resume workspace setup">
+      <div><strong>Finish setting up Quipus</strong><span>{title}</span></div>
+      <button className={styles.secondary} type="button" onClick={() => setPreferences(current => ({ ...current, collapsed: false }))}>Resume setup</button>
     </section>;
   }
 
   return <section className={styles.setup} aria-labelledby={headingId}>
     <header className={styles.header}>
       <div><span className={styles.kicker}>GET STARTED</span><h2 id={headingId}>{title}</h2></div>
-      <button className={styles.secondary} type="button" aria-expanded={true} onClick={() => {
-        setPreferences(current => ({ ...current, collapsed: true }));
-        setExpandedAccount(null);
-      }}>Hide setup</button>
+      <button className={styles.secondary} type="button" onClick={() => setPreferences(current => ({ ...current, collapsed: true }))}>Continue later</button>
     </header>
     <ol className={styles.progress} aria-label="Setup progress">
       <li data-complete={calendarConnected === true || preferences.calendarSkipped} aria-current={step === "calendar" ? "step" : undefined}><span>01</span><strong>Calendar <em>Optional</em></strong><small>{calendarConnected === true ? "Connected" : preferences.calendarSkipped ? "Skipped for now" : calendarConnected === undefined ? "Checking" : "Approve follow-ups here"}</small></li>
@@ -75,11 +67,11 @@ export function WorkspaceSetup({ account, calendarConnected, devicePaired, hasRe
     </ol>
     <div className={styles.currentStep}>
       <div>
-        {step === "pair" && <p>Connect your Quipus to send recordings to this account.</p>}
-        {step === "record" && <p>Start a session on your Quipus, confirm consent, then stop when you’re done. Your recording appears here once it uploads.</p>}
-        {step === "calendar" && <p>Connect Google Calendar to schedule the follow-ups you approve. You can also do this later.</p>}
-        {step === "checking" && <p role="status">{checkingCalendar ? "Checking your Google Calendar connection…" : "Checking for your paired Quipus…"}</p>}
-        <small>{count} of 3 complete</small>
+        {step === "pair" && <p>Pair the recorder to this account once. It keeps your recordings locally and uploads to your workspace when connected to saved Wi-Fi.</p>}
+        {step === "record" && <p>On your recorder, choose <strong>Start session</strong>, confirm consent, record a short test and stop. Leave it powered on and connected to Wi-Fi. This step completes when a recording reaches your workspace.</p>}
+        {step === "calendar" && <p>Connect Google Calendar to schedule the follow-ups you approve. Signing in and granting calendar access are separate steps. You can keep recording without connecting it.</p>}
+        {step === "checking" && <p role="status">{checkingCalendar ? "Checking whether Google Calendar is connected to this account. Continue later to return to your workspace while the connection check completes." : "Checking whether this account already has a paired recorder. You can open device setup if the check takes longer than expected."}</p>}
+        <small>{count} of 3 steps finished. Your progress is saved in this browser.</small>
       </div>
       <div className={styles.actions}>
         {(step === "pair" || (step === "checking" && !checkingCalendar)) && <button className={styles.primary} type="button" onClick={onPair}>Open device setup</button>}

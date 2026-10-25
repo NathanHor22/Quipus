@@ -516,13 +516,8 @@
 }
 @media (max-width: 560px) {
   .meeting {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: 100px minmax(0, 1fr);
     gap: 12px;
-  }
-  .meetingDate {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 10px;
   }
   .meetingCopy strong {
     font-size: 16px;

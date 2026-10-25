@@ -17,9 +17,6 @@ export function QuipusHeader({ view, sample, account, navigate }: {
   navigate: (view: WorkspaceView) => void;
 }) {
   const { enabled } = useQuipusMotion();
-  const activeView = view === "calendar" ? "overview"
-    : view === "device" ? "settings"
-    : view === "conversations" ? "people" : view;
   const switchView = (event: MouseEvent<HTMLAnchorElement>, next: WorkspaceView) => {
     if (!event.defaultPrevented && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) {
       event.preventDefault(); navigate(next);
@@ -29,11 +26,11 @@ export function QuipusHeader({ view, sample, account, navigate }: {
     <a href={sample ? "/" : "/dashboard"} className={styles.brand} aria-label={sample ? "Quipus website" : "Quipus home"} onClick={sample ? undefined : event => switchView(event, "overview")}><QuipusMark /><span>QUIPUS</span></a>
     <nav className={styles.navigation} aria-label="Main navigation">
       {([{ id: "overview", label: "Home" }, { id: "people", label: "People" },
-        { id: "settings", label: "Settings" }] as const).map(({ id, label }) =>
-        <a key={id} href={sample ? `${sampleWorkspacePath}?mode=sample&view=${id}` : viewPaths[id]} aria-current={activeView === id ? "page" : undefined}
-          className={`${styles.navLink} ${activeView === id ? styles.navSelected : ""}`}
+        { id: "calendar", label: "Calendar" }, { id: "device", label: "Devices" }, { id: "settings", label: "Settings" }] as const).map(({ id, label }) =>
+        <a key={id} href={sample ? `${sampleWorkspacePath}?mode=sample&view=${id}` : viewPaths[id]} aria-current={view === id || id === "people" && view === "conversations" ? "page" : undefined}
+          className={`${styles.navLink} ${(view === id || id === "people" && view === "conversations") ? styles.navSelected : ""}`}
           onClick={event => switchView(event, id)}>
-          {activeView === id && <motion.span className={styles.navHighlight} layoutId="quipus-active-tab" transition={{ duration: enabled ? .24 : 0, ease: [0.2, 0.8, 0.2, 1] }} />}
+          {(view === id || id === "people" && view === "conversations") && <motion.span className={styles.navHighlight} layoutId="quipus-active-tab" transition={{ duration: enabled ? .24 : 0, ease: [0.2, 0.8, 0.2, 1] }} />}
           <span>{label}</span>
         </a>)}
     </nav>

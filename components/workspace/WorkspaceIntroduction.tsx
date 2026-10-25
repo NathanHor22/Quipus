@@ -5,9 +5,9 @@ import type { WorkspaceIntroductionStep } from "./useWorkspaceIntroduction";
 import styles from "./introduction.module.css";
 
 const steps = [
+  { target: "conversations", title: "Open a conversation", description: "Your summary, transcript and recording stay together." },
   { target: "approvals", title: "Approve what happens next", description: "Check follow-ups before anything is scheduled or shared." },
-  { target: "calendar", title: "Find your meetings", description: "Choose a date to open the conversation, recording and follow-up." },
-  { target: "people", title: "Keep your connections close", description: "Open a person’s card to see your shared conversation history." },
+  { target: "calendar", title: "Pick up where you left off", description: "Find a meeting on your calendar and return to the conversation." },
 ] as const;
 
 type Bounds = { top: number; left: number; width: number; height: number; viewportWidth: number; viewportHeight: number };
