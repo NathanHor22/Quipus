@@ -49,7 +49,8 @@ CONFIG_BT_CTRL_BLE_MAX_ACT=2
 CONFIG_BT_NIMBLE_SM_SC=y
 CONFIG_BT_NIMBLE_NVS_PERSIST=y
 CONFIG_QUIPUS_BLE_SETUP=y
-# CONFIG_LANTERN_WAVESHARE_BATTERY_INSTALLED is not set
+# Recorders ship with a cell; with none connected the bar shows USB.
+CONFIG_LANTERN_WAVESHARE_BATTERY_INSTALLED=y
 CONFIG_CODEC_ES7210_SUPPORT=y
 CONFIG_CODEC_ES8311_SUPPORT=y
 CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
@@ -65,3 +66,13 @@ CONFIG_LWIP_MAX_SOCKETS=16
 CONFIG_HTTPD_MAX_REQ_HDR_LEN=2048
 
 CONFIG_HTTPD_MAX_URI_LEN=512
+
+# Wireless updates: dual app slots, rollback of an image that never checks in,
+# and RSA-signed apps verified on update. No eFuses are burned; the trusted key
+# is the one that signed the running app. Images are signed after the build by
+# sign-firmware.ps1 so the private key never enters the repository or CI.
+CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y
+CONFIG_SECURE_SIGNED_APPS_NO_SECURE_BOOT=y
+CONFIG_SECURE_SIGNED_APPS_RSA_SCHEME=y
+CONFIG_SECURE_SIGNED_ON_UPDATE_NO_SECURE_BOOT=y
+# CONFIG_SECURE_BOOT_BUILD_SIGNED_BINARIES is not set

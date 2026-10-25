@@ -16,7 +16,7 @@ main = root / "hardware/lantern-firmware/main"
 source = (main / "app_main.c").read_text()
 names = ["open_quick_consent", "begin_recording_session", "local_voice_ready",
  "classify_local_yes_no", "capture_consent_response", "cancel_pending_consent",
- "accept_recording_consent", "capture_spoken_consent", "start_spoken_consent",
+ "accept_recording_consent", "capture_spoken_consent", "sd_ready_for_recording", "start_spoken_consent",
  "ask_local_choice", "capture_offline_wake_menu", "capture_wake_command", "stop_local_capture"]
 bodies, declarations = [], []
 for name in names:

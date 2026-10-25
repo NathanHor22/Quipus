@@ -35,6 +35,8 @@ idf_component_register(
     "quipus_codec_control.c"
     "lantern_display.c"
     "lantern_network.c"
+    "lantern_ota.c"
+    "quipus_ota_policy.c"
     "lantern_bluetooth.c"
     "quipus_ble_transfer.c"
     "quipus_local_prompts.c"

@@ -42,6 +42,8 @@ static adc_cali_handle_t s_battery_calibration;
 #include "quipus_local_recognizer.h"
 #include "quipus_volume.h"
 #include "quipus_sync_policy.h"
+#include "quipus_ota_policy.h"
+#include "lantern_ota.h"
 
 typedef enum {
   LOCAL_READY,
@@ -313,6 +315,9 @@ static int battery_from_adc(int raw) {
       adc_cali_raw_to_voltage(s_battery_calibration, raw, &millivolts) != ESP_OK)
     return -1;
   millivolts *= LANTERN_BATTERY_ADC_DIVIDER;
+  // Far below any lithium cell's cutoff: no battery is connected, so the
+  // board is running from USB. Report unknown rather than an empty battery.
+  if (millivolts < 2500) return -1;
   const int voltage_points[] = {3300, 3640, 3760, 3880, 4000, 4200};
   const int levels[] = {0, 20, 40, 60, 80, 100};
   if (millivolts <= voltage_points[0]) return 0;
@@ -510,7 +515,7 @@ static esp_err_t open_quick_consent(void) {
   lantern_network_set_realtime(true);
   s_state = LOCAL_AWAITING_CONSENT;
   s_state_entered_at = xTaskGetTickCount();
-  lantern_display_show(LANTERN_SCREEN_CONSENT, "SAY YES WE CONSENT OR NO");
+  lantern_display_show(LANTERN_SCREEN_CONSENT, "SAY YES OR NO");
   return ESP_OK;
 }
 
@@ -573,7 +578,7 @@ static esp_err_t classify_local_yes_no(quipus_local_purpose_t purpose,
 static esp_err_t capture_consent_response(const char *context,
                                           char intent[32]) {
   intent[0] = 0;
-  lantern_display_show(LANTERN_SCREEN_CONSENT, "SAY YES WE CONSENT OR NO");
+  lantern_display_show(LANTERN_SCREEN_CONSENT, "SAY YES OR NO");
   lantern_audio_chime(1);
   vTaskDelay(pdMS_TO_TICKS(250));
   // Capture the full room response, including a later refusal. Connected
@@ -742,8 +747,29 @@ static void capture_spoken_consent(void) {
   cancel_pending_consent();
 }
 
+// Never ask for consent the recorder cannot act on: every session saves to
+// the secured card first. A newly inserted card may mount locally.
+static bool sd_ready_for_recording(void) {
+#if LANTERN_HAS_SD_CARD
+  // An unpaired recorder has no card key yet; pairing is the real blocker,
+  // and open_quick_consent already refuses it.
+  lantern_network_status_t network;
+  lantern_network_get_status(&network);
+  if (!network.paired) return true;
+  if (lantern_sd_secure_ready()) return true;
+  if (lantern_sd_init(NULL) == ESP_OK && lantern_sd_secure_ready()) return true;
+  ESP_LOGW(TAG, "recording unavailable before consent: SD card missing or not yet secured");
+  (void)quipus_play_prompt(QUIPUS_PROMPT_SD_FAILURE);
+  show_ready();
+  return false;
+#else
+  return true;
+#endif
+}
+
 static void start_spoken_consent(bool announce_request) {
-  if (s_power_off_requested || open_quick_consent() != ESP_OK) return;
+  if (s_power_off_requested || !sd_ready_for_recording() ||
+      open_quick_consent() != ESP_OK) return;
   esp_err_t spoken = announce_request ? quipus_play_consent_prompt() : ESP_OK;
   if (s_power_off_requested) return;
   lantern_network_status_t network;
@@ -1492,7 +1518,9 @@ static void capture_recovery_command(void) {
   lantern_network_get_status(&network);
   if (s_state != LOCAL_ERROR || s_power_off_requested || !network.paired) return;
   if (!network.wifi_connected) {
-    (void)quipus_play_prompt(QUIPUS_PROMPT_NETWORK_REQUIRED);
+    // Name the real blocker: an SD fault needs the card, not Wi-Fi.
+    (void)quipus_play_prompt(strstr(s_last_error_detail, "SD ")
+        ? QUIPUS_PROMPT_SD_FAILURE : QUIPUS_PROMPT_NETWORK_REQUIRED);
     sync_idle_wake_listener();
     return;
   }
@@ -2367,6 +2395,31 @@ static void telemetry_task(void *argument) {
         lantern_network_send_heartbeat("ready", 0, s_battery_level);
       xSemaphoreGive(s_control_mutex);
     }
+    // A wireless update waits for an idle, powered recorder with nothing
+    // unsent; it restarts on success and returns to READY on any failure.
+    if (seconds % 15 == 7 && s_state == LOCAL_READY && lantern_ota_offer_ready()) {
+      quipus_ota_window_t window = {
+          .ready = s_boot_complete && s_state == LOCAL_READY,
+          .recording = lantern_audio_is_recording() || s_sd_recording_active,
+          .uploads_pending = s_summary_retry_pending,
+          .sync_busy = s_summary_retrying,
+          .phone_audio_idle = quipus_phone_audio_idle(),
+          .shutting_down = s_power_off_requested,
+          .external_power = battery_power_state() == LANTERN_POWER_CHARGING,
+          .battery_level = s_battery_level,
+          .user_idle_ms = pdTICKS_TO_MS(xTaskGetTickCount() - s_last_interaction_at),
+      };
+      if (quipus_ota_window_open(&window) &&
+          xSemaphoreTake(s_control_mutex, 0) == pdTRUE) {
+        if (s_state == LOCAL_READY) {
+          s_state = LOCAL_COMMAND_PROCESSING;
+          lantern_wake_set_enabled(false);
+          lantern_ota_install();
+          show_ready();
+        }
+        xSemaphoreGive(s_control_mutex);
+      }
+    }
 
 #if LANTERN_HAS_TOUCHSCREEN
     if (!s_display_asleep && s_state == LOCAL_READY &&
@@ -2377,6 +2430,23 @@ static void telemetry_task(void *argument) {
     }
 #endif
 
+    // The slot has no detect pin: probe for a removed or newly inserted card
+    // while idle, so a swapped card is used (or reported) without a restart.
+    if (LANTERN_HAS_SD_CARD && seconds % 2 == 0 && s_state == LOCAL_READY &&
+        !s_summary_retrying && !s_power_off_requested && quipus_phone_audio_idle() &&
+        xSemaphoreTake(s_control_mutex, 0) == pdTRUE) {
+      if (s_state == LOCAL_READY) {
+        lantern_sd_change_t change = lantern_sd_poll();
+        if (change != LANTERN_SD_UNCHANGED) {
+          s_summary_retry_pending = lantern_sd_upload_pending_count() > 0;
+          s_network_update_pending = true;
+          ESP_LOGI(TAG, "microSD %s; secure=%d pending=%u",
+                   change == LANTERN_SD_INSERTED ? "inserted" : "removed",
+                   lantern_sd_secure_ready(), (unsigned)lantern_sd_upload_pending_count());
+        }
+      }
+      xSemaphoreGive(s_control_mutex);
+    }
     if (LANTERN_HAS_SD_CARD && seconds % 15 == 0 && s_state == LOCAL_READY &&
         display_network.paired && display_network.wifi_connected &&
         !lantern_sd_secure_ready() &&
@@ -2492,6 +2562,8 @@ static void audio_startup_fault(esp_err_t error) {
   bool armed = false; // A power-on hold must be released before any action.
   TickType_t status_at = xTaskGetTickCount();
   TickType_t diagnostic_at = status_at;
+  TickType_t heartbeat_at = status_at;
+  TickType_t pressed_at = status_at;
   for (;;) {
     bool pressed = false;
 #if LANTERN_HAS_PHYSICAL_BUTTONS
@@ -2501,6 +2573,7 @@ static void audio_startup_fault(esp_err_t error) {
     pressed = inputs_ready && lantern_board_touch_read(&x, &y);
 #endif
     if (!pressed) armed = true;
+    else pressed_at = xTaskGetTickCount();
     uint32_t now = (uint32_t)(esp_timer_get_time() / 1000);
     if (armed) {
 #if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
@@ -2526,12 +2599,44 @@ static void audio_startup_fault(esp_err_t error) {
           current.connectivity, current.wifi_rssi, current.paired);
       status_at = xTaskGetTickCount();
     }
+    // Keep checking in so the dashboard shows the fault and a fixed firmware
+    // can still arrive wirelessly. Nothing here records or uploads audio.
+    if (network == ESP_OK && xTaskGetTickCount() - heartbeat_at >= pdMS_TO_TICKS(15000)) {
+      heartbeat_at = xTaskGetTickCount();
+      update_battery_level();
+      lantern_network_send_heartbeat("error", 0, s_battery_level);
+      quipus_ota_window_t window = {
+          .ready = true,
+          .uploads_pending = !lantern_sd_can_power_down(),
+          .phone_audio_idle = true,
+          .shutting_down = s_power_off_requested,
+          .external_power = battery_power_state() == LANTERN_POWER_CHARGING,
+          .battery_level = s_battery_level,
+          .user_idle_ms = pdTICKS_TO_MS(xTaskGetTickCount() - pressed_at),
+      };
+      if (lantern_ota_offer_ready() && quipus_ota_window_open(&window)) {
+        lantern_ota_install();
+        lantern_display_show_detail("MICROPHONE OFFLINE", instructions, NULL);
+      }
+    }
     if (xTaskGetTickCount() - diagnostic_at >= pdMS_TO_TICKS(10000)) {
       ESP_LOGI(TAG, "audio fault idle capture_disabled=1 sd_safe=%d", lantern_sd_can_power_down());
       diagnostic_at = xTaskGetTickCount();
     }
     vTaskDelay(pdMS_TO_TICKS(20));
   }
+}
+
+// Settings storage that still holds Quipus data is never wiped (it may hold
+// the only SD archive key). Say so on screen instead of restarting forever;
+// a USB reflash or support recovery is required.
+static void storage_fault(esp_err_t error) {
+  ESP_LOGE(TAG, "settings storage unavailable: %s; holding without restart",
+           esp_err_to_name(error));
+  if (lantern_display_init() == ESP_OK)
+    lantern_display_show_detail("SETTINGS NEED SERVICE",
+        "Saved recordings are kept. Contact Quipus support.", NULL);
+  for (;;) vTaskDelay(pdMS_TO_TICKS(1000));
 }
 
 void app_main(void) {
@@ -2542,7 +2647,9 @@ void app_main(void) {
   s_state_entered_at = xTaskGetTickCount();
   power_and_battery_init();
   update_battery_level();
-  ESP_ERROR_CHECK(lantern_storage_init());
+  esp_err_t storage = lantern_storage_init();
+  if (storage != ESP_OK) storage_fault(storage);
+  lantern_ota_boot();
   ESP_ERROR_CHECK(lantern_storage_load(&s_config));
   ESP_ERROR_CHECK(lantern_display_init());
   lantern_display_show(LANTERN_SCREEN_BOOTING, "CHECKING SD CARD");

@@ -169,14 +169,14 @@ static void wave_tests(display_update_t *u) {
   for(int y=30;y<80;++y) for(int x=0;x<LANTERN_DISPLAY_WIDTH;++x)
     assert(pixels[y*LANTERN_DISPLAY_WIDTH+x]==rgb565(255,255,255));
   // Unknown measurements must never invent a battery or charging state. The
-  // USB-only profile names its actual supply; a battery-capable profile says PWR.
+  // With no readable cell (USB-only profile or no battery connected) the bar says USB.
   u->battery_level=-1; u->power_state=LANTERN_POWER_UNKNOWN; render(u);
   uint32_t unknown_power=region_hash(150,0,90,29);
   for(int y=17;y<27;++y) for(int x=150;x<LANTERN_DISPLAY_WIDTH;++x)
     assert(pixels[y*LANTERN_DISPLAY_WIDTH+x]==rgb565(255,255,255));
   uint32_t power_label=region_hash(210,9,25,7);
   rect(210,9,25,7,rgb565(255,255,255));
-  const char *expected_power=LANTERN_BATTERY_INSTALLED ? "PWR" : "USB";
+  const char *expected_power="USB";
   draw_text(LANTERN_DISPLAY_WIDTH-7-text_width(expected_power,1),9,expected_power,1,rgb565(103,120,138));
   assert(region_hash(210,9,25,7)==power_label);
   u->power_state=LANTERN_POWER_CHARGING; render(u);
@@ -187,7 +187,7 @@ static void wave_tests(display_update_t *u) {
   assert(pixels[9*LANTERN_DISPLAY_WIDTH+19]==rgb565(103,120,138));
   u->wifi_rssi=-55; u->battery_level=100; render(u);
   uint32_t neutral_mouth=region_hash(82,132,76,28);
-  state(u,LANTERN_SCREEN_CONSENT,"SAY YES WE CONSENT OR NO","consent");
+  state(u,LANTERN_SCREEN_CONSENT,"SAY YES OR NO","consent");
   assert(region_hash(82,132,76,28)==neutral_mouth);
   state(u,LANTERN_SCREEN_RECORDING,"00:42 - PRESS MIDDLE TO STOP","recording");
   uint32_t open_mouth=region_hash(82,132,76,28);

@@ -63,7 +63,7 @@ static unsigned accepted, captured, prompted, declined, reset_calls, chimes;
 static char screen[96];
 static bool s_controls_ready = true;
 static bool s_wifi_screen_open;
-static unsigned retry_questions, refusal_cues, network_cues;
+static unsigned retry_questions, refusal_cues, network_cues, sd_cues;
 static bool s_power_off_requested;
 static bool s_boot_complete = true;
 static unsigned task_clock_ms, task_stop_ms, simulated_outer_pin;
@@ -205,6 +205,7 @@ static esp_err_t quipus_play_prompt(quipus_prompt_t prompt) {
     return retry_prompt_fails ? ESP_FAIL : prompt_result;
   }
   if(prompt==QUIPUS_PROMPT_CONSENT_REFUSED) { ++refusal_cues; return ESP_OK; }
+  if(prompt==QUIPUS_PROMPT_SD_FAILURE) { ++sd_cues; return ESP_OK; }
   assert(prompt==QUIPUS_PROMPT_NETWORK_REQUIRED); ++network_cues; return ESP_OK;
 }
 static void lantern_display_show(int page, const char *detail) {
@@ -217,7 +218,7 @@ static int capture_consent_response(const char *context, char intent[32]) {
   assert(!strcmp(context, "consent") || !strcmp(context, "consent_retry"));
   ++captured;
   if (power_during_capture) s_power_off_requested = true;
-  assert(cloud_begins == 0 && offline_begins == 0 && secure_sd_checks == 0);
+  assert(cloud_begins == 0 && offline_begins == 0 && archive_key_requests == 0);
   snprintf(intent, 32, "%s", captured > 1 ? retry_intent : response_intent);
   return captured > 1 ? retry_result : response_result;
 }
@@ -253,7 +254,7 @@ static void reset_case(bool offline, int speech) {
   power_during_prompt = power_during_capture = false;
   errors = 0;
   s_wifi_screen_open=false;
-  retry_questions=refusal_cues=network_cues=0;
+  retry_questions=refusal_cues=network_cues=sd_cues=0;
   response_result = ESP_OK;
   response_intent = retry_intent = "consent_yes";
   retry_result = ESP_OK;
@@ -353,7 +354,9 @@ static void safe_shutdown_paths(void) {
 
 static void assert_no_session_before_yes(void) {
   assert(accepted == 0 && cloud_begins == 0 && offline_begins == 0);
-  assert(secure_sd_checks == 0 && archive_key_requests == 0);
+  // Reading SD readiness before the question is allowed; opening a session
+  // or requesting a key is not.
+  assert(archive_key_requests == 0);
   assert(!s_cloud_session.session_id[0]);
 }
 
@@ -524,12 +527,14 @@ int main(void) {
   begin_result = offline_result = ESP_FAIL;
   handle_short_press();
   assert(cloud_begins == 0 && offline_begins == 1 && accepted == 0 && errors == 1);
+  // A missing or unsecured card is named before any consent question, so
+  // nobody consents to a recording the device cannot save.
   reset_case(false, ESP_OK);
   sd_secure = false;
   remount_result = ESP_FAIL;
   handle_short_press();
   assert(archive_key_requests == 0 && cloud_begins == 0 && offline_begins == 0 && remounts == 1);
-  assert(accepted == 0 && errors == 1);
+  assert(accepted == 0 && errors == 0 && sd_cues == 1 && prompted == 0 && captured == 0);
 
   // Outer volume controls never decide consent, and respect middle/reset chords.
   reset_case(false, ESP_OK);

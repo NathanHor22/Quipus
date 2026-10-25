@@ -1,4 +1,5 @@
 #include "lantern_audio.h"
+#include "quipus_resample.h"
 
 #include <limits.h>
 #include <stdatomic.h>
@@ -23,7 +24,10 @@
 #define AUDIO_READ_SAMPLES 320
 #define AUDIO_WRITE_SAMPLES 240
 #define PCM_STREAM_BUFFER_BYTES (64 * 1024)
-#define PCM_PREFILL_BYTES (LANTERN_TTS_SAMPLE_RATE * sizeof(int16_t) / 8)
+// 400ms before the speaker starts, and 125ms again after running dry, so
+// hotspot jitter causes one short pause instead of repeated stutter.
+#define PCM_PREFILL_BYTES (LANTERN_TTS_SAMPLE_RATE * sizeof(int16_t) * 2 / 5)
+#define PCM_REBUFFER_BYTES (LANTERN_TTS_SAMPLE_RATE * sizeof(int16_t) / 8)
 #define RETRY_BUFFER_SECONDS 30
 #define RETRY_BUFFER_SAMPLES (LANTERN_MIC_SAMPLE_RATE * RETRY_BUFFER_SECONDS)
 
@@ -185,10 +189,14 @@ static void pcm_playback_task(void *argument) {
   static uint8_t input[AUDIO_WRITE_SAMPLES * sizeof(int16_t)];
   static i2s_output_sample_t output[AUDIO_WRITE_SAMPLES * I2S_OUTPUT_CHANNELS];
   static int16_t reference[AUDIO_WRITE_SAMPLES];
+  static int16_t converted[AUDIO_WRITE_SAMPLES];
+  static quipus_resample_3_2_t resampler;
   while (true) {
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    quipus_resample_3_2_reset(&resampler);
     bool speaker_started = false;
-    uint32_t output_frames = 0, written_frames = 0, nonzero_frames = 0;
+    uint32_t output_frames = 0, written_frames = 0, nonzero_frames = 0, starved = 0;
+    bool rebuffering = false;
     uint16_t output_peak = 0;
     while (s_pcm_playing) {
       if (s_pcm_cancelled)
@@ -213,8 +221,16 @@ static void pcm_playback_task(void *argument) {
       if (!available) {
         if (s_pcm_input_finished)
           break;
+        if (!rebuffering) { rebuffering = true; ++starved; }
         vTaskDelay(pdMS_TO_TICKS(5));
         continue;
+      }
+      if (rebuffering) {
+        if (!s_pcm_input_finished && available < PCM_REBUFFER_BYTES) {
+          vTaskDelay(pdMS_TO_TICKS(5));
+          continue;
+        }
+        rebuffering = false;
       }
 
       size_t wanted = sizeof(input);
@@ -233,19 +249,28 @@ static void pcm_playback_task(void *argument) {
       size_t received = xStreamBufferReceive(s_pcm_stream, input, wanted, 0);
       received &= ~(size_t)1;
       size_t source_count = received / sizeof(int16_t);
+      for (size_t index = 0; index < source_count; ++index)
+        reference[index] = (int16_t)((uint16_t)input[index * 2] |
+                                     ((uint16_t)input[index * 2 + 1] << 8));
+#if LANTERN_TTS_SAMPLE_RATE * 2 == LANTERN_SPK_SAMPLE_RATE * 3
+      size_t sample_count = quipus_resample_3_2(&resampler, reference, source_count,
+                                                converted, AUDIO_WRITE_SAMPLES);
+#else
       size_t sample_count =
           source_count * LANTERN_SPK_SAMPLE_RATE / LANTERN_TTS_SAMPLE_RATE;
       if (!sample_count && source_count)
         sample_count = 1;
-      uint32_t speech_absolute = 0;
       for (size_t index = 0; index < sample_count; ++index) {
         size_t source_index =
             index * LANTERN_TTS_SAMPLE_RATE / LANTERN_SPK_SAMPLE_RATE;
         if (source_index >= source_count)
           source_index = source_count - 1;
-        int16_t sample =
-            (int16_t)((uint16_t)input[source_index * 2] |
-                      ((uint16_t)input[source_index * 2 + 1] << 8));
+        converted[index] = reference[source_index];
+      }
+#endif
+      uint32_t speech_absolute = 0;
+      for (size_t index = 0; index < sample_count; ++index) {
+        int16_t sample = converted[index];
         int32_t audible = speaker_sample(sample);
         reference[index] = (int16_t)audible;
         uint32_t magnitude = (uint32_t)(audible < 0 ? -audible : audible);
@@ -279,9 +304,9 @@ static void pcm_playback_task(void *argument) {
 
     if (speaker_started)
       speaker_stop_silent();
-    ESP_LOGI(TAG, "PCM submitted_frames=%lu written_frames=%lu nonzero=%lu peak=%u volume=%u failed=%u cancelled=%u",
+    ESP_LOGI(TAG, "PCM submitted_frames=%lu written_frames=%lu nonzero=%lu peak=%u volume=%u failed=%u cancelled=%u starved=%lu",
         (unsigned long)output_frames, (unsigned long)written_frames, (unsigned long)nonzero_frames, (unsigned)output_peak,
-        lantern_audio_volume(), s_pcm_failed, s_pcm_cancelled);
+        lantern_audio_volume(), s_pcm_failed, s_pcm_cancelled, (unsigned long)starved);
     s_pcm_playing = false;
     s_speaker_active = false;
     xSemaphoreGive(s_speaker_lock);

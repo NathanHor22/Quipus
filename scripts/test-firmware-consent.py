@@ -15,7 +15,7 @@ compiler = [str(zig), "cc"] if zig.is_file() else [os.environ.get("CC", "cc")]
 source = (root / "hardware/lantern-firmware/main/app_main.c").read_text()
 bodies, declarations = [], []
 monitor = "input_monitor_task" if re.search(r"^static void input_monitor_task\(", source, re.M) else "report_interrupt_task"
-for name in ["open_quick_consent", "begin_recording_session", "capture_spoken_consent", "start_spoken_consent", "handle_short_press", "cancel_pending_consent", "power_off_safely", monitor]:
+for name in ["open_quick_consent", "begin_recording_session", "capture_spoken_consent", "sd_ready_for_recording", "start_spoken_consent", "handle_short_press", "cancel_pending_consent", "power_off_safely", monitor]:
     match = re.search(r"^static [A-Za-z_][A-Za-z_0-9 *]*\b" + name + r"\([^;]*?\) \{", source, re.M)
     if not match:
         raise RuntimeError("Missing production consent function: " + name)

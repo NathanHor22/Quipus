@@ -173,6 +173,11 @@ idf.py -B build-waveshare -D SDKCONFIG=sdkconfig.waveshare \
   -p /dev/ttyACM0 flash monitor
 ```
 
+`flash-waveshare.ps1` signs the app with your local key before writing it (see
+[wireless firmware updates](../../docs/firmware-updates.md)); pass
+`-ExpectMac aa:bb:cc:dd:ee:ff` to refuse any other board. Recorders on 0.13.0
+or later then update over Wi-Fi; only the first install needs USB.
+
 Output is isolated in `build-waveshare`. Flash the complete build initially to
 install the bootloader, partition table, app and WakeNet model; this replaces
 the factory application. Original and V2 images target different hardware.

@@ -37,6 +37,9 @@ esp_err_t quipus_local_inference_vad_frame(const int16_t *frame,bool *speech) {
   if(vad_mode==10)*speech=index>=30 && index<=190 && (index-30)%20==0;
   if(vad_mode==11)*speech=index>=20 && index<40;
   if(vad_mode==12)*speech=index>=20 && index<66;
+  if(vad_mode==13)*speech=index>=2 && index<22;
+  if(vad_mode==14)*speech=(index>=20 && index<31)||(index>=39 && index<46);
+  if(vad_mode==15)*speech=index>=20 && index<31;
   return ESP_OK;
 }
 esp_err_t quipus_local_inference_frame(const int16_t *frame,bool classify,uint8_t scores[4]) {
@@ -150,6 +153,19 @@ int main(void) {
   uint8_t actual_no[4]={0,4,5,247};
   observe(&replay,&result.diagnostics,actual_no,4990,35,100);
   finish_decision(&replay,&result,QUIPUS_LOCAL_PURPOSE_CONSENT);assert(result.intent==QUIPUS_LOCAL_NO);
+  // Live board-2 tail: a weak NO (135) over only the last40ms of an explained
+  // YES does not veto it; the same weak NO over100ms of speech still does.
+  uint8_t strong_yes[4]={0,8,255,4},weak_no[4]={20,60,40,135};
+  for(unsigned voiced=40;voiced<=100;voiced+=60) {
+    decision_t tail={0};result=(quipus_local_result_t){.intent=QUIPUS_LOCAL_UNKNOWN};
+    result.diagnostics.vad_available=true;result.diagnostics.background_verified=true;
+    observe(&tail,&result.diagnostics,strong_yes,990,380,600);
+    observe(&tail,&result.diagnostics,strong_yes,1090,380,600);
+    observe(&tail,&result.diagnostics,weak_no,2390,20,(uint16_t)voiced);
+    finish_decision(&tail,&result,QUIPUS_LOCAL_PURPOSE_CONSENT);
+    assert(result.intent==(voiced<100?QUIPUS_LOCAL_YES:QUIPUS_LOCAL_UNKNOWN));
+    assert(result.diagnostics.possible_no_windows==(voiced<100?0U:1U));
+  }
 
   // VAD onset lag is associated only when adjacent and within100ms.
   for(size_t i=0;i<80000;++i)pcm[i]=(i%2)?19:-19;
@@ -189,12 +205,29 @@ int main(void) {
   result=navigate(2,80000);
   assert(result.intent==QUIPUS_LOCAL_YES && result.diagnostics.ambiguous_frames==5);
   assert(windows==41 && vad_calls==250);
-  // A single brief unvoiced fluctuation reproduces the live menu failure.
+  // Room fluctuations shorter than100ms (live consent failures at 1.8-2.3x
+  // floor) are not speech; a sustained100ms run at that level, or a strong
+  // blip, is.
   for(size_t i=76800;i<78400;++i)pcm[i]=(i%2)?19:-19;
   for(size_t i=67200;i<67520;++i)pcm[i]=(i%2)?44:-44;
-  assert(run(2,80000).intent==QUIPUS_LOCAL_UNKNOWN);
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_YES && !result.diagnostics.ambiguous_frames);
   assert(navigate(2,80000).intent==QUIPUS_LOCAL_YES);
-  for(size_t i=67200;i<67520;++i)pcm[i]=(i%2)?19:-19;
+  for(size_t i=67200;i<68480;++i)pcm[i]=(i%2)?44:-44;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_YES && result.diagnostics.longest_above_floor_frames==4);
+  for(size_t i=67200;i<68800;++i)pcm[i]=(i%2)?44:-44;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==5);
+  for(size_t i=67200;i<68800;++i)pcm[i]=(i%2)?19:-19;
+  for(size_t i=67200;i<67520;++i)pcm[i]=(i%2)?66:-66;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==1);
+  // Two separated brief fluctuations do not join into a run.
+  for(size_t i=67200;i<67520;++i)pcm[i]=(i%2)?44:-44;
+  for(size_t i=67840;i<68160;++i)pcm[i]=(i%2)?44:-44;
+  assert(run(2,80000).intent==QUIPUS_LOCAL_YES);
+  for(size_t i=67200;i<68160;++i)pcm[i]=(i%2)?19:-19;
   vad_mode=1;
   assert(navigate(5,80000).intent==QUIPUS_LOCAL_NO);
   assert(navigate(9,80000).intent==QUIPUS_LOCAL_NO);
@@ -229,6 +262,53 @@ int main(void) {
   result=run(2,79999);
   assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames);
   pcm[79998]=19;
+  // A prompt answer has no quiet prefix; the quiet after the word calibrates.
+  for(size_t i=0;i<80000;++i)pcm[i]=(i%2)?19:-19;
+  for(size_t i=2*320;i<22*320;++i)pcm[i]=(i%2)?300:-300;
+  vad_mode=13;result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_YES && result.diagnostics.background_verified);
+  assert(result.diagnostics.background_rms==19 && !result.diagnostics.ambiguous_frames);
+  // ...and a later quiet refusal missed by VAD still blocks approval.
+  for(size_t i=76800;i<78400;++i)pcm[i]=(i%2)?35:-35;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==5);
+  // Noise inside the post-answer calibration window is never accepted.
+  for(size_t i=76800;i<78400;++i)pcm[i]=(i%2)?19:-19;
+  for(size_t i=32*320;i<38*320;++i)pcm[i]=(i%2)?60:-60;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && !result.diagnostics.background_verified);
+  // Speech continuing to the end leaves nothing to calibrate from.
+  for(size_t i=0;i<80000;++i)pcm[i]=(i%2)?300:-300;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && !result.diagnostics.background_verified);
+  // The live /s/ of "yes": VAD drops out mid-word while energy continues.
+  for(size_t i=0;i<80000;++i)pcm[i]=(i%2)?13:-13;
+  for(size_t i=20*320;i<46*320;++i)pcm[i]=(i%2)?300:-300;
+  vad_mode=14;result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_YES && !result.diagnostics.ambiguous_frames);
+  assert(!result.diagnostics.unexplained_speech_frames && result.diagnostics.background_verified);
+  // An unvoiced ending is attached for at most200ms; anything longer is ambiguous.
+  for(size_t i=0;i<80000;++i)pcm[i]=(i%2)?13:-13;
+  for(size_t i=20*320;i<43*320;++i)pcm[i]=(i%2)?300:-300;
+  vad_mode=15;result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==2);
+  // A quiet gap ends the word; a later burst is never attached to it.
+  for(size_t i=0;i<80000;++i)pcm[i]=(i%2)?13:-13;
+  for(size_t i=20*320;i<31*320;++i)pcm[i]=(i%2)?300:-300;
+  for(size_t i=33*320;i<37*320;++i)pcm[i]=(i%2)?300:-300;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==4);
+  // A single 20ms DC bump (board 2: three isolated blocks) is not speech;
+  // a DC shift lasting100ms still blocks approval.
+  for(size_t i=0;i<80000;++i)pcm[i]=(i%2)?19:-19;
+  for(size_t i=16000;i<22400;++i)pcm[i]=(i%2)?300:-300;
+  vad_mode=5;
+  for(size_t i=188*320;i<189*320;++i)pcm[i]+=40;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_YES && !result.diagnostics.ambiguous_frames);
+  for(size_t i=189*320;i<193*320;++i)pcm[i]+=40;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==5);
   // Decaying startup DC cannot calibrate itself as harmless background.
   for(size_t i=0;i<80000;++i)pcm[i]=(int16_t)(2000-i/40);
   vad_mode=5;result=run(2,80000);

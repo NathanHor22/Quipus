@@ -50,8 +50,11 @@ jobs:
       - name: Fault and recovery regressions
         run: |
           python3 scripts/test-firmware-network.py
+          python3 scripts/test-firmware-ota-policy.py
+          python3 scripts/test-firmware-resample.py
           python3 scripts/test-firmware-wake.py
           python3 scripts/test-firmware-sd.py
+          python3 scripts/test-firmware-sd-presence.py
           python3 scripts/test-firmware-sd-queue.py
           python3 scripts/test-firmware-sd-retention.py
           python3 scripts/test-firmware-barge-in.py

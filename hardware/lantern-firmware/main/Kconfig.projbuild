@@ -30,7 +30,7 @@ config LANTERN_API_BASE_URL
 config LANTERN_WAVESHARE_BATTERY_INSTALLED
     bool "Waveshare lithium battery installed"
     depends on LANTERN_BOARD_WAVESHARE_LCD_154
-    default n
+    default y
     help
         Enable calibrated battery telemetry only with a battery connected.
         USB-only boards report an unknown battery level rather than reading
@@ -71,5 +71,33 @@ config QUIPUS_BLE_SETUP
         Pair an unowned recorder from a website without changing the phone's
         Wi-Fi. Requires encrypted LE Secure Connections and a passkey shown
         on the recorder. Bluetooth closes after cloud pairing.
+
+config QUIPUS_OTA_DOWNLOAD_PREFIX
+    string "Trusted firmware download prefix"
+    default "https://cjogfunwcwytvooycjzv.supabase.co/storage/v1/object/sign/firmware/"
+    help
+        Wireless updates download only from URLs that start with this HTTPS
+        prefix (the private Supabase "firmware" bucket). The image must also
+        match the offered SHA-256 and carry a signature from the key that
+        signed the running firmware.
+
+config QUIPUS_FIRMWARE_VERSION_CUSTOM
+    bool "Override the firmware version string (release and bench builds)"
+    default n
+
+config QUIPUS_FIRMWARE_VERSION
+    string "Firmware version"
+    depends on QUIPUS_FIRMWARE_VERSION_CUSTOM
+    default "0.13.0-quipus"
+    help
+        MAJOR.MINOR.PATCH with an optional -suffix. Wireless updates install
+        only strictly newer versions.
+
+config QUIPUS_OTA_BENCH_FAIL_NEW_IMAGE
+    bool "Bench only: fail the first-boot check after a wireless update"
+    default n
+    help
+        Builds an image that restarts while still on trial, proving that the
+        bootloader returns to the previous firmware. Never publish to owners.
 
 endmenu

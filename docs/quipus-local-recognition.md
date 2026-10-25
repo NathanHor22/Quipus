@@ -116,6 +116,65 @@ All five seconds and all 41 model windows remain inspected. Only contexts with a
 
 The activity backstop calibrates from100-500ms of the initial unvoiced prefix, reserving the final100ms before raw VAD onset so delayed detection cannot label the beginning of a word as room noise. Only a contiguous above-floor rise immediately adjoining that onset can join its region, for at most100ms; a quiet gap stops attachment. The entire expanded region must still fit an isolated trusted-YES context, while raw VAD support remains mandatory for word votes. Earlier, detached, late or otherwise unexplained activity still prevents affirmative admission. Calibration never uses later speech. The conservative prototype background ceiling is RMS96; the only actual target evidence so far was RMS19. Above-floor unexplained blocks, failed/unavailable VAD, missing calibration and a voiced final200ms prevent affirmative admission. Summary diagnostics record the first/last ambiguous block end time and RMS plus the number of attached onset frames; no per-frame PCM is logged. The final partial20ms block is included, with zero padding only for the VAD call and activity energy measured over the real samples. These limits can cause retries and do not prove that speech below the room noise was absent. No YES/NO model thresholds were lowered and no amplitude normalization was added.
 
+## 0.13.3–0.13.4 room-noise, prompt-answer and word-ending admission
+
+A live offline session on board `80:45:6b:35:b7:dc` (2026-10-26, five consent
+answers of "yes") scored YES 237-255 with no trusted or possible NO every time,
+yet all five returned UNKNOWN. Two admission gates were the cause:
+
+- **Prompt answers left no prefix.** Speech began within 100 ms of capture, so
+  `background_rms=0` and the background was unverified. When the prefix has
+  fewer than five blocks, calibration now uses the 25 blocks (500 ms) starting
+  100 ms after the last voiced block. If any of those blocks is voiced or
+  flagged, or there is not enough audio after the answer, the background stays
+  unverified and YES is refused. (0.13.3 moves the start to 200 ms after the
+  last voiced block, past any attached word ending.)
+- **Single 20 ms room fluctuations.** Blocks at 29-33 RMS over a 17-18 floor
+  (about 1.8x), including the decaying "s" 20 ms after VAD offset, were each
+  treated as possible hidden speech. An above-floor block now counts only when
+  it is part of a run of at least five contiguous blocks (100 ms; 0.13.3 used
+  60 ms, which board 2's room still exceeded at 1.8x floor) or exceeds
+  `3 x floor + 8`. Any spoken word, including a quiet "no", lasts well over
+  100 ms. DC drift still counts on any single block. The longest run is logged
+  as `longest_above_floor_frames`.
+
+- **Unvoiced word endings.** A second live "yes" (YES 255, ten windows, no NO)
+  was refused because VAD went silent through the /s/: 160 ms at RMS 69 over a
+  13 floor split the word and left the fricative unexplained. Up to 200 ms of
+  contiguous above-floor blocks immediately after a VAD offset now join that
+  word, mirroring the 100 ms onset rule. A quiet block ends the walk, the
+  expanded word must still fit one isolated trusted-YES context, and the
+  `onset_attached_frames` diagnostic now counts both directions.
+
+- **Weak NO from a silent tail (0.13.4).** On board 2 a YES (255, nine
+  windows) was vetoed by one context scoring NO 135 that held only the final
+  40 ms of the explained word; the model's NO score drifts upward over room
+  noise. A possible (untrusted, 128-199) NO now vetoes only with at least
+  100 ms of voiced support. A trusted NO (200+, margin 32) still wins with any
+  voiced support.
+
+- **SD readiness before the question (0.13.5).** Board 2 had no card: YES was
+  accepted, then the session failed (`CONNECT ONCE TO SECURE SD`), and saying
+  "Computer" offline in that error state said "connect to Wi-Fi". The recorder
+  now checks (and, for a newly inserted card, mounts) the secured card before
+  asking for consent, and says "Please check the SD card" instead of asking.
+  Offline recovery for an SD fault names the card rather than Wi-Fi. Reading
+  readiness creates no session and requests no key before YES.
+
+- **Wording and brief DC bumps (0.13.6).** The consent screen said "SAY YES WE
+  CONSENT OR NO"; offline, "we consent" is unexplained speech, so YES is
+  (correctly) refused. The screen now says "SAY YES OR NO", matching the spoken
+  question; online recognition still accepts the longer phrase. A single 20 ms
+  DC shift (three isolated blocks on board 2) now needs a 100 ms run like other
+  above-floor activity; strong blocks still count at once.
+
+Unchanged: model thresholds (200/255 with a 32 margin, two YES windows), any
+trusted NO or possible-NO veto, VAD-supported voting, isolated-region
+attribution, the RMS 96 room ceiling, truncation and unexplained-speech checks.
+The quiet late refusal fixture (100 ms at 1.8x floor, missed by VAD) and clicks
+are still refused. This widens admission in real rooms; it is not acoustic
+acceptance, which still requires the field tests below.
+
 ## Candidate integration and acoustic limitations
 
 The 0.12.3 five-second menu trace at timestamp 103861 had eight trusted YES

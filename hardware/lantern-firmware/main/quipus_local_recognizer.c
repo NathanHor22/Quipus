@@ -15,6 +15,10 @@ static bool s_self_test_active;
 #define TRUSTED_SCORE 200U
 #define TRUSTED_MARGIN 32U
 #define POSSIBLE_NO_SCORE 128U
+// A weak (untrusted) NO vetoes YES only with real speech in its context; a
+// quiet tail holding the last few ms of an explained word is not a refusal.
+// A trusted NO still wins with any voiced support.
+#define POSSIBLE_NO_VOICED_MS 100U
 
 typedef struct {
   unsigned yes_votes, silence_votes, windows;
@@ -52,7 +56,8 @@ static void observe(decision_t *decision, quipus_local_diagnostics_t *diagnostic
     ++diagnostics->no_windows;
   }
   if (trusted(scores, QUIPUS_LOCAL_SILENCE)) ++decision->silence_votes;
-  if (scores[QUIPUS_LOCAL_NO] >= POSSIBLE_NO_SCORE) {
+  if (scores[QUIPUS_LOCAL_NO] >= POSSIBLE_NO_SCORE &&
+      (s_self_test_active || voiced_ms >= POSSIBLE_NO_VOICED_MS)) {
     decision->possible_no = true;
     ++diagnostics->possible_no_windows;
   }
@@ -138,49 +143,75 @@ static uint16_t voiced_overlap_ms(const uint8_t voiced[SHADOW_VAD_MAX_FRAMES],
   return ms;
 }
 
-/* Conservative background proof for this prototype. Calibrate only the
- * unvoiced prefix, never let a later quiet refusal raise its own noise floor.
- * No stable prefix, a noisy room, DC drift or an unexplained20ms burst prevents
- * YES; these bounds cannot prove speech below the background was absent. */
+/* Conservative background proof for this prototype. Calibrate from the
+ * unvoiced prefix or, when the answer starts at once, from 500ms of silence
+ * that begins 200ms after the last voiced frame. A noisy room, DC drift, a
+ * sustained above-floor or DC-drift run, or a strong burst, prevents YES; these bounds cannot
+ * prove speech below the background was absent. */
+#define CALIBRATION_FRAMES 25U
+#define MIN_PREFIX_FRAMES 5U
+#define VAD_GUARD_FRAMES 5U
+// Any spoken word, including a quiet "no", lasts well over100ms; shorter,
+// weaker fluctuations are room noise. Above 3 x floor + 8 counts at once.
+#define AMBIGUOUS_RUN_FRAMES 5U
+// Unvoiced word endings (the /s/ of "yes") often fall silent to VAD; a
+// contiguous above-floor tail of up to200ms belongs to the preceding word.
+#define VAD_OFFSET_FRAMES 10U
 static void qualify_activity(const int16_t *samples, size_t count,
                              const uint8_t voiced[SHADOW_VAD_MAX_FRAMES],
                              uint8_t associated[SHADOW_VAD_MAX_FRAMES],
                              quipus_local_diagnostics_t *d) {
   if (!d->vad_available) return;
   size_t frames = (count + QUIPUS_LOCAL_FRAME_STRIDE - 1) / QUIPUS_LOCAL_FRAME_STRIDE;
-  uint16_t prefix[25];
-  size_t first_voice = 0;
+  uint16_t calibration[CALIBRATION_FRAMES];
+  size_t first_voice = 0, last_voice = 0;
   while (first_voice < frames && !voiced[first_voice]) ++first_voice;
+  for (size_t frame = 0; frame < frames; ++frame) if (voiced[frame]) last_voice = frame;
   // VAD inherently reports an onset late. Reserve100ms from calibration;
   // those samples are not automatically accepted as speech or background.
-  size_t prefix_limit = first_voice > 5 ? first_voice - 5 : 0;
-  size_t prefix_count = 0;
-  while (prefix_count < prefix_limit && prefix_count < 25) {
-    prefix[prefix_count] = window_rms(samples + prefix_count * QUIPUS_LOCAL_FRAME_STRIDE,
-                                     QUIPUS_LOCAL_FRAME_STRIDE);
-    ++prefix_count;
+  size_t prefix_limit = first_voice > VAD_GUARD_FRAMES ? first_voice - VAD_GUARD_FRAMES : 0;
+  size_t calibration_first = 0, calibration_count = 0;
+  if (prefix_limit >= MIN_PREFIX_FRAMES) {
+    calibration_count = prefix_limit < CALIBRATION_FRAMES ? prefix_limit : CALIBRATION_FRAMES;
+  } else if (first_voice < frames) {
+    // Prompt answers leave no prefix. Use the quiet after the word instead,
+    // beyond the200ms an unvoiced word ending may still occupy.
+    size_t tail = last_voice + 1 + VAD_OFFSET_FRAMES;
+    size_t complete = count / QUIPUS_LOCAL_FRAME_STRIDE;
+    if (tail + CALIBRATION_FRAMES > complete) return;
+    for (size_t frame = tail; frame < tail + CALIBRATION_FRAMES; ++frame)
+      if (voiced[frame]) return;
+    calibration_first = tail;
+    calibration_count = CALIBRATION_FRAMES;
   }
-  if (prefix_count < 5) return;
-  for (size_t i = 1; i < prefix_count; ++i) {
-    uint16_t value = prefix[i];
+  if (calibration_count < MIN_PREFIX_FRAMES) return;
+  for (size_t i = 0; i < calibration_count; ++i)
+    calibration[i] = window_rms(samples + (calibration_first + i) * QUIPUS_LOCAL_FRAME_STRIDE,
+                                QUIPUS_LOCAL_FRAME_STRIDE);
+  for (size_t i = 1; i < calibration_count; ++i) {
+    uint16_t value = calibration[i];
     size_t j = i;
-    while (j && prefix[j - 1] > value) { prefix[j] = prefix[j - 1]; --j; }
-    prefix[j] = value;
+    while (j && calibration[j - 1] > value) { calibration[j] = calibration[j - 1]; --j; }
+    calibration[j] = value;
   }
-  uint16_t floor = prefix[prefix_count / 2];
+  uint16_t floor = calibration[calibration_count / 2];
   d->background_rms = floor;
   if (floor > 96) return; // Conservative prototype ceiling; noisy/uncertain means no YES.
   uint32_t upper = floor ? (3U * floor + 1U) / 2U + 2U : 0;
-  int64_t prefix_sum = 0;
-  for (size_t i = 0; i < prefix_count * QUIPUS_LOCAL_FRAME_STRIDE; ++i) prefix_sum += samples[i];
-  int32_t prefix_dc = (int32_t)(prefix_sum / (int64_t)(prefix_count * QUIPUS_LOCAL_FRAME_STRIDE));
+  uint32_t strong = floor ? 3U * floor + 8U : 0;
+  int64_t calibration_sum = 0;
+  const int16_t *calibration_samples = samples + calibration_first * QUIPUS_LOCAL_FRAME_STRIDE;
+  for (size_t i = 0; i < calibration_count * QUIPUS_LOCAL_FRAME_STRIDE; ++i)
+    calibration_sum += calibration_samples[i];
+  int32_t calibration_dc = (int32_t)(calibration_sum /
+      (int64_t)(calibration_count * QUIPUS_LOCAL_FRAME_STRIDE));
   uint32_t dc_tolerance = floor > 8 ? floor : 8;
   // Associate only a contiguous above-floor rise immediately adjoining an
   // actual VAD onset. A quiet gap stops the walk, and100ms is a hard limit.
   // Live YES must later explain the entire expanded region in isolation.
   for (size_t frame = 0; frame < frames; ++frame) {
     if (!voiced[frame] || (frame && voiced[frame - 1])) continue;
-    for (size_t back = 1; back <= 5 && back <= frame; ++back) {
+    for (size_t back = 1; back <= VAD_GUARD_FRAMES && back <= frame; ++back) {
       size_t index = frame - back;
       if (voiced[index]) break;
       const int16_t *block = samples + index * QUIPUS_LOCAL_FRAME_STRIDE;
@@ -188,7 +219,22 @@ static void qualify_activity(const int16_t *samples, size_t count,
       if (!associated[index]) { associated[index] = 1; ++d->onset_attached_frames; }
     }
   }
+  for (size_t frame = 0; frame < frames; ++frame) {
+    if (!voiced[frame] || (frame + 1 < frames && voiced[frame + 1])) continue;
+    for (size_t ahead = 1; ahead <= VAD_OFFSET_FRAMES && frame + ahead < frames; ++ahead) {
+      size_t index = frame + ahead;
+      if (voiced[index]) break;
+      size_t remaining = count - index * QUIPUS_LOCAL_FRAME_STRIDE;
+      size_t block_count = remaining < QUIPUS_LOCAL_FRAME_STRIDE ? remaining : QUIPUS_LOCAL_FRAME_STRIDE;
+      if (window_rms(samples + index * QUIPUS_LOCAL_FRAME_STRIDE, block_count) <= upper) break;
+      if (!associated[index]) { associated[index] = 1; ++d->onset_attached_frames; }
+    }
+  }
   d->background_verified = true;
+  // Classify every unassociated block, then flag sustained runs and strong or
+  // drifting blocks. A flagged calibration block invalidates the background.
+  uint8_t level[SHADOW_VAD_MAX_FRAMES] = {0}; // 0 quiet, 1 above floor, 2 always ambiguous
+  uint16_t level_rms[SHADOW_VAD_MAX_FRAMES] = {0};
   for (size_t frame = 0; frame < frames; ++frame) {
     if (associated[frame]) continue;
     const int16_t *block = samples + frame * QUIPUS_LOCAL_FRAME_STRIDE;
@@ -196,21 +242,36 @@ static void qualify_activity(const int16_t *samples, size_t count,
     size_t block_count = remaining < QUIPUS_LOCAL_FRAME_STRIDE ? remaining : QUIPUS_LOCAL_FRAME_STRIDE;
     int32_t sum = 0;
     for (size_t i = 0; i < block_count; ++i) sum += block[i];
-    int32_t dc = sum / (int32_t)block_count - prefix_dc;
+    int32_t dc = sum / (int32_t)block_count - calibration_dc;
     uint32_t drift = (uint32_t)(dc < 0 ? -dc : dc);
     uint16_t rms = window_rms(block, block_count);
-    if (rms > upper || drift > dc_tolerance) {
+    level_rms[frame] = rms;
+    // A 20ms mechanical bump shifts DC briefly; real drift persists, so it
+    // counts like above-floor activity unless the block is also strong.
+    if (rms > strong) level[frame] = 2;
+    else if (rms > upper || drift > dc_tolerance) level[frame] = 1;
+  }
+  for (size_t frame = 0; frame < frames;) {
+    if (!level[frame]) { ++frame; continue; }
+    size_t run_end = frame;
+    while (run_end < frames && level[run_end]) ++run_end;
+    if (run_end - frame > d->longest_above_floor_frames)
+      d->longest_above_floor_frames = (uint16_t)(run_end - frame);
+    bool sustained = run_end - frame >= AMBIGUOUS_RUN_FRAMES;
+    for (; frame < run_end; ++frame) {
+      if (!sustained && level[frame] != 2) continue;
       size_t end = (frame + 1) * QUIPUS_LOCAL_FRAME_STRIDE;
       if (end > count) end = count;
       uint16_t end_ms = (uint16_t)(end * 1000U / QUIPUS_LOCAL_SAMPLE_RATE);
       if (!d->ambiguous_frames) {
         d->first_ambiguous_end_ms = end_ms;
-        d->first_ambiguous_rms = rms;
+        d->first_ambiguous_rms = level_rms[frame];
       }
       d->last_ambiguous_end_ms = end_ms;
-      d->last_ambiguous_rms = rms;
+      d->last_ambiguous_rms = level_rms[frame];
       ++d->ambiguous_frames;
-      if (frame < prefix_count) d->background_verified = false;
+      if (frame >= calibration_first && frame < calibration_first + calibration_count)
+        d->background_verified = false;
     }
   }
   unsigned duration_ms = (unsigned)(count * 1000U / QUIPUS_LOCAL_SAMPLE_RATE);
@@ -317,9 +378,10 @@ static void log_diagnostics(const quipus_local_result_t *result) {
   ESP_LOGI("quipus_local", "background_verified=%u background_rms=%u ambiguous_frames=%u "
       "unexplained_speech_frames=%u response_truncated=%u", d->background_verified, d->background_rms,
       d->ambiguous_frames, d->unexplained_speech_frames, d->response_truncated);
-  ESP_LOGI("quipus_local", "ambiguous_first_end_ms=%u first_rms=%u last_end_ms=%u last_rms=%u onset_attached_frames=%u",
+  ESP_LOGI("quipus_local", "ambiguous_first_end_ms=%u first_rms=%u last_end_ms=%u last_rms=%u onset_attached_frames=%u longest_above_floor_frames=%u",
       d->first_ambiguous_end_ms, d->first_ambiguous_rms,
-      d->last_ambiguous_end_ms, d->last_ambiguous_rms, d->onset_attached_frames);
+      d->last_ambiguous_end_ms, d->last_ambiguous_rms, d->onset_attached_frames,
+      d->longest_above_floor_frames);
   (void)d; // Host fixtures may compile logging out.
 }
 
