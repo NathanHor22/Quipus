@@ -116,7 +116,7 @@ All five seconds and all 41 model windows remain inspected. Only contexts with a
 
 The activity backstop calibrates from100-500ms of the initial unvoiced prefix, reserving the final100ms before raw VAD onset so delayed detection cannot label the beginning of a word as room noise. Only a contiguous above-floor rise immediately adjoining that onset can join its region, for at most100ms; a quiet gap stops attachment. The entire expanded region must still fit an isolated trusted-YES context, while raw VAD support remains mandatory for word votes. Earlier, detached, late or otherwise unexplained activity still prevents affirmative admission. Calibration never uses later speech. The conservative prototype background ceiling is RMS96; the only actual target evidence so far was RMS19. Above-floor unexplained blocks, failed/unavailable VAD, missing calibration and a voiced final200ms prevent affirmative admission. Summary diagnostics record the first/last ambiguous block end time and RMS plus the number of attached onset frames; no per-frame PCM is logged. The final partial20ms block is included, with zero padding only for the VAD call and activity energy measured over the real samples. These limits can cause retries and do not prove that speech below the room noise was absent. No YES/NO model thresholds were lowered and no amplitude normalization was added.
 
-## 0.13.2 room-noise and prompt-answer admission
+## 0.13.3 room-noise, prompt-answer and word-ending admission
 
 A live offline session on board `80:45:6b:35:b7:dc` (2026-10-26, five consent
 answers of "yes") scored YES 237-255 with no trusted or possible NO every time,
@@ -127,13 +127,22 @@ yet all five returned UNKNOWN. Two admission gates were the cause:
   fewer than five blocks, calibration now uses the 25 blocks (500 ms) starting
   100 ms after the last voiced block. If any of those blocks is voiced or
   flagged, or there is not enough audio after the answer, the background stays
-  unverified and YES is refused.
+  unverified and YES is refused. (0.13.3 moves the start to 200 ms after the
+  last voiced block, past any attached word ending.)
 - **Single 20 ms room fluctuations.** Blocks at 29-33 RMS over a 17-18 floor
   (about 1.8x), including the decaying "s" 20 ms after VAD offset, were each
   treated as possible hidden speech. An above-floor block now counts only when
   it is part of a run of at least three contiguous blocks (60 ms, shorter than
   any syllable) or exceeds `3 x floor + 8`. DC drift still counts on any single
   block.
+
+- **Unvoiced word endings.** A second live "yes" (YES 255, ten windows, no NO)
+  was refused because VAD went silent through the /s/: 160 ms at RMS 69 over a
+  13 floor split the word and left the fricative unexplained. Up to 200 ms of
+  contiguous above-floor blocks immediately after a VAD offset now join that
+  word, mirroring the 100 ms onset rule. A quiet block ends the walk, the
+  expanded word must still fit one isolated trusted-YES context, and the
+  `onset_attached_frames` diagnostic now counts both directions.
 
 Unchanged: model thresholds (200/255 with a 32 margin, two YES windows), any
 trusted NO or possible-NO veto, VAD-supported voting, isolated-region

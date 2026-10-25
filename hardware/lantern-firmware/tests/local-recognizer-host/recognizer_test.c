@@ -38,6 +38,8 @@ esp_err_t quipus_local_inference_vad_frame(const int16_t *frame,bool *speech) {
   if(vad_mode==11)*speech=index>=20 && index<40;
   if(vad_mode==12)*speech=index>=20 && index<66;
   if(vad_mode==13)*speech=index>=2 && index<22;
+  if(vad_mode==14)*speech=(index>=20 && index<31)||(index>=39 && index<46);
+  if(vad_mode==15)*speech=index>=20 && index<31;
   return ESP_OK;
 }
 esp_err_t quipus_local_inference_frame(const int16_t *frame,bool classify,uint8_t scores[4]) {
@@ -262,6 +264,23 @@ int main(void) {
   for(size_t i=0;i<80000;++i)pcm[i]=(i%2)?300:-300;
   result=run(2,80000);
   assert(result.intent==QUIPUS_LOCAL_UNKNOWN && !result.diagnostics.background_verified);
+  // The live /s/ of "yes": VAD drops out mid-word while energy continues.
+  for(size_t i=0;i<80000;++i)pcm[i]=(i%2)?13:-13;
+  for(size_t i=20*320;i<46*320;++i)pcm[i]=(i%2)?300:-300;
+  vad_mode=14;result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_YES && !result.diagnostics.ambiguous_frames);
+  assert(!result.diagnostics.unexplained_speech_frames && result.diagnostics.background_verified);
+  // An unvoiced ending is attached for at most200ms; anything longer is ambiguous.
+  for(size_t i=0;i<80000;++i)pcm[i]=(i%2)?13:-13;
+  for(size_t i=20*320;i<43*320;++i)pcm[i]=(i%2)?300:-300;
+  vad_mode=15;result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==2);
+  // A quiet gap ends the word; a later burst is never attached to it.
+  for(size_t i=0;i<80000;++i)pcm[i]=(i%2)?13:-13;
+  for(size_t i=20*320;i<31*320;++i)pcm[i]=(i%2)?300:-300;
+  for(size_t i=33*320;i<37*320;++i)pcm[i]=(i%2)?300:-300;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==4);
   // Decaying startup DC cannot calibrate itself as harmless background.
   for(size_t i=0;i<80000;++i)pcm[i]=(int16_t)(2000-i/40);
   vad_mode=5;result=run(2,80000);

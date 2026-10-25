@@ -140,7 +140,7 @@ static uint16_t voiced_overlap_ms(const uint8_t voiced[SHADOW_VAD_MAX_FRAMES],
 
 /* Conservative background proof for this prototype. Calibrate from the
  * unvoiced prefix or, when the answer starts at once, from 500ms of silence
- * that begins 100ms after the last voiced frame. A noisy room, DC drift, a
+ * that begins 200ms after the last voiced frame. A noisy room, DC drift, a
  * sustained above-floor run or a strong burst prevents YES; these bounds cannot
  * prove speech below the background was absent. */
 #define CALIBRATION_FRAMES 25U
@@ -149,6 +149,9 @@ static uint16_t voiced_overlap_ms(const uint8_t voiced[SHADOW_VAD_MAX_FRAMES],
 // A spoken syllable lasts longer than60ms; shorter, weaker fluctuations are
 // room noise. Anything stronger than STRONG_RATIO x floor + margin counts at once.
 #define AMBIGUOUS_RUN_FRAMES 3U
+// Unvoiced word endings (the /s/ of "yes") often fall silent to VAD; a
+// contiguous above-floor tail of up to200ms belongs to the preceding word.
+#define VAD_OFFSET_FRAMES 10U
 static void qualify_activity(const int16_t *samples, size_t count,
                              const uint8_t voiced[SHADOW_VAD_MAX_FRAMES],
                              uint8_t associated[SHADOW_VAD_MAX_FRAMES],
@@ -167,8 +170,8 @@ static void qualify_activity(const int16_t *samples, size_t count,
     calibration_count = prefix_limit < CALIBRATION_FRAMES ? prefix_limit : CALIBRATION_FRAMES;
   } else if (first_voice < frames) {
     // Prompt answers leave no prefix. Use the quiet after the word instead,
-    // skipping the same100ms guard for a late VAD offset.
-    size_t tail = last_voice + 1 + VAD_GUARD_FRAMES;
+    // beyond the200ms an unvoiced word ending may still occupy.
+    size_t tail = last_voice + 1 + VAD_OFFSET_FRAMES;
     size_t complete = count / QUIPUS_LOCAL_FRAME_STRIDE;
     if (tail + CALIBRATION_FRAMES > complete) return;
     for (size_t frame = tail; frame < tail + CALIBRATION_FRAMES; ++frame)
@@ -208,6 +211,17 @@ static void qualify_activity(const int16_t *samples, size_t count,
       if (voiced[index]) break;
       const int16_t *block = samples + index * QUIPUS_LOCAL_FRAME_STRIDE;
       if (window_rms(block, QUIPUS_LOCAL_FRAME_STRIDE) <= upper) break;
+      if (!associated[index]) { associated[index] = 1; ++d->onset_attached_frames; }
+    }
+  }
+  for (size_t frame = 0; frame < frames; ++frame) {
+    if (!voiced[frame] || (frame + 1 < frames && voiced[frame + 1])) continue;
+    for (size_t ahead = 1; ahead <= VAD_OFFSET_FRAMES && frame + ahead < frames; ++ahead) {
+      size_t index = frame + ahead;
+      if (voiced[index]) break;
+      size_t remaining = count - index * QUIPUS_LOCAL_FRAME_STRIDE;
+      size_t block_count = remaining < QUIPUS_LOCAL_FRAME_STRIDE ? remaining : QUIPUS_LOCAL_FRAME_STRIDE;
+      if (window_rms(samples + index * QUIPUS_LOCAL_FRAME_STRIDE, block_count) <= upper) break;
       if (!associated[index]) { associated[index] = 1; ++d->onset_attached_frames; }
     }
   }
