@@ -30,7 +30,7 @@ jobs:
     timeout-minutes: 25
     container: espressif/idf:v5.2.3
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Portable firmware regressions
@@ -80,7 +80,7 @@ jobs:
           python3 scripts/test-firmware-display.py
       - name: Package and verify all five flash images
         run: python3 scripts/package-hardware-artifacts.py --profile waveshare
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: quipus-waveshare-lcd-154
           path: |

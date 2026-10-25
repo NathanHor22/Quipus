@@ -26,14 +26,14 @@
     "recording-worker:test": "tsx --test recording-worker/tests/*.test.ts"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.10.0",
-    "@supabase/supabase-js": "^2.106.2",
-    "@upstash/redis": "^1.38.0",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.118.0",
+    "@upstash/redis": "^1.39.0",
     "agora-rtc-sdk-ng": "^4.24.6",
     "agora-token": "^2.0.5",
     "date-fns": "^4.1.0",
     "googleapis": "^176.0.0",
-    "ioredis": "^5.7.0",
+    "ioredis": "^6.0.0",
     "lucide-react": "^0.468.0",
     "motion": "^12.42.2",
     "next": "16.4.3",
@@ -43,8 +43,8 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.5.8",
-    "@types/node": "^22.10.2",
+    "@electric-sql/pglite": "^0.5.11",
+    "@types/node": "^26.6.5",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
     "@types/three": "^0.186.0",
@@ -54,8 +54,8 @@
     "prettier": "3.9.10",
     "stylelint": "17.16.0",
     "stylelint-config-recommended": "18.0.0",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
   },
   "stylelint": {
     "extends": [
