@@ -515,7 +515,7 @@ static esp_err_t open_quick_consent(void) {
   lantern_network_set_realtime(true);
   s_state = LOCAL_AWAITING_CONSENT;
   s_state_entered_at = xTaskGetTickCount();
-  lantern_display_show(LANTERN_SCREEN_CONSENT, "SAY YES WE CONSENT OR NO");
+  lantern_display_show(LANTERN_SCREEN_CONSENT, "SAY YES OR NO");
   return ESP_OK;
 }
 
@@ -578,7 +578,7 @@ static esp_err_t classify_local_yes_no(quipus_local_purpose_t purpose,
 static esp_err_t capture_consent_response(const char *context,
                                           char intent[32]) {
   intent[0] = 0;
-  lantern_display_show(LANTERN_SCREEN_CONSENT, "SAY YES WE CONSENT OR NO");
+  lantern_display_show(LANTERN_SCREEN_CONSENT, "SAY YES OR NO");
   lantern_audio_chime(1);
   vTaskDelay(pdMS_TO_TICKS(250));
   // Capture the full room response, including a later refusal. Connected

@@ -187,7 +187,7 @@ static void wave_tests(display_update_t *u) {
   assert(pixels[9*LANTERN_DISPLAY_WIDTH+19]==rgb565(103,120,138));
   u->wifi_rssi=-55; u->battery_level=100; render(u);
   uint32_t neutral_mouth=region_hash(82,132,76,28);
-  state(u,LANTERN_SCREEN_CONSENT,"SAY YES WE CONSENT OR NO","consent");
+  state(u,LANTERN_SCREEN_CONSENT,"SAY YES OR NO","consent");
   assert(region_hash(82,132,76,28)==neutral_mouth);
   state(u,LANTERN_SCREEN_RECORDING,"00:42 - PRESS MIDDLE TO STOP","recording");
   uint32_t open_mouth=region_hash(82,132,76,28);

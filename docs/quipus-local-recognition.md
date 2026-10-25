@@ -161,6 +161,13 @@ yet all five returned UNKNOWN. Two admission gates were the cause:
   Offline recovery for an SD fault names the card rather than Wi-Fi. Reading
   readiness creates no session and requests no key before YES.
 
+- **Wording and brief DC bumps (0.13.6).** The consent screen said "SAY YES WE
+  CONSENT OR NO"; offline, "we consent" is unexplained speech, so YES is
+  (correctly) refused. The screen now says "SAY YES OR NO", matching the spoken
+  question; online recognition still accepts the longer phrase. A single 20 ms
+  DC shift (three isolated blocks on board 2) now needs a 100 ms run like other
+  above-floor activity; strong blocks still count at once.
+
 Unchanged: model thresholds (200/255 with a 32 margin, two YES windows), any
 trusted NO or possible-NO veto, VAD-supported voting, isolated-region
 attribution, the RMS 96 room ceiling, truncation and unexplained-speech checks.

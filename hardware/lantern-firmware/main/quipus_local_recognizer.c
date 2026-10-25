@@ -146,7 +146,7 @@ static uint16_t voiced_overlap_ms(const uint8_t voiced[SHADOW_VAD_MAX_FRAMES],
 /* Conservative background proof for this prototype. Calibrate from the
  * unvoiced prefix or, when the answer starts at once, from 500ms of silence
  * that begins 200ms after the last voiced frame. A noisy room, DC drift, a
- * sustained above-floor run or a strong burst prevents YES; these bounds cannot
+ * sustained above-floor or DC-drift run, or a strong burst, prevents YES; these bounds cannot
  * prove speech below the background was absent. */
 #define CALIBRATION_FRAMES 25U
 #define MIN_PREFIX_FRAMES 5U
@@ -246,8 +246,10 @@ static void qualify_activity(const int16_t *samples, size_t count,
     uint32_t drift = (uint32_t)(dc < 0 ? -dc : dc);
     uint16_t rms = window_rms(block, block_count);
     level_rms[frame] = rms;
-    if (rms > strong || drift > dc_tolerance) level[frame] = 2;
-    else if (rms > upper) level[frame] = 1;
+    // A 20ms mechanical bump shifts DC briefly; real drift persists, so it
+    // counts like above-floor activity unless the block is also strong.
+    if (rms > strong) level[frame] = 2;
+    else if (rms > upper || drift > dc_tolerance) level[frame] = 1;
   }
   for (size_t frame = 0; frame < frames;) {
     if (!level[frame]) { ++frame; continue; }

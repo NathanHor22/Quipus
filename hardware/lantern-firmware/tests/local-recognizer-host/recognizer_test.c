@@ -298,6 +298,17 @@ int main(void) {
   for(size_t i=33*320;i<37*320;++i)pcm[i]=(i%2)?300:-300;
   result=run(2,80000);
   assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==4);
+  // A single 20ms DC bump (board 2: three isolated blocks) is not speech;
+  // a DC shift lasting100ms still blocks approval.
+  for(size_t i=0;i<80000;++i)pcm[i]=(i%2)?19:-19;
+  for(size_t i=16000;i<22400;++i)pcm[i]=(i%2)?300:-300;
+  vad_mode=5;
+  for(size_t i=188*320;i<189*320;++i)pcm[i]+=40;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_YES && !result.diagnostics.ambiguous_frames);
+  for(size_t i=189*320;i<193*320;++i)pcm[i]+=40;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==5);
   // Decaying startup DC cannot calibrate itself as harmless background.
   for(size_t i=0;i<80000;++i)pcm[i]=(int16_t)(2000-i/40);
   vad_mode=5;result=run(2,80000);
