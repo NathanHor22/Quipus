@@ -833,13 +833,9 @@ static void draw_status_bar(
     draw_text(76, 9, label, 1, foreground);
   }
   if (battery_level < 0) {
-#if LANTERN_BATTERY_INSTALLED
-    const char *power = "PWR";
-#else
-    // This hardware profile is explicitly USB powered; do not invent a cell,
-    // percentage, charging state or charging ETA from an unconnected ADC.
+    // No readable cell (USB-only profile, or no battery connected): show the
+    // power source instead of inventing a percentage or charging state.
     const char *power = "USB";
-#endif
     draw_text(LANTERN_DISPLAY_WIDTH - 7 - text_width(power, 1), 9, power, 1, dim);
     return;
   }

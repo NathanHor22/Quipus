@@ -37,6 +37,7 @@ esp_err_t quipus_local_inference_vad_frame(const int16_t *frame,bool *speech) {
   if(vad_mode==10)*speech=index>=30 && index<=190 && (index-30)%20==0;
   if(vad_mode==11)*speech=index>=20 && index<40;
   if(vad_mode==12)*speech=index>=20 && index<66;
+  if(vad_mode==13)*speech=index>=2 && index<22;
   return ESP_OK;
 }
 esp_err_t quipus_local_inference_frame(const int16_t *frame,bool classify,uint8_t scores[4]) {
@@ -189,12 +190,25 @@ int main(void) {
   result=navigate(2,80000);
   assert(result.intent==QUIPUS_LOCAL_YES && result.diagnostics.ambiguous_frames==5);
   assert(windows==41 && vad_calls==250);
-  // A single brief unvoiced fluctuation reproduces the live menu failure.
+  // One 20ms room fluctuation (the live consent failure: 2.3x floor) is not
+  // speech, but a sustained60ms run at the same level, or a strong blip, is.
   for(size_t i=76800;i<78400;++i)pcm[i]=(i%2)?19:-19;
   for(size_t i=67200;i<67520;++i)pcm[i]=(i%2)?44:-44;
-  assert(run(2,80000).intent==QUIPUS_LOCAL_UNKNOWN);
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_YES && !result.diagnostics.ambiguous_frames);
   assert(navigate(2,80000).intent==QUIPUS_LOCAL_YES);
-  for(size_t i=67200;i<67520;++i)pcm[i]=(i%2)?19:-19;
+  for(size_t i=67200;i<68160;++i)pcm[i]=(i%2)?44:-44;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==3);
+  for(size_t i=67200;i<68160;++i)pcm[i]=(i%2)?19:-19;
+  for(size_t i=67200;i<67520;++i)pcm[i]=(i%2)?66:-66;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==1);
+  // Two separated brief fluctuations do not join into a run.
+  for(size_t i=67200;i<67520;++i)pcm[i]=(i%2)?44:-44;
+  for(size_t i=67840;i<68160;++i)pcm[i]=(i%2)?44:-44;
+  assert(run(2,80000).intent==QUIPUS_LOCAL_YES);
+  for(size_t i=67200;i<68160;++i)pcm[i]=(i%2)?19:-19;
   vad_mode=1;
   assert(navigate(5,80000).intent==QUIPUS_LOCAL_NO);
   assert(navigate(9,80000).intent==QUIPUS_LOCAL_NO);
@@ -229,6 +243,25 @@ int main(void) {
   result=run(2,79999);
   assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames);
   pcm[79998]=19;
+  // A prompt answer has no quiet prefix; the quiet after the word calibrates.
+  for(size_t i=0;i<80000;++i)pcm[i]=(i%2)?19:-19;
+  for(size_t i=2*320;i<22*320;++i)pcm[i]=(i%2)?300:-300;
+  vad_mode=13;result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_YES && result.diagnostics.background_verified);
+  assert(result.diagnostics.background_rms==19 && !result.diagnostics.ambiguous_frames);
+  // ...and a later quiet refusal missed by VAD still blocks approval.
+  for(size_t i=76800;i<78400;++i)pcm[i]=(i%2)?35:-35;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==5);
+  // Noise inside the post-answer calibration window is never accepted.
+  for(size_t i=76800;i<78400;++i)pcm[i]=(i%2)?19:-19;
+  for(size_t i=30*320;i<34*320;++i)pcm[i]=(i%2)?60:-60;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && !result.diagnostics.background_verified);
+  // Speech continuing to the end leaves nothing to calibrate from.
+  for(size_t i=0;i<80000;++i)pcm[i]=(i%2)?300:-300;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && !result.diagnostics.background_verified);
   // Decaying startup DC cannot calibrate itself as harmless background.
   for(size_t i=0;i<80000;++i)pcm[i]=(int16_t)(2000-i/40);
   vad_mode=5;result=run(2,80000);

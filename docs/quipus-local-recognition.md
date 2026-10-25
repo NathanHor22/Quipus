@@ -116,6 +116,32 @@ All five seconds and all 41 model windows remain inspected. Only contexts with a
 
 The activity backstop calibrates from100-500ms of the initial unvoiced prefix, reserving the final100ms before raw VAD onset so delayed detection cannot label the beginning of a word as room noise. Only a contiguous above-floor rise immediately adjoining that onset can join its region, for at most100ms; a quiet gap stops attachment. The entire expanded region must still fit an isolated trusted-YES context, while raw VAD support remains mandatory for word votes. Earlier, detached, late or otherwise unexplained activity still prevents affirmative admission. Calibration never uses later speech. The conservative prototype background ceiling is RMS96; the only actual target evidence so far was RMS19. Above-floor unexplained blocks, failed/unavailable VAD, missing calibration and a voiced final200ms prevent affirmative admission. Summary diagnostics record the first/last ambiguous block end time and RMS plus the number of attached onset frames; no per-frame PCM is logged. The final partial20ms block is included, with zero padding only for the VAD call and activity energy measured over the real samples. These limits can cause retries and do not prove that speech below the room noise was absent. No YES/NO model thresholds were lowered and no amplitude normalization was added.
 
+## 0.13.2 room-noise and prompt-answer admission
+
+A live offline session on board `80:45:6b:35:b7:dc` (2026-10-26, five consent
+answers of "yes") scored YES 237-255 with no trusted or possible NO every time,
+yet all five returned UNKNOWN. Two admission gates were the cause:
+
+- **Prompt answers left no prefix.** Speech began within 100 ms of capture, so
+  `background_rms=0` and the background was unverified. When the prefix has
+  fewer than five blocks, calibration now uses the 25 blocks (500 ms) starting
+  100 ms after the last voiced block. If any of those blocks is voiced or
+  flagged, or there is not enough audio after the answer, the background stays
+  unverified and YES is refused.
+- **Single 20 ms room fluctuations.** Blocks at 29-33 RMS over a 17-18 floor
+  (about 1.8x), including the decaying "s" 20 ms after VAD offset, were each
+  treated as possible hidden speech. An above-floor block now counts only when
+  it is part of a run of at least three contiguous blocks (60 ms, shorter than
+  any syllable) or exceeds `3 x floor + 8`. DC drift still counts on any single
+  block.
+
+Unchanged: model thresholds (200/255 with a 32 margin, two YES windows), any
+trusted NO or possible-NO veto, VAD-supported voting, isolated-region
+attribution, the RMS 96 room ceiling, truncation and unexplained-speech checks.
+The quiet late refusal fixture (100 ms at 1.8x floor, missed by VAD) and clicks
+are still refused. This widens admission in real rooms; it is not acoustic
+acceptance, which still requires the field tests below.
+
 ## Candidate integration and acoustic limitations
 
 The 0.12.3 five-second menu trace at timestamp 103861 had eight trusted YES

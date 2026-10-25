@@ -30,7 +30,7 @@ config LANTERN_API_BASE_URL
 config LANTERN_WAVESHARE_BATTERY_INSTALLED
     bool "Waveshare lithium battery installed"
     depends on LANTERN_BOARD_WAVESHARE_LCD_154
-    default n
+    default y
     help
         Enable calibrated battery telemetry only with a battery connected.
         USB-only boards report an unknown battery level rather than reading
