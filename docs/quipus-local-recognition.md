@@ -153,6 +153,14 @@ yet all five returned UNKNOWN. Two admission gates were the cause:
   100 ms of voiced support. A trusted NO (200+, margin 32) still wins with any
   voiced support.
 
+- **SD readiness before the question (0.13.5).** Board 2 had no card: YES was
+  accepted, then the session failed (`CONNECT ONCE TO SECURE SD`), and saying
+  "Computer" offline in that error state said "connect to Wi-Fi". The recorder
+  now checks (and, for a newly inserted card, mounts) the secured card before
+  asking for consent, and says "Please check the SD card" instead of asking.
+  Offline recovery for an SD fault names the card rather than Wi-Fi. Reading
+  readiness creates no session and requests no key before YES.
+
 Unchanged: model thresholds (200/255 with a 32 margin, two YES windows), any
 trusted NO or possible-NO veto, VAD-supported voting, isolated-region
 attribution, the RMS 96 room ceiling, truncation and unexplained-speech checks.
