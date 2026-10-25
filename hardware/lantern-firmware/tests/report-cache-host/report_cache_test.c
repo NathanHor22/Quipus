@@ -21,6 +21,10 @@ static unsigned cases, sync_calls;
 #ifdef fsync
 #undef fsync
 #endif
+#ifndef _WIN32
+// <unistd.h> was read while fsync was remapped, so declare the real one.
+int fsync(int descriptor);
+#endif
 int quipus_test_fsync(int descriptor) {
   ++sync_calls;
 #ifdef _WIN32
