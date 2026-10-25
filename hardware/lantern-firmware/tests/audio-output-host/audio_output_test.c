@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "quipus_volume.h"
+#include "quipus_resample.h"
 
 typedef int esp_err_t;
 typedef unsigned TickType_t;
@@ -102,7 +103,9 @@ static unsigned ulTaskNotifyTake(int clear,unsigned timeout){assert(clear==pdTRU
 static size_t xStreamBufferBytesAvailable(void *handle){assert(handle==s_pcm_stream);return stream_length-stream_offset;}
 static size_t xStreamBufferReceive(void *handle,void *out,size_t wanted,unsigned ticks){assert(handle==s_pcm_stream&&ticks==0&&wanted<=stream_length-stream_offset);last_receive_start=stream_offset;last_receive_count=wanted;memcpy(out,stream_data+stream_offset,wanted);stream_offset+=wanted;return wanted;}
 static int16_t source_sample(size_t sample){return (int16_t)((int)(sample%5U)*1000-2000);}
-static void report_listener_reference(const int16_t *samples,size_t count){assert(count==last_receive_count/sizeof(int16_t)*LANTERN_SPK_SAMPLE_RATE/LANTERN_TTS_SAMPLE_RATE);for(size_t i=0;i<count;++i){size_t source=last_receive_start/2+i*LANTERN_TTS_SAMPLE_RATE/LANTERN_SPK_SAMPLE_RATE;assert(samples[i]==quipus_volume_sample(source_sample(source),atomic_load(&s_volume)));}++reference_calls;}
+/* An independent converter fed the same chunks must match every played sample. */
+static quipus_resample_3_2_t expected_resampler;
+static void report_listener_reference(const int16_t *samples,size_t count){static int16_t source[AUDIO_WRITE_SAMPLES],expected[AUDIO_WRITE_SAMPLES];size_t sources=last_receive_count/sizeof(int16_t);assert(sources<=AUDIO_WRITE_SAMPLES);for(size_t i=0;i<sources;++i)source[i]=source_sample(last_receive_start/2+i);size_t made=quipus_resample_3_2(&expected_resampler,source,sources,expected,AUDIO_WRITE_SAMPLES);assert(count==made);for(size_t i=0;i<count;++i)assert(samples[i]==quipus_volume_sample(expected[i],atomic_load(&s_volume)));++reference_calls;}
 static void lantern_display_set_speech_level(unsigned level,bool active){assert(level<=100);if(active)++active_updates;else{assert(level==0);++idle_updates;}}
 
 #include "audio_output_under_test.c"
@@ -122,7 +125,7 @@ static void normal(unsigned tones,unsigned volume){reset();atomic_store(&s_volum
 static void data_failure(bool partial,unsigned chunk){reset();unsigned start=TEST_SHARED?1U:0U;unsigned index=start+chunk+1U;if(partial)short_write=index;else fail_write=index;lantern_audio_chime(3);cleaned();assert(error_count==1&&strstr(errors[0],"chime I2S write failed"));assert(write_calls==index+1U);assert(writes[write_calls-1].allzero);assert(strstr(info[info_count-1],partial?"status=ESP_FAIL":"status=ESP_ERR_TIMEOUT"));char frames[40];snprintf(frames,sizeof(frames),"frames=%u",chunk*AUDIO_WRITE_SAMPLES);assert(strstr(info[info_count-1],frames));}
 
 /* Run one actual singleton-task turn, escaping only at its next idle wait. */
-static void pcm_turn(unsigned volume,size_t bytes,bool finished){pcm_testing=true;atomic_store(&s_volume,volume);stream_length=bytes;stream_offset=0;for(size_t i=0;i<bytes/2;++i){int16_t sample=source_sample(i);stream_data[i*2]=(uint8_t)sample;stream_data[i*2+1]=(uint8_t)((uint16_t)sample>>8);}lock_held=s_speaker_active=s_pcm_playing=true;s_pcm_input_finished=finished;if(!setjmp(task_exit))pcm_playback_task(NULL);cleaned();assert(finished_gives==1&&idle_updates==1);}
+static void pcm_turn(unsigned volume,size_t bytes,bool finished){quipus_resample_3_2_reset(&expected_resampler);pcm_testing=true;atomic_store(&s_volume,volume);stream_length=bytes;stream_offset=0;for(size_t i=0;i<bytes/2;++i){int16_t sample=source_sample(i);stream_data[i*2]=(uint8_t)sample;stream_data[i*2+1]=(uint8_t)((uint16_t)sample>>8);}lock_held=s_speaker_active=s_pcm_playing=true;s_pcm_input_finished=finished;if(!setjmp(task_exit))pcm_playback_task(NULL);cleaned();assert(finished_gives==1&&idle_updates==1);}
 static void pcm_suite(void){
  reset();pcm_turn(80,720,true);assert(!s_pcm_failed&&write_calls==(TEST_SHARED?4U:3U)&&reference_calls==2&&active_updates==2);assert(strstr(info[info_count-1],"submitted_frames=240 written_frames=240"));assert(strstr(info[info_count-1],"volume=80 failed=0 cancelled=0"));for(unsigned i=TEST_SHARED?1U:0U;i<write_calls-1;++i)assert(writes[i].timeout==250&&writes[i].amp&&!writes[i].allzero);
  reset();pcm_turn(0,720,true);assert(!s_pcm_failed&&reference_calls==2);for(unsigned i=0;i<write_calls;++i)assert(writes[i].allzero);assert(strstr(info[info_count-1],"nonzero=0 peak=0 volume=0"));

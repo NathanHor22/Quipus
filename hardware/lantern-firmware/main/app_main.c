@@ -751,6 +751,11 @@ static void capture_spoken_consent(void) {
 // the secured card first. A newly inserted card may mount locally.
 static bool sd_ready_for_recording(void) {
 #if LANTERN_HAS_SD_CARD
+  // An unpaired recorder has no card key yet; pairing is the real blocker,
+  // and open_quick_consent already refuses it.
+  lantern_network_status_t network;
+  lantern_network_get_status(&network);
+  if (!network.paired) return true;
   if (lantern_sd_secure_ready()) return true;
   if (lantern_sd_init(NULL) == ESP_OK && lantern_sd_secure_ready()) return true;
   ESP_LOGW(TAG, "recording unavailable before consent: SD card missing or not yet secured");
@@ -2425,6 +2430,23 @@ static void telemetry_task(void *argument) {
     }
 #endif
 
+    // The slot has no detect pin: probe for a removed or newly inserted card
+    // while idle, so a swapped card is used (or reported) without a restart.
+    if (LANTERN_HAS_SD_CARD && seconds % 2 == 0 && s_state == LOCAL_READY &&
+        !s_summary_retrying && !s_power_off_requested && quipus_phone_audio_idle() &&
+        xSemaphoreTake(s_control_mutex, 0) == pdTRUE) {
+      if (s_state == LOCAL_READY) {
+        lantern_sd_change_t change = lantern_sd_poll();
+        if (change != LANTERN_SD_UNCHANGED) {
+          s_summary_retry_pending = lantern_sd_upload_pending_count() > 0;
+          s_network_update_pending = true;
+          ESP_LOGI(TAG, "microSD %s; secure=%d pending=%u",
+                   change == LANTERN_SD_INSERTED ? "inserted" : "removed",
+                   lantern_sd_secure_ready(), (unsigned)lantern_sd_upload_pending_count());
+        }
+      }
+      xSemaphoreGive(s_control_mutex);
+    }
     if (LANTERN_HAS_SD_CARD && seconds % 15 == 0 && s_state == LOCAL_READY &&
         display_network.paired && display_network.wifi_connected &&
         !lantern_sd_secure_ready() &&
@@ -2605,6 +2627,18 @@ static void audio_startup_fault(esp_err_t error) {
   }
 }
 
+// Settings storage that still holds Quipus data is never wiped (it may hold
+// the only SD archive key). Say so on screen instead of restarting forever;
+// a USB reflash or support recovery is required.
+static void storage_fault(esp_err_t error) {
+  ESP_LOGE(TAG, "settings storage unavailable: %s; holding without restart",
+           esp_err_to_name(error));
+  if (lantern_display_init() == ESP_OK)
+    lantern_display_show_detail("SETTINGS NEED SERVICE",
+        "Saved recordings are kept. Contact Quipus support.", NULL);
+  for (;;) vTaskDelay(pdMS_TO_TICKS(1000));
+}
+
 void app_main(void) {
   const lantern_board_profile_t *board = lantern_board_profile();
   ESP_LOGI(TAG, "Quipus %s booting on %s (%s, storage=%s)",
@@ -2613,7 +2647,8 @@ void app_main(void) {
   s_state_entered_at = xTaskGetTickCount();
   power_and_battery_init();
   update_battery_level();
-  ESP_ERROR_CHECK(lantern_storage_init());
+  esp_err_t storage = lantern_storage_init();
+  if (storage != ESP_OK) storage_fault(storage);
   lantern_ota_boot();
   ESP_ERROR_CHECK(lantern_storage_load(&s_config));
   ESP_ERROR_CHECK(lantern_display_init());
