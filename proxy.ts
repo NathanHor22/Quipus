@@ -1,5 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { browserMutationError, isMachineAuthenticatedPath } from "@/lib/request-security";
+import { readBearerCredential } from "@/lib/supabase/bearer";
 import { NextResponse, type NextRequest } from "next/server";
 
 import {
@@ -101,6 +103,21 @@ export async function proxy(request: NextRequest) {
 
   let response = continueRequest(request);
   if (isLanternDevicePath(request.nextUrl.pathname) || isMachineAuthenticatedPath(request.nextUrl.pathname)) return response;
+  if (request.nextUrl.pathname.startsWith("/api/") && request.headers.has("authorization")) {
+    // Native app: verify its Supabase access token. Cookies are never a fallback.
+    const bearer = readBearerCredential(request.headers.get("authorization"));
+    const verified = bearer.kind === "token"
+      ? await createClient(supabaseUrl!, supabaseAnonKey!, {
+        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+      }).auth.getUser(bearer.token)
+      : null;
+    if (!verified?.data.user || verified.error) {
+      return NextResponse.json({ error: "Authentication required." }, {
+        status: 401, headers: { "cache-control": "no-store", "x-content-type-options": "nosniff" },
+      });
+    }
+    return response;
+  }
   const supabase = createServerClient(supabaseUrl!, supabaseAnonKey!, {
     cookies: {
       getAll() {

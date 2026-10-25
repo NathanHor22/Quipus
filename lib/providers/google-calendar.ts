@@ -69,6 +69,8 @@ export interface GoogleOAuthState {
   returnTo: string;
   issuedAt: number;
   nonce: string;
+  /** Mobile app flow only: the app's verifier challenge (see lib/google-mobile-connect.ts). */
+  mobileChallenge?: string;
 }
 
 export interface CalendarInsertClient {
@@ -218,6 +220,8 @@ const oauthStateSchema = z
     returnTo: z.string().min(1).max(1000),
     issuedAt: z.number().int().nonnegative(),
     nonce: z.string().min(20).max(100),
+    /** Present only for the mobile app flow: SHA-256 (base64url) of the app's verifier. */
+    mobileChallenge: z.string().regex(/^[A-Za-z0-9_-]{43}$/u).optional(),
   })
   .strict();
 
@@ -315,6 +319,19 @@ function decryptJson(value: string, secret: string, purpose: string): unknown {
   }
 }
 
+/** Authenticated encryption scoped to one purpose (AAD), for short-lived OAuth payloads. */
+export function sealGooglePayload(value: unknown, secret: string, purpose: string): string {
+  return encryptJson(value, secret, purpose);
+}
+
+export function openGooglePayload(value: string, secret: string, purpose: string): unknown {
+  return decryptJson(value, secret, purpose);
+}
+
+export function compactGoogleCredentials(credentials: Credentials): Credentials {
+  return compactCredentials(credentials);
+}
+
 function compactCredentials(credentials: Credentials): Credentials {
   const compact: Credentials = {};
   if (credentials.access_token) compact.access_token = credentials.access_token;
@@ -369,7 +386,7 @@ export function sanitizeGoogleReturnTo(value: string | null | undefined): string
 }
 
 export function createGoogleOAuthState(
-  input: { userId: string; returnTo?: string | null },
+  input: { userId: string; returnTo?: string | null; mobileChallenge?: string },
   secret: string,
   now = Date.now(),
 ): string {
@@ -378,6 +395,7 @@ export function createGoogleOAuthState(
     returnTo: sanitizeGoogleReturnTo(input.returnTo),
     issuedAt: now,
     nonce: randomBytes(24).toString("base64url"),
+    ...(input.mobileChallenge ? { mobileChallenge: input.mobileChallenge } : {}),
   });
   return encryptJson(state, secret, "roxanne:google-oauth-state");
 }
