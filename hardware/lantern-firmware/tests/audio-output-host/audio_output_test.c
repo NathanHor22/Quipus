@@ -28,7 +28,8 @@ typedef void *SemaphoreHandle_t;
 #define AUDIO_WRITE_SAMPLES 240
 #define LANTERN_SPK_SAMPLE_RATE 16000U
 #define LANTERN_TTS_SAMPLE_RATE 24000U
-#define PCM_PREFILL_BYTES (LANTERN_TTS_SAMPLE_RATE*sizeof(int16_t)/8U)
+#define PCM_PREFILL_BYTES (LANTERN_TTS_SAMPLE_RATE*sizeof(int16_t)*2U/5U)
+#define PCM_REBUFFER_BYTES (LANTERN_TTS_SAMPLE_RATE*sizeof(int16_t)/8U)
 #define portMAX_DELAY UINT32_MAX
 static void *s_pcm_stream=(void*)3;
 static SemaphoreHandle_t s_pcm_finished=(void*)4;

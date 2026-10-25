@@ -315,6 +315,9 @@ static int battery_from_adc(int raw) {
       adc_cali_raw_to_voltage(s_battery_calibration, raw, &millivolts) != ESP_OK)
     return -1;
   millivolts *= LANTERN_BATTERY_ADC_DIVIDER;
+  // Far below any lithium cell's cutoff: no battery is connected, so the
+  // board is running from USB. Report unknown rather than an empty battery.
+  if (millivolts < 2500) return -1;
   const int voltage_points[] = {3300, 3640, 3760, 3880, 4000, 4200};
   const int levels[] = {0, 20, 40, 60, 80, 100};
   if (millivolts <= voltage_points[0]) return 0;
