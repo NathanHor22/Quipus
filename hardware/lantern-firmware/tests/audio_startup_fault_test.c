@@ -6,6 +6,8 @@
 #include <string.h>
 #include <setjmp.h>
 #include "quipus_controls.h"
+#include "quipus_ota_policy.h"
+static bool lantern_sd_can_power_down(void);
 typedef int esp_err_t;
 typedef unsigned TickType_t;
 #define ESP_OK 0
@@ -26,6 +28,8 @@ typedef unsigned TickType_t;
 #define LANTERN_SCREEN_SAVING 1
 #define LANTERN_POWER_HOLD_GPIO 2
 #define pdMS_TO_TICKS(ms) (ms)
+#define pdTICKS_TO_MS(ticks) (ticks)
+#define LANTERN_POWER_CHARGING 2
 enum {LOCAL_READY,LOCAL_ERROR,LOCAL_RECORDING};
 enum {RECOVERY_NONE};
 typedef int lantern_power_state_t;
@@ -44,6 +48,8 @@ static struct {char owner[12],device[12];uint8_t key[32];} s_config,original_con
 static unsigned now_ms,deadline,sd_ready_at,normal_startups,cases;
 static unsigned audio_initializations,network_starts,portal_starts,screen_updates,status_updates,restarts,shutdowns;
 static int audio_result,network_result,input_result;
+static unsigned heartbeats,installs;
+static bool update_offered;
 static bool initially_held;
 static unsigned intervals[4][2],interval_count;
 static char title[48],body[96];
@@ -78,6 +84,11 @@ static esp_err_t lantern_network_start(void *config,void *callback) {
 static esp_err_t lantern_network_open_setup_portal(void) {assert(network_starts==1&&network_result==ESP_OK);++portal_starts;return ESP_OK;}
 static void lantern_network_get_status(lantern_network_status_t *out) {*out=(lantern_network_status_t){.paired=true,.connectivity=1,.wifi_rssi=-50};}
 static void update_battery_level(void) {s_battery_level=-1;}
+static esp_err_t lantern_network_send_heartbeat(const char *state,unsigned version,int battery) {
+  assert(network_result==ESP_OK&&!strcmp(state,"error")&&version==0&&battery==-1);++heartbeats;return ESP_OK;
+}
+static bool lantern_ota_offer_ready(void) {return update_offered;}
+static esp_err_t lantern_ota_install(void) {assert(lantern_sd_can_power_down());++installs;update_offered=false;return ESP_FAIL;}
 static lantern_power_state_t battery_power_state(void) {return 0;}
 static void lantern_display_set_status(int battery,lantern_power_state_t power,int connectivity,int rssi,bool paired) {
   assert(battery==-1&&power==0&&connectivity==1&&rssi==-50&&paired);++status_updates;
@@ -109,7 +120,8 @@ static void reset(void) {
   memset(&s_config,0x4a,sizeof(s_config));original_config=s_config;
   s_boot_complete=s_controls_ready=s_wake_available=true;s_power_off_requested=false;s_state=LOCAL_READY;s_recovery=7;
   now_ms=0;deadline=8000;sd_ready_at=0;normal_startups=0;
-  audio_initializations=network_starts=portal_starts=screen_updates=status_updates=restarts=shutdowns=0;
+  audio_initializations=network_starts=portal_starts=screen_updates=status_updates=restarts=shutdowns=heartbeats=installs=0;
+  update_offered=false;
 #if TEST_WAVE
   s_agora_active=false;audio_chimes=0;
 #endif
@@ -134,6 +146,13 @@ int main(void) {
   assert(exercise()==RESTARTED&&restarts==1&&now_ms==620&&screen_updates==2);
   reset();network_result=ESP_FAIL;tap(100,220);
   assert(exercise()==RESTARTED&&portal_starts==0&&status_updates==0);
+  // The fault screen keeps checking in so the dashboard shows it and a fixed
+  // firmware can arrive; an update waits for idle hands and finished saving.
+  reset();deadline=40000;assert(exercise()==TIMED_OUT&&heartbeats==2&&installs==0);
+  reset();network_result=ESP_FAIL;deadline=40000;assert(exercise()==TIMED_OUT&&heartbeats==0);
+  reset();update_offered=true;deadline=100000;assert(exercise()==TIMED_OUT&&installs==0);
+  reset();update_offered=true;deadline=140000;assert(exercise()==TIMED_OUT&&installs==1&&screen_updates==2);
+  reset();update_offered=true;sd_ready_at=200000;deadline=140000;assert(exercise()==TIMED_OUT&&installs==0);
   reset();input_result=ESP_FAIL;tap(100,220);
   assert(exercise()==TIMED_OUT&&restarts==0&&shutdowns==0&&strstr(body,"RESET"));
 #if TEST_WAVE

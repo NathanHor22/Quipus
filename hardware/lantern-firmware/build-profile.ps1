@@ -1,7 +1,13 @@
 param(
   [ValidateSet("original", "v2", "phone", "waveshare")]
   [string]$Profile = "v2",
-  [switch]$Clean
+  [switch]$Clean,
+  # Waveshare release builds for wireless updates, e.g. -Version 0.13.1-quipus.
+  # Each version builds in build-v<x.y.z> (bench: build-v<x.y.z>b); sign it with
+  # sign-firmware.ps1 -Build.
+  [string]$Version,
+  # Bench only: the image fails its first-boot check to prove rollback.
+  [switch]$BenchRollback
 )
 
 $ErrorActionPreference = "Stop"
@@ -36,6 +42,21 @@ $profiles = @{
   waveshare = @{ build = "build-waveshare"; config = "sdkconfig.waveshare"; defaults = "sdkconfig.waveshare.defaults" }
 }
 $selected = $profiles[$Profile]
+if ($BenchRollback -and -not $Version) { throw "-BenchRollback needs -Version." }
+if ($Version) {
+  if ($Profile -ne "waveshare") { throw "-Version is only supported for the waveshare profile." }
+  if ($Version -cnotmatch '^\d{1,5}\.\d{1,5}\.\d{1,5}(-[a-z0-9-]+)?$') { throw "Version must look like 0.13.1-quipus." }
+  # Short folder names keep ESP-IDF object paths under Windows' 260-character limit.
+  $numbers = ($Version -split "-")[0]
+  $suffix = if ($BenchRollback) { "$($numbers)b" } else { $numbers }
+  $buildFolder = "build-v$suffix"
+  New-Item -ItemType Directory -Force -Path (Join-Path $firmwareRoot $buildFolder) | Out-Null
+  $versionDefaults = Join-Path (Join-Path $firmwareRoot $buildFolder) "version.defaults"
+  $lines = @("CONFIG_QUIPUS_FIRMWARE_VERSION_CUSTOM=y", "CONFIG_QUIPUS_FIRMWARE_VERSION=`"$Version`"")
+  if ($BenchRollback) { $lines += "CONFIG_QUIPUS_OTA_BENCH_FAIL_NEW_IMAGE=y" }
+  Set-Content -LiteralPath $versionDefaults -Value $lines -Encoding ascii
+  $selected = @{ build = $buildFolder; config = "sdkconfig.release-$suffix"; defaults = "sdkconfig.waveshare.defaults;$versionDefaults" }
+}
 $env:IDF_CCACHE_ENABLE = "0"
 $env:ESP_IDF_VERSION = "5.2.3"
 Push-Location $firmwareRoot

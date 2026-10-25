@@ -66,6 +66,8 @@ Desktop.ini
 /hardware/lantern-firmware/sdkconfig
 /hardware/lantern-firmware/sdkconfig.v2
 /hardware/lantern-firmware/build-waveshare/
+/hardware/lantern-firmware/build-v[0-9]*/
+/hardware/lantern-firmware/sdkconfig.release-*
 /hardware/lantern-firmware/sdkconfig.waveshare
 /hardware/lantern-firmware/sdkconfig.waveshare.old
 /hardware/backups/

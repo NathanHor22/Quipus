@@ -40,6 +40,7 @@
 #include "lantern_bluetooth.h"
 #include "lantern_board.h"
 #include "lantern_display.h"
+#include "lantern_ota.h"
 #include "lantern_sd.h"
 #include "lantern_transcript.h"
 
@@ -1678,7 +1679,7 @@ esp_err_t lantern_network_send_heartbeat(const char *state,
   char authorization[140];
   snprintf(authorization, sizeof(authorization), "Device %s.%s",
            s_config->device_id, s_config->device_secret);
-  char body[512];
+  char body[768];
   char battery[16];
   if (battery_level < 0)
     snprintf(battery, sizeof(battery), "null");
@@ -1690,6 +1691,7 @@ esp_err_t lantern_network_send_heartbeat(const char *state,
            "\"freeHeapBytes\":%u,\"lastError\":null}",
            event_id, LANTERN_FIRMWARE_VERSION, state, state_version, battery,
            (unsigned)esp_get_free_heap_size());
+  lantern_ota_append_report(body, sizeof(body));
   response_buffer_t *response = response_buffer_create();
   if (!response)
     return ESP_ERR_NO_MEM;
@@ -1705,6 +1707,8 @@ esp_err_t lantern_network_send_heartbeat(const char *state,
     free(response);
     return ESP_FAIL;
   }
+  // Reaching Quipus confirms a freshly installed image and carries any offer.
+  lantern_ota_heartbeat_acknowledged(response->data);
   bool transferred = acknowledge_pending_transfer(response->data);
   free(response);
   if (transferred)

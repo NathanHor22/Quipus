@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 import {
@@ -49,9 +50,10 @@ export async function GET() {
       .is("revoked_at", null)
       .order("created_at", { ascending: true });
     if (error) throw error;
+    const devices = await withFirmwareUpdates(client, data || []);
 
     return NextResponse.json(
-      { devices: data || [], source: "supabase" },
+      { devices, source: "supabase" },
       { headers: { "cache-control": "no-store" } },
     );
   } catch (error) {
@@ -73,4 +75,30 @@ export async function GET() {
       },
     );
   }
+}
+
+type DeviceRow = { id: string } & Record<string, unknown>;
+
+/** Adds each recorder's most recent wireless update; omitted if unavailable. */
+async function withFirmwareUpdates(client: SupabaseClient, devices: DeviceRow[]) {
+  if (!devices.length) return devices;
+  const { data, error } = await client.from("device_firmware_updates")
+    .select("device_id,state,last_error,updated_at,firmware_releases(version)")
+    .in("device_id", devices.map(device => device.id))
+    .order("updated_at", { ascending: false });
+  if (error) {
+    console.warn("[devices] firmware update status unavailable");
+    return devices;
+  }
+  return devices.map(device => {
+    const latest = (data || []).find(row => row.device_id === device.id);
+    const release = latest?.firmware_releases as { version?: string } | { version?: string }[] | null | undefined;
+    const version = Array.isArray(release) ? release[0]?.version : release?.version;
+    return {
+      ...device,
+      firmware_update: latest && version
+        ? { version, state: latest.state, error: latest.last_error, updated_at: latest.updated_at }
+        : null,
+    };
+  });
 }

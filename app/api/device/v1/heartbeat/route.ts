@@ -5,6 +5,8 @@ import {
   matchesLanternSecret,
   parseDeviceAuthorization,
 } from "@/lib/lantern-device-auth";
+import { processFirmwareHeartbeat } from "@/lib/firmware-update-service";
+import { firmwareReportSchema } from "@/lib/firmware-updates";
 import { lanternStateSchema } from "@/lib/lantern-state";
 import { getServerSupabase } from "@/lib/supabase/server";
 
@@ -20,6 +22,7 @@ const heartbeatSchema = z
     networkType: z.enum(["wifi", "cellular", "offline"]),
     freeHeapBytes: z.number().int().nonnegative().max(32 * 1024 * 1024),
     lastError: z.string().trim().max(500).nullable(),
+    update: firmwareReportSchema.optional(),
   })
   .strict();
 
@@ -42,7 +45,7 @@ export async function POST(request: Request) {
     const input = heartbeatSchema.parse(await request.json());
     const { data: device, error: lookupError } = await client
       .from("devices")
-      .select("id,credential_hash,revoked_at,device_state,state_version")
+      .select("id,model,credential_hash,revoked_at,device_state,state_version")
       .eq("id", authorization.deviceId)
       .maybeSingle();
     if (lookupError) throw new Error(lookupError.message);
@@ -79,11 +82,20 @@ export async function POST(request: Request) {
     if (transferError) throw new Error("Transfer status could not be checked.");
     const authoritativeState = lanternStateSchema.parse(updated.device_state);
     const authoritativeVersion = Number(updated.state_version || 0);
+    const update = await processFirmwareHeartbeat(client, {
+      deviceId: device.id,
+      model: typeof device.model === "string" ? device.model : null,
+      runningVersion: input.firmwareVersion,
+      state: input.state,
+      report: input.update ?? null,
+      transferPending: Boolean(transfer),
+    });
 
     return NextResponse.json(
       {
         acknowledgedEventId: input.eventId,
         transfer: transfer ? { id: transfer.id } : null,
+        update,
         state: authoritativeState,
         stateVersion: authoritativeVersion,
         synchronized:
