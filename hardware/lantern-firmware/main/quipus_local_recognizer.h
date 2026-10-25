@@ -39,6 +39,7 @@ typedef struct {
   uint16_t background_rms, ambiguous_frames, unexplained_speech_frames;
   uint16_t first_ambiguous_end_ms, last_ambiguous_end_ms;
   uint16_t first_ambiguous_rms, last_ambiguous_rms, onset_attached_frames;
+  uint16_t longest_above_floor_frames; /* longest contiguous above-floor run */
   uint16_t vad_frames, vad_speech_frames, vad_last_speech_end_ms;
   uint16_t first_no_voiced_ms, last_no_voiced_ms, peak_yes_voiced_ms, peak_no_voiced_ms;
   uint8_t peak_yes_scores[4], peak_no_scores[4];

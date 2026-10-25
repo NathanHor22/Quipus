@@ -7,7 +7,7 @@
 #if CONFIG_QUIPUS_EXPERIMENTAL_OFFLINE_DSCNN
 #define LANTERN_FIRMWARE_VERSION "0.12.9-quipus-experimental"
 #else
-#define LANTERN_FIRMWARE_VERSION "0.13.3-quipus"
+#define LANTERN_FIRMWARE_VERSION "0.13.4-quipus"
 #endif
 // Release and bench builds may name their own version for wireless updates.
 #if CONFIG_QUIPUS_FIRMWARE_VERSION_CUSTOM

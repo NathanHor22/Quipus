@@ -153,6 +153,19 @@ int main(void) {
   uint8_t actual_no[4]={0,4,5,247};
   observe(&replay,&result.diagnostics,actual_no,4990,35,100);
   finish_decision(&replay,&result,QUIPUS_LOCAL_PURPOSE_CONSENT);assert(result.intent==QUIPUS_LOCAL_NO);
+  // Live board-2 tail: a weak NO (135) over only the last40ms of an explained
+  // YES does not veto it; the same weak NO over100ms of speech still does.
+  uint8_t strong_yes[4]={0,8,255,4},weak_no[4]={20,60,40,135};
+  for(unsigned voiced=40;voiced<=100;voiced+=60) {
+    decision_t tail={0};result=(quipus_local_result_t){.intent=QUIPUS_LOCAL_UNKNOWN};
+    result.diagnostics.vad_available=true;result.diagnostics.background_verified=true;
+    observe(&tail,&result.diagnostics,strong_yes,990,380,600);
+    observe(&tail,&result.diagnostics,strong_yes,1090,380,600);
+    observe(&tail,&result.diagnostics,weak_no,2390,20,(uint16_t)voiced);
+    finish_decision(&tail,&result,QUIPUS_LOCAL_PURPOSE_CONSENT);
+    assert(result.intent==(voiced<100?QUIPUS_LOCAL_YES:QUIPUS_LOCAL_UNKNOWN));
+    assert(result.diagnostics.possible_no_windows==(voiced<100?0U:1U));
+  }
 
   // VAD onset lag is associated only when adjacent and within100ms.
   for(size_t i=0;i<80000;++i)pcm[i]=(i%2)?19:-19;
@@ -192,17 +205,21 @@ int main(void) {
   result=navigate(2,80000);
   assert(result.intent==QUIPUS_LOCAL_YES && result.diagnostics.ambiguous_frames==5);
   assert(windows==41 && vad_calls==250);
-  // One 20ms room fluctuation (the live consent failure: 2.3x floor) is not
-  // speech, but a sustained60ms run at the same level, or a strong blip, is.
+  // Room fluctuations shorter than100ms (live consent failures at 1.8-2.3x
+  // floor) are not speech; a sustained100ms run at that level, or a strong
+  // blip, is.
   for(size_t i=76800;i<78400;++i)pcm[i]=(i%2)?19:-19;
   for(size_t i=67200;i<67520;++i)pcm[i]=(i%2)?44:-44;
   result=run(2,80000);
   assert(result.intent==QUIPUS_LOCAL_YES && !result.diagnostics.ambiguous_frames);
   assert(navigate(2,80000).intent==QUIPUS_LOCAL_YES);
-  for(size_t i=67200;i<68160;++i)pcm[i]=(i%2)?44:-44;
+  for(size_t i=67200;i<68480;++i)pcm[i]=(i%2)?44:-44;
   result=run(2,80000);
-  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==3);
-  for(size_t i=67200;i<68160;++i)pcm[i]=(i%2)?19:-19;
+  assert(result.intent==QUIPUS_LOCAL_YES && result.diagnostics.longest_above_floor_frames==4);
+  for(size_t i=67200;i<68800;++i)pcm[i]=(i%2)?44:-44;
+  result=run(2,80000);
+  assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==5);
+  for(size_t i=67200;i<68800;++i)pcm[i]=(i%2)?19:-19;
   for(size_t i=67200;i<67520;++i)pcm[i]=(i%2)?66:-66;
   result=run(2,80000);
   assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==1);
@@ -257,7 +274,7 @@ int main(void) {
   assert(result.intent==QUIPUS_LOCAL_UNKNOWN && result.diagnostics.ambiguous_frames==5);
   // Noise inside the post-answer calibration window is never accepted.
   for(size_t i=76800;i<78400;++i)pcm[i]=(i%2)?19:-19;
-  for(size_t i=30*320;i<34*320;++i)pcm[i]=(i%2)?60:-60;
+  for(size_t i=32*320;i<38*320;++i)pcm[i]=(i%2)?60:-60;
   result=run(2,80000);
   assert(result.intent==QUIPUS_LOCAL_UNKNOWN && !result.diagnostics.background_verified);
   // Speech continuing to the end leaves nothing to calibrate from.
