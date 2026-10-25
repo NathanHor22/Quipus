@@ -1,5 +1,5 @@
-import { timingSafeEqual } from "node:crypto";
 import catalog from "@/lib/quipus-prompt-text.json";
+import { validInternalBearer } from "@/lib/internal-auth";
 import { createOpenAISpeech } from "@/lib/providers/openai-speech";
 
 export const runtime = "nodejs";
@@ -8,11 +8,9 @@ export const maxDuration = 60;
 /** Private build tool: disabled unless an ephemeral deployment-only token is set. */
 export async function POST(request: Request, context: { params: Promise<{ asset: string }> }) {
   const expected = process.env.QUIPUS_VOICE_BUILD_TOKEN;
-  const provided = request.headers.get("authorization")?.replace(/^Bearer /u, "");
   const unavailable = () => Response.json({ error: "Not found" }, { status: 404,
     headers: { "cache-control": "no-store" } });
-  if (!expected || !/^[a-f0-9]{64}$/u.test(expected) || !provided || !/^[a-f0-9]{64}$/u.test(provided) ||
-      !timingSafeEqual(Buffer.from(expected), Buffer.from(provided))) return unavailable();
+  if (!expected || !/^[a-f0-9]{64}$/u.test(expected) || !validInternalBearer(request, expected)) return unavailable();
   const { asset } = await context.params;
   const item = catalog.prompts.find(value => value.symbol === asset);
   if (!item) return unavailable();

@@ -4,9 +4,10 @@ import { type SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { requireAuthenticatedSession, requireProductionPersistence } from "@/lib/api-security";
+import { requireProductionPersistence } from "@/lib/api-security";
 import { env } from "@/lib/env";
 import { getServerSupabase, resolveWorkspaceUserId } from "@/lib/supabase/server";
+import { requireWhatsAppOwner } from "@/lib/whatsapp-owner-auth";
 
 export const runtime = "nodejs";
 
@@ -90,7 +91,8 @@ async function markFollowUpCompleted(
 }
 
 export async function POST(request: Request) {
-  const authError = await requireAuthenticatedSession();
+  // The relay is the owner's linked WhatsApp account; other workspace users must not send through it.
+  const authError = await requireWhatsAppOwner();
   if (authError) return authError;
   const client = getServerSupabase();
   const readinessError = requireProductionPersistence(

@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <stdatomic.h>
 #define CHECK(value) do { if (!(value)) { fprintf(stderr,"Check failed %d: %s\n",__LINE__,#value); exit(1); } } while (0)
 typedef int esp_err_t;

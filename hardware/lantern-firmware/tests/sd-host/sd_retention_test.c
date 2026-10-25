@@ -65,6 +65,7 @@ static void *json_malloc(size_t size){return ++json_allocations==fail_json_at?NU
 static char marker_session[37];
 static void *heap_caps_malloc(size_t n,int caps){(void)caps;return malloc(n);}
 static size_t xStreamBufferBytesAvailable(void *stream){(void)stream;return 0;}
+static bool quipus_report_cache_busy(void){return false;}
 static void refresh_space(void){}
 static file_t *find_file(const char *path){for(size_t i=0;i<40;++i)if(files[i].exists&&!strcmp(path,files[i].path))return &files[i];return NULL;}
 static file_t *create_file(const char *path,size_t bytes){file_t *f=find_file(path);if(f)return f;for(size_t i=0;i<40;++i)if(!files[i].exists){f=&files[i];memset(f,0,sizeof(*f));f->exists=true;f->bytes=bytes;snprintf(f->path,sizeof(f->path),"%s",path);for(size_t j=0;j<32;++j)f->pcm[j]=(uint8_t)(j*7+3);return f;}CHECK(false);return NULL;}
@@ -76,7 +77,7 @@ static DIR *fake_opendir(const char *path){CHECK(!strcmp(path,SD_RECORDING_DIREC
 static struct dirent *fake_readdir(DIR *dir){CHECK(dir&&dir->open);while(dir->index<40){file_t *f=&files[dir->index++];if(!f->exists)continue;++scanned;snprintf(entry.d_name,sizeof(entry.d_name),"%.31s",strrchr(f->path,'/')+1);return &entry;}return NULL;}
 static int fake_closedir(DIR *dir){CHECK(dir&&dir->open);dir->open=false;return 0;}
 static esp_err_t quipus_archive_journal_append(const char *path,const uint8_t *key,const char *json){(void)key;++writes;if(writes==fail_write_at)return ESP_FAIL;file_t *f=create_file(path,512);snprintf(f->json,sizeof(f->json),"%s",json);return ESP_OK;}
-static esp_err_t quipus_archive_journal_read(const char *path,const uint8_t *key,char *out,size_t cap){(void)key;file_t *f=find_file(path);if(!f||f->tampered||strlen(f->json)>=cap)return ESP_FAIL;snprintf(out,cap,"%s",f->json);return ESP_OK;}
+static esp_err_t quipus_archive_journal_read(const char *path,const uint8_t *key,char *out,size_t cap){(void)key;file_t *f=find_file(path);size_t n;if(!f||f->tampered||(n=strlen(f->json))>=cap)return ESP_FAIL;memcpy(out,f->json,n+1);return ESP_OK;}
 static esp_err_t pending_marker(const char *stem,const char *id,bool verified,bool erase){CHECK(!strcmp(stem,"11111111"));++marker_calls;if(fail_marker||marker_calls==fail_marker_at)return ESP_FAIL;if(erase){marker=false;verified_marker=false;}else{marker=true;verified_marker=verified;snprintf(marker_session,sizeof(marker_session),"%s",id);}return ESP_OK;}
 static size_t pending_marker_count(void){return marker?1:0;}
 #define access fake_access

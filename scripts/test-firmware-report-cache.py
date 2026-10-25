@@ -30,7 +30,7 @@ with tempfile.TemporaryDirectory(prefix="quipus-report-cache-") as folder:
     if os.name == "nt":
         command += ["-include", "io.h"]
     else:
-        command += ["-lm"]
+        command += ["-D_DEFAULT_SOURCE", "-lm"]
     command += ["-o", str(program)]
     subprocess.run(command, check=True, cwd=build)
     subprocess.run([str(program)], check=True, cwd=build)

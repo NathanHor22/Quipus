@@ -41,7 +41,9 @@ with tempfile.TemporaryDirectory(prefix="quipus-audio-boot-fault-") as folder:
     (build/"audio_fault_under_test.c").write_text("#if TEST_WAVE\n"+power+"\n#endif\n"+fault+"\nstatic void actual_audio_boot_branch(void) {\n"+branch.group()+"\n++normal_startups;\n}\n")
     for wave,touch in ((1,0),(0,0),(0,1)):
         binary=build/(f"audio-fault-{wave}-{touch}"+(".exe" if os.name=="nt" else ""))
-        subprocess.run(compiler+["-std=c11","-O1","-UNDEBUG","-Wall","-Wextra","-Werror",
+        # The harness longjmps out of production handlers that never return, so
+        # locals in those abandoned frames are never read again.
+        subprocess.run(compiler+["-std=c11","-O1","-UNDEBUG","-Wall","-Wextra","-Werror","-Wno-unknown-warning-option","-Wno-clobbered",
             f"-DTEST_WAVE={wave}",f"-DTEST_TOUCH={touch}","-I"+str(build),
             "-I"+str(root/"hardware/lantern-firmware/main"),
             str(root/"hardware/lantern-firmware/tests/audio_startup_fault_test.c"),"-o",str(binary)],check=True,cwd=build)

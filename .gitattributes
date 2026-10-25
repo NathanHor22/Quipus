@@ -1,2 +1,31 @@
+# Store and check out text with LF everywhere (matches Prettier endOfLine and the
+# Linux CI/ESP-IDF containers); only Windows batch files need CRLF to run.
+* text=auto eol=lf
 # Keep stylesheet formatting stable on Windows and in CI.
 *.css text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary assets: never diff or normalize.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.glb binary
+*.blend binary
+*.blend1 binary
+*.step binary
+*.stl binary
+*.tflite binary
+*.pcm binary
+*.adpcm binary
+*.wav binary
+*.bin binary
+*.jar binary

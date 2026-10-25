@@ -1,5 +1,5 @@
-import { timingSafeEqual } from "node:crypto";
 import { after, NextResponse } from "next/server";
+import { validInternalBearer } from "@/lib/internal-auth";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { processNextRecording } from "@/lib/processing-queue";
 import { usesDedicatedRecordingWorker } from "@/lib/processing-mode";
@@ -9,10 +9,7 @@ import { deliverNextMeeting } from "@/lib/meeting-delivery";
 export const runtime = "nodejs";
 export const maxDuration = 300;
 export async function POST(request: Request) {
-  const secret = process.env.PROCESSING_WORKER_SECRET;
-  const provided = Buffer.from(request.headers.get("authorization") || "");
-  const expected = Buffer.from(`Bearer ${secret || ""}`);
-  if (!secret || secret.length < 32 || provided.length !== expected.length || !timingSafeEqual(provided, expected)) {
+  if (!validInternalBearer(request, process.env.PROCESSING_WORKER_SECRET)) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
   const client = getServerSupabase();

@@ -4,6 +4,7 @@ import { WorkspaceIntroduction } from "./WorkspaceIntroduction";
 import { useWorkspaceIntroduction } from "./useWorkspaceIntroduction";
 import { useCalendarSwipe } from "./useCalendarSwipe";
 import { WhatsAppDelivery } from "./WhatsAppDelivery";
+import { whatsappEnabled } from "@/lib/features";
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -950,7 +951,7 @@ function WorkspaceSession({
                     <h2>Access & privacy</h2>
                     <p>
                       Your source recordings, transcripts, and meeting briefs
-                      stay private unless you approve sharing or enable delivery to your WhatsApp.
+                      stay private unless you approve sharing{whatsappEnabled() ? " or enable delivery to your WhatsApp" : ""}.
                     </p>
                     <span className={styles.connectionState}>
                       <i
