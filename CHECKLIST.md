@@ -178,7 +178,7 @@ cannot be completed by repository automation alone:
 ## Live golden path — final gate
 
 - [ ] Sign in with the owner Google account and open the live dashboard.
-- [ ] Pair the Quipus through `Quipus-XXXX` and `http://192.168.4.1`.
+- [ ] Pair the Quipus through its on-screen `QUIPUS-XXXXXX` network and password and `http://192.168.4.1`.
 - [ ] Record real audio on the ESP32-S3.
 - [ ] Confirm live Agora transcription and live OpenAI extraction.
 - [ ] Reload and confirm the meeting, audio, transcript, and follow-ups persist.

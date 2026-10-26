@@ -35,6 +35,8 @@ typedef struct {
   bool paired;
   lantern_connectivity_t connectivity;
   char setup_ssid[33];
+  // The password the setup access point actually uses; shown on the device screen.
+  char setup_password[17];
   char connected_ssid[33];
   char saved_ssid[33];
   char ip_address[16];
@@ -76,6 +78,9 @@ typedef struct {
   char local_time[9];
 } lantern_cloud_session_t;
 
+// Sets the per-device setup AP password before the portal starts. An invalid or
+// missing value keeps the board's fallback password so setup always works.
+void lantern_network_set_setup_password(const char *password);
 esp_err_t lantern_network_start(lantern_config_t *config,
                                 lantern_network_callback_t callback);
 void lantern_network_get_status(lantern_network_status_t *status);

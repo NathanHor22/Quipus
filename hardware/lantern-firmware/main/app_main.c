@@ -33,6 +33,8 @@ static adc_cali_handle_t s_battery_calibration;
 #include "lantern_network.h"
 #include "lantern_sd.h"
 #include "lantern_storage.h"
+#include "bootloader_random.h"
+#include "esp_random.h"
 #include "lantern_transcript.h"
 #include "lantern_wake.h"
 #include "quipus_phone_audio.h"
@@ -479,7 +481,8 @@ static void show_ready(void) {
 #endif
   if (s_wifi_screen_open ||
       (network.setup_portal_active && !network.paired)) {
-    lantern_display_show_setup(network.setup_ssid, network.last_error);
+    lantern_display_show_setup(network.setup_ssid, network.setup_password,
+                               network.last_error);
   } else if (network.paired) {
     lantern_display_show(LANTERN_SCREEN_READY,
         s_wake_available ? "READY - SAY COMPUTER" : "READY - PRESS TO START");
@@ -1617,8 +1620,8 @@ static void open_wifi_screen(void) {
       lantern_network_get_status(&network);
       s_ui_view = UI_WIFI_LIST;
       char detail[96];
-      snprintf(detail, sizeof(detail), "JOIN %.32s THEN OPEN 192.168.4.1",
-               network.setup_ssid);
+      snprintf(detail, sizeof(detail), "JOIN %.13s PASSWORD %.16s THEN OPEN 192.168.4.1",
+               network.setup_ssid, network.setup_password);
       lantern_display_show_detail("WIFI FALLBACK", detail,
                                   "TAP BOTTOM TO CLOSE");
     } else {
@@ -1838,7 +1841,7 @@ static void open_wifi_screen(void) {
     s_wifi_screen_open = true;
     lantern_network_status_t network;
     lantern_network_get_status(&network);
-    lantern_display_show(LANTERN_SCREEN_SETUP, network.setup_ssid);
+    lantern_display_show_setup(network.setup_ssid, network.setup_password, NULL);
   } else {
     show_error(RECOVERY_NONE, "WIFI SETUP FAILED", "command_error");
   }
@@ -2640,6 +2643,13 @@ static void storage_fault(esp_err_t error) {
 }
 
 void app_main(void) {
+  // The hardware RNG is only truly random while RF or the SAR ADC entropy source
+  // runs. Neither has started yet, so enable the ADC source briefly; this must
+  // finish before the battery ADC and Wi-Fi are initialised below.
+  uint8_t setup_entropy[QUIPUS_SETUP_PASSWORD_ENTROPY_BYTES];
+  bootloader_random_enable();
+  esp_fill_random(setup_entropy, sizeof(setup_entropy));
+  bootloader_random_disable();
   const lantern_board_profile_t *board = lantern_board_profile();
   ESP_LOGI(TAG, "Quipus %s booting on %s (%s, storage=%s)",
            LANTERN_FIRMWARE_VERSION, board->id, board->model,
@@ -2651,6 +2661,15 @@ void app_main(void) {
   if (storage != ESP_OK) storage_fault(storage);
   lantern_ota_boot();
   ESP_ERROR_CHECK(lantern_storage_load(&s_config));
+  char setup_password[QUIPUS_SETUP_PASSWORD_BUFFER];
+  esp_err_t setup_password_result =
+      lantern_storage_ensure_setup_password(setup_entropy, setup_password);
+  memset(setup_entropy, 0, sizeof(setup_entropy));
+  if (setup_password_result != ESP_OK)
+    ESP_LOGW(TAG, "setup password unavailable (%s); using board fallback",
+             esp_err_to_name(setup_password_result));
+  lantern_network_set_setup_password(setup_password);
+  memset(setup_password, 0, sizeof(setup_password));
   ESP_ERROR_CHECK(lantern_display_init());
   lantern_display_show(LANTERN_SCREEN_BOOTING, "CHECKING SD CARD");
   lantern_sd_status_t sd_status;

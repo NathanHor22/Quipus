@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "esp_err.h"
+#include "quipus_setup_password.h"
 
 #define LANTERN_MAX_WIFI_PROFILES 5
 
@@ -47,3 +48,9 @@ esp_err_t lantern_storage_load_archive_identity(char owner_id[37],
 esp_err_t lantern_storage_save_owner(const char *owner_id);
 
 esp_err_t lantern_storage_clear_archive_identity(void);
+
+// Loads this device's permanent setup-network password, creating it from
+// `entropy` on first use. On failure `out` is empty and nothing is stored.
+esp_err_t lantern_storage_ensure_setup_password(
+    const uint8_t entropy[QUIPUS_SETUP_PASSWORD_ENTROPY_BYTES],
+    char out[QUIPUS_SETUP_PASSWORD_BUFFER]);

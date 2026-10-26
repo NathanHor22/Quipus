@@ -273,14 +273,15 @@ function DeviceSession({
           </>}
           {step === 1 && <>
             <h3>Join the recorder’s Wi-Fi.</h3>
-            <p>On the recorder, open <strong>Wi-Fi setup</strong>. On <strong>this phone or laptop</strong>, open Wi-Fi settings and join <strong>Quipus-XXXX</strong>. Older firmware names it <strong>Lantern-XXXX</strong>.</p>
-            <p>The setup-network password is <strong>lanternsetup</strong>. Stay connected if your phone or laptop says this network has no internet, then return to this page.</p>
+            <p>On the recorder, open <strong>Wi-Fi setup</strong>. On <strong>this phone or laptop</strong>, open Wi-Fi settings and join the network shown on the recorder screen, such as <strong>QUIPUS-A1C44D</strong>. Every recorder has its own name.</p>
+            <p>Enter the <strong>password shown under it on the recorder screen</strong>. Stay connected if your phone or laptop says this network has no internet, then return to this page.</p>
+            <p>Older firmware names it Quipus-XXXX or Lantern-XXXX and uses the password lanternsetup.</p>
             <button className={styles.pairingPrimary} type="button" disabled={codeExpired} onClick={() => goToStep(2)}>I joined the recorder’s Wi-Fi</button>
             <details className={styles.help}><summary>Can’t find the setup network?</summary><p>Wake the recorder screen, open the main menu and choose Wi-Fi setup. Keep it close to this phone or laptop. On older touchscreen firmware, holding the screen for eight seconds resets saved pairing and Wi-Fi; use that only if normal Wi-Fi setup is unavailable.</p></details>
           </>}
           {step === 2 && <>
             <h3>Connect your recorder.</h3>
-            <p>While <strong>this phone or laptop is still on Quipus-XXXX</strong>, open recorder setup below. Updated firmware fills in your pairing code. Enter the name and password of a <strong>2.4 GHz Wi-Fi network or hotspot</strong> with internet, then choose <strong>Save and connect</strong>.</p>
+            <p>While <strong>this phone or laptop is still on the recorder’s network</strong>, open recorder setup below. Updated firmware fills in your pairing code. Enter the name and password of a <strong>2.4 GHz Wi-Fi network or hotspot</strong> with internet, then choose <strong>Save and connect</strong>.</p>
             <p>The setup page runs on your recorder. After saving, reconnect this phone or laptop to normal internet; setup returns to your Quipus dashboard. Saved Wi-Fi can be reused. On older firmware, enter the code shown here manually.</p>
             <a className={styles.pairingPrimary} href={recorderSetupUrl(codeActive ? pairing?.code : null)} target="_blank" rel="noreferrer" onClick={() => goToStep(3)}>Open recorder setup</a>
             <button className={styles.secondaryAction} type="button" disabled={codeExpired} onClick={() => goToStep(3)}>I saved the setup details</button>
@@ -338,7 +339,7 @@ function DeviceSession({
       </section>
       <aside className={styles.connectionCard}>
         <span className={styles.kicker}>WI-FI & UPLOADS</span><h3>Change your saved Wi-Fi.</h3>
-        <p>Open Wi-Fi setup on the recorder. On this same phone or laptop, join Quipus-XXXX (Lantern-XXXX on older firmware), then open its local setup page.</p>
+        <p>Open Wi-Fi setup on the recorder. On this same phone or laptop, join the network and password shown on the recorder screen, then open its local setup page.</p>
         <a className={styles.wifiAction} href={setupAddress} target="_blank" rel="noreferrer">Open recorder setup</a>
         <p>After saving Wi-Fi, return this phone or laptop to internet to check the device status here.</p>
         <ul><li><span>Transcription configured</span><strong>{integrations.agora ? "Yes" : "Check settings"}</strong></li><li><span>Report processing configured</span><strong>{integrations.openai ? "Yes" : "Check settings"}</strong></li></ul>

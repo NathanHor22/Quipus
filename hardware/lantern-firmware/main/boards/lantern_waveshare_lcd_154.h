@@ -79,4 +79,6 @@
 // Battery capacity is an accessory choice, so no charge-time estimate is made.
 #define LANTERN_BATTERY_CAPACITY_MAH 0
 #define LANTERN_CHARGE_CURRENT_MA 0
+// Fallback only: each device normally uses its own password stored in NVS and
+// shown on the setup screen (see quipus_setup_password.h).
 #define LANTERN_SETUP_AP_PASSWORD "lanternsetup"

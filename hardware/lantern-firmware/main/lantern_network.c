@@ -5,6 +5,7 @@
 #include "lantern_setup_page.h"
 #include "quipus_network_policy.h"
 #include "quipus_setup_form.h"
+#include "quipus_setup_password.h"
 
 #include "esp_sntp.h"
 #include <ctype.h>
@@ -116,7 +117,17 @@ static void stop_setup_portal(void) {
                               ? LANTERN_CONNECTIVITY_WIFI_ONLY
                               : LANTERN_CONNECTIVITY_RECONNECTING;
   s_status.setup_ssid[0] = '\0';
+  s_status.setup_password[0] = '\0';
   ESP_ERROR_CHECK_WITHOUT_ABORT(esp_wifi_set_mode(WIFI_MODE_STA));
+}
+
+static char s_setup_password[QUIPUS_SETUP_PASSWORD_BUFFER];
+
+void lantern_network_set_setup_password(const char *password) {
+  if (quipus_setup_password_valid(password))
+    memcpy(s_setup_password, password, sizeof(s_setup_password));
+  else
+    s_setup_password[0] = '\0';
 }
 
 static void configure_setup_radio(void) {
@@ -1164,13 +1175,23 @@ static esp_err_t start_setup_portal(void) {
     return ESP_OK;
   uint8_t mac[6];
   ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_SOFTAP));
-  snprintf(s_status.setup_ssid, sizeof(s_status.setup_ssid), "Quipus-%02X%02X",
-           mac[4], mac[5]);
+  // The low three MAC bytes are the per-chip part, so every Quipus advertises
+  // its own setup network name. Upper case matches the display font exactly,
+  // so the name on screen and in the phone's Wi-Fi list are identical.
+  snprintf(s_status.setup_ssid, sizeof(s_status.setup_ssid),
+           "QUIPUS-%02X%02X%02X", mac[3], mac[4], mac[5]);
+  // Prefer the device-bound password; the board fallback keeps setup usable if
+  // it could not be created or stored. The screen shows whichever is in use.
+  const char *setup_password =
+      s_setup_password[0] ? s_setup_password : LANTERN_SETUP_AP_PASSWORD;
+  snprintf(s_status.setup_password, sizeof(s_status.setup_password), "%s",
+           setup_password);
   wifi_config_t ap = {0};
   ap.ap.ssid_len = strnlen(s_status.setup_ssid, sizeof(ap.ap.ssid));
   memcpy(ap.ap.ssid, s_status.setup_ssid, ap.ap.ssid_len);
-  size_t setup_password_length = strlen(LANTERN_SETUP_AP_PASSWORD);
-  memcpy(ap.ap.password, LANTERN_SETUP_AP_PASSWORD, setup_password_length);
+  // Source (17 bytes) is far smaller than the 64-byte WPA2 field.
+  memcpy(ap.ap.password, s_status.setup_password,
+         strnlen(s_status.setup_password, sizeof(s_status.setup_password) - 1));
   ap.ap.channel = 1;
   ap.ap.max_connection = 2;
   ap.ap.authmode = WIFI_AUTH_WPA2_PSK;
