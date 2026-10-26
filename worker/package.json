@@ -17,7 +17,7 @@
     "@whiskeysockets/baileys": "^6.7.22",
     "ioredis": "^6.0.0",
     "pg": "^8.23.1",
-    "pino": "^9.0.0",
+    "pino": "^10.4.0",
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
