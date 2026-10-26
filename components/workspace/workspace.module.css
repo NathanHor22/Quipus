@@ -701,9 +701,9 @@
 }
 .settingsGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: 22px;
+  gap: 12px;
 }
 .settingsCard {
   padding: 26px;
@@ -1061,7 +1061,6 @@
 }
 @media (max-width: 760px) {
   .calendarLayout,
-  .settingsGrid,
   .peopleGrid {
     grid-template-columns: 1fr;
     gap: 20px;
@@ -1185,4 +1184,69 @@
   display: grid;
   gap: 24px;
   min-width: 0;
+}
+
+/* Home keeps reviews above the calendar and the remaining follow-ups below it. */
+.homeReviews {
+  min-width: 0;
+  margin-bottom: 14px;
+}
+.homeReviews h2 {
+  margin: 0 0 3px;
+  font: 600 14px/1.35 var(--q-font-body);
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+}
+.homeReviews > button {
+  margin-top: 8px;
+}
+.homeReviews article > div.reviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  grid-column: 2;
+  grid-row: 1;
+  justify-content: flex-end;
+}
+.reviewEmpty {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--q-line);
+  border-radius: 6px;
+  background: var(--q-glass);
+  color: var(--q-muted-strong);
+  font-size: 13px;
+}
+.homeCalendar {
+  min-width: 0;
+}
+.followUpSection {
+  min-width: 0;
+  margin-top: 28px;
+  scroll-margin-top: 20px;
+}
+.followUpSection .approvalRail {
+  max-height: none;
+  overflow: visible;
+}
+@container workspace (max-width: 640px) {
+  .homeReviews > div > article {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .homeReviews article > div.reviewActions {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    justify-content: flex-start;
+  }
+}
+@media (max-width: 760px) {
+  .homeReviews article > div.reviewActions {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    justify-content: flex-start;
+  }
+  .homeReviews .reviewActions > button {
+    min-height: 44px;
+    padding-block: 9px;
+  }
 }

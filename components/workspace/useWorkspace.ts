@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { normalizeMeetingTitle } from "@/lib/meeting-title";
 import { canHideRecording, updateCalendarVisibility } from "@/lib/workspace/calendar-visibility";
 import type { Contact, Meeting, ScheduleDetails } from "@/lib/types";
 import { useBrowserStorageSnapshot } from "@/components/hooks/useBrowserStorageSnapshot";
@@ -437,6 +438,50 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
     }
   };
 
+  const updateMeetingTitle = async (id: string, title?: string, expectedTitle?: string): Promise<boolean> => {
+    const meeting = meetings.find(item => item.id === id);
+    if (actionLock.current || !meeting) return false;
+    const nextTitle = title === undefined ? null : normalizeMeetingTitle(title);
+    if (title !== undefined && !nextTitle) { setError("Enter a short title about this meeting."); return false; }
+    if (mode === "sample" && title === undefined) return false;
+    actionLock.current = true;
+    if (mode === "live") generation.current++;
+    setWorking(`title:${id}`);
+    setError(null);
+    const actionOwner = owner.current;
+    try {
+      let savedTitle = nextTitle;
+      if (mode === "live") {
+        if (id.startsWith("sample:")) throw new Error("Sample meetings cannot update your workspace.");
+        const response = await fetch(`/api/meetings/${encodeURIComponent(id)}/title`, {
+          method: title === undefined ? "POST" : "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ ...(title === undefined ? {} : { title: nextTitle }), expectedTitle: expectedTitle ?? meeting.title }),
+        });
+        const payload = await response.json().catch(() => ({})) as { title?: string; persisted?: boolean; error?: string };
+        if (actionOwner !== owner.current) return false;
+        if (!response.ok || !payload.persisted || !normalizeMeetingTitle(payload.title)) throw new Error(payload.error || "The meeting title could not be saved.");
+        savedTitle = payload.title!;
+      } else if (expectedTitle !== undefined && meeting.title !== expectedTitle) {
+        throw new Error("This meeting was renamed elsewhere. Reopen Rename and try again.");
+      }
+      if (!savedTitle) return false;
+      const update = (current: Meeting[]) => current.map(item => item.id === id ? { ...item, title: savedTitle! } : item);
+      if (mode === "sample") { const next = update(meetings); setMeetings(next); persistSample(next); }
+      else setMeetings(update);
+      setNotice("Meeting title updated.");
+      return true;
+    } catch (cause) {
+      if (actionOwner === owner.current) setError(cause instanceof Error ? cause.message : "The meeting title could not be saved.");
+      return false;
+    } finally {
+      actionLock.current = false;
+      setWorking(null);
+    }
+  };
+  const patchMeetingTitle = (id: string, title: string, expectedTitle?: string) => updateMeetingTitle(id, title, expectedTitle);
+  const generateMeetingTitle = (id: string, expectedTitle?: string) => updateMeetingTitle(id, undefined, expectedTitle);
+
   const setCalendarVisibility = async (id: string, hidden: boolean): Promise<boolean> => {
     const meeting = meetings.find(item => item.id === id);
     if (actionLock.current || !meeting || !canHideRecording(meeting)) return false;
@@ -494,6 +539,8 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
     approve,
     patchFollowUp,
     patchContact,
+    patchMeetingTitle,
+    generateMeetingTitle,
     setCalendarVisibility,
     calendarUndo: notice === "Hidden from calendar. Audio and history are kept." ? calendarUndo : null,
     loadSample,

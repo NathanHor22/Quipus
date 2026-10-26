@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import styles from "./lantern-device.module.css";
-export function DeviceTransfer({ deviceId }: { deviceId: string }) {
+export function DeviceTransfer({ deviceId, embedded = false }: { deviceId: string; embedded?: boolean }) {
   const [status, setStatus] = useState<"pending" | "completed" | "cancelled" | null>(null);
   const [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
@@ -46,7 +46,7 @@ export function DeviceTransfer({ deviceId }: { deviceId: string }) {
   }
   return (
     <section className={styles.connectionCard}>
-      <h3>Transfer to another account</h3>
+      {!embedded && <h3>Transfer to another account</h3>}
       <p>
         Your uploaded meetings stay in this account. Quipus must finish uploading and clear its
         local private data before another person can pair it.

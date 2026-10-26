@@ -19,6 +19,7 @@ const options = { apiKey: "test-only-openai-key", model: "test-openai-model" };
 
 function extractionFixture(): MeetingExtraction {
   return {
+    title: "Bangsar branch pilot planning",
     insight: {
       meetingType: "Client conversation",
       intent: "Plan a pilot at the Bangsar branch.",
@@ -91,6 +92,11 @@ test("OpenAI receives the conversation clock and a strict schedule schema", asyn
     assert.equal(request.store, false);
     assert.equal(request.text.format.type, "json_schema");
     assert.equal(request.text.format.strict, true);
+    assert.ok(request.text.format.schema.required.includes("title"));
+    assert.deepEqual(request.text.format.schema.properties.title.type, ["string", "null"]);
+    assert.equal(request.text.format.schema.properties.title.maxLength, 80);
+    assert.match(request.instructions, /factual topic title/u);
+    assert.match(request.instructions, /whole conversation/u);
     const followUpSchema = request.text.format.schema.properties.followUps.items;
     assert.equal(followUpSchema.additionalProperties, false);
     assert.ok(followUpSchema.required.includes("schedule"));
@@ -285,4 +291,19 @@ test("an uncertain offline capture clock clears dates even when the model return
   assert.equal(result.followUps[0].description, fixture.followUps[0].description);
   assert.equal(result.followUps[0].schedule?.evidence, fixture.followUps[0].schedule?.evidence);
   assert.match(result.warning || "", /time is uncertain/i);
+});
+
+
+test("a title can be absent in a legacy response or null without losing the recap", async () => {
+  for (const title of [null, undefined]) {
+    const fixture = extractionFixture();
+    if (title === undefined) delete fixture.title;
+    else fixture.title = title;
+    const result = await extractWithOpenAI(transcript, context, {
+      ...options,
+      fetchImpl: async () => modelResponse(fixture),
+    });
+    assert.equal(result.title, title);
+    assert.equal(result.insight.intent, fixture.insight.intent);
+  }
 });

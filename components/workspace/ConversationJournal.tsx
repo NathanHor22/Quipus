@@ -6,6 +6,7 @@ import type { Meeting } from "@/lib/types";
 import { getApprovals, type WorkspaceMode } from "@/lib/workspace/model";
 import { getRecordingProgress, recordingDurationLabel } from "@/lib/workspace/recording-progress";
 import { RecordingProgress } from "./RecordingProgress";
+import { selectMeetingTitle } from "@/lib/meeting-title";
 import { useWorkspaceTime } from "./WorkspaceTime";
 import styles from "./journal.module.css";
 
@@ -210,8 +211,9 @@ export function ConversationJournal({ meetings, mode = "sample", compact = false
     <div className={styles.list}>
       {visible.map(meeting => {
         const contact = meeting.contacts[0];
-        const person = contact?.name || meeting.title;
-        const topic = meeting.insight?.intent?.trim() || (meeting.title !== person ? meeting.title : "Conversation");
+        const title = selectMeetingTitle({ preferredTitle: meeting.title, startAt: meeting.startAt, timeZone: timezone });
+        const people = meeting.contacts.map(person => person.name).join(", ");
+        const topic = [people, contact?.company].filter(Boolean).join(" \u00b7 ");
         const progress = getRecordingProgress(meeting);
         const selected = selectedId === meeting.id;
         const awaitingApproval = getApprovals([meeting]).some(approval => approval.status === "pending");
@@ -222,7 +224,7 @@ export function ConversationJournal({ meetings, mode = "sample", compact = false
         return <article key={meeting.id} className={styles.entry} data-selected={selected}>
           <div className={styles.row}>
             <div className={styles.copy}>
-              <p className={styles.meetingLine}><strong>{person}</strong>{contact?.company && <span>{contact.company}</span>}</p>
+              <p className={styles.meetingLine}><strong>{title}</strong></p>
               <p className={styles.tagline}>{topic}</p>
               <div className={styles.metadata}>
                 <time dateTime={meeting.recordingProgress?.timeUncertain ? undefined : meeting.startAt}>{meeting.recordingProgress?.timeUncertain ? "Recording date and time unconfirmed" : <>{dateStamp(meeting.startAt)}{" \u00b7 "}{timeLabel(meeting.startAt)}</>}</time>
@@ -237,7 +239,7 @@ export function ConversationJournal({ meetings, mode = "sample", compact = false
             <div className={styles.rowActions}>
               <span className={styles.statusBadge} data-state={progress.stage === "failed" ? "failed" : awaitingApproval ? "approval" : progress.stage}>{statusLabel}</span>
               <button type="button" className={styles.detailsButton} onClick={() => onOpen(meeting.id)}
-                aria-label={"Open meeting with " + person} aria-expanded={selected}>Open meeting</button>
+                aria-label={"Open meeting: " + title} aria-expanded={selected}>Open meeting</button>
             </div>
           </div>
           {progress.stage === "failed" && <div className={styles.recovery}>

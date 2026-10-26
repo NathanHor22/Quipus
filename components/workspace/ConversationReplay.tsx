@@ -395,7 +395,6 @@ function ConversationReplaySession({
                   ? "Phone audio"
                   : "Original audio"}
             </h3>
-            <p>{conversation.title}</p>
             <p className={styles.duration}>
               Duration ·{" "}
               {duration ? formatAudioTime(duration) : recordingDurationLabel(conversation)}

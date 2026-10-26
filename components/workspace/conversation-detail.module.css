@@ -699,12 +699,11 @@
   text-decoration: line-through;
 }
 .compact {
-  gap: 20px;
+  gap: 14px;
 }
 .compact .hero {
-  padding: 0 0 19px;
+  padding: 0;
   border: 0;
-  border-bottom: 1px solid var(--q-line);
   border-radius: 0;
   background: none;
   box-shadow: none;
@@ -713,14 +712,16 @@
   display: none;
 }
 .compact .hero h2 {
-  font-size: 26px;
+  margin: 0;
+  font-size: 24px;
 }
 .compact .heroMeta {
+  margin-top: 10px;
   font-size: 11px;
 }
 .compact .detailGrid {
   grid-template-columns: minmax(0, 1fr);
-  gap: 23px;
+  gap: 16px;
 }
 .compact .contextCard {
   border-color: var(--q-line);
@@ -802,7 +803,7 @@
     padding: 22px 20px;
   }
   .compact .hero {
-    padding: 0 0 19px;
+    padding: 0;
   }
   .heroIdentity {
     gap: 13px;
@@ -820,12 +821,16 @@
     padding-inline: 10px;
   }
   .tabs {
-    gap: 3px;
-    padding: 4px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    padding: 6px;
   }
   .tabs button {
-    padding-inline: 3px;
-    font-size: 11px;
+    min-height: 44px;
+    padding: 11px 12px;
+    font-size: 13px;
+    line-height: 1.35;
+    white-space: nowrap;
   }
   .cardHeader {
     padding: 18px;
@@ -869,4 +874,51 @@
   color: #6b4a17;
   font-size: 12px;
   line-height: 1.6;
+}
+
+/* A compact selection starts with its own title and tabs, without another toolbar. */
+.heroTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+.heroTop > div {
+  flex: 1;
+  min-width: 0;
+}
+.panelClose {
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 8px 11px;
+  border: 1px solid var(--q-line-strong);
+  border-radius: 5px;
+  background: var(--q-glass-strong);
+  color: var(--q-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+.compact .heroIdentity {
+  width: 100%;
+}
+.compact .heroIdentity > div {
+  width: 100%;
+}
+.compact .heroIdentity p {
+  margin: 7px 0 0;
+  font-size: 12px;
+}
+.compact .mainColumn {
+  gap: 14px;
+}
+@media (max-width: 560px) {
+  .compact .hero {
+    padding: 0;
+  }
+  .compact .hero h2 {
+    font-size: 23px;
+  }
+  .panelClose {
+    min-height: 44px;
+  }
 }

@@ -9,6 +9,7 @@ import {
   publishConsolidatedRecording,
 } from "./recording-files";
 import { conversationClock } from "./conversation-clock";
+import { selectMeetingTitle } from "./meeting-title";
 import { env } from "./env";
 import { transcriptionResultSchema, type TranscriptionResult } from "./meeting-schema";
 import { persistFailedHardwareMeeting, persistProcessedMeeting } from "./persistence";
@@ -328,9 +329,7 @@ export async function processNextRecording(
     const contacts = extraction.participants.map((p) => ({ id: randomUUID(), ...p }));
     const meeting: Meeting = {
       id: reference,
-      title: contacts[0]
-        ? `${contacts[0].name}${contacts[0].company ? ` Ãƒâ€šÃ‚Â· ${contacts[0].company}` : ""}`
-        : `Conversation Ãƒâ€šÃ‚Â· ${clock.localDate} ${clock.localTime.slice(0, 5)}`,
+      title: selectMeetingTitle({ generatedTitle: extraction.title, startAt: clock.startedAt, timeZone: clock.timeZone }),
       startAt: clock.startedAt,
       endAt,
       status: "ready",
@@ -401,7 +400,7 @@ export async function processNextRecording(
       const saved = await persistFailedHardwareMeeting(client, {
         ownerUserId: job.user_id,
         clientReference: reference,
-        title: `Conversation Ãƒâ€šÃ‚Â· ${clock.localDate} ${clock.localTime.slice(0, 5)}`,
+        title: selectMeetingTitle({ startAt: clock.startedAt, timeZone: clock.timeZone }),
         startAt: clock.startedAt,
         endAt,
         recordingId: recording.id,

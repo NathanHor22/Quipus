@@ -7,7 +7,7 @@ import { Dialog } from "@/components/ui/Dialog";
 import { useBrowserStorageSnapshot } from "@/components/hooks/useBrowserStorageSnapshot";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { firmwareUpdateLabel, type FirmwareUpdateStatus } from "@/lib/firmware-updates";
-import { lanternStateLabel, type LanternState } from "@/lib/lantern-state";
+import type { LanternState } from "@/lib/lantern-state";
 import type { WorkspaceMode } from "@/lib/workspace/model";
 import {
   hasRecentHeartbeat,
@@ -60,6 +60,8 @@ type LanternDevicePanelProps = {
   conversationCount: number;
   accountEmail?: string | null;
   hasRecording?: boolean;
+  /** The Settings accordion supplies the outer title and card. */
+  embedded?: boolean;
 };
 
 export function LanternDevicePanel(props: LanternDevicePanelProps) {
@@ -68,10 +70,8 @@ export function LanternDevicePanel(props: LanternDevicePanelProps) {
 
 function DeviceSession({
   mode,
-  integrations,
-  conversationCount,
   accountEmail,
-  hasRecording,
+  embedded = false,
 }: LanternDevicePanelProps) {
   const [devices, setDevices] = useState<DeviceRecord[]>([]);
   const [loading, setLoading] = useState(mode === "live");
@@ -84,6 +84,10 @@ function DeviceSession({
   const [checkingConnection, setCheckingConnection] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const [confirmingRevoke, setConfirmingRevoke] = useState(false);
+  const [wifiSetupOpen, setWifiSetupOpen] = useState(false);
+  const [wasRevoked, setWasRevoked] = useState(false);
+  const [manualSetupOpen, setManualSetupOpen] = useState(false);
+  const embeddedClass = embedded ? ` ${styles.embedded}` : "";
   const request = useRef<AbortController | null>(null);
   const actionRequest = useRef<AbortController | null>(null);
   const storageKey = accountEmail ? pairingStorageKey(accountEmail) : null;
@@ -125,7 +129,7 @@ function DeviceSession({
       setDevices(payload.devices || []);
       setDeviceError(null);
       setNow(Date.now());
-      if (payload.devices?.length) { setPairing(null); setStep(0); }
+      if (payload.devices?.length) { setPairing(null); setStep(0); setWasRevoked(false); }
     }).catch((cause: unknown) => {
       if (controller.signal.aborted && controller.signal.reason !== "timeout") return;
       setDeviceError(controller.signal.aborted
@@ -216,6 +220,8 @@ function DeviceSession({
       if (controller.signal.aborted || actionRequest.current !== controller) return;
       if (!response.ok || !payload.revoked) throw new Error(payload.error || "Quipus could not be revoked.");
       setConfirmingRevoke(false);
+      setWasRevoked(true);
+      setManualSetupOpen(false);
       setDevices(current => current.filter(device => device.id !== deviceId));
       setPairing(null);
       setStep(0);
@@ -235,19 +241,24 @@ function DeviceSession({
   const countdown = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
   const goToStep = (next: PairingProgress["step"]) => { setStep(next); setDeviceNotice(null); };
 
-  if (loading && !primaryDevice) return <section className={styles.deviceLoading} role="status"><p>Checking your Quipus…</p></section>;
+  if (loading && !primaryDevice) return <section className={`${styles.deviceLoading}${embeddedClass}`} role="status"><p>Checking your Quipus…</p></section>;
 
   if (mode === "sample" || !primaryDevice) {
-    if (mode === "sample") return <section className={styles.sampleSetup} aria-label="Quipus setup preview">
-      <span className={styles.kicker}>CONNECT YOUR RECORDER</span><h2>Your recordings, in your workspace.</h2>
-      <p>Sign in and follow the connection steps here. Quipus opens your recorder’s setup page and remembers the account and saved Wi-Fi for future uploads.</p>
-      <Link className={styles.pairingPrimary} href="/login?next=%2Fdashboard%2Fdevices">Sign in to pair a device</Link>
+    if (mode === "sample") return <section className={`${styles.sampleSetup}${embeddedClass}`} aria-label="Device details">
+      {!embedded && <><span className={styles.kicker}>Device details</span><h2>Your Quipus</h2></>}
+      <p>Sign in to connect your device.</p>
+      <Link className={styles.pairingPrimary} href="/login?next=%2Fdashboard%2Fsettings">Sign in to pair a device</Link>
     </section>;
 
-    return <section className={styles.pairingLayout} aria-label="Quipus pairing setup">
+    return <section className={`${styles.pairingLayout}${embeddedClass}`} aria-label="Quipus pairing setup">
       <aside className={styles.pairingIntro}>
-        <span className={styles.kicker}>PAIR YOUR QUIPUS</span><h2>Connect once. Keep recording.</h2>
-        <p>The pairing code links your recorder to {accountEmail || "this workspace"}. Saved 2.4 GHz Wi-Fi connects it to the internet.</p>
+        {embedded ? <><h3 className={styles.embeddedHeading}>Device pairing</h3><p>Pair this Quipus with {accountEmail || "your account"}.</p></> : <><span className={styles.kicker}>PAIR YOUR QUIPUS</span><h2>Connect once. Keep recording.</h2>
+        <p>The pairing code links your recorder to {accountEmail || "this workspace"}. Saved 2.4 GHz Wi-Fi connects it to the internet.</p></>}
+        {embedded && deviceNotice && <p className={styles.deviceNotice} role="status">{deviceNotice}</p>}
+        {embedded && !manualSetupOpen && <button className={styles.pairingPrimary} disabled={working} autoFocus={wasRevoked} type="button" onClick={() => {
+          setManualSetupOpen(true);
+          if (!pairing || codeExpired) void createPairing();
+        }}>{pairing && !codeExpired ? "Continue setup" : wasRevoked ? "Connect again" : "Connect device"}</button>}
         {pairing && <div className={styles.activePairingCode}>
           <span>ONE-TIME PAIRING CODE</span><strong>{pairing.code}</strong>
           <small>{codeExpired ? "Code expired. Create a new code to finish pairing." : `Expires in ${countdown}`}</small>
@@ -256,9 +267,9 @@ function DeviceSession({
         <p className={styles.networkNote}>Connect with Bluetooth in Chrome on Windows or Android to keep this page online. Wi-Fi setup is also available for iPhone and other browsers.</p>
       </aside>
       <div className={styles.setupSteps}>
-        <BluetoothRecorderSetup onConnected={() => { void loadDevices(); }} />
-        <details className={styles.help}>
-        <summary>Use Wi-Fi setup instead</summary>
+        {!embedded && <BluetoothRecorderSetup onConnected={() => { void loadDevices(); }} />}
+        <details className={styles.help} open={manualSetupOpen} onToggle={event => setManualSetupOpen(event.currentTarget.open)}>
+        <summary>{embedded ? "Wi-Fi pairing setup" : "Use Wi-Fi setup instead"}</summary>
         <ol className={styles.stepNavigation} aria-label="Pairing progress">
           {stepLabels.map((label, index) => <li key={label}>
             <button type="button" aria-current={step === index ? "step" : undefined} disabled={index > step || (index > 0 && !pairing)} onClick={() => goToStep(index as PairingProgress["step"])}><span>{index + 1}</span>{label}</button>
@@ -295,58 +306,61 @@ function DeviceSession({
             <button className={styles.secondaryAction} type="button" onClick={() => goToStep(2)}>Review setup details</button>
           </>}
           {codeExpired && <div className={styles.deviceNotice} role="status"><strong>Your code has expired.</strong> If setup is already saved, keep waiting for the connection check. Otherwise create a new code and enter it on the recorder.</div>}
-          {deviceNotice && <p className={styles.deviceNotice} role="status">{deviceNotice}</p>}
+          {!embedded && deviceNotice && <p className={styles.deviceNotice} role="status">{deviceNotice}</p>}
           {deviceError && <div className={styles.deviceError} role="alert"><p>{deviceError}</p><button className={styles.secondaryAction} type="button" disabled={checkingConnection} onClick={() => void loadDevices()}>{checkingConnection ? "Checking…" : "Retry connection check"}</button></div>}
         </div>
         </details>
+        {embedded && <details className={styles.help}><summary>Connect with Bluetooth</summary><BluetoothRecorderSetup onConnected={() => { void loadDevices(); }} /></details>}
       </div>
     </section>;
   }
 
-  const recent = hasRecentHeartbeat(primaryDevice.last_seen_at, now);
-  const deviceHealthy = recent && primaryDevice.status === "online" && !primaryDevice.last_error;
-  const badge = !recent ? "No recent heartbeat" : primaryDevice.last_error ? "Needs attention" : primaryDevice.status === "online" ? "Online" : primaryDevice.status || "Connection unknown";
-  const uploaded = hasRecording ?? conversationCount > 0;
+  const connected = hasRecentHeartbeat(primaryDevice.last_seen_at, now)
+    && primaryDevice.status === "online" && primaryDevice.network_type !== "offline";
 
-  return <section className={styles.healthLayout} aria-label="Quipus device health">
-    <header className={styles.healthHero}>
-      <div className={styles.deviceIdentity}><div><span className={styles.kicker}>PAIRED DEVICE</span><h2>{primaryDevice.name}</h2><p>{primaryDevice.model || "ESP32-S3 Quipus"} · {lastSeen}</p></div></div>
-      <span className={deviceHealthy ? styles.onlineBadge : styles.attentionBadge}>{badge}</span>
-    </header>
-    {deviceError && <p className={styles.deviceError} role="alert">{deviceError}</p>}
-    {!recent && <p className={styles.deviceNotice}>This recorder is still paired. Its last update is old, so battery, connection and state below are last-reported values. A quiet device may still be recording locally; this screen cannot confirm its current connection.</p>}
-    <div className={styles.healthStats}>
-      <article><span><strong>{primaryDevice.battery_level == null ? "Not measured" : `${primaryDevice.battery_level}%`}</strong><small>Battery · last reported</small></span></article>
-      <article><span><strong>{primaryDevice.network_type || "Unknown"}</strong><small>Connection · last reported</small></span></article>
-      <article><span><strong>{lanternStateLabel(primaryDevice.device_state)}</strong><small>State · last reported</small></span></article>
-      <article><span><strong>{conversationCount}</strong><small>Workspace conversations</small></span></article>
-    </div>
-    <section className={styles.firstTest} aria-label="Test the recorder">
-      <div><span className={styles.kicker}>{uploaded ? "RECORD ANOTHER MEETING" : "FIRST RECORDING CHECK"}</span><h3>{uploaded ? "Ready for your next conversation." : "Try a short test recording."}</h3></div>
-      <ol>
-        <li>Choose <strong>Start session</strong> on the recorder, or say <strong>Computer</strong>, then <strong>start recording</strong>.</li>
-        <li>Ask everyone for consent, then confirm once when Quipus asks.</li>
-        <li>Speak for 20–30 seconds. Use the recorder’s Stop control; touchscreen boards stop when you tap the recording screen.</li>
-        <li>Leave it powered on and connected to saved Wi-Fi. Your full recording appears in Conversations after the upload; the transcript and report can finish afterwards.</li>
-      </ol>
+  return <section className={`${styles.healthLayout}${embeddedClass}`} aria-label="Device details">
+    <section className={styles.deviceDetails}>
+      <header>
+        <div>{embedded ? <h3 className={styles.embeddedHeading}>Device details</h3> : <><span className={styles.kicker}>Device details</span><h2>Your Quipus</h2></>}</div>
+        <span className={connected ? styles.onlineBadge : styles.attentionBadge} role="status">{connected ? "Connected" : "Offline"}</span>
+      </header>
+      {deviceError && <p className={styles.deviceError} role="alert">{deviceError}</p>}
+      <dl>
+        <div><dt>Device</dt><dd>{primaryDevice.name}</dd></div>
+        <div><dt>Paired account</dt><dd>{accountEmail || "This workspace"}</dd></div>
+        <div><dt>Last contact</dt><dd>{lastSeen}</dd></div>
+      </dl>
+      <div className={styles.deviceActions}>
+        <button className={styles.pairingPrimary} type="button" onClick={() => setWifiSetupOpen(true)}>Change your Wi-Fi</button>
+        <button className={styles.secondaryAction} type="button" disabled={checkingConnection} onClick={() => void loadDevices()}>{checkingConnection ? "Checking..." : "Refresh status"}</button>
+      </div>
+      <details className={styles.help}>
+        <summary>Hardware and firmware details</summary>
+        <dl>
+          <div><dt>Firmware</dt><dd>{primaryDevice.firmware_version || "Not reported"}</dd></div>
+          {firmwareUpdateLabel(primaryDevice.firmware_update, primaryDevice.firmware_version) && <div><dt>Wireless update</dt><dd>{firmwareUpdateLabel(primaryDevice.firmware_update, primaryDevice.firmware_version)}</dd></div>}
+          <div><dt>Model</dt><dd>{primaryDevice.model || "ESP32-S3"}</dd></div>
+          <div><dt>Free firmware memory</dt><dd>{heapLabel(primaryDevice.free_heap_bytes)}</dd></div>
+        </dl>
+      </details>
+      {primaryDevice.last_error && <div className={styles.lastError}><strong>Last reported error</strong><p>{primaryDevice.last_error}</p></div>}
     </section>
-    <div className={styles.healthGrid}>
-      <section className={styles.deviceDetails}>
-        <header><div><span className={styles.kicker}>DEVICE DETAILS</span><h3>Your recorder</h3></div><button className={styles.secondaryAction} type="button" disabled={checkingConnection} onClick={() => void loadDevices()}>{checkingConnection ? "Checking…" : "Refresh status"}</button></header>
-        <dl><div><dt>Paired account</dt><dd>{accountEmail || "This workspace"}</dd></div><div><dt>Last contact</dt><dd>{lastSeen}</dd></div></dl>
-        <details className={styles.help}><summary>Hardware and firmware details</summary><dl><div><dt>Firmware</dt><dd>{primaryDevice.firmware_version || "Not reported"}</dd></div>{firmwareUpdateLabel(primaryDevice.firmware_update, primaryDevice.firmware_version) && <div><dt>Wireless update</dt><dd>{firmwareUpdateLabel(primaryDevice.firmware_update, primaryDevice.firmware_version)}</dd></div>}<div><dt>Model</dt><dd>{primaryDevice.model || "ESP32-S3"}</dd></div><div><dt>Free firmware memory</dt><dd>{heapLabel(primaryDevice.free_heap_bytes)}</dd></div></dl></details>
-        {primaryDevice.last_error && <div className={styles.lastError}><span><strong>Last reported error</strong><p>{primaryDevice.last_error}</p></span></div>}
-      </section>
-      <aside className={styles.connectionCard}>
-        <span className={styles.kicker}>WI-FI & UPLOADS</span><h3>Change your saved Wi-Fi.</h3>
-        <p>Open Wi-Fi setup on the recorder. On this same phone or laptop, join the network and password shown on the recorder screen, then open its local setup page.</p>
-        <a className={styles.wifiAction} href={setupAddress} target="_blank" rel="noreferrer">Open recorder setup</a>
-        <p>After saving Wi-Fi, return this phone or laptop to internet to check the device status here.</p>
-        <ul><li><span>Transcription configured</span><strong>{integrations.agora ? "Yes" : "Check settings"}</strong></li><li><span>Report processing configured</span><strong>{integrations.openai ? "Yes" : "Check settings"}</strong></li></ul>
-      </aside>
-    </div>
+    <Dialog open={wifiSetupOpen} onClose={() => setWifiSetupOpen(false)} className={styles.revokeDialog} aria-labelledby="device-wifi-title">
+      <h2 id="device-wifi-title">Change your Wi-Fi</h2>
+      <ol className={styles.wifiSteps}>
+        <li>Open <strong>Wi-Fi setup</strong> on your Quipus.</li>
+        <li>On <strong>this phone or laptop</strong>, join the <strong>network shown on the recorder screen</strong> and enter the <strong>password shown there</strong>. Each recorder has its own name and password. Stay connected even if there is no internet.</li>
+        <li>Open setup below, enter your <strong>2.4 GHz Wi-Fi</strong> details and choose <strong>Save and connect</strong>.</li>
+      </ol>
+      <p>Older firmware may show Quipus-XXXX or Lantern-XXXX and use the password lanternsetup.</p>
+      <p>After saving, reconnect this phone or laptop to the internet and refresh the device status here. Your account pairing stays the same.</p>
+      <div className={styles.dialogActions}>
+        <button className={styles.secondaryAction} type="button" onClick={() => setWifiSetupOpen(false)}>Done</button>
+        <a className={styles.pairingPrimary} href={setupAddress} target="_blank" rel="noreferrer">Open 192.168.4.1</a>
+      </div>
+    </Dialog>
     <footer className={styles.deviceDangerZone}><div><strong>Remove this Quipus</strong><p>Stops this recorder uploading to your account. Recordings already in your workspace stay here.</p></div><button type="button" disabled={working} onClick={() => setConfirmingRevoke(true)}>Revoke device</button></footer>
-    {mode === "live" && <DeviceTransfer deviceId={primaryDevice.id} />}
+    {mode === "live" && (embedded ? <details className={styles.help}><summary>Transfer to another account</summary><DeviceTransfer deviceId={primaryDevice.id} embedded /></details> : <DeviceTransfer deviceId={primaryDevice.id} />)}
     <Dialog open={confirmingRevoke} onClose={() => setConfirmingRevoke(false)} dismissDisabled={working}
       className={styles.revokeDialog} aria-labelledby="revoke-device-title">
       <h2 id="revoke-device-title">Remove {primaryDevice.name}?</h2><p>It will no longer upload to this account. To use it again, you will need a new pairing code. Recordings already uploaded remain in your workspace.</p>

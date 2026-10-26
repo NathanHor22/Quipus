@@ -267,33 +267,6 @@
   display: grid;
   gap: 20px;
 }
-.healthHero {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 25px;
-  border: 1px solid var(--q-line-strong);
-  border-left: 3px solid var(--q-red);
-  border-radius: 2px;
-  background: #fff;
-  box-shadow: var(--q-shadow);
-}
-.deviceIdentity {
-  min-width: 0;
-}
-.deviceIdentity h2 {
-  margin: 6px 0;
-  font-size: 28px;
-  letter-spacing: -0.035em;
-}
-.deviceIdentity p {
-  margin: 0;
-  color: var(--q-muted-strong);
-  font-size: 12px;
-  overflow-wrap: anywhere;
-}
 .onlineBadge,
 .attentionBadge {
   flex-shrink: 0;
@@ -313,69 +286,6 @@
 .healthLayout > .deviceError {
   margin-top: 0;
 }
-.healthStats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  overflow: hidden;
-  border: 1px solid var(--q-line-strong);
-  border-radius: 2px;
-  background: #fff;
-  box-shadow: var(--q-shadow);
-}
-.healthStats article {
-  min-width: 0;
-  padding: 20px;
-  border-right: 1px solid var(--q-line);
-}
-.healthStats article:last-child {
-  border-right: 0;
-}
-.healthStats article > span {
-  display: grid;
-  gap: 5px;
-}
-.healthStats strong {
-  overflow: hidden;
-  font-size: 18px;
-  font-weight: 650;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-transform: capitalize;
-}
-.healthStats small {
-  color: var(--q-muted-strong);
-  font-size: 11px;
-  line-height: 1.5;
-}
-.firstTest {
-  padding: 24px;
-  border: 1px solid var(--q-line-strong);
-  border-radius: 2px;
-  background: #fff;
-  box-shadow: var(--q-shadow);
-}
-.firstTest h3 {
-  margin: 7px 0 16px;
-  font-size: 21px;
-  letter-spacing: -0.025em;
-}
-.firstTest ol {
-  display: grid;
-  gap: 7px;
-  margin: 0;
-  padding-left: 20px;
-  color: var(--q-muted-strong);
-  font-size: 12px;
-  line-height: 1.7;
-}
-.firstTest strong {
-  color: var(--q-text);
-}
-.healthGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.8fr);
-  gap: 20px;
-}
 .deviceDetails,
 .connectionCard {
   padding: 24px;
@@ -392,7 +302,7 @@
   padding-bottom: 17px;
   border-bottom: 1px solid var(--q-line);
 }
-.deviceDetails h3,
+.deviceDetails h2,
 .connectionCard h3 {
   margin: 6px 0 0;
   font-size: 21px;
@@ -538,16 +448,11 @@
   .activePairingCode {
     max-width: 330px;
   }
-  .healthGrid {
-    grid-template-columns: 1fr;
-  }
 }
 @media (max-width: 600px) {
   .pairingIntro,
   .setupSteps,
   .sampleSetup,
-  .healthHero,
-  .firstTest,
   .deviceDetails,
   .connectionCard {
     padding: 21px;
@@ -561,26 +466,6 @@
   }
   .stepPanel {
     min-height: 0;
-  }
-  .healthHero {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-  }
-  .healthStats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .healthStats article:nth-child(2) {
-    border-right: 0;
-  }
-  .healthStats article:nth-child(-n + 2) {
-    border-bottom: 1px solid var(--q-line);
-  }
-  .healthStats article {
-    padding: 16px;
-  }
-  .healthStats strong {
-    font-size: 16px;
   }
   .deviceDetails > header {
     flex-direction: column;
@@ -607,7 +492,6 @@
     flex: 1;
   }
 }
-
 .pairingLayout::before,
 .sampleSetup::before {
   position: absolute;
@@ -618,16 +502,6 @@
   background: var(--q-red);
   content: "";
 }
-.healthHero::after {
-  position: absolute;
-  top: -1px;
-  right: 24px;
-  width: 42px;
-  height: 3px;
-  transform: skewX(-35deg);
-  background: var(--q-red-deep);
-  content: "";
-}
 @media (prefers-reduced-motion: reduce) {
   .pairingPrimary,
   .secondaryAction,
@@ -636,13 +510,9 @@
     transition: none;
   }
 }
-
 /* Quipus shared glass surfaces and readable controls. */
 .pairingLayout,
 .sampleSetup,
-.healthHero,
-.healthStats,
-.firstTest,
 .deviceDetails,
 .connectionCard,
 .deviceDangerZone,
@@ -653,8 +523,6 @@
   box-shadow: var(--q-shadow);
 }
 .pairingLayout,
-.healthHero,
-.healthStats,
 .deviceDetails,
 .connectionCard {
   backdrop-filter: blur(var(--q-glass-blur));
@@ -676,7 +544,6 @@
 .pairingIntro p,
 .sampleSetup p,
 .stepPanel > p,
-.firstTest ol,
 .connectionCard > p,
 .revokeDialog p {
   font-size: 15px;
@@ -688,8 +555,6 @@
 .help p,
 .deviceError,
 .deviceNotice,
-.deviceIdentity p,
-.healthStats small,
 .lastError,
 .deviceDangerZone p {
   font-size: 13px;
@@ -740,11 +605,6 @@
   font-size: 13px;
   border-radius: 5px;
 }
-.healthStats strong {
-  font-size: 23px;
-  line-height: 1.35;
-  font-weight: 500;
-}
 .deviceDetails dl > div {
   font-size: 14px;
   line-height: 1.5;
@@ -757,10 +617,8 @@
 .deviceDangerZone strong {
   font-size: 16px;
 }
-.deviceIdentity h2,
-.deviceDetails h3,
+.deviceDetails h2,
 .connectionCard h3,
-.firstTest h3,
 .stepPanel h3,
 .pairingIntro h2 {
   font-family: var(--q-font-body);
@@ -780,11 +638,7 @@
 .help summary:hover {
   border-color: var(--q-red);
 }
-@media (max-width: 600px) {
-  .healthStats strong {
-    font-size: 21px;
-  }
-}
+
 @media (prefers-reduced-motion: reduce) {
   .pairingPrimary,
   .secondaryAction,
@@ -795,7 +649,6 @@
     transition: none;
   }
 }
-
 .bluetoothSetup {
   padding: 24px;
   border: 1px solid var(--q-line-strong);
@@ -803,32 +656,27 @@
   border-radius: 2px;
   background: var(--q-surface-raised);
 }
-
 .bluetoothSetup h3 {
   margin: 12px 0;
   font-size: clamp(1.4rem, 3vw, 1.8rem);
   line-height: 1.2;
 }
-
 .bluetoothSetup > p,
 .bluetoothForm > p {
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
-
 .bluetoothForm {
   display: grid;
   gap: 16px;
   margin-top: 16px;
 }
-
 .bluetoothForm label {
   display: grid;
   gap: 8px;
   font-size: 0.95rem;
   font-weight: 600;
 }
-
 .bluetoothForm input:not([type="checkbox"]) {
   box-sizing: border-box;
   width: 100%;
@@ -841,12 +689,10 @@
   color: var(--q-text);
   font: inherit;
 }
-
 .bluetoothForm input:focus-visible {
   outline: 2px solid var(--q-red);
   outline-offset: 3px;
 }
-
 .bluetoothForm .bluetoothChoice {
   display: flex;
   gap: 10px;
@@ -854,7 +700,6 @@
   min-height: 44px;
   font-weight: 400;
 }
-
 .bluetoothChoice input {
   width: 20px;
   height: 20px;
@@ -865,4 +710,154 @@
   .bluetoothSetup {
     padding: 18px;
   }
+}
+
+.deviceDetails {
+  min-width: 0;
+}
+.deviceDetails h2 {
+  margin: 6px 0 0;
+  font-size: 25px;
+  font-family: var(--q-font-body);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+.deviceDetails dd {
+  min-width: 0;
+}
+.deviceActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+.wifiSteps {
+  display: grid;
+  gap: 14px;
+  margin: 20px 0;
+  padding-left: 22px;
+  color: var(--q-muted-strong);
+  font-size: 14px;
+  line-height: 1.65;
+}
+.wifiSteps strong {
+  color: var(--q-text);
+}
+@media (max-width: 600px) {
+  .deviceDetails > header {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .deviceActions > button {
+    flex: 1 1 145px;
+  }
+  .help summary {
+    max-width: 100%;
+  }
+  .deviceDangerZone button {
+    width: 100%;
+  }
+}
+
+/* Embedded device management shares the Settings accordion's single outer card. */
+.embedded {
+  min-width: 0;
+}
+.embedded.pairingLayout,
+.embedded.sampleSetup,
+.embedded.deviceLoading {
+  max-width: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.embedded.pairingLayout {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  overflow: visible;
+  backdrop-filter: none;
+}
+.embedded.healthLayout {
+  gap: 16px;
+}
+.embedded .pairingIntro,
+.embedded .setupSteps,
+.embedded .deviceDetails,
+.embedded .connectionCard,
+.embedded .deviceDangerZone {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.embedded .pairingIntro p,
+.embedded.sampleSetup p {
+  margin-bottom: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.embedded .pairingIntro .networkNote {
+  margin-top: 12px;
+}
+.embeddedHeading {
+  margin: 0;
+  color: var(--q-text);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.embedded .pairingIntro .embeddedHeading {
+  margin-bottom: 8px;
+}
+.embedded .deviceDetails > header {
+  padding-bottom: 12px;
+}
+.embedded .deviceDetails dl > div {
+  padding-block: 11px;
+  font-size: 13px;
+}
+.embedded .deviceActions {
+  margin-top: 14px;
+}
+.embedded .deviceActions > button {
+  min-height: 44px;
+  padding-inline: 12px;
+  font-size: 13px;
+}
+.embedded .deviceDangerZone {
+  padding-top: 16px;
+  border-top: 1px solid var(--q-line);
+}
+.embedded .deviceDangerZone strong {
+  font-size: 14px;
+}
+.embedded .deviceDangerZone p {
+  margin-top: 5px;
+  font-size: 12px;
+}
+.embedded .deviceDangerZone button {
+  min-height: 44px;
+  font-size: 13px;
+}
+.embedded .connectionCard > p {
+  margin: 12px 0;
+  font-size: 13px;
+}
+@media (max-width: 600px) {
+  .embedded .deviceDangerZone {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+}
+
+.embedded.pairingLayout::before,
+.embedded.sampleSetup::before {
+  display: none;
 }

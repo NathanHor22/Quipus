@@ -4,6 +4,7 @@ import { MeetingPreparation } from "./MeetingPreparation";
 import { SpeakerIdentityEditor } from "./SpeakerIdentityEditor";
 import { EmailFollowUp } from "./EmailFollowUp";
 import { RecordingProgress } from "./RecordingProgress";
+import { MeetingTitle, type RenameMeeting, type GenerateMeetingTitle } from "./MeetingTitle";
 
 import { useId, useState } from "react";
 import { TabList } from "@/components/ui/TabList";
@@ -19,6 +20,7 @@ import { FollowUpChecklist } from "./FollowUpChecklist";
 import { MeetingKeyPoints } from "./MeetingKeyPoints";
 import { formatAudioTime } from "@/lib/workspace/playback";
 import { getRecordingProgress, recordingDurationLabel } from "@/lib/workspace/recording-progress";
+import { selectMeetingTitle } from "@/lib/meeting-title";
 import { initials } from "@/lib/workspace/contact-display";
 import { useWorkspaceTime } from "./WorkspaceTime";
 import styles from "./conversation-detail.module.css";
@@ -47,6 +49,8 @@ export type ConversationDetailProps = {
   onEditApproval: (approval: MeetingApproval) => void;
   /** Kept for existing callers. Approval happens only in the review dialog. */
   onApprove?: (approval: MeetingApproval) => void;
+  onRenameMeeting?: RenameMeeting;
+  onGenerateTitle?: GenerateMeetingTitle;
   onUpdateContact: (id: string, changes: EditableContact) => Promise<boolean>;
   onOpenContact?: (contactId: string) => void;
   initialTab?: DetailTab;
@@ -54,6 +58,9 @@ export type ConversationDetailProps = {
   initialContactId?: string | null;
   backLabel?: string;
   compact?: boolean;
+  /** Calendar events retain their selected title/date while using a linked recording's content. */
+  headingMeeting?: Meeting;
+  onClosePanel?: () => void;
   onRetryAccepted?: () => void | Promise<void>;
 };
 
@@ -76,15 +83,19 @@ function ConversationDetailSession({
   onTask,
   onEditApproval,
   onUpdateContact,
+  onRenameMeeting,
+  onGenerateTitle,
   onOpenContact,
   initialTab = "Summary",
   initialContactEditing = false,
   initialContactId,
   backLabel = "All conversations",
   compact = false,
+  headingMeeting,
+  onClosePanel,
   onRetryAccepted,
 }: ConversationDetailProps) {
-  const { dateLabel, timeLabel } = useWorkspaceTime();
+  const { timezone, dateLabel, timeLabel } = useWorkspaceTime();
   const panelPrefix = useId();
   const [activeTab, setActiveTab] = useState<DetailTab>(initialTab);
   const tabId = (tab: DetailTab) => `${panelPrefix}-tab-${tab.toLowerCase()}`;
@@ -92,6 +103,16 @@ function ConversationDetailSession({
   const contact = initialContactId != null
     ? conversation.contacts.find(person => person.id === initialContactId) || null
     : conversation.contacts[0] || null;
+  const displayMeeting = headingMeeting || conversation;
+  const displayContacts = displayMeeting.contacts.length ? displayMeeting.contacts : conversation.contacts;
+  const displayContact = displayContacts[0] || null;
+  const isLinkedEvent = Boolean(headingMeeting && headingMeeting.id !== conversation.id);
+  const titleHeading = isLinkedEvent
+    ? <h2>{selectMeetingTitle({ preferredTitle: displayMeeting.title, startAt: displayMeeting.startAt, timeZone: timezone })}</h2>
+    : <MeetingTitle meeting={conversation} working={Boolean(working)} onRename={onRenameMeeting} onGenerate={onGenerateTitle} />;
+  const displayDuration = isLinkedEvent
+    ? `${Math.max(0, Math.round((Date.parse(displayMeeting.endAt) - Date.parse(displayMeeting.startAt)) / 60_000))} min`
+    : recordingDurationLabel(conversation);
   const insight = conversation.insight;
   const summaryRepeatsKeyPoints = normalizedBriefText(insight?.executiveSummary || "") ===
     normalizedBriefText((insight?.keyPoints || []).filter(point => point.trim()).join(" "));
@@ -145,18 +166,23 @@ function ConversationDetailSession({
             {initials(contact?.name || conversation.title)}
           </span>}
           <div>
+            {compact && <div className={styles.heroTop}>
+              <div>{titleHeading}</div>
+              {onClosePanel && <button type="button" className={styles.panelClose} onClick={onClosePanel} aria-label="Close meeting details">Close</button>}
+            </div>}
             <div className={styles.heroMeta}>
               {!compact && conversation.status !== "ready" && <span className={styles.status}>{conversation.status}</span>}
-              <span>{conversation.recordingProgress?.timeUncertain ? "Recording date unconfirmed" : dateLabel(conversation.startAt, { year: "numeric" })}</span>
-              <span>{conversation.recordingProgress?.timeUncertain ? "Time needs confirmation" : timeLabel(conversation.startAt)}</span>
-              {compact && <span>{recordingDurationLabel(conversation)}</span>}
+              <span>{displayMeeting.recordingProgress?.timeUncertain ? "Recording date unconfirmed" : dateLabel(displayMeeting.startAt, { year: "numeric" })}</span>
+              <span>{displayMeeting.recordingProgress?.timeUncertain ? "Time needs confirmation" : timeLabel(displayMeeting.startAt)}</span>
+              {compact && <span>{displayDuration}</span>}
               {mode === "sample" && <span className={styles.status}>Sample</span>}
             </div>
-            <h2>{contact?.name || conversation.title}</h2>
-            <p>
-              {contact?.company || conversation.title}
-              {contact?.role ? ` · ${contact.role}` : ""}
-            </p>
+            {!compact && titleHeading}
+            {displayContacts.length > 0 && <p>
+              {displayContacts.map(person => person.name).join(", ")}
+              {displayContact?.company ? ` \u00b7 ${displayContact.company}` : ""}
+              {displayContact?.role ? ` \u00b7 ${displayContact.role}` : ""}
+            </p>}
           </div>
         </div>
         {!compact && <dl className={styles.heroFacts}>

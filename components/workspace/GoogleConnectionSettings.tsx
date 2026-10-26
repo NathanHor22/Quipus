@@ -4,11 +4,11 @@ import type { GoogleConnectionStatus } from "@/lib/google-connection";
 import styles from "./workspace.module.css";
 import connection from "./google-connection.module.css";
 
-export function GoogleConnectionSettings({ sample, accountIdentity }: { sample: boolean; accountIdentity?: string | null }) {
-  return <GoogleConnectionSettingsSession key={JSON.stringify([sample, accountIdentity || null])} sample={sample} />;
+export function GoogleConnectionSettings({ sample, accountIdentity, embedded = false }: { sample: boolean; accountIdentity?: string | null; embedded?: boolean }) {
+  return <GoogleConnectionSettingsSession key={JSON.stringify([sample, accountIdentity || null])} sample={sample} embedded={embedded} />;
 }
 
-function GoogleConnectionSettingsSession({ sample }: { sample: boolean }) {
+function GoogleConnectionSettingsSession({ sample, embedded }: { sample: boolean; embedded: boolean }) {
   const [status, setStatus] = useState<GoogleConnectionStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -33,8 +33,8 @@ function GoogleConnectionSettingsSession({ sample }: { sample: boolean }) {
     } catch (error) { setMessage(error instanceof Error ? error.message : "Please try again."); }
     finally { setBusy(false); }
   }
-  return <section className={styles.settingsCard}>
-    <h2>Google Calendar</h2>
+  return <section className={embedded ? undefined : styles.settingsCard} aria-label={embedded ? "Google Calendar settings" : undefined}>
+    {!embedded && <h2>Google Calendar</h2>}
     <p>Review and approve invitations before they are sent.</p>
     <p role="status">{sample ? "Sample calendar" : status?.state === "connected" ? "Connected" : status?.state === "needs_reconnect" ? "Reconnect required" : status?.state === "not_connected" ? "Not connected" : "Status unavailable"}</p>
     {status?.email && <p>Connected account: {status.email}</p>}

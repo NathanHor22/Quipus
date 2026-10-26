@@ -9,6 +9,7 @@ import { MAX_AUDIO_BYTES, normalizeAudioContentType } from "@/lib/audio-upload";
 import { prepareWavForRecognition } from "@/lib/audio-processing";
 import { parseLocale } from "@/lib/i18n";
 import { persistProcessedMeeting } from "@/lib/persistence";
+import { selectMeetingTitle } from "@/lib/meeting-title";
 import { transcribeMeetingAudio } from "@/lib/providers/transcription";
 import { extractConversationInsights } from "@/lib/providers/meeting-extraction";
 import { rememberPerson, rememberSession, setProcessingState } from "@/lib/redis";
@@ -54,6 +55,7 @@ interface ProcessInput {
   locale: ReturnType<typeof parseLocale>;
   source: Meeting["source"];
   title: string;
+  preferredTitle?: string;
   startAt: string;
   endAt: string;
   contactHint?: Contact;
@@ -178,6 +180,7 @@ async function parseDirectRequest(request: Request): Promise<ProcessInput> {
     locale: parseLocale(input.locale),
     source: input.source || "upload",
     title: input.title || input.fileName.replace(/\.[^.]+$/u, "") || "Business conversation",
+    preferredTitle: input.title,
     startAt,
     endAt,
     contactHint: input.contact ? {
@@ -219,6 +222,7 @@ async function parseLocalMultipartRequest(request: Request): Promise<ProcessInpu
     locale: parseLocale(clean(form.get("locale"), 20)),
     source: requestedSource === "agora" ? "agora" : "upload",
     title: clean(form.get("title"), 200) || audio.name.replace(/\.[^.]+$/u, "") || "Business conversation",
+    preferredTitle: clean(form.get("title"), 200) || undefined,
     startAt,
     endAt,
     contactHint: asContact(clean(form.get("contact"), 2000)),
@@ -297,7 +301,7 @@ export async function POST(request: Request) {
     const followUps: FollowUp[] = extraction.followUps.map((item) => ({ id: randomUUID(), meetingId: clientReference, contactId: contacts[0]?.id || null, ...item, status: "pending" }));
     const meeting: Meeting = {
       id: input.clientReference,
-      title: contacts[0] ? `${contacts[0].name}${contacts[0].company ? ` Â· ${contacts[0].company}` : ""}` : input.title,
+      title: selectMeetingTitle({ generatedTitle: extraction.title, preferredTitle: input.preferredTitle, startAt: input.startAt, timeZone: "Asia/Kuala_Lumpur" }),
       startAt: input.startAt,
       endAt: input.endAt,
       status: "ready",

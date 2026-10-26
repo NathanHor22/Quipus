@@ -1,6 +1,7 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
+import { saveMeetingWithProtectedTitle } from "./meeting-title-store";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Contact, Meeting } from "@/lib/types";
 import { matchOwnedContact, resolveActionContact } from "@/lib/people-identity";
@@ -94,28 +95,16 @@ export async function persistFailedHardwareMeeting(
     throw new Error(`Could not update archived recording metadata: ${recordingError.message}`);
   }
 
-  const { data: meeting, error: meetingError } = await client
-    .from("meetings")
-    .upsert(
-      {
-        user_id: input.ownerUserId,
-        client_reference: input.clientReference,
-        title: input.title,
-        start_at: input.startAt,
-        end_at: input.endAt,
-        status: "failed",
-        source: "hardware",
-        recording_id: input.recordingId,
-      },
-      { onConflict: "user_id,client_reference" },
-    )
-    .select("id")
-    .single();
-  if (meetingError || !meeting) {
-    throw new Error(
-      `Could not preserve the archived conversation: ${meetingError?.message || "missing row"}`,
-    );
-  }
+  const meeting = await saveMeetingWithProtectedTitle(client, {
+    user_id: input.ownerUserId,
+    client_reference: input.clientReference,
+    title: input.title,
+    start_at: input.startAt,
+    end_at: input.endAt,
+    status: "failed",
+    source: "hardware",
+    recording_id: input.recordingId,
+  });
 
   const signed = await client.storage
     .from("recordings")
@@ -227,7 +216,7 @@ export async function persistProcessedMeeting(
     if (recordingError) throw new Error(`Could not save live recording metadata: ${recordingError.message}`);
   }
 
-  const { data: meetingRow, error: meetingError } = await client.from("meetings").upsert({
+  const meetingRow = await saveMeetingWithProtectedTitle(client, {
     user_id: userId,
     client_reference: input.clientReference,
     title: input.meeting.title,
@@ -236,9 +225,10 @@ export async function persistProcessedMeeting(
     status: "processing",
     source: input.meeting.source,
     recording_id: recordingId,
-  }, { onConflict: "user_id,client_reference" }).select("id").single();
-  if (meetingError || !meetingRow) throw new Error(`Could not save the meeting: ${meetingError?.message || "missing row"}`);
-  const meetingId = meetingRow.id as string;
+  }, true);
+  // The API response must agree with a title the owner may already have renamed.
+  input.meeting.title = meetingRow.title;
+  const meetingId = meetingRow.id;
 
   const contactIds: string[] = [];
   // Use the response contacts as the source of truth. This also persists a

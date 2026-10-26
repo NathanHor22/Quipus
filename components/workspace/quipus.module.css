@@ -231,8 +231,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
-  padding: 10px 0 32px;
+  gap: 18px;
+  padding: 8px 0 20px;
   margin: 0;
 }
 .welcomeCopy {
@@ -242,7 +242,7 @@
   margin: 0;
   color: var(--q-text);
   font-family: var(--q-font-body, inherit);
-  font-size: clamp(32px, 3.4vw, 48px);
+  font-size: clamp(30px, 3.2vw, 44px);
   line-height: 1.12;
   letter-spacing: -0.04em;
   font-weight: 580;
@@ -256,13 +256,13 @@
   color: var(--q-muted-strong, var(--q-muted));
 }
 .greetingContext {
-  margin: 13px 0 0;
+  margin: 8px 0 0;
   color: var(--q-muted-strong, var(--q-muted));
-  font-size: 15px;
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 1.5;
 }
 .dateLine {
-  margin: 8px 0 0;
+  margin: 5px 0 0;
   color: var(--q-muted-strong, var(--q-muted));
   font-size: 12px;
   line-height: 1.5;
@@ -351,15 +351,15 @@
 }
 .approvalList {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 .pendingItem {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
+  gap: 10px 14px;
   min-width: 0;
-  padding: 15px 14px;
+  padding: 10px 12px;
   border: 1px solid #0e203a14;
   border-radius: 5px;
   background: #ffffff8c;
@@ -375,9 +375,9 @@
   min-width: 0;
 }
 .pendingItem h3 {
-  margin: 0 0 7px;
+  margin: 0 0 4px;
   font-family: var(--q-font-body, inherit);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 650;
   line-height: 1.4;
   letter-spacing: -0.015em;
@@ -386,7 +386,7 @@
 .pendingItem p {
   margin: 0;
   font-size: 12px;
-  line-height: 1.55;
+  line-height: 1.45;
   color: var(--q-muted-strong, var(--q-muted));
 }
 .approvalButton {
@@ -677,10 +677,10 @@
     padding: 8px 0 26px;
   }
   .welcome h1 {
-    font-size: 34px;
+    font-size: 30px;
   }
   .greetingContext {
-    font-size: 14px;
+    font-size: 13px;
   }
   .dateLine {
     font-size: 12px;
@@ -713,8 +713,8 @@
   }
   .pendingItem {
     grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 14px;
+    gap: 7px;
+    padding: 10px 12px;
   }
   .pendingItem .approvalButton {
     justify-self: start;
@@ -728,7 +728,7 @@
     padding-inline: 16px;
   }
   .welcome h1 {
-    font-size: 31px;
+    font-size: 29px;
   }
   .profileMenu {
     width: 265px;
@@ -747,5 +747,28 @@
   .followUps {
     transition: none;
     transform: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .navigation {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: visible;
+  }
+  .navLink {
+    min-width: 0;
+    min-height: 44px;
+  }
+  .welcome {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 4px 0 14px;
+  }
+  .welcomeCopy {
+    flex-basis: 100%;
+  }
+  .resetSample {
+    min-height: 44px;
   }
 }

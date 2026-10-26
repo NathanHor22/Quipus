@@ -53,9 +53,9 @@ export function createSampleWorkspace(now = new Date()): WorkspaceData {
   ): Meeting => ({
     id: `sample:conversation:${index}`,
     title: [
-      "A pilot worth getting right",
-      "Growing together with Nusa",
-      "The next chapter for Mera",
+      "Bangsar branch pilot",
+      "Nusa retail rollout",
+      "Mera team onboarding",
     ][index],
     startAt: at(offset, 10),
     endAt: at(offset, 10, duration),

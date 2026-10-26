@@ -5,6 +5,7 @@ import { PersonProfile } from "./PersonProfile";
 import type { WorkspaceMode } from "@/lib/workspace/model";
 import type { Contact, Meeting } from "@/lib/types";
 import { clientHistory } from "@/lib/workspace/client-history";
+import { selectMeetingTitle } from "@/lib/meeting-title";
 import { initials } from "@/lib/workspace/contact-display";
 import { useWorkspaceTime } from "./WorkspaceTime";
 import styles from "./client-history.module.css";
@@ -19,7 +20,7 @@ export type ClientHistoryProps = {
 };
 
 export function ClientHistory({ contact, conversations, onOpenMeeting, onBack, onCorrect, mode = "sample" }: ClientHistoryProps) {
-  const { dateLabel, timeLabel } = useWorkspaceTime();
+  const { dateLabel, timeLabel, timezone } = useWorkspaceTime();
   const nextStepId = useId();
   const history = useMemo(() => clientHistory(contact, conversations), [contact, conversations]);
 
@@ -49,7 +50,7 @@ export function ClientHistory({ contact, conversations, onOpenMeeting, onBack, o
         <header className={styles.sectionHeader}><h3>Conversation history</h3><span>{history.meetings.length}</span></header>
         {history.meetings.length ? history.meetings.map(meeting => <button type="button" className={styles.meeting} key={meeting.id} onClick={() => onOpenMeeting(meeting.id)}>
           <span className={styles.meetingDate}>{meeting.recordingProgress?.timeUncertain ? "Date unconfirmed" : dateLabel(meeting.startAt, { year: "numeric" })}<small>{meeting.recordingProgress?.timeUncertain ? "Time unconfirmed" : timeLabel(meeting.startAt)}</small></span>
-          <span className={styles.meetingCopy}><strong>{meeting.title}</strong><span>{meeting.insight?.executiveSummary || meeting.insight?.intent || (meeting.status === "processing" ? "Preparing your summary…" : "Open the conversation to review its details.")}</span></span>
+          <span className={styles.meetingCopy}><strong>{selectMeetingTitle({ preferredTitle: meeting.title, startAt: meeting.startAt, timeZone: timezone })}</strong><span>{meeting.insight?.executiveSummary || meeting.insight?.intent || (meeting.status === "processing" ? "Preparing your summary…" : "Open the conversation to review its details.")}</span></span>
         </button>) : <p className={styles.empty}>Recorded conversations linked to this contact will appear here.</p>}
       </section>
 

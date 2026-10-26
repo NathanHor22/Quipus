@@ -1,0 +1,78 @@
+.heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  min-width: 0;
+}
+.heading h2 {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.rename,
+.actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--q-line-strong);
+  border-radius: 5px;
+  background: var(--q-glass-strong);
+  color: var(--q-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+.editor {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  margin: 14px 0 12px;
+}
+.editor label {
+  font-size: 12px;
+  color: var(--q-muted-strong);
+}
+.editor input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--q-line-strong);
+  border-radius: 5px;
+  background: white;
+  color: var(--q-text);
+  font-size: 16px;
+}
+.editor > p {
+  margin: 0;
+  color: var(--q-red-deep);
+  font-size: 12px;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.actions .save {
+  color: white;
+  background: var(--q-red);
+  border-color: var(--q-red);
+}
+.heading button:focus-visible,
+.editor button:focus-visible,
+.editor input:focus-visible {
+  outline: 2px solid var(--q-red);
+  outline-offset: 2px;
+}
+.heading button:disabled,
+.actions button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+@media (max-width: 560px) {
+  .rename,
+  .actions button {
+    min-height: 44px;
+  }
+}

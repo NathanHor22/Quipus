@@ -1,8 +1,6 @@
 "use client";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { WorkspaceIntroduction } from "./WorkspaceIntroduction";
 import { useWorkspaceIntroduction } from "./useWorkspaceIntroduction";
-import { useCalendarSwipe } from "./useCalendarSwipe";
 import { WhatsAppDelivery } from "./WhatsAppDelivery";
 import { whatsappEnabled } from "@/lib/features";
 
@@ -11,9 +9,6 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { getMonthGrid } from "@/lib/calendar";
-import { calendarMeetings, canHideRecording } from "@/lib/workspace/calendar-visibility";
-import { CalendarRecordingAction } from "./CalendarRecordingAction";
 import { workspaceTime } from "@/lib/workspace-time";
 import {
   getApprovals,
@@ -26,28 +21,30 @@ import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { RevealHeading, useQuipusMotion } from "@/components/experience/QuipusExperience";
 import { validTimezone } from "@/lib/quipus-profile";
 import { workspaceGreeting } from "@/lib/workspace-greeting";
-import { isWorkspaceHref, resolveWorkspaceRoute, sampleWorkspacePath } from "@/lib/workspace-navigation";
+import { isWorkspaceHref, primaryWorkspaceView, resolveWorkspaceRoute, sampleWorkspacePath } from "@/lib/workspace-navigation";
 import { QuipusHeader, viewPaths } from "./QuipusHeader";
-import { ConversationJournal } from "./ConversationJournal";
 import { ConversationDetail } from "./ConversationDetail";
 import { ConversationModal } from "./ConversationModal";
 import { ClientHistory } from "./ClientHistory";
+import { PeopleConnections } from "./PeopleConnections";
+import { WorkspaceCalendar } from "./WorkspaceCalendar";
+import { CalendarDayMeetings } from "./CalendarDayMeetings";
+import { calendarMeetings } from "@/lib/workspace/calendar-visibility";
 import { WorkspaceSetup } from "./WorkspaceSetup";
 import { RecordingProgress } from "./RecordingProgress";
 import { getRecordingProgress } from "@/lib/workspace/recording-progress";
 import { ApprovalReceiptNotice } from "./ApprovalReceiptNotice";
 import flow from "./flow.module.css";
 import { ProfileSettings } from "./ProfileSettings";
+import { SettingsSection } from "./SettingsSection";
 import { GoogleConnectionSettings } from "./GoogleConnectionSettings";
 import { CalendarConnection } from "./CalendarConnection";
 import { WorkspaceTimezone } from "./WorkspaceTime";
 import q from "./quipus.module.css";
 import d from "./dashboard.module.css";
 import { useWorkspace } from "./useWorkspace";
-import { initials } from "@/lib/workspace/contact-display";
 import { useMediaQuery } from "@/components/hooks/useMediaQuery";
 import { ApprovalDialog } from "./ApprovalDialog";
-import { RecordingDialog } from "./RecordingDialog";
 import { LanternDevicePanel } from "./LanternDevicePanel";
 import styles from "./workspace.module.css";
 
@@ -75,7 +72,7 @@ type WorkspaceProps = {
 };
 
 const viewLabel: Record<WorkspaceView, string> = {
-  overview: "Home", conversations: "Conversations", calendar: "Calendar", people: "People", device: "Devices", settings: "Settings",
+  overview: "Home", conversations: "Conversations", calendar: "Calendar", people: "Your connection", device: "Devices", settings: "Settings",
 };
 
 export function Workspace(props: WorkspaceProps) {
@@ -126,6 +123,7 @@ function WorkspaceSession({
   const pendingScroll = useRef<number | null>(null);
   const [historyEpoch, setHistoryEpoch] = useState(0);
   const pageIdentity = `${view}:${detailId || ""}:${params.get("client") || ""}`;
+  const routeIdentity = pathname + "?" + params.toString();
   const previousPage = useRef(pageIdentity);
   useEffect(() => {
     const nextPage = pageIdentity;
@@ -140,33 +138,41 @@ function WorkspaceSession({
       pendingScroll.current = null;
     }, reducedMotion || !motionEnabled ? 0 : 180);
     return () => window.clearTimeout(timer);
-  }, [pageIdentity, historyEpoch, loading, motionEnabled, reducedMotion]);
+  }, [pageIdentity, routeIdentity, historyEpoch, loading, motionEnabled, reducedMotion]);
   const [visibleMonth, setVisibleMonth] = useState(() =>
     formatDateKey(clock).slice(0, 7),
   );
   const [selectedDate, setSelectedDate] = useState(() =>
     formatDateKey(clock),
   );
-  const [showHiddenRecordings, setShowHiddenRecordings] = useState(false);
-  const hiddenRecordingCount = calendarMeetings(meetings, true).length;
-  const calendarEntries = calendarMeetings(meetings, showHiddenRecordings);
-  const [layoutChoice, setLayout] = useState<"month" | "agenda" | null>(null);
-  const smallScreen = useMediaQuery("(max-width: 760px)");
-  const layout = layoutChoice ?? (smallScreen ? "agenda" : "month");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditing] = useState<MeetingApproval | null>(null);
   const [selectedTab, setSelectedTab] = useState<"Summary" | "Actions" | "Transcript" | "Audio">("Summary");
-  const desktopDock = useMediaQuery("(min-width: 1100px)");
-  const [panelOrigin, setPanelOrigin] = useState<"journal" | "next" | "approval" | "calendar" | "recording" | "other">("journal");
+  const desktopDock = useMediaQuery("(min-width: 900px)");
+  const [calendarBrowse, setCalendarBrowse] = useState<{ date: string; hidden: boolean } | null>(null);
+  const [panelOrigin, setPanelOrigin] = useState<"approval" | "calendar" | "recording" | "other">("other");
   const reviewApproval = (approval: MeetingApproval) => {
     if (detailId) setPanelOrigin("other");
     setEditing(approval);
   };
-  const [search, setSearch] = useState("");
   const [approvalFilter, setApprovalFilter] = useState<"pending" | "dismissed">(
     "pending",
   );
-  const [recordingOpen, setRecordingOpen] = useState(false);
+  const followUpsRef = useRef<HTMLElement>(null);
+  const [calendarOpenEpoch, setCalendarOpenEpoch] = useState(0);
+  const calendarOrigin = useRef<{ scroll: number; trigger: HTMLElement | null } | null>(null);
+  const rememberCalendarOrigin = () => {
+    setCalendarOpenEpoch(value => value + 1);
+    calendarOrigin.current = { scroll: window.scrollY, trigger: document.activeElement instanceof HTMLElement ? document.activeElement : null };
+  };
+  const restoreCalendarOrigin = () => {
+    const origin = calendarOrigin.current;
+    if (desktopDock || panelOrigin !== "calendar" || !origin) return;
+    requestAnimationFrame(() => {
+      if (origin.trigger?.isConnected) origin.trigger.focus({ preventScroll: true });
+      window.scrollTo({ top: origin.scroll, behavior: "instant" });
+    });
+  };
   useEffect(() => {
     // Refresh on return to the app, rather than running an animation-time clock.
     const refresh = () => { if (!document.hidden) setClock(new Date()); };
@@ -201,13 +207,6 @@ function WorkspaceSession({
   const selectedContact = view === "people" ? contacts.find(contact => contact.id === selectedContactId) : null;
   const activeRecordings = conversations.filter(meeting => getRecordingProgress(meeting).shouldPoll);
   const hasFirstUpload = conversations.some(meeting => meeting.source === "hardware" && getRecordingProgress(meeting).audioAvailable);
-  const scheduled = meetings.filter(
-    (meeting) => meeting.source === "calendar" || meeting.status === "upcoming",
-  );
-  const upcoming = scheduled
-    .filter((meeting) => Date.parse(meeting.endAt) > now.getTime())
-    .sort((a, b) => Date.parse(a.startAt) - Date.parse(b.startAt));
-  const nextMeeting = upcoming[0] || null;
   const greeting = workspaceGreeting({
     displayName: account?.displayName, date: now, timezone, meetings,
     pendingCount: pending.length, sample: mode === "sample", loading,
@@ -231,13 +230,6 @@ function WorkspaceSession({
   });
   const selectedMeeting =
     meetings.find((meeting) => meeting.id === selectedId) || null;
-  const grid = getMonthGrid(visibleMonth, { today });
-  const monthLabel = new Intl.DateTimeFormat("en-MY", {
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(`${visibleMonth}-15T12:00:00Z`));
-  const normalizedSearch = search.trim().toLowerCase();
 
   const scrollPositions = useRef(new Map<string, number>());
   const locationKey = () => window.location.pathname + window.location.search;
@@ -257,6 +249,7 @@ function WorkspaceSession({
     const restore = () => {
       setSelectedId(null);
       setEditing(null);
+      setCalendarBrowse(null);
       pendingScroll.current = scrollPositions.current.get(locationKey()) ?? 0;
       setHistoryEpoch(epoch => epoch + 1);
     };
@@ -268,13 +261,16 @@ function WorkspaceSession({
       window.history.scrollRestoration = previousRestoration;
     };
   }, []);
-  const navigate = (next: WorkspaceView) => {
+  const navigate = (requested: WorkspaceView) => {
+    const next = primaryWorkspaceView(requested);
     setSelectedId(null);
     setEditing(null);
-    if (mode === "live") switchUrl(viewPaths[next]);
+    setCalendarBrowse(null);
+    if (mode === "live") switchUrl(viewPaths[next] + (requested === "device" ? "?section=device" : ""));
     else {
       const url = new URL(sampleWorkspacePath, window.location.origin);
       url.searchParams.set("mode", "sample"); url.searchParams.set("view", next);
+      if (requested === "device") url.searchParams.set("section", "device");
       switchUrl(url.pathname + url.search);
     }
   };
@@ -282,6 +278,7 @@ function WorkspaceSession({
     setDetailOrigin({ href: locationKey(), scroll: window.scrollY });
     setSelectedId(null);
     setEditing(null);
+    setCalendarBrowse(null);
     const details = new URLSearchParams();
     if (tab !== "Summary") details.set("tab", tab);
     if (editContact) details.set("edit", "contact");
@@ -302,23 +299,18 @@ function WorkspaceSession({
   const openClient = (id: string) => {
     setSelectedId(null);
     setEditing(null);
+    setCalendarBrowse(null);
     const url = new URL(mode === "live" ? viewPaths.people : sampleWorkspacePath, window.location.origin);
     if (mode === "sample") { url.searchParams.set("mode", "sample"); url.searchParams.set("view", "people"); }
     url.searchParams.set("client", id);
     switchUrl(url.pathname + url.search);
   };
-  const changeMonth = (amount: number) => {
-    const date = new Date(`${visibleMonth}-15T12:00:00Z`);
-    date.setUTCMonth(date.getUTCMonth() + amount);
-    setVisibleMonth(date.toISOString().slice(0, 7));
-  };
-  const calendarSwipe = useCalendarSwipe(changeMonth);
   const replayIntroduction = () => {
     navigate("overview");
     introduction.start();
   };
   const nextIntroductionStep = () => {
-    if (introduction.step === 1) navigate("calendar");
+    if (introduction.step === 1) navigate("people");
     introduction.next();
   };
   const approve = async (approval: MeetingApproval) => {
@@ -331,38 +323,68 @@ function WorkspaceSession({
     setVisibleMonth(formatDateKey(receipt.startAt).slice(0, 7));
     setSelectedDate(formatDateKey(receipt.startAt));
     navigate("calendar");
+    pendingScroll.current = null;
+    calendarOrigin.current = null;
+    setCalendarOpenEpoch(value => value + 1);
     setPanelOrigin("calendar");
     setSelectedId(receipt.meetingId);
   };
   const receiptNotice = workspace.approvalReceipt && <ApprovalReceiptNotice receipt={workspace.approvalReceipt} onView={viewApprovedEvent} onDismiss={workspace.dismissApprovalReceipt} />;
-  const openConversation = (id: string, tab: "Summary" | "Actions" | "Transcript" | "Audio" = "Summary", origin: typeof panelOrigin = "journal") => {
+  const openConversation = (id: string, tab: "Summary" | "Actions" | "Transcript" | "Audio" = "Summary", origin: typeof panelOrigin = "other", preserveCalendarOrigin = false) => {
     if (!meetings.some((meeting) => meeting.id === id)) return;
+    if (origin === "calendar") {
+      if (preserveCalendarOrigin) setCalendarOpenEpoch(value => value + 1);
+      else rememberCalendarOrigin();
+    }
     setEditing(null);
     setSelectedTab(tab);
     setPanelOrigin(origin);
     setSelectedId(id);
   };
-  const nextSource = nextMeeting?.sourceConversationId
-    ? conversations.find(meeting => meeting.id === nextMeeting.sourceConversationId)
-    : nextMeeting;
-  const nextPurpose = nextSource?.insight?.promised || nextSource?.insight?.intent;
+  const browseCalendarDay = (date: string, hidden: boolean) => {
+    rememberCalendarOrigin();
+    setSelectedId(null); setEditing(null);
+    setPanelOrigin("calendar");
+    setCalendarBrowse({ date, hidden });
+  };
+  const openCalendarMeeting = (id: string) => {
+    setCalendarBrowse(null);
+    if (panelOrigin === "calendar" && selectedId === id && !editing) {
+      setSelectedId(null);
+      calendarOrigin.current = null;
+      return;
+    }
+    const meeting = meetings.find(item => item.id === id);
+    if (meeting) setSelectedDate(formatDateKey(meeting.startAt));
+    openConversation(id, "Summary", "calendar");
+  };
+  const dayMeetings = calendarBrowse ? calendarMeetings(meetings, calendarBrowse.hidden)
+    .filter(meeting => formatDateKey(meeting.startAt) === calendarBrowse.date)
+    .sort((a, b) => Date.parse(a.startAt) - Date.parse(b.startAt)) : [];
+  const calendarDayPanel = calendarBrowse ? <CalendarDayMeetings
+    date={calendarBrowse.date} meetings={dayMeetings} working={Boolean(working)}
+    onOpen={id => openConversation(id, "Summary", "calendar", true)}
+    onClose={() => { setCalendarBrowse(null); restoreCalendarOrigin(); }}
+    onVisibilityChange={workspace.setCalendarVisibility}
+  /> : null;
   const panel = editing ? <ApprovalDialog
     key={editing.id} approval={editing} mode={mode} working={Boolean(working)} executionError={error}
-    onClose={() => setEditing(null)} onApprove={approve}
+    onClose={() => { setEditing(null); if (!selectedId) restoreCalendarOrigin(); }} onApprove={approve}
   /> : selectedMeeting ? <ConversationModal
     key={selectedMeeting.id}
     meeting={selectedMeeting} meetings={meetings} initialTab={selectedTab}
-    onClose={() => setSelectedId(null)} onOpenFull={openDetail}
+    onClose={() => { setSelectedId(null); if (!calendarBrowse) restoreCalendarOrigin(); }}
     onOpenContact={openClient} onEditApproval={reviewApproval}
-    onUpdateContact={workspace.patchContact}
+    onRenameMeeting={workspace.patchMeetingTitle} onGenerateTitle={mode === "live" ? workspace.generateMeetingTitle : undefined} onUpdateContact={workspace.patchContact}
     onRetryAccepted={() => void workspace.loadLive(true)}
     mode={mode} receipt={receiptNotice}
     onTask={(id, completed) => void workspace.patchFollowUp(id, { status: completed ? "completed" : "pending" })}
     working={working} error={error}
-  /> : null;
-  const journalPanel = !desktopDock && panelOrigin === "journal" ? panel : undefined;
+  /> : calendarDayPanel;
+  const remainingApprovals = approvalFilter === "pending" ? pending.slice(3) : approvals.filter(approval => approval.status === "dismissed");
+  const showFollowUps = pending.length > 3 || approvals.some(approval => approval.status === "dismissed");
   const resetSample = () => {
-    setSelectedId(null); setEditing(null); setJournalFilters({ query: "", date: "" }); setSearch("");
+    setSelectedId(null); setEditing(null); setCalendarBrowse(null); setJournalFilters({ query: "", date: "" });
     navigate("overview"); workspace.loadSample(true);
   };
   return (
@@ -405,14 +427,13 @@ function WorkspaceSession({
             <>
               {!selectedId && receiptNotice}
               {mode === "live" && account && view === "overview" && <WorkspaceSetup account={account} calendarConnected={integrations.google} devicePaired={workspace.deviceStatusLoaded ? Boolean(device) : undefined} hasRecording={hasFirstUpload} onPair={() => navigate("device")} onFirstRecording={() => navigate("device")} />}
-              {mode === "live" && account && view === "calendar" && integrations.google !== undefined && <CalendarConnection email={account.email} connected={integrations.google} />}
               {detailId ? (detailMeeting ? <ConversationDetail
                 conversation={detailMeeting} mode={mode} working={working} error={error}
                 initialTab={detailTab} initialContactEditing={params.get("edit") === "contact"} initialContactId={params.get("contact")}
                 backLabel={detailOrigin?.href.includes("view=people") || detailOrigin?.href.includes("/people") ? "Back to client history" : detailOrigin?.href.includes("view=calendar") || detailOrigin?.href.includes("/calendar") ? "Back to calendar" : detailOrigin?.href === "/dashboard" || detailOrigin?.href.includes("view=overview") || detailOrigin?.href === sampleWorkspacePath || detailOrigin?.href === sampleWorkspacePath + "?mode=sample" ? "Back to home" : "Back to conversations"}
                 onBack={backFromDetail}
                 onTask={(id, completed) => void workspace.patchFollowUp(id, { status: completed ? "completed" : "pending" })}
-                onEditApproval={reviewApproval} onUpdateContact={workspace.patchContact} onOpenContact={openClient} onRetryAccepted={() => void workspace.loadLive(true)}
+                onEditApproval={reviewApproval} onRenameMeeting={workspace.patchMeetingTitle} onGenerateTitle={mode === "live" ? workspace.generateMeetingTitle : undefined} onUpdateContact={workspace.patchContact} onOpenContact={openClient} onRetryAccepted={() => void workspace.loadLive(true)}
               /> : <div className={styles.emptyInline}><h3>Conversation unavailable.</h3><p>It may still be processing, or it isn’t in this workspace.</p><button className={q.textLink} onClick={() => navigate("conversations")}>Back to conversations</button></div>) : null}
               {!desktopDock && detailId && editing && <div className={d.inlinePanel}>{panel}</div>}
               {view === "overview" && <>
@@ -420,252 +441,37 @@ function WorkspaceSession({
                   <div className={flow.progressHeading}><h2>Recordings in progress</h2></div>
                   {activeRecordings.map(meeting => <div key={meeting.id} className={flow.progressEntry}><h3>{meeting.title}</h3><RecordingProgress meeting={meeting} mode={mode} onOpenAudio={() => openConversation(meeting.id, "Audio", "recording")} onRetryAccepted={() => workspace.loadLive(true)} />{!desktopDock && panelOrigin === "recording" && selectedId === meeting.id && <div className={d.inlinePanel}>{panel}</div>}</div>)}
                 </section>}
-                <div className={q.dailyBrief}>
-                  <section className={q.followUps} aria-labelledby="followups-heading" data-workspace-intro="approvals">
-                    <div className={q.sectionHeading}><h2 id="followups-heading">Ready for review</h2><span className={q.sectionCount} aria-label={`${pending.length} pending follow-ups`}>{pending.length}</span></div>
-                    <p className={q.sectionIntro}>Your next steps. Your approval.</p>
-                    {pending.length ? <div className={q.approvalList}>{pending.slice(0, 3).map(approval => <article key={approval.id} className={q.pendingItem} data-selected={editing?.id === approval.id}>
-                      <div className={q.pendingCopy}><h3>{approval.title}</h3>
-                        <p>{approval.contact?.company || approval.contact?.name || "Meeting invitation"}{approval.details.startAt ? " \u00b7 " + dateLabel(approval.details.startAt) + " \u00b7 " + timeLabel(approval.details.startAt) : " \u00b7 Date to confirm"}</p>
-                      </div>
-                      <button className={q.approvalButton} disabled={Boolean(working)} onClick={() => { setSelectedId(null); setPanelOrigin("approval"); reviewApproval(approval); }}>Review invitation</button>
-                      {!desktopDock && panelOrigin === "approval" && editing?.id === approval.id && <div className={d.inlinePanel}>{panel}</div>}
-                    </article>)}</div> : <div className={q.emptyState}><h3>You&apos;re up to date.</h3><p>Agreed follow-ups will appear here when a conversation is ready.</p></div>}
-                    {pending.length > 3 && <button className={q.textLink} onClick={() => navigate("calendar")}>View all follow-ups</button>}
-                  </section>
-                  <section className={q.nextMeeting} aria-labelledby="next-meeting-heading">
-                    <div className={q.sectionHeading}><h2 id="next-meeting-heading">Up next</h2><span className={q.sectionLabel}>ON YOUR CALENDAR</span></div>
-                    {nextMeeting ? <>
-                      <p className={q.meetingDate}>{dateLabel(nextMeeting.startAt, { weekday: "long" })}</p>
-                      <p className={q.meetingTime}>{timeLabel(nextMeeting.startAt)}</p>
-                      <h3>{nextMeeting.title}</h3>
-                      {nextMeeting.contacts.length > 0 && <p className={q.meetingPeople}>{nextMeeting.contacts.map(contact => contact.name).join(", ")}{nextMeeting.contacts[0]?.company ? " \u00b7 " + nextMeeting.contacts[0].company : ""}</p>}
-                      {nextPurpose && nextPurpose !== nextMeeting.title && <p className={q.meetingPurpose}>{nextPurpose}</p>}
-                      <button className={q.meetingAction} onClick={() => openConversation(nextMeeting.id, "Summary", "next")}>View meeting details</button>
-                      {!desktopDock && panelOrigin === "next" && panel && <div className={d.inlinePanel}>{panel}</div>}
-                    </> : <div className={q.emptyState}><h3>A little breathing room.</h3><p>No upcoming meetings on your connected calendar.</p><button className={q.meetingAction} onClick={() => navigate("calendar")}>Open calendar</button></div>}
-                  </section>
+                <section className={styles.homeReviews} aria-label="Follow-ups to review" data-workspace-intro="approvals">
+                  {pending.length ? <div className={q.approvalList}>{pending.slice(0, 3).map(approval => <article key={approval.id} className={q.pendingItem} data-selected={editing?.id === approval.id}>
+                    <div className={q.pendingCopy}><h2>{approval.title}</h2>
+                      <p>{approval.contact?.company || approval.contact?.name || "Meeting invitation"}{approval.details.startAt ? " \u00b7 " + dateLabel(approval.details.startAt) + " \u00b7 " + timeLabel(approval.details.startAt) : " \u00b7 Date to confirm"}</p>
+                    </div>
+                    <div className={styles.reviewActions}>
+                      <button className={q.approvalButton} disabled={Boolean(working)} onClick={() => { setSelectedId(null); setCalendarBrowse(null); setPanelOrigin("approval"); reviewApproval(approval); }}>Review invitation</button>
+                      <button className={styles.dismissButton} disabled={Boolean(working)} onClick={() => void workspace.patchFollowUp(approval.id, { status: "dismissed" })}>Dismiss</button>
+                    </div>
+                    {!desktopDock && panelOrigin === "approval" && editing?.id === approval.id && <div className={d.inlinePanel}>{panel}</div>}
+                  </article>)}</div> : <p className={styles.reviewEmpty}>Nothing to review. Lucky you.</p>}
+                  {pending.length > 3 && <button className={q.textLink} onClick={() => { setApprovalFilter("pending"); followUpsRef.current?.scrollIntoView({ block: "start", behavior: reducedMotion || !motionEnabled ? "instant" : "smooth" }); }}>View {pending.length - 3} more follow-ups</button>}
+                </section>
+                {mode === "live" && account && (params.get("google") === "error" || params.get("google") === "denied") && <CalendarConnection email={account.email} connected={integrations.google} />}
+                <div className={styles.homeCalendar}>
+                  <WorkspaceCalendar meetings={meetings} today={today} visibleMonth={visibleMonth} selectedDate={selectedDate}
+                    onMonthChange={month => { setVisibleMonth(month); if (panelOrigin === "calendar") { setSelectedId(null); setEditing(null); setCalendarBrowse(null); } }}
+                    onDateChange={date => { setSelectedDate(date); if (panelOrigin === "calendar") { setSelectedId(null); setEditing(null); setCalendarBrowse(null); } }}
+                    onOpenMeeting={openCalendarMeeting} onBrowseDay={browseCalendarDay}
+                    onVisibilityChange={workspace.setCalendarVisibility} working={Boolean(working)} selectedId={selectedId}
+                    detailKey={!desktopDock && panelOrigin === "calendar" && panel ? `${editing?.id || selectedId || calendarBrowse?.date}:${calendarOpenEpoch}` : null}
+                    detail={!desktopDock && panelOrigin === "calendar" ? panel : undefined}
+                  />
                 </div>
-                <ConversationJournal meetings={conversations} mode={mode} compact onOpen={openConversation} onAll={() => navigate("conversations")} filters={journalFilters} onFiltersChange={setJournalFilters} onRetryAccepted={() => void workspace.loadLive(true)} selectedId={selectedId} inlineDetails={journalPanel} />
-              </>}
-              {view === "conversations" && !detailId && <ConversationJournal meetings={conversations} mode={mode} onOpen={openConversation} onPeople={() => navigate("people")} filters={journalFilters} onFiltersChange={setJournalFilters} onRetryAccepted={() => void workspace.loadLive(true)} selectedId={selectedId} inlineDetails={journalPanel} />}
-              {view === "calendar" && (
-                <>
-                  <div className={styles.calendarLayout}>
-                    <section
-                      className={styles.calendarSurface}
-                      aria-label="Meeting calendar"
-                      data-workspace-intro="calendar"
-                    >
-                      <header className={styles.calendarToolbar}>
-                        <div className={styles.monthControls}>
-                          <h2 aria-live="polite" aria-atomic="true">{monthLabel}</h2>
-                          <button
-                            className={styles.iconButton}
-                            onClick={() => changeMonth(-1)}
-                            aria-label="Previous month"
-                          >
-                            <ChevronLeft aria-hidden="true" />
-                          </button>
-                          <button
-                            className={styles.iconButton}
-                            onClick={() => changeMonth(1)}
-                            aria-label="Next month"
-                          >
-                            <ChevronRight aria-hidden="true" />
-                          </button>
-                          <button
-                            className={styles.todayButton}
-                            onClick={() => {
-                              setVisibleMonth(today.slice(0, 7));
-                              setSelectedDate(today);
-                            }}
-                          >
-                            Today
-                          </button>
-                        </div>
-                        <div
-                          className={styles.viewToggle}
-                          aria-label="Calendar layout"
-                        >
-                          <button
-                            aria-pressed={layout === "month"}
-                            className={
-                              layout === "month" ? styles.toggleActive : ""
-                            }
-                            onClick={() => setLayout("month")}
-                          >
-
-                            Month
-                          </button>
-                          <button
-                            aria-pressed={layout === "agenda"}
-                            className={
-                              layout === "agenda" ? styles.toggleActive : ""
-                            }
-                            onClick={() => setLayout("agenda")}
-                          >
-
-                            Agenda
-                          </button>
-                          {(hiddenRecordingCount > 0 || showHiddenRecordings) && (
-                            <button
-                              type="button"
-                              aria-pressed={showHiddenRecordings}
-                              className={showHiddenRecordings ? styles.toggleActive : ""}
-                              onClick={() => setShowHiddenRecordings(current => !current)}
-                            >
-                              Hidden ({hiddenRecordingCount})
-                            </button>
-                          )}
-                        </div>
-                      </header>
-                      {layout === "month" ? (
-                        <>
-                          <div className={styles.weekdays}>
-                            {[
-                              "MON",
-                              "TUE",
-                              "WED",
-                              "THU",
-                              "FRI",
-                              "SAT",
-                              "SUN",
-                            ].map((day) => (
-                              <span key={day}>{day}</span>
-                            ))}
-                          </div>
-                          <div className={styles.monthGrid} {...calendarSwipe}>
-                            {grid.map((day) => {
-                              const entries = calendarEntries.filter(
-                                (meeting) =>
-                                  formatDateKey(meeting.startAt) ===
-                                  day.isoDate,
-                              );
-                              return (
-                                <div
-                                  key={day.isoDate}
-                                  className={`${styles.day} ${!day.inCurrentMonth ? styles.otherMonth : ""} ${day.isoDate === selectedDate ? styles.selectedDay : ""}`}
-                                >
-                                  <button
-                                    className={`${styles.dayNumber} ${day.isToday ? styles.todayNumber : ""}`}
-                                    aria-label={dateLabel(
-                                      `${day.isoDate}T12:00:00Z`,
-                                      { weekday: "long", year: "numeric", timeZone: "UTC" },
-                                    )}
-                                    aria-pressed={day.isoDate === selectedDate}
-                                    onClick={() => setSelectedDate(day.isoDate)}
-                                  >
-                                    {day.dayNumber}
-                                  </button>
-                                  <div className={styles.dayEvents}>
-                                    {entries.slice(0, 3).map((meeting) => (
-                                      <div className={styles.calendarEntry} key={meeting.id}>
-                                        <button
-                                          className={`${styles.eventChip} ${meeting.source === "calendar" || meeting.status === "upcoming" ? styles.scheduledChip : styles.conversationChip}`}
-                                          onClick={() =>
-                                            openConversation(meeting.id, "Summary", "calendar")
-                                          }
-                                          title={meeting.title}
-                                        >
-                                          <span className={styles.eventTime}>
-                                            {meeting.recordingProgress?.timeUncertain ? "Time unconfirmed" : timeLabel(meeting.startAt)}
-                                          </span>
-                                          <strong>
-                                            {meeting.contacts[0]?.name ||
-                                              meeting.title}
-                                          </strong>
-                                          <small>
-                                            {meeting.source === "calendar"
-                                              ? "Follow-up"
-                                              : isConversation(meeting)
-                                                ? "Conversation"
-                                                : meeting.title}
-                                          </small>
-                                        </button>
-                                        {canHideRecording(meeting) && <CalendarRecordingAction meeting={meeting} disabled={Boolean(working)} onChange={workspace.setCalendarVisibility} />}
-                                      </div>
-                                    ))}
-                                    {entries.length > 3 && (
-                                      <button
-                                        className={styles.moreEvents}
-                                        onClick={() => {
-                                          setSelectedDate(day.isoDate);
-                                          setLayout("agenda");
-                                        }}
-                                      >
-                                        +{entries.length - 3} more
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </>
-                      ) : (
-                        <div className={styles.agenda} {...calendarSwipe}>
-                          {calendarEntries
-                            .filter((meeting) =>
-                              formatDateKey(meeting.startAt).startsWith(
-                                visibleMonth,
-                              ),
-                            )
-                            .sort(
-                              (a, b) =>
-                                Date.parse(a.startAt) - Date.parse(b.startAt),
-                            )
-                            .map((meeting) => (
-                              <div className={styles.agendaEntry} key={meeting.id}>
-                                <button
-                                  className={styles.agendaRow}
-                                  onClick={() => openConversation(meeting.id, "Summary", "calendar")}
-                                >
-                                  <span className={styles.agendaDate}>
-                                    {dateLabel(meeting.startAt, {
-                                      day: "2-digit",
-                                    })}
-                                  </span>
-                                  <span className={styles.agendaCopy}>
-                                    <strong>{meeting.title}</strong>
-                                    <small>
-                                      {meeting.contacts[0]?.company} ·{" "}
-                                      {meeting.recordingProgress?.timeUncertain ? "Time unconfirmed" : timeLabel(meeting.startAt)}
-                                    </small>
-                                  </span>
-                                  <span className={styles.typePill}>
-                                    {meeting.source === "calendar"
-                                      ? "Meeting"
-                                      : "Conversation"}
-                                  </span>
-
-                                </button>
-                                {canHideRecording(meeting) && <CalendarRecordingAction meeting={meeting} disabled={Boolean(working)} onChange={workspace.setCalendarVisibility} />}
-                              </div>
-                            ))}
-                          {!calendarEntries.some((meeting) =>
-                            formatDateKey(meeting.startAt).startsWith(
-                              visibleMonth,
-                            ),
-                          ) && (
-                            <div className={styles.emptyInline}>
-
-                              <h3>{showHiddenRecordings ? "No hidden recordings this month" : "A little breathing room"}</h3>
-                              <p>{showHiddenRecordings ? "Hidden recordings keep their audio and conversation history." : "No meetings or conversations this month."}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </section>
+                {showFollowUps && <section ref={followUpsRef} className={styles.followUpSection}>
                     <aside
                       className={styles.approvalRail}
                       aria-label="Meeting approvals"
                     >
                       <header>
                         <div>
-                          <span className={styles.eyebrow}>
-                            CALENDAR
-                          </span>
                           <h2>
                             Follow-ups
                           </h2>
@@ -699,11 +505,7 @@ function WorkspaceSession({
                           </button>
                         </div>
                       )}
-                      {approvals
-                        .filter(
-                          (approval) => approval.status === approvalFilter,
-                        )
-                        .map((approval) => {
+                      {remainingApprovals.map((approval) => {
                           const missing = missingApprovalDetails(
                             approval.details,
                           );
@@ -725,7 +527,7 @@ function WorkspaceSession({
                                 </span>
                                 <button
                                   className={styles.iconButton}
-                                  onClick={() => { setPanelOrigin("calendar"); reviewApproval(approval); }}
+                                  onClick={() => { rememberCalendarOrigin(); setSelectedId(null); setCalendarBrowse(null); setPanelOrigin("calendar"); reviewApproval(approval); }}
                                   aria-label={`Edit meeting with ${approval.contact?.name || "client"}`}
                                   disabled={
                                     Boolean(working) ||
@@ -797,7 +599,7 @@ function WorkspaceSession({
                                   <button
                                     className={q.approvalButton}
                                     disabled={Boolean(working)}
-                                    onClick={() => { setPanelOrigin("calendar"); reviewApproval(approval); }}
+                                    onClick={() => { rememberCalendarOrigin(); setSelectedId(null); setCalendarBrowse(null); setPanelOrigin("calendar"); reviewApproval(approval); }}
                                   >
                                     {working === approval.id
                                       ? "Sending invitation…"
@@ -820,9 +622,7 @@ function WorkspaceSession({
                             </article>
                           );
                         })}
-                      {approvals.filter(
-                        (approval) => approval.status === approvalFilter,
-                      ).length === 0 && (
+                      {remainingApprovals.length === 0 && (
                         <div className={styles.approvalsEmpty}>
 
                           <h3>
@@ -830,10 +630,6 @@ function WorkspaceSession({
                               ? "You’re all caught up."
                               : "Nothing dismissed."}
                           </h3>
-                          <p>
-                            Agreed meetings from your conversations will appear
-                            here.
-                          </p>
                         </div>
                       )}
                       <p className={styles.railFootnote}>
@@ -843,144 +639,52 @@ function WorkspaceSession({
                           : "Invitations are sent only after approval."}
                       </p>
                     </aside>
-                  </div>
-                  {!desktopDock && panelOrigin === "calendar" && panel && <div className={d.inlinePanel}>{panel}</div>}
-                </>
-              )}
+                </section>}
+              </>}
 
               {view === "people" && selectedContact && <ClientHistory mode={mode} contact={selectedContact} conversations={conversations} onBack={() => navigate("people")} onOpenMeeting={openDetail} onCorrect={() => { const latest = conversations.find(meeting => meeting.contacts.some(contact => contact.id === selectedContact.id)); if (latest) openDetail(latest.id, "Summary", true, selectedContact.id); }} />}
-              {view === "people" && !selectedContact && (
-                <section className={styles.peopleView}>
-                  <label className={`${styles.search} ${styles.peopleSearch}`}>
-
-                    <input
-                      aria-label="Search people"
-                      placeholder="Find a person or company"
-                      value={search}
-                      onChange={(event) => setSearch(event.target.value)}
-                    />
-                  </label>
-                  <div className={styles.peopleGrid}>
-                    {contacts
-                      .filter((contact) =>
-                        `${contact.name} ${contact.company}`
-                          .toLowerCase()
-                          .includes(normalizedSearch),
-                      )
-                      .map((contact) => {
-                        const history = conversations.filter((conversation) =>
-                          conversation.contacts.some(
-                            (item) => item.id === contact.id,
-                          ),
-                        );
-                        return (
-                          <button
-                            key={contact.id}
-                            className={styles.personCard}
-                            onClick={() => openClient(contact.id)}
-                          >
-                            <span className={styles.avatar}>
-                              {initials(contact.name)}
-                            </span>
-                            <h2>{contact.name}</h2>
-                            <p>
-                              {contact.role || "Client"}
-                              {contact.company ? ` · ${contact.company}` : ""}
-                            </p>
-                            <span className={styles.personEmail}>
-                              {contact.email || "No email added"}
-                            </span>
-                            <footer>
-                              <span>
-                                {history.length} conversation
-                                {history.length === 1 ? "" : "s"}
-                              </span>
-
-                            </footer>
-                          </button>
-                        );
-                      })}
-                  </div>
-                  <ConversationJournal meetings={conversations} mode={mode} filters={journalFilters} onFiltersChange={setJournalFilters} onOpen={(id, tab) => openDetail(id, tab)} onRetryAccepted={() => void workspace.loadLive(true)} />
-                  {!contacts.length && (
-                    <div className={styles.emptyInline}>
-
-                      <h3>Build a memory around your clients.</h3>
-                      <p>People from your conversations will appear here.</p>
-                    </div>
-                  )}
-                </section>
-              )}
-              {view === "device" && (
-                <LanternDevicePanel
-                  mode={mode}
-                  integrations={integrations}
-                  conversationCount={conversations.length}
-                  accountEmail={account?.email}
-                  hasRecording={hasFirstUpload}
-                />
-              )}
+              {view === "people" && !selectedContact && <PeopleConnections
+                contacts={contacts} conversations={conversations} mode={mode}
+                filters={journalFilters} onFiltersChange={setJournalFilters}
+                onOpenClient={openClient} onOpenConversation={openDetail}
+                onRetryAccepted={() => void workspace.loadLive(true)}
+              />}
               {view === "settings" && (
                 <div className={styles.settingsGrid}>
-                  <ProfileSettings account={account} sample={mode === "sample"} onSaved={setAccount} />
-                  <section className={styles.settingsCard}>
-                    <h2>A quick introduction</h2>
-                    <p>Three short steps through your conversations, approvals and calendar.</p>
-                    <button type="button" className={styles.secondaryButton} onClick={replayIntroduction}>Replay introduction</button>
-                  </section>
-                  <WhatsAppDelivery sample={mode === "sample"} />
-                  <section className={styles.settingsCard}>
-                    <h2>Gmail follow-ups</h2>
-                    <p>Review a draft, then approve the exact recipient and message before sending.</p>
+                  <SettingsSection id="your-quipus" title="Your Quipus" defaultOpen={params.get("section") === "device" || params.get("view") === "device" || pathname === viewPaths.device}>
+                    <LanternDevicePanel embedded mode={mode} integrations={integrations} conversationCount={conversations.length} accountEmail={account?.email} hasRecording={hasFirstUpload} />
+                  </SettingsSection>
+                  <SettingsSection title="Profile">
+                    <ProfileSettings embedded account={account} sample={mode === "sample"} onSaved={setAccount} />
+                  </SettingsSection>
+                  <SettingsSection title="Google Calendar">
+                    <GoogleConnectionSettings embedded sample={mode === "sample"} accountIdentity={account?.email} />
+                  </SettingsSection>
+                  <SettingsSection title="Gmail follow-ups">
+                    <p>Review a draft before sending.</p>
                     {mode === "live" ? <a className={styles.secondaryButton} href="/api/google/connect?gmail=1&returnTo=%2Fdashboard%2Fsettings">Connect or refresh Gmail</a> : <p>Available in your connected workspace.</p>}
-                  </section>
-                  <GoogleConnectionSettings sample={mode === "sample"} accountIdentity={account?.email} />
-                  <section className={styles.settingsCard}>
-                    <h2>Language & region</h2>
-                    <p>
-                      Choose your language preference for supported controls and processing requests. Quipus’s new navigation currently uses English.
-                    </p>
+                  </SettingsSection>
+                  <SettingsSection title="WhatsApp">
+                    <WhatsAppDelivery embedded sample={mode === "sample"} />
+                  </SettingsSection>
+                  <SettingsSection title="Language">
                     <LanguageSwitcher className={styles.languageControl} showLabel />
-                    <div className={styles.region}>
-                      <span>Timezone</span>
-                      <strong>{timezone}</strong>
-                    </div>
-                  </section>
-                  <section className={styles.settingsCard}>
-
-                    <h2>Access & privacy</h2>
-                    <p>
-                      Your source recordings, transcripts, and meeting briefs
-                      stay private unless you approve sharing{whatsappEnabled() ? " or enable delivery to your WhatsApp" : ""}.
-                    </p>
+                  </SettingsSection>
+                  <SettingsSection title="Access & privacy">
+                    <p>Your recordings, transcripts and meeting briefs stay private unless you approve sharing{whatsappEnabled() ? " or enable delivery to your WhatsApp" : ""}.</p>
                     <span className={styles.connectionState}>
-                      <i
-                        className={
-                          account ? styles.greenDot : styles.neutralDot
-                        }
-                      />
-                      {account
-                        ? `Signed in as ${account.email}`
-                        : "You are signed out"}
+                      <i className={account ? styles.greenDot : styles.neutralDot} />
+                      {account ? `Signed in as ${account.email}` : "You are signed out"}
                     </span>
-                    {account ? (
-                      <form action="/api/auth/logout" method="post">
-                        <button className={styles.signOutButton} type="submit">
-                           Sign out
-                        </button>
-                      </form>
-                    ) : (
-                      <Link
-                        aria-label="Sign in with Google"
-                        className={styles.signInButton}
-                        href="/login?next=/dashboard"
-                      >
-
-                        <span className={styles.signInFull}>Sign in with Google</span>
-                        <span className={styles.signInShort}>Sign in</span>
-                      </Link>
-                    )}
-                  </section>
+                    {account ? <form action="/api/auth/logout" method="post">
+                      <button className={styles.signOutButton} type="submit">Sign out</button>
+                    </form> : <Link aria-label="Sign in with Google" className={styles.signInButton} href="/login?next=/dashboard">
+                      <span className={styles.signInFull}>Sign in with Google</span><span className={styles.signInShort}>Sign in</span>
+                    </Link>}
+                  </SettingsSection>
+                  <SettingsSection title="Quick introduction">
+                    <button type="button" className={styles.secondaryButton} onClick={replayIntroduction}>Replay introduction</button>
+                  </SettingsSection>
                 </div>
               )}
             </>
@@ -996,19 +700,9 @@ function WorkspaceSession({
             </span>
           </footer>
         </motion.div>
-        {desktopDock && panel && <motion.aside className={d.dock} aria-label={editing ? "Review approval" : "Conversation details"} initial={motionEnabled && !reducedMotion ? { opacity: 0, x: 20 } : false} animate={{ opacity: 1, x: 0 }} transition={{ duration: .2, ease: [0.2, 0.8, 0.2, 1] }}>{panel}</motion.aside>}
+        {desktopDock && panel && <motion.aside className={d.dock} aria-label={editing ? "Review approval" : selectedId ? "Conversation details" : "Day meetings"} initial={motionEnabled && !reducedMotion ? { opacity: 0, x: 20 } : false} animate={{ opacity: 1, x: 0 }} transition={{ duration: .2, ease: [0.2, 0.8, 0.2, 1] }}>{panel}</motion.aside>}
       </main>
       <WorkspaceIntroduction step={introduction.step} onNext={nextIntroductionStep} onDismiss={introduction.dismiss} />
-      {mode === "live" && (
-        <RecordingDialog
-          open={recordingOpen}
-          onClose={() => setRecordingOpen(false)}
-          onProcessed={() => {
-            setRecordingOpen(false);
-            void workspace.loadLive();
-          }}
-        />
-      )}
       {notice && (
         <div className={styles.toast} role="status">
 

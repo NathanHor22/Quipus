@@ -154,9 +154,12 @@ export const extractedFollowUpSchema = z
   })
   .strict();
 
-/** The exact object requested from Qwen before provider metadata is attached. */
+/** The exact object requested from extraction providers before metadata is attached. */
 export const meetingExtractionSchema = z
   .object({
+    // New strict provider responses include this field. Optional local parsing
+    // keeps previously saved extractions readable without reprocessing audio.
+    title: compactText("meeting topic title", 80).nullable().optional(),
     insight: meetingInsightSchema,
     participants: z.array(extractedParticipantSchema).max(20),
     followUps: z.array(extractedFollowUpSchema).max(20),
@@ -219,8 +222,14 @@ export type MeetingSchemaCompatibility = {
 export const meetingExtractionJsonSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["insight", "participants", "followUps", "evidence"],
+  required: ["title", "insight", "participants", "followUps", "evidence"],
   properties: {
+    title: {
+      type: ["string", "null"],
+      minLength: 1,
+      maxLength: 80,
+      description: "A short factual topic title from the whole conversation, or null when no topic is established.",
+    },
     insight: {
       type: "object",
       additionalProperties: false,

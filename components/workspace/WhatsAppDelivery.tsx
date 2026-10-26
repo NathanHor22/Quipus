@@ -18,18 +18,18 @@ function ComingSoon() {
   return <span className={styles.connectionState}><i className={styles.neutralDot} />Coming soon</span>;
 }
 
-export function WhatsAppDelivery({ sample = false }: { sample?: boolean }) {
+export function WhatsAppDelivery({ sample = false, embedded = false }: { sample?: boolean; embedded?: boolean }) {
   if (!whatsappEnabled()) {
-    return <section className={styles.settingsCard}>
-      <h2>Reports on WhatsApp</h2>
+    return <section className={embedded ? undefined : styles.settingsCard} aria-label={embedded ? "WhatsApp delivery settings" : undefined}>
+      {!embedded && <h2>Reports on WhatsApp</h2>}
       <ComingSoon />
       <p>Receive each completed meeting report, full transcript, and original WAV on WhatsApp. Client sharing will always require a separate approval.</p>
     </section>;
   }
-  return <WhatsAppDeliverySession key={String(sample)} sample={sample} />;
+  return <WhatsAppDeliverySession key={String(sample)} sample={sample} embedded={embedded} />;
 }
 
-function WhatsAppDeliverySession({ sample }: { sample: boolean }) {
+function WhatsAppDeliverySession({ sample, embedded }: { sample: boolean; embedded: boolean }) {
   const [state, setState] = useState<DeliveryState>();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -63,8 +63,8 @@ function WhatsAppDeliverySession({ sample }: { sample: boolean }) {
     } catch (error) { setError(error instanceof Error ? error.message : "Could not save."); }
     finally { setBusy(false); }
   };
-  return <section className={styles.settingsCard}>
-    <h2>Reports on WhatsApp</h2>
+  return <section className={embedded ? undefined : styles.settingsCard} aria-label={embedded ? "WhatsApp delivery settings" : undefined}>
+    {!embedded && <h2>Reports on WhatsApp</h2>}
     <p>Receive each completed meeting report, full transcript, and original WAV. Client sharing always requires a separate approval.</p>
     {sample ? <p>Available in your connected workspace.</p> : state && !state.available ? <p>WhatsApp delivery is awaiting setup for your account.</p> : <>
       <p>{state?.phone ? `Your number: +${state.phone}` : "Loading connection…"}</p>

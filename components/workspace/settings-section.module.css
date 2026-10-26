@@ -1,0 +1,132 @@
+.section {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid var(--q-line);
+  border-radius: 7px;
+  background: var(--q-panel-gradient);
+  box-shadow: var(--q-shadow);
+  color: var(--q-text);
+}
+.summary {
+  display: flex;
+  align-items: center;
+  min-height: 64px;
+  padding: 16px 20px;
+  border-radius: 6px;
+  list-style: none;
+  cursor: pointer;
+  transition: background 180ms ease;
+}
+.summary::-webkit-details-marker {
+  display: none;
+}
+.summary::marker {
+  content: "";
+}
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  font: 600 16px/1.4 var(--q-font-body);
+  letter-spacing: -0.015em;
+}
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.status {
+  flex: 0 1 auto;
+  max-width: 140px;
+  color: var(--q-muted-strong);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: normal;
+  overflow-wrap: anywhere;
+}
+.chevron {
+  display: block;
+  flex: 0 0 8px;
+  width: 8px;
+  height: 8px;
+  margin: -4px 3px 0;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  color: var(--q-muted-strong);
+  transform: rotate(45deg);
+  transition: transform 180ms ease;
+}
+.section[open] > .summary {
+  border-radius: 6px 6px 0 0;
+  background: var(--q-glass-strong);
+}
+.section[open] > .summary .chevron {
+  margin-top: 4px;
+  transform: rotate(225deg);
+}
+.summary:focus-visible {
+  outline: 2px solid var(--q-red);
+  outline-offset: 3px;
+}
+.content {
+  min-width: 0;
+  padding: 18px 20px 20px;
+  border-top: 1px solid var(--q-line);
+  overflow-wrap: anywhere;
+}
+.content > p,
+.content > section > p {
+  margin: 0 0 16px;
+  color: var(--q-muted-strong);
+  font-size: 14px;
+  line-height: 1.6;
+}
+/* The disclosure owns the card; existing settings forms retain their inner layout. */
+.content > section {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.content > section::before {
+  display: none;
+}
+.content > section:hover {
+  transform: none;
+  box-shadow: none;
+}
+@media (hover: hover) {
+  .summary:hover {
+    background: var(--q-glass-strong);
+  }
+}
+@media (max-width: 760px) {
+  .summary {
+    min-height: 60px;
+    padding: 15px 16px;
+  }
+  .heading {
+    gap: 10px;
+    font-size: 15px;
+  }
+  .status {
+    max-width: 110px;
+    font-size: 11px;
+  }
+  .content {
+    padding: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .summary,
+  .chevron {
+    transition: none;
+  }
+}

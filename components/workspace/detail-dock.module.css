@@ -295,3 +295,37 @@
     transition: none;
   }
 }
+
+/* Calendar and dock wrappers provide placement; this is the only meeting card. */
+.panel.meetingPanel {
+  padding: 20px;
+  animation-duration: 180ms;
+}
+.singleHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.singleHeader h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 550;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.singleMeta {
+  margin: 10px 0 0;
+  color: var(--q-muted-strong);
+  font-size: 12px;
+  line-height: 1.5;
+}
+@media (max-width: 600px) {
+  .panel.meetingPanel {
+    padding: 17px;
+  }
+  .meetingPanel .close {
+    min-height: 44px;
+    font-size: 12px;
+  }
+}
