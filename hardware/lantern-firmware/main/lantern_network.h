@@ -33,6 +33,7 @@ typedef struct {
   int wifi_rssi;
   bool setup_portal_active;
   bool paired;
+  bool reset_pending;
   lantern_connectivity_t connectivity;
   char setup_ssid[33];
   // The password the setup access point actually uses; shown on the device screen.
@@ -132,3 +133,12 @@ esp_err_t lantern_network_upload_phone(lantern_cloud_session_t *session);
 void lantern_network_end_report(void);
 //0 until this boot has a plausible SNTP anchor with no clock jump.
 int64_t lantern_network_trusted_time(void);
+
+// Explicit authenticated factory-reset lane. The app calls continuation only
+// with its control mutex held, capture stopped and phone transport drained.
+bool lantern_network_factory_reset_pending(void);
+esp_err_t lantern_network_continue_factory_reset(void);
+
+// Retry explicit reset verification after a rejected credential, without
+// deleting pairing/session data on transient authentication/network failures.
+void lantern_network_retry_rejected_credential(void);

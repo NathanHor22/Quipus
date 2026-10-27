@@ -27,19 +27,19 @@ int main(void) {
 // unexpected namespace or archive/device erase is a test failure, not a reset.
 typedef struct {
   char key[16];
-  unsigned char value[128];
+  unsigned char value[256];
   size_t length;
 } entry_t;
-static entry_t entries[3][24];
-static bool exists[3], fail_device_write;
-static unsigned erases[3], forget_calls;
+static entry_t entries[4][24];
+static bool exists[4], fail_device_write, fail_reset_write;
+static unsigned erases[4], forget_calls;
 static esp_err_t forget_result;
 static const char *OWNER = "11111111-1111-4111-8111-111111111111";
 static const char *DEVICE = "22222222-2222-4222-8222-222222222222";
 static uint8_t archive_key[32];
 
 static entry_t *entry(nvs_handle_t handle, const char *key, bool create) {
-  assert(handle >= 1 && handle <= 3);
+  assert(handle >= 1 && handle <= 4);
   entry_t *empty = NULL;
   for (unsigned i = 0; i < 24; ++i) {
     entry_t *item = &entries[handle - 1][i];
@@ -90,8 +90,8 @@ static void storage_init_suite(void) {
   settings("phy", ESP_ERR_NVS_NEW_VERSION_FOUND, ESP_OK);
   assert(lantern_storage_init() == ESP_OK && partition_erases == 1);
   // Any Quipus namespace (pairing, SD archive keys, updates, setup password) is kept.
-  const char *quipus[] = {"roxanne", "quipus_keys", "quipus_ota", "quipus_device"};
-  for (unsigned i = 0; i < 4; ++i) {
+  const char *quipus[] = {"roxanne", "quipus_keys", "quipus_ota", "quipus_device", "quipus_reset"};
+  for (unsigned i = 0; i < 5; ++i) {
     settings(quipus[i], ESP_ERR_NVS_NO_FREE_PAGES, ESP_OK);
     assert(lantern_storage_init() == ESP_ERR_NVS_NO_FREE_PAGES && partition_erases == 0 && init_calls == 1);
   }
@@ -108,15 +108,15 @@ static void storage_init_suite(void) {
   init_count = 0; init_calls = 0;
 }
 esp_err_t nvs_open(const char *name, int mode, nvs_handle_t *handle) {
-  assert(!strcmp(name, "roxanne") || !strcmp(name, "quipus_keys") || !strcmp(name, "quipus_device"));
-  *handle = !strcmp(name, "roxanne") ? 1 : !strcmp(name, "quipus_keys") ? 2 : 3;
+  assert(!strcmp(name, "roxanne") || !strcmp(name, "quipus_keys") || !strcmp(name, "quipus_device") || !strcmp(name, "quipus_reset"));
+  *handle = !strcmp(name, "roxanne") ? 1 : !strcmp(name, "quipus_keys") ? 2 : !strcmp(name, "quipus_device") ? 3 : 4;
   if (!exists[*handle - 1] && mode == NVS_READONLY) return ESP_ERR_NVS_NOT_FOUND;
   exists[*handle - 1] = true;
   return ESP_OK;
 }
-void nvs_close(nvs_handle_t handle) { assert(handle >= 1 && handle <= 3); }
+void nvs_close(nvs_handle_t handle) { assert(handle >= 1 && handle <= 4); }
 esp_err_t nvs_set_blob(nvs_handle_t handle, const char *key, const void *value, size_t size) {
-  if (handle == 3 && fail_device_write) return ESP_FAIL;
+  if ((handle == 3 && fail_device_write) || (handle == 4 && fail_reset_write)) return ESP_FAIL;
   entry_t *item = entry(handle, key, true);
   assert(size <= sizeof(item->value));
   memcpy(item->value, value, size); item->length = size;
@@ -147,12 +147,12 @@ esp_err_t nvs_erase_key(nvs_handle_t handle, const char *key) {
   memset(item, 0, sizeof(*item)); return ESP_OK;
 }
 esp_err_t nvs_erase_all(nvs_handle_t handle) {
-  assert(handle == 1); // Reset must never erase the archive-key namespace.
+  assert(handle == 1 || handle == 2); // Only explicit owner reset may erase archive keys.
   ++erases[handle - 1]; memset(entries[handle - 1], 0, sizeof(entries[0]));
   return ESP_OK;
 }
 esp_err_t nvs_commit(nvs_handle_t handle) {
-  assert(handle >= 1 && handle <= 3); return ESP_OK;
+  assert(handle >= 1 && handle <= 4); return ESP_OK;
 }
 esp_err_t lantern_bluetooth_forget_bonds(void) {
   ++forget_calls; return forget_result;
@@ -221,8 +221,73 @@ static void test_setup_password(void) {
   puts("PASS: setup password is created once, survives resets, and fails safe");
 }
 
+static void factory_reset_suite(void) {
+  lantern_config_t config = fixture();
+  lantern_factory_reset_t reset = {.stage = LANTERN_RESET_REQUESTED};
+  strcpy(reset.request_id, "33333333-3333-4333-8333-333333333333");
+  strcpy(reset.device_id, DEVICE);
+  memset(reset.device_secret, 'K', 43);
+  reset.device_secret[43] = 0;
+  lantern_factory_reset_t loaded;
+  assert(lantern_storage_load_factory_reset(&loaded) == ESP_ERR_NVS_NOT_FOUND);
+  assert(lantern_storage_save_factory_reset(&reset) == ESP_OK);
+  assert(lantern_storage_load_factory_reset(&loaded) == ESP_OK);
+  assert(!memcmp(&loaded, &reset, sizeof(reset)));
+  // Missing or corrupt reset intent cannot authorize a private-data erase.
+  reset.stage = 0;
+  assert(lantern_storage_save_factory_reset(&reset) == ESP_ERR_INVALID_ARG);
+  reset.stage = LANTERN_RESET_REQUESTED;
+  reset.request_id[0] = 'Z';
+  assert(lantern_storage_save_factory_reset(&reset) == ESP_ERR_INVALID_ARG);
+  reset.request_id[0] = '3';
+  reset.device_secret[4] = ' ';
+  assert(lantern_storage_save_factory_reset(&reset) == ESP_ERR_INVALID_ARG);
+  reset.device_secret[4] = 'K';
+  assert(lantern_storage_load_factory_reset(&loaded) == ESP_OK);
+  assert(loaded.stage == LANTERN_RESET_REQUESTED);
+  // BLE failure must preserve credentials until cleanup can safely continue.
+  forget_result = ESP_ERR_INVALID_STATE;
+  assert(lantern_storage_clear_account(&config) == ESP_ERR_INVALID_STATE);
+  assert(config.owner_id[0] && config.device_secret[0]);
+  forget_result = ESP_OK;
+  assert(lantern_storage_clear_account(&config) == ESP_OK);
+  assert(!config.owner_id[0] && !config.device_secret[0] && !config.device_id[0]);
+  assert(!strcmp(config.wifi_ssid, "office"));
+  assert(lantern_storage_load(&config) == ESP_OK);
+  assert(!config.owner_id[0] && !config.device_secret[0] && !config.device_id[0]);
+  assert(!strcmp(config.wifi_ssid, "office"));
+  assert_archive();
+  assert(lantern_storage_clear_archive_identity() == ESP_OK);
+  assert(lantern_storage_clear() == ESP_OK);
+  // Normal settings and archive erasure must not lose the reset-only verifier.
+  assert(lantern_storage_load_factory_reset(&loaded) == ESP_OK);
+  assert(!memcmp(&loaded, &reset, sizeof(reset)));
+  reset.stage = LANTERN_RESET_ERASED;
+  fail_reset_write = true;
+  assert(lantern_storage_save_factory_reset(&reset) == ESP_FAIL);
+  assert(lantern_storage_load_factory_reset(&loaded) == ESP_OK);
+  assert(loaded.stage == LANTERN_RESET_REQUESTED);
+  fail_reset_write = false;
+  assert(lantern_storage_save_factory_reset(&reset) == ESP_OK);
+  assert(lantern_storage_load_factory_reset(&loaded) == ESP_OK);
+  assert(loaded.stage == LANTERN_RESET_ERASED);
+  reset.stage = LANTERN_RESET_ACKNOWLEDGED;
+  assert(lantern_storage_save_factory_reset(&reset) == ESP_OK);
+  assert(lantern_storage_load_factory_reset(&loaded) == ESP_OK);
+  assert(loaded.stage == LANTERN_RESET_ACKNOWLEDGED);
+  // Retrying final journal deletion after power loss is idempotent.
+  assert(lantern_storage_clear_factory_reset() == ESP_OK);
+  assert(lantern_storage_clear_factory_reset() == ESP_OK);
+  assert(lantern_storage_load_factory_reset(&loaded) == ESP_ERR_NVS_NOT_FOUND);
+  assert(lantern_storage_save_factory_reset(NULL) == ESP_ERR_INVALID_ARG);
+  assert(lantern_storage_load_factory_reset(NULL) == ESP_ERR_INVALID_ARG);
+  assert(lantern_storage_clear_account(NULL) == ESP_ERR_INVALID_ARG);
+  puts("PASS: explicit account reset journal survives erasure/reboot stages, isolates credentials and fails closed");
+}
+
 int main(void) {
   storage_init_suite();
+  factory_reset_suite();
   test_setup_password();
   lantern_config_t config = fixture(), saved = config;
   entry_t before[24]; memcpy(before, entries[0], sizeof(before));

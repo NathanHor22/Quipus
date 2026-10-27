@@ -112,6 +112,7 @@
             <label class="field" for="code"><span class="field-name">One-time pairing code</span><input name="code" id="code" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXXX-XXXXX" aria-describedby="code-hint"></label>
             <p class="hint" id="code-hint">In your Quipus dashboard, open Devices and choose Create pairing code. Enter that code here to link your recordings.</p>
           </div>
+          <div class="paired-note" id="reset-note" hidden><p><strong>Finishing the reset.</strong></p><p>You can update Wi-Fi so Quipus can finish. Pairing stays locked until its private data is cleared.</p></div>
           <div class="paired-note" id="paired-note" hidden><p><strong>Already paired to your account.</strong></p><p>Changing Wi-Fi keeps your existing account and recordings. Use the dashboard to transfer the recorder to another person.</p></div>
           <button class="action" id="save" type="submit">Save and connect</button>
           <p class="footnote">Settings stay on this recorder. It restarts after saving.</p>
@@ -148,18 +149,19 @@
       function showError(message) { error.textContent = message; error.hidden = !message; }
       function update(next) {
         state = next;
-        var connected = next.wifi_connected === true, paired = next.paired === true;
+        var connected = next.wifi_connected === true, paired = next.paired === true, resetting = next.reset_pending === true;
         document.body.dataset.connected = String(connected);
         document.body.dataset.paired = String(paired);
         byId("wifi-state").textContent = connected ? "Connected" : "Not connected";
-        byId("account-state").textContent = paired ? "Paired" : "Not paired";
+        byId("account-state").textContent = resetting ? "Resetting" : paired ? "Paired" : "Not paired";
         byId("network-name").textContent = connected && next.connected_ssid ? "Connected to " + next.connected_ssid : "";
         byId("network-title").textContent = connected ? "Change Wi-Fi" : "Wi-Fi settings";
-        byId("pairing").hidden = paired;
+        byId("pairing").hidden = paired || resetting;
+        byId("reset-note").hidden = !resetting;
         byId("paired-note").hidden = !paired;
-        code.disabled = paired;
-        code.required = !paired;
-        button.textContent = paired ? "Save Wi-Fi" : "Save and connect";
+        code.disabled = paired || resetting;
+        code.required = !paired && !resetting;
+        button.textContent = paired || resetting ? "Save Wi-Fi" : "Save and connect";
         if (!initialised) {
           network.open = !connected;
           initialised = true;
@@ -208,7 +210,7 @@
         }).catch(function (failure) {
           showError(failure.name === "AbortError" || failure instanceof TypeError ?
             "The connection was interrupted. Check the recorder screen before trying again. If it is still in setup, reconnect to its Quipus Wi-Fi." : failure.message);
-          saving = false; button.disabled = false; button.textContent = state && state.paired ? "Save Wi-Fi" : "Save and connect";
+          saving = false; button.disabled = false; button.textContent = state && (state.paired || state.reset_pending) ? "Save Wi-Fi" : "Save and connect";
         }).finally(function () { clearTimeout(timeout); });
       });
       window.addEventListener("pagehide", function () { stopped = true; clearTimeout(poll); });

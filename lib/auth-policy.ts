@@ -67,6 +67,7 @@ export function isLanternDevicePath(pathname: string): boolean {
     pathname === "/api/device/v1/command" ||
     pathname === "/api/device/v1/heartbeat" ||
     pathname === "/api/device/v1/restart" ||
+    pathname === "/api/device/v1/reset" ||
     pathname === "/api/device/v1/reports" ||
     pathname === "/api/device/v1/speak" ||
     pathname === "/api/device/v1/sessions" ||

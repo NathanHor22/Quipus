@@ -36,6 +36,7 @@
 #include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "mbedtls/sha256.h"
+#include "nvs.h"
 
 #include "lantern_audio.h"
 #include "lantern_bluetooth.h"
@@ -79,6 +80,12 @@ static bool s_setup_manual;
 static TaskHandle_t s_connection_task;
 static SemaphoreHandle_t s_setup_mutex;
 static bool s_setup_saved;
+static lantern_factory_reset_t s_factory_reset;
+static atomic_bool s_factory_reset_pending;
+static bool s_factory_reset_unreadable;
+static TickType_t s_reset_ack_at, s_reset_status_at;
+static bool s_credential_rejected;
+static bool request_factory_reset(void);
 
 static void clock_synchronised(struct timeval *value) {
   if (!value) return;
@@ -204,26 +211,21 @@ static void set_error(const char *message) {
   notify();
 }
 
+static void factory_reset_error(const char *message) {
+  if (strcmp(s_status.last_error, message)) set_error(message);
+}
+
 static bool recover_rejected_credential(int status) {
   if ((status != 401 && status != 403) || !s_config ||
-      !lantern_storage_is_paired(s_config)) {
-    return false;
+      !lantern_storage_is_paired(s_config)) return false;
+  // A generic proxy/authentication error is never authority to erase data.
+  // Preserve the verifier until the dedicated reset endpoint proves an
+  // owner-authorized reset, including during rollout or a network outage.
+  s_credential_rejected = true;
+  if (!request_factory_reset()) {
+    s_status.paired = false;
+    set_error("Account access unavailable; reconnect to retry");
   }
-  ESP_LOGW(TAG, "cloud rejected the device credential; preserving Wi-Fi and "
-                "reopening pairing");
-  esp_err_t result = lantern_storage_clear_device(s_config);
-  if (result != ESP_OK) {
-    set_error("Could not reset revoked pairing");
-    return true;
-  }
-  s_status.paired = false;
-  s_status.last_error[0] = '\0';
-  result = start_setup_portal();
-  if (result != ESP_OK) {
-    set_error("Pairing reset; restart Quipus");
-    return true;
-  }
-  set_error("Pairing reset; create a new code");
   return true;
 }
 
@@ -577,6 +579,182 @@ static int post_json(const char *path, const char *body,
   return post_json_with_timeout(path, body, authorization, response, 20000);
 }
 
+bool lantern_network_factory_reset_pending(void) {
+  return s_factory_reset_pending || s_factory_reset_unreadable;
+}
+static bool request_factory_reset(void) {
+  if (lantern_network_factory_reset_pending()) return true;
+  if (!s_config || !lantern_storage_is_paired(s_config) || !s_status.wifi_connected)
+    return false;
+  char authorization[140];
+  snprintf(authorization, sizeof(authorization), "Device %s.%s",
+           s_config->device_id, s_config->device_secret);
+  response_buffer_t *response = response_buffer_create();
+  if (!response) return false;
+  int status = post_json_with_timeout("/api/device/v1/reset", "{\"action\":\"status\"}",
+                                      authorization, response, 10000);
+  memset(authorization, 0, sizeof(authorization));
+  if (status == 204) {
+    // This endpoint has authenticated the still-active device. An unrelated
+    // request's transient auth failure does not require a destructive reset.
+    s_credential_rejected = false;
+    s_status.paired = true;
+    s_status.last_error[0] = 0;
+    notify();
+    free(response);
+    return true;
+  }
+  cJSON *json = status == 200 ? cJSON_Parse(response->data) : NULL;
+  cJSON *reset = json ? cJSON_GetObjectItemCaseSensitive(json, "reset") : NULL;
+  cJSON *id = reset ? cJSON_GetObjectItemCaseSensitive(reset, "id") : NULL;
+  cJSON *device = reset ? cJSON_GetObjectItemCaseSensitive(reset, "deviceId") : NULL;
+  cJSON *mode = reset ? cJSON_GetObjectItemCaseSensitive(reset, "mode") : NULL;
+  lantern_factory_reset_t candidate = {.stage = LANTERN_RESET_REQUESTED};
+  bool valid = cJSON_IsString(id) && cJSON_IsString(device) && cJSON_IsString(mode) &&
+      strlen(id->valuestring) == 36 && !strcmp(device->valuestring, s_config->device_id) &&
+      !strcmp(mode->valuestring, "factory");
+  if (valid) {
+    snprintf(candidate.request_id, sizeof(candidate.request_id), "%s", id->valuestring);
+    snprintf(candidate.device_id, sizeof(candidate.device_id), "%s", s_config->device_id);
+    snprintf(candidate.device_secret, sizeof(candidate.device_secret), "%s", s_config->device_secret);
+  }
+  cJSON_Delete(json);
+  free(response);
+  if (!valid) return false;
+  esp_err_t saved = lantern_storage_save_factory_reset(&candidate);
+  if (saved != ESP_OK) {
+    memset(&candidate, 0, sizeof(candidate));
+    set_error("Reset request could not be saved; reconnect to retry");
+    return false;
+  }
+  s_factory_reset = candidate;
+  memset(&candidate, 0, sizeof(candidate));
+  s_factory_reset_pending = true;
+  s_credential_rejected = false;
+  s_status.reset_pending = true;
+  s_status.paired = false;
+  s_reset_ack_at = 0;
+  set_error("Reset requested; keep Quipus powered on");
+  return true;
+}
+
+
+void lantern_network_retry_rejected_credential(void) {
+  if (!s_credential_rejected || lantern_network_factory_reset_pending() ||
+      !s_status.wifi_connected) return;
+  TickType_t now = xTaskGetTickCount();
+  if (s_reset_status_at && (TickType_t)(now - s_reset_status_at) < pdMS_TO_TICKS(15000))
+    return;
+  s_reset_status_at = now;
+  request_factory_reset();
+}
+
+static esp_err_t continue_factory_reset_locked(void) {
+  if (s_factory_reset_unreadable) {
+    factory_reset_error("Reset journal needs service; pairing is locked");
+    return ESP_FAIL;
+  }
+  if (!s_factory_reset_pending) return ESP_ERR_INVALID_STATE;
+  // The serialized reset lane owns playback now. An abandoned report reader
+  // or partial cache writer must not keep its own cleanup permanently busy.
+  abort_report_cache_download();
+  quipus_report_cache_detach();
+  if (lantern_audio_is_recording() || !lantern_sd_can_power_down())
+    return ESP_ERR_INVALID_STATE;
+  if (s_factory_reset.stage == LANTERN_RESET_REQUESTED) {
+    bool erased = false;
+    esp_err_t result = lantern_sd_factory_reset_step(8, &erased);
+    if (result != ESP_OK) {
+      factory_reset_error(result == ESP_ERR_INVALID_STATE
+          ? "Insert its SD card to finish reset"
+          : "SD cleanup failed; reinsert card or contact support");
+      return result;
+    }
+    if (!erased) {
+      factory_reset_error("Clearing local recordings; keep powered on");
+      return ESP_OK;
+    }
+    abort_report_cache_download();
+    lantern_audio_clear_private_buffer();
+    lantern_transcript_reset();
+    lantern_sd_clear_identity();
+    result = lantern_storage_clear_archive_identity();
+    if (result == ESP_OK) result = lantern_storage_clear_account(s_config);
+    if (result != ESP_OK) {
+      factory_reset_error("Reset storage failed; restart Quipus to retry");
+      return result;
+    }
+    lantern_factory_reset_t next = s_factory_reset;
+    next.stage = LANTERN_RESET_ERASED;
+    result = lantern_storage_save_factory_reset(&next);
+    if (result == ESP_OK) s_factory_reset = next;
+    memset(&next, 0, sizeof(next));
+    if (result != ESP_OK) return result;
+  }
+  if (s_factory_reset.stage == LANTERN_RESET_ERASED) {
+    if (!s_status.wifi_connected) {
+      factory_reset_error("Reset saved; connect Wi-Fi to finish");
+      return ESP_ERR_INVALID_STATE;
+    }
+    TickType_t now = xTaskGetTickCount();
+    if (s_reset_ack_at && (TickType_t)(now - s_reset_ack_at) < pdMS_TO_TICKS(10000))
+      return ESP_OK;
+    s_reset_ack_at = now;
+    char authorization[140], body[112];
+    snprintf(authorization, sizeof(authorization), "Device %s.%s",
+             s_factory_reset.device_id, s_factory_reset.device_secret);
+    snprintf(body, sizeof(body), "{\"action\":\"acknowledge\",\"resetId\":\"%s\"}",
+             s_factory_reset.request_id);
+    response_buffer_t *response = response_buffer_create();
+    if (!response) return ESP_ERR_NO_MEM;
+    int status = post_json_with_timeout("/api/device/v1/reset", body,
+                                        authorization, response, 10000);
+    memset(authorization, 0, sizeof(authorization));
+    cJSON *json = status == 200 ? cJSON_Parse(response->data) : NULL;
+    bool complete = cJSON_IsTrue(json ? cJSON_GetObjectItemCaseSensitive(json, "resetComplete") : NULL);
+    cJSON_Delete(json);
+    free(response);
+    if (!complete) {
+      factory_reset_error("Reset saved; waiting for cloud acknowledgement");
+      return ESP_FAIL;
+    }
+    lantern_factory_reset_t next = s_factory_reset;
+    next.stage = LANTERN_RESET_ACKNOWLEDGED;
+    esp_err_t result = lantern_storage_save_factory_reset(&next);
+    if (result == ESP_OK) s_factory_reset = next;
+    memset(&next, 0, sizeof(next));
+    if (result != ESP_OK) return result;
+  }
+  if (s_factory_reset.stage == LANTERN_RESET_ACKNOWLEDGED) {
+    // Persisted ACK means this phase can finish without Internet after power
+    // loss, even once saved Wi-Fi has been erased.
+    s_suspend_auto_reconnect = true;
+    esp_wifi_disconnect();
+    esp_err_t result = lantern_storage_clear();
+    if (result == ESP_OK) result = esp_wifi_restore();
+    if (result == ESP_OK) result = lantern_storage_clear_factory_reset();
+    if (result != ESP_OK) return result;
+    memset(s_config, 0, sizeof(*s_config));
+    memset(&s_factory_reset, 0, sizeof(s_factory_reset));
+    lantern_display_show(LANTERN_SCREEN_SETUP, "RESET COMPLETE - RESTARTING");
+    vTaskDelay(pdMS_TO_TICKS(300));
+    esp_restart();
+    return ESP_OK;
+  }
+  return ESP_OK;
+}
+
+
+esp_err_t lantern_network_continue_factory_reset(void) {
+  if (!s_setup_mutex || xSemaphoreTake(s_setup_mutex, 0) != pdTRUE)
+    return ESP_ERR_INVALID_STATE;
+  // Serializes erase/ACK/final settings cleanup against both the local portal
+  // and remembered-network writes. No writer can restore old Wi-Fi afterward.
+  esp_err_t result = continue_factory_reset_locked();
+  xSemaphoreGive(s_setup_mutex);
+  return result;
+}
+
 static int post_binary(const char *path, const char *content_type,
                        const void *body, size_t body_length,
                        const char *authorization, const char *event_id,
@@ -786,7 +964,24 @@ static esp_err_t ensure_pending_device_secret(void) {
   return result;
 }
 
+static const char *pairing_conflict_message(const char *body) {
+  cJSON *json = body ? cJSON_Parse(body) : NULL;
+  cJSON *code = json ? cJSON_GetObjectItemCaseSensitive(json, "code") : NULL;
+  const char *message = NULL;
+  if (cJSON_IsString(code)) {
+    if (!strcmp(code->valuestring, "DEVICE_RESET_PENDING"))
+      message = "Reset unfinished; keep original SD inserted";
+    else if (!strcmp(code->valuestring, "DEVICE_OWNERSHIP_CONFLICT"))
+      message = "Revoke from its original account dashboard";
+    else if (!strcmp(code->valuestring, "DEVICE_ALREADY_PAIRED"))
+      message = "Already paired; revoke in your dashboard";
+  }
+  cJSON_Delete(json);
+  return message;
+}
+
 static esp_err_t claim_device_locked(void) {
+  if (lantern_network_factory_reset_pending()) return ESP_ERR_INVALID_STATE;
   if (!s_config || !s_config->pairing_code[0] ||
       lantern_storage_is_paired(s_config))
     return ESP_OK;
@@ -838,7 +1033,9 @@ static esp_err_t claim_device_locked(void) {
       return ESP_FAIL;
     }
     char message[96];
-    snprintf(message, sizeof(message), "Pairing failed HTTP %d", status);
+    const char *conflict = status == 409 ? pairing_conflict_message(response->data) : NULL;
+    if (conflict) snprintf(message, sizeof(message), "%s", conflict);
+    else snprintf(message, sizeof(message), "Pairing failed HTTP %d", status);
     set_error(message);
     ESP_LOGW(TAG, "claim response: %.256s", response->data);
     free(response);
@@ -929,6 +1126,7 @@ static esp_err_t setup_status(httpd_req_t *request) {
     return ESP_ERR_NO_MEM;
   cJSON_AddBoolToObject(json, "wifi_connected", status.wifi_connected);
   cJSON_AddBoolToObject(json, "paired", status.paired);
+  cJSON_AddBoolToObject(json, "reset_pending", status.reset_pending);
   cJSON_AddStringToObject(json, "connected_ssid", status.connected_ssid);
   cJSON_AddStringToObject(json, "saved_ssid", status.saved_ssid);
   cJSON_AddStringToObject(json, "ip", status.ip_address);
@@ -1086,7 +1284,7 @@ static esp_err_t send_setup_error(httpd_req_t *request,
 }
 
 bool lantern_network_bluetooth_allowed(void) {
-  return s_config && s_status.setup_portal_active &&
+  return !lantern_network_factory_reset_pending() && s_config && s_status.setup_portal_active &&
          !lantern_storage_is_paired(s_config) && !s_setup_saved;
 }
 
@@ -1103,7 +1301,18 @@ esp_err_t lantern_network_save_setup(quipus_setup_form_t *form, bool bluetooth,
                     quipus_setup_normalize_pairing_code(form->pairing_code);
   const char *ssid = form->ssid[0] ? form->ssid : s_config->wifi_ssid;
   const char *password = form->ssid[0] ? form->password : s_config->wifi_password;
-  if (s_setup_saved || (bluetooth && !lantern_network_bluetooth_allowed())) {
+  if (lantern_network_factory_reset_pending()) {
+    if (bluetooth || form->pairing_code[0] || !form->ssid[0] ||
+        s_factory_reset_unreadable || s_factory_reset.stage == LANTERN_RESET_ACKNOWLEDGED) {
+      snprintf(error, error_capacity, "Reset is finishing. Enter only Wi-Fi details here.");
+      result = ESP_ERR_INVALID_STATE;
+    } else {
+      // Network recovery is allowed, but cannot change account/reset identity.
+      result = lantern_storage_save_wifi(form->ssid, form->password, "");
+      if (result == ESP_OK) s_setup_saved = true;
+      else snprintf(error, error_capacity, "Could not save Wi-Fi. Please retry.");
+    }
+  } else if (s_setup_saved || (bluetooth && !lantern_network_bluetooth_allowed())) {
     snprintf(error, error_capacity, "Setup is closed. Check your dashboard.");
     result = ESP_ERR_INVALID_STATE;
   } else if (paired && form->pairing_code[0]) {
@@ -1346,15 +1555,16 @@ static void connection_task(void *argument) {
     quipus_network_input_t input = {
         .wifi_connected = s_status.wifi_connected,
         .has_saved_wifi = lantern_storage_has_wifi(s_config),
-        .paired = lantern_storage_is_paired(s_config),
-        .has_pairing_code = s_config->pairing_code[0] != '\0',
+        .paired = !lantern_network_factory_reset_pending() && lantern_storage_is_paired(s_config),
+        .has_pairing_code = !lantern_network_factory_reset_pending() && s_config->pairing_code[0] != '\0',
         .portal_active = s_status.setup_portal_active,
         .portal_manual = s_setup_manual,
         .connection_busy = s_suspend_auto_reconnect,
     };
     unsigned actions = quipus_network_next(
         &policy, &input, (uint64_t)esp_timer_get_time() / 1000);
-    if (actions & QUIPUS_NETWORK_TRY_REMEMBERED)
+    if ((actions & QUIPUS_NETWORK_TRY_REMEMBERED) &&
+        !lantern_network_factory_reset_pending())
       try_remembered_networks();
     if ((actions & QUIPUS_NETWORK_OPEN_PORTAL) &&
         start_setup_portal() != ESP_OK)
@@ -1367,6 +1577,7 @@ static void connection_task(void *argument) {
     if ((actions & QUIPUS_NETWORK_CLAIM) && s_status.wifi_connected)
       claim_device();
     if ((actions & QUIPUS_NETWORK_CLOSE_PORTAL) &&
+        !lantern_network_factory_reset_pending() &&
         s_status.wifi_connected && lantern_storage_is_paired(s_config)) {
       stop_setup_portal();
       notify();
@@ -1385,7 +1596,11 @@ esp_err_t lantern_network_start(lantern_config_t *config,
   s_callback = callback;
   memset(&s_status, 0, sizeof(s_status));
   s_status.connectivity = LANTERN_CONNECTIVITY_RECONNECTING;
-  s_status.paired = lantern_storage_is_paired(config);
+  esp_err_t reset_state = lantern_storage_load_factory_reset(&s_factory_reset);
+  s_factory_reset_pending = reset_state == ESP_OK;
+  s_factory_reset_unreadable = reset_state != ESP_OK && reset_state != ESP_ERR_NVS_NOT_FOUND;
+  s_status.reset_pending = lantern_network_factory_reset_pending();
+  s_status.paired = !s_status.reset_pending && lantern_storage_is_paired(config);
   s_status.wifi_rssi = -127;
   snprintf(s_status.saved_ssid, sizeof(s_status.saved_ssid), "%s",
            config->wifi_ssid);
@@ -1408,7 +1623,7 @@ esp_err_t lantern_network_start(lantern_config_t *config,
   ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP,
                                              wifi_event, NULL));
   bool has_wifi = lantern_storage_has_wifi(config);
-  bool needs_setup = !lantern_storage_is_paired(config);
+  bool needs_setup = !s_status.paired;
   esp_err_t portal_result = ESP_OK;
   if (has_wifi) {
     wifi_config_t station = {0};
@@ -1539,7 +1754,8 @@ esp_err_t lantern_network_scan_wifi(lantern_wifi_network_t *networks,
   return ESP_OK;
 }
 
-esp_err_t lantern_network_connect_wifi(const char *ssid, const char *password) {
+static esp_err_t connect_wifi_locked(const char *ssid, const char *password) {
+  if (lantern_network_factory_reset_pending()) return ESP_ERR_INVALID_STATE;
   if (!ssid || !ssid[0] || strlen(ssid) > 32 || !password ||
       strlen(password) > 64 || !s_wifi_started || !s_config)
     return ESP_ERR_INVALID_ARG;
@@ -1592,6 +1808,14 @@ esp_err_t lantern_network_connect_wifi(const char *ssid, const char *password) {
   s_status.connectivity = LANTERN_CONNECTIVITY_WIFI_ONLY;
   notify();
   return ESP_OK;
+}
+
+esp_err_t lantern_network_connect_wifi(const char *ssid, const char *password) {
+  if (!s_setup_mutex || xSemaphoreTake(s_setup_mutex, 0) != pdTRUE)
+    return ESP_ERR_INVALID_STATE;
+  esp_err_t result = connect_wifi_locked(ssid, password);
+  xSemaphoreGive(s_setup_mutex);
+  return result;
 }
 
 esp_err_t lantern_network_get_reports(lantern_report_item_t *items,
@@ -1692,7 +1916,7 @@ static bool acknowledge_pending_transfer(const char *body) {
 esp_err_t lantern_network_send_heartbeat(const char *state,
                                          unsigned state_version,
                                          int battery_level) {
-  if (!s_config || !s_status.wifi_connected ||
+  if (lantern_network_factory_reset_pending() || !s_config || !s_status.wifi_connected ||
       !lantern_storage_is_paired(s_config))
     return ESP_ERR_INVALID_STATE;
   char event_id[37];
@@ -1737,6 +1961,7 @@ esp_err_t lantern_network_send_heartbeat(const char *state,
   s_status.connectivity = s_status.wifi_rssi < -72
                               ? LANTERN_CONNECTIVITY_WEAK
                               : LANTERN_CONNECTIVITY_ONLINE;
+  s_status.paired = true;
   s_status.last_error[0] = '\0';
   notify();
   ESP_LOGI(TAG, "heartbeat acknowledged");
@@ -3037,8 +3262,8 @@ esp_err_t lantern_network_prepare_archive_key(void) {
 #endif
 }
 esp_err_t lantern_network_begin_offline(lantern_cloud_session_t *session) {
-  if (!session || !s_config || !s_status.paired || !s_config->owner_id[0] ||
-      !lantern_sd_secure_ready())
+  if (lantern_network_factory_reset_pending() || !session || !s_config ||
+      !s_status.paired || !s_config->owner_id[0] || !lantern_sd_secure_ready())
     return ESP_ERR_INVALID_STATE;
   memset(session, 0, sizeof(*session));
   uuid_v4(session->session_id);

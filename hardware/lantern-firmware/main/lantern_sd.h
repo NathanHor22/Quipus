@@ -116,3 +116,9 @@ size_t lantern_sd_phone_read(size_t offset, void *out, size_t length);
 
 bool lantern_sd_has_private_material(void);
 void lantern_sd_clear_identity(void);
+
+// Destructive, explicit owner reset only. Caller holds the session-control lock
+// with onboard/phone capture, playback and uploads stopped. Each call scans at
+// most eight entries; removed/unreadable SD never reports completion. Only
+// Quipus recordings and report-cache files are deleted, never a card format.
+esp_err_t lantern_sd_factory_reset_step(size_t scan_limit, bool *complete);

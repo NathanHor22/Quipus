@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { publicDeviceReset, supportsDeviceFactoryReset, type DeviceResetRequest } from "@/lib/device-reset";
 
 import {
   requireAuthenticatedSession,
@@ -47,10 +48,10 @@ export async function GET() {
       .from("devices")
       .select("id,hardware_id,name,model,firmware_version,last_seen_at,status,device_state,state_version,battery_level,network_type,free_heap_bytes,last_error,revoked_at")
       .eq("user_id", userId)
-      .is("revoked_at", null)
+      .or("revoked_at.is.null,hardware_id.not.is.null")
       .order("created_at", { ascending: true });
     if (error) throw error;
-    const devices = await withFirmwareUpdates(client, data || []);
+    const devices = await withDeviceResets(client, await withFirmwareUpdates(client, data || []));
 
     return NextResponse.json(
       { devices, source: "supabase" },
@@ -99,6 +100,25 @@ async function withFirmwareUpdates(client: SupabaseClient, devices: DeviceRow[])
       firmware_update: latest && version
         ? { version, state: latest.state, error: latest.last_error, updated_at: latest.updated_at }
         : null,
+    };
+  });
+}
+
+/** Owner-scoped reset progress; never expose the reset-only credential verifier. */
+async function withDeviceResets(client: SupabaseClient, devices: DeviceRow[]) {
+  if (!devices.length) return devices;
+  const { data, error } = await client.from("device_reset_requests")
+    .select("id,device_id,user_id,credential_hash,state,requested_at,completed_at")
+    .in("device_id", devices.map(device => device.id));
+  if (error) throw new Error("Device reset status is unavailable. Apply the reset database migration.");
+  return devices.map(device => {
+    const reset = (data || []).find(row => row.device_id === device.id) as DeviceResetRequest | undefined;
+    return {
+      ...device,
+      resetSupported: supportsDeviceFactoryReset(device.firmware_version),
+      reset: reset ? publicDeviceReset(reset, device.firmware_version) : device.revoked_at ? {
+        id: null, state: "recovery_required", requestedAt: device.revoked_at, completedAt: null,
+      } : null,
     };
   });
 }

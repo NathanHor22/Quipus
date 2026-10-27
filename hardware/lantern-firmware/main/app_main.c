@@ -449,6 +449,20 @@ static void sync_idle_wake_listener(void) {
 
 static void show_ready(void) {
   if (!s_boot_complete) return;
+  if (lantern_network_factory_reset_pending()) {
+    lantern_wake_set_enabled(false);
+    lantern_network_status_t resetting;
+    lantern_network_get_status(&resetting);
+    // If its saved network is gone, show the real AP name/password so Wi-Fi
+    // can be recovered without authorizing a different account or recording.
+    if (!resetting.wifi_connected && resetting.setup_portal_active)
+      lantern_display_show_setup(resetting.setup_ssid, resetting.setup_password,
+                                 resetting.last_error);
+    else
+      lantern_display_show_detail("RESETTING QUIPUS",
+          resetting.last_error[0] ? resetting.last_error : "Keep Quipus powered on.", NULL);
+    return;
+  }
   // Repainting an already-idle face must not erase a pending wake event.
   if (s_state != LOCAL_READY) {
     lantern_wake_set_enabled(false);
@@ -523,6 +537,7 @@ static esp_err_t open_quick_consent(void) {
 }
 
 static esp_err_t begin_recording_session(void) {
+  if (lantern_network_factory_reset_pending()) return ESP_ERR_INVALID_STATE;
   lantern_display_show(LANTERN_SCREEN_CONNECTING, "STARTING SESSION");
 #if LANTERN_HAS_SD_CARD
   // Provisioning happens during setup, never between accepted consent and
@@ -630,7 +645,7 @@ static void cancel_pending_consent(void) {
 }
 
 static esp_err_t accept_recording_consent(void) {
-  if (s_power_off_requested) return ESP_ERR_INVALID_STATE;
+  if (s_power_off_requested || lantern_network_factory_reset_pending()) return ESP_ERR_INVALID_STATE;
   if (begin_recording_session() != ESP_OK || s_power_off_requested)
     return ESP_FAIL;
   lantern_agora_transport_t transport;
@@ -1987,6 +2002,12 @@ static void button_task(void *argument) {
 #if CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154
     if (s_power_off_requested) power_off_safely();
 #endif
+    if (lantern_network_factory_reset_pending()) {
+      lantern_wake_set_enabled(false);
+      xSemaphoreGive(s_control_mutex);
+      vTaskDelay(pdMS_TO_TICKS(30));
+      continue;
+    }
     if ((s_state == LOCAL_READY || s_state == LOCAL_ERROR) &&
         lantern_wake_take_detection()) {
       ESP_LOGI(TAG, "WakeNet activation accepted; opening command window");
@@ -2293,6 +2314,33 @@ static void telemetry_task(void *argument) {
   unsigned seconds = 0;
   char previous_pin[7] = {0};
   while (true) {
+    if (seconds % 15 == 0 && s_state != LOCAL_RECORDING &&
+        xSemaphoreTake(s_control_mutex, 0) == pdTRUE) {
+      // A failed reset-status request must retry even while the UI is showing
+      // a command error. No session/capture data changes without explicit proof.
+      lantern_network_retry_rejected_credential();
+      xSemaphoreGive(s_control_mutex);
+    }
+    if (lantern_network_factory_reset_pending() &&
+        xSemaphoreTake(s_control_mutex, 0) == pdTRUE) {
+      lantern_wake_set_enabled(false);
+      lantern_network_interrupt_report();
+      lantern_audio_pcm_cancel();
+      stop_local_capture();
+      s_state = LOCAL_COMMAND_PROCESSING;
+      s_summary_retry_pending = false;
+      memset(&s_cloud_session, 0, sizeof(s_cloud_session));
+      memset(&s_pending_completion, 0, sizeof(s_pending_completion));
+      // Phone drain/capture finish must complete before SD deletion can begin.
+      if (quipus_phone_audio_idle() && lantern_sd_can_power_down()) {
+        if (LANTERN_HAS_SD_CARD) lantern_sd_poll();
+        lantern_network_continue_factory_reset();
+      }
+      show_ready();
+      xSemaphoreGive(s_control_mutex);
+      vTaskDelay(pdMS_TO_TICKS(500));
+      continue;
+    }
     char pin[7];
     lantern_bluetooth_passkey(pin);
     if (strcmp(previous_pin, pin)) {
@@ -2568,6 +2616,15 @@ static void audio_startup_fault(esp_err_t error) {
   TickType_t heartbeat_at = status_at;
   TickType_t pressed_at = status_at;
   for (;;) {
+    if (network == ESP_OK && lantern_network_factory_reset_pending()) {
+      // Audio startup faults do not disable owner-requested reset recovery.
+      // No capture/control task was started in this fault lane.
+      if (LANTERN_HAS_SD_CARD) lantern_sd_poll();
+      lantern_network_continue_factory_reset();
+      lantern_display_show_detail("RESETTING QUIPUS", "Keep powered on. Reinsert its SD card if removed.", NULL);
+      vTaskDelay(pdMS_TO_TICKS(500));
+      continue;
+    }
     bool pressed = false;
 #if LANTERN_HAS_PHYSICAL_BUTTONS
     pressed = inputs_ready && gpio_get_level(LANTERN_BUTTON_MAIN_GPIO) == 0;

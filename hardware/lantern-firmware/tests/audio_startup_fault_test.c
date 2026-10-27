@@ -15,6 +15,7 @@ typedef unsigned TickType_t;
 #define CONFIG_LANTERN_BOARD_WAVESHARE_LCD_154 TEST_WAVE
 #define LANTERN_HAS_PHYSICAL_BUTTONS (!TEST_TOUCH)
 #define LANTERN_HAS_TOUCHSCREEN TEST_TOUCH
+#define LANTERN_HAS_SD_CARD 1
 #define LANTERN_HAS_POWER_BUTTON (!TEST_TOUCH)
 #define LANTERN_POWER_BUTTON_GPIO 5
 #define LANTERN_BUTTON_MAIN_GPIO 5
@@ -50,14 +51,15 @@ static unsigned audio_initializations,network_starts,portal_starts,screen_update
 static int audio_result,network_result,input_result;
 static unsigned heartbeats,installs;
 static bool update_offered;
-static bool initially_held;
+static bool initially_held, reset_pending;
+static unsigned reset_polls, reset_steps;
 static unsigned intervals[4][2],interval_count;
 static char title[48],body[96];
 static jmp_buf done;
 enum {TIMED_OUT=1,RESTARTED,POWERED_OFF};
 static int64_t esp_timer_get_time(void) {return (int64_t)now_ms*1000;}
 static TickType_t xTaskGetTickCount(void) {return now_ms;}
-static void vTaskDelay(unsigned ms) {assert(ms==20||ms==200);now_ms+=ms;if(now_ms>=deadline)longjmp(done,TIMED_OUT);}
+static void vTaskDelay(unsigned ms) {assert(ms==20||ms==200||ms==500);now_ms+=ms;if(now_ms>=deadline)longjmp(done,TIMED_OUT);}
 static bool pressed(void) {
   if(initially_held&&now_ms<5000)return true;
   for(unsigned i=0;i<interval_count;++i)if(now_ms>=intervals[i][0]&&now_ms<intervals[i][1])return true;
@@ -75,7 +77,7 @@ static bool lantern_board_touch_read(uint16_t *x,uint16_t *y) {*x=*y=40;return p
 #endif
 static void lantern_display_show_detail(const char *heading,const char *text,const char *footer) {
   assert(heading&&text&&!footer);++screen_updates;snprintf(title,sizeof(title),"%s",heading);snprintf(body,sizeof(body),"%s",text);
-  assert(!strcmp(title,"MICROPHONE OFFLINE"));
+  assert(!strcmp(title,"MICROPHONE OFFLINE") || (reset_pending && !strcmp(title,"RESETTING QUIPUS")));
 }
 static esp_err_t lantern_network_start(void *config,void *callback) {
   assert(config==&s_config&&!callback&&!s_boot_complete&&!s_controls_ready&&!s_wake_available&&s_state==LOCAL_ERROR);
@@ -94,6 +96,9 @@ static void lantern_display_set_status(int battery,lantern_power_state_t power,i
   assert(battery==-1&&power==0&&connectivity==1&&rssi==-50&&paired);++status_updates;
 }
 static bool lantern_sd_can_power_down(void) {return now_ms>=sd_ready_at;}
+static bool lantern_network_factory_reset_pending(void) {return reset_pending;}
+static void lantern_sd_poll(void) {++reset_polls;}
+static esp_err_t lantern_network_continue_factory_reset(void) {++reset_steps;return ESP_OK;}
 static void esp_restart(void) {assert(now_ms>=sd_ready_at);++restarts;longjmp(done,RESTARTED);}
 #if TEST_WAVE
 static void lantern_wake_set_enabled(bool enabled) {assert(!enabled);}
@@ -121,7 +126,7 @@ static void reset(void) {
   s_boot_complete=s_controls_ready=s_wake_available=true;s_power_off_requested=false;s_state=LOCAL_READY;s_recovery=7;
   now_ms=0;deadline=8000;sd_ready_at=0;normal_startups=0;
   audio_initializations=network_starts=portal_starts=screen_updates=status_updates=restarts=shutdowns=heartbeats=installs=0;
-  update_offered=false;
+  update_offered=false;reset_pending=false;reset_polls=reset_steps=0;
 #if TEST_WAVE
   s_agora_active=false;audio_chimes=0;
 #endif
@@ -138,6 +143,9 @@ static int exercise(void) {
 static void tap(unsigned start,unsigned stop) {assert(interval_count<4);intervals[interval_count][0]=start;intervals[interval_count++][1]=stop;}
 int main(void) {
   reset();audio_result=ESP_OK;assert(exercise()==0&&normal_startups==1&&network_starts==0&&screen_updates==0);++cases;
+  reset();reset_pending=true;deadline=2000;
+  assert(exercise()==TIMED_OUT && reset_steps==4 && reset_polls==4 && heartbeats==0 && restarts==0);
+  assert(!strcmp(title,"RESETTING QUIPUS"));
   reset();assert(exercise()==TIMED_OUT&&restarts==0&&shutdowns==0&&portal_starts==1&&status_updates>=6);
   assert(!strcmp(title,"MICROPHONE OFFLINE")&&strstr(body,"restart"));
   reset();tap(100,220);assert(exercise()==RESTARTED&&restarts==1&&shutdowns==0&&now_ms==220);

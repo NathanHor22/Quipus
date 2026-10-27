@@ -1,3 +1,5 @@
+import { isActiveDevice, type DeviceAvailability } from "./device-status";
+
 // Browser-only transport. Credentials stay in memory and go directly to the
 // recorder over authenticated, encrypted GATT, never through a website API.
 export const RECORDER_BLE_SERVICE = "71817060-8ac5-45ec-9c18-21429ab00001";
@@ -199,8 +201,8 @@ export class RecorderBluetoothConnection {
   }
 }
 
-export function isRecorderOnline(device: { hardware_id?: string; status?: string; last_seen_at?: string | null }, hardwareId: string, startedAt: number) {
+export function isRecorderOnline(device: DeviceAvailability & { hardware_id?: string; status?: string; last_seen_at?: string | null }, hardwareId: string, startedAt: number) {
   const seen = Date.parse(device.last_seen_at || "");
-  return device.hardware_id === hardwareId && device.status === "online" &&
+  return isActiveDevice(device) && device.hardware_id === hardwareId && device.status === "online" &&
     Number.isFinite(seen) && seen >= startedAt - 5000 && seen <= Date.now() + 30000;
 }

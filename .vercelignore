@@ -34,3 +34,12 @@ hardware/lantern-firmware/sdkconfig.waveshare
 hardware/lantern-firmware/sdkconfig.waveshare.old
 hardware/lantern-firmware/sdkconfig.phone
 hardware/lantern-firmware/sdkconfig.phone.old
+
+# Firmware toolchains and all board builds are never web deployment inputs.
+hardware/lantern-firmware/build-*/
+hardware/firmware/build-*/
+
+# Native app and hardware sources/builds are separate products.
+hardware/
+mobile/
+recording-worker/dist/

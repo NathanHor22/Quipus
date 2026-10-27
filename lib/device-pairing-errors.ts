@@ -36,6 +36,13 @@ export function devicePairingFailure(error: unknown): PairingFailure {
       : "";
   // Match the known RPC and qualified-query fallback failures exactly. Other
   // database errors stay private rather than being mistaken for user actions.
+  if (message === "Quipus device reset is pending") {
+    return {
+      status: 409,
+      code: "DEVICE_RESET_PENDING",
+      error: "This Quipus is still clearing its previous account. Keep it powered on until setup returns.",
+    };
+  }
   if (/^(?:Lantern|Quipus) hardware is already paired to another owner\.?$/iu.test(message)) {
     return {
       status: 409,

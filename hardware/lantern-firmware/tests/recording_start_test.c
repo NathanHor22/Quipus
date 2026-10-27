@@ -28,7 +28,8 @@ typedef struct {
 } test_session_t;
 static test_session_t s_cloud_session;
 static struct { char owner_id[37]; } s_config;
-static bool s_power_off_requested, s_recording_connection_notice;
+static bool s_power_off_requested, s_recording_connection_notice, reset_pending;
+static bool lantern_network_factory_reset_pending(void) { return reset_pending; }
 static bool s_agora_active, s_used_agora;
 static bool s_sd_recording_active, s_sd_archive_required;
 static bool s_transcript_uploaded, s_audio_uploaded;
@@ -140,7 +141,7 @@ static void lantern_sd_recording_abort(void) {
 static void reset_case(void) {
   memset(&s_cloud_session, 0, sizeof(s_cloud_session));
   strcpy(s_config.owner_id, "owner-under-test");
-  s_power_off_requested = false;
+  s_power_off_requested = false;reset_pending=false;
   s_recording_connection_notice=true;
   s_agora_active = s_used_agora = s_sd_recording_active = s_sd_archive_required = false;
   s_transcript_uploaded = s_audio_uploaded = false;
@@ -174,6 +175,12 @@ int main(void) {
   agora_result = ESP_FAIL;
   assert(accept_recording_consent() == ESP_OK);
   assert(microphone_starts == 1 && prompts == 1 && !stream_active && archive_open);
+
+  reset_case();
+  reset_pending = true;
+  assert(accept_recording_consent() != ESP_OK);
+  assert_not_recording();
+  assert(begin_calls == 0 && sd_begins == 0);
 
   reset_case();
   s_power_off_requested = true;
@@ -238,6 +245,6 @@ int main(void) {
   assert_not_recording();
   assert(aborts==0 && clears==1 && error_calls==1 && local_cues==0);
 
-  puts("Actual recording acceptance and cleanup: 19 startup/shutdown cases passed");
+  puts("Actual recording acceptance and cleanup: 20 startup/shutdown cases passed");
   return 0;
 }

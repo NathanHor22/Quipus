@@ -1,6 +1,7 @@
 #include "lantern_storage.h"
 #include "lantern_bluetooth.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -377,5 +378,84 @@ esp_err_t lantern_storage_clear_archive_identity(void) {
   if (result == ESP_OK)
     result = nvs_commit(handle);
   nvs_close(handle);
+  return result;
+}
+
+#define RESET_NAMESPACE "quipus_reset"
+static bool factory_reset_valid(const lantern_factory_reset_t *reset) {
+  if (!reset || reset->stage < LANTERN_RESET_REQUESTED ||
+      reset->stage > LANTERN_RESET_ACKNOWLEDGED ||
+      strnlen(reset->request_id, sizeof(reset->request_id)) != 36 ||
+      strnlen(reset->device_id, sizeof(reset->device_id)) != 36)
+    return false;
+  const char *ids[] = {reset->request_id, reset->device_id};
+  for (size_t id = 0; id < 2; ++id)
+    for (size_t i = 0; i < 36; ++i)
+      if (i == 8 || i == 13 || i == 18 || i == 23) {
+        if (ids[id][i] != '-') return false;
+      } else if (!isxdigit((unsigned char)ids[id][i])) return false;
+  size_t length = strnlen(reset->device_secret, sizeof(reset->device_secret));
+  if (length < 40 || length > 80) return false;
+  for (size_t i = 0; i < length; ++i)
+    if (!isalnum((unsigned char)reset->device_secret[i]) &&
+        reset->device_secret[i] != '-' && reset->device_secret[i] != '_')
+      return false;
+  return true;
+}
+esp_err_t lantern_storage_save_factory_reset(const lantern_factory_reset_t *reset) {
+  if (!factory_reset_valid(reset)) return ESP_ERR_INVALID_ARG;
+  nvs_handle_t handle;
+  esp_err_t result = nvs_open(RESET_NAMESPACE, NVS_READWRITE, &handle);
+  if (result != ESP_OK) return result;
+  result = nvs_set_blob(handle, "intent_v1", reset, sizeof(*reset));
+  if (result == ESP_OK) result = nvs_commit(handle);
+  nvs_close(handle);
+  return result;
+}
+esp_err_t lantern_storage_load_factory_reset(lantern_factory_reset_t *reset) {
+  if (!reset) return ESP_ERR_INVALID_ARG;
+  memset(reset, 0, sizeof(*reset));
+  nvs_handle_t handle;
+  esp_err_t result = nvs_open(RESET_NAMESPACE, NVS_READONLY, &handle);
+  if (result != ESP_OK) return result;
+  size_t length = sizeof(*reset);
+  result = nvs_get_blob(handle, "intent_v1", reset, &length);
+  nvs_close(handle);
+  if (result == ESP_OK &&
+      (length != sizeof(*reset) || !factory_reset_valid(reset)))
+    result = ESP_FAIL;
+  if (result != ESP_OK) memset(reset, 0, sizeof(*reset));
+  return result;
+}
+esp_err_t lantern_storage_clear_factory_reset(void) {
+  nvs_handle_t handle;
+  esp_err_t result = nvs_open(RESET_NAMESPACE, NVS_READWRITE, &handle);
+  if (result != ESP_OK) return result;
+  result = nvs_erase_key(handle, "intent_v1");
+  if (result == ESP_ERR_NVS_NOT_FOUND) result = ESP_OK;
+  if (result == ESP_OK) result = nvs_commit(handle);
+  nvs_close(handle);
+  return result;
+}
+esp_err_t lantern_storage_clear_account(lantern_config_t *config) {
+  if (!config) return ESP_ERR_INVALID_ARG;
+  ESP_RETURN_ON_ERROR(lantern_bluetooth_forget_bonds(), "storage",
+                       "clear Bluetooth bonds before account reset");
+  nvs_handle_t handle;
+  esp_err_t result = nvs_open(STORAGE_NAMESPACE, NVS_READWRITE, &handle);
+  if (result != ESP_OK) return result;
+  const char *keys[] = {"device_id", "dev_secret", "pair_code", "owner_id"};
+  for (size_t i = 0; result == ESP_OK && i < sizeof(keys) / sizeof(keys[0]); ++i) {
+    result = nvs_erase_key(handle, keys[i]);
+    if (result == ESP_ERR_NVS_NOT_FOUND) result = ESP_OK;
+  }
+  if (result == ESP_OK) result = nvs_commit(handle);
+  nvs_close(handle);
+  if (result == ESP_OK) {
+    memset(config->device_id, 0, sizeof(config->device_id));
+    memset(config->device_secret, 0, sizeof(config->device_secret));
+    memset(config->pairing_code, 0, sizeof(config->pairing_code));
+    memset(config->owner_id, 0, sizeof(config->owner_id));
+  }
   return result;
 }

@@ -8,6 +8,7 @@ import { useBrowserStorageSnapshot } from "@/components/hooks/useBrowserStorageS
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { firmwareUpdateLabel, type FirmwareUpdateStatus } from "@/lib/firmware-updates";
 import type { LanternState } from "@/lib/lantern-state";
+import { isActiveDevice, selectActiveDevice } from "@/lib/device-status";
 import type { WorkspaceMode } from "@/lib/workspace/model";
 import {
   hasRecentHeartbeat,
@@ -33,6 +34,14 @@ interface DeviceRecord {
   network_type: "wifi" | "cellular" | "offline" | null;
   free_heap_bytes: number | null;
   last_error: string | null;
+  revoked_at?: string | null;
+  resetSupported?: boolean;
+  reset?: {
+    id: string | null;
+    state: "pending" | "completed" | "recovery_required";
+    requestedAt: string | null;
+    completedAt: string | null;
+  } | null;
 }
 
 const setupAddress = recorderSetupUrl();
@@ -90,8 +99,10 @@ function DeviceSession({
   const embeddedClass = embedded ? ` ${styles.embedded}` : "";
   const request = useRef<AbortController | null>(null);
   const actionRequest = useRef<AbortController | null>(null);
+  const resetDeviceIds = useRef(new Set<string>());
   const storageKey = accountEmail ? pairingStorageKey(accountEmail) : null;
   const codeActive = Boolean(pairing && pairingSecondsRemaining(pairing.expiresAt, now) > 0);
+  const hasActiveDevice = devices.some(isActiveDevice);
 
   const savedPairing = useBrowserStorageSnapshot(mode === "live" ? storageKey : null);
   if (!pairingRestored && savedPairing !== null) {
@@ -104,18 +115,18 @@ function DeviceSession({
   useEffect(() => {
     if (mode !== "live" || !storageKey || !pairingRestored) return;
     try {
-      if (pairing && codeActive && devices.length === 0)
+      if (pairing && codeActive && !hasActiveDevice)
         localStorage.setItem(storageKey, JSON.stringify({ ...pairing, step }));
       else localStorage.removeItem(storageKey);
     } catch { /* Pairing remains usable in this tab. */ }
-  }, [codeActive, devices.length, mode, pairing, pairingRestored, step, storageKey]);
+  }, [codeActive, hasActiveDevice, mode, pairing, pairingRestored, step, storageKey]);
 
   useEffect(() => {
     const update = () => { if (!document.hidden) setNow(Date.now()); };
-    const interval = window.setInterval(update, codeActive && !devices.length ? 1_000 : 15_000);
+    const interval = window.setInterval(update, codeActive && !hasActiveDevice ? 1_000 : 15_000);
     document.addEventListener("visibilitychange", update);
     return () => { window.clearInterval(interval); document.removeEventListener("visibilitychange", update); };
-  }, [codeActive, devices.length]);
+  }, [codeActive, hasActiveDevice]);
 
   const refreshDevices = useCallback(() => {
     if (mode !== "live" || request.current || actionRequest.current) return;
@@ -126,10 +137,19 @@ function DeviceSession({
       const payload = await response.json().catch(() => ({})) as { devices?: DeviceRecord[]; error?: string };
       if (!response.ok) throw new Error(payload.error || "Device status is unavailable.");
       if (controller.signal.aborted || request.current !== controller) return;
-      setDevices(payload.devices || []);
+      const nextDevices = payload.devices || [];
+      const pendingResets = nextDevices.filter(device => !isActiveDevice(device));
+      const resetCompleted = resetDeviceIds.current.size > 0
+        && !nextDevices.some(device => resetDeviceIds.current.has(device.id));
+      resetDeviceIds.current = new Set(pendingResets.map(device => device.id));
+      setDevices(nextDevices);
+      if (resetCompleted) {
+        setWasRevoked(true);
+        setDeviceNotice("Reset complete. Quipus is ready for a new pairing.");
+      }
       setDeviceError(null);
       setNow(Date.now());
-      if (payload.devices?.length) { setPairing(null); setStep(0); setWasRevoked(false); }
+      if (nextDevices.some(isActiveDevice)) { setPairing(null); setStep(0); setWasRevoked(false); }
     }).catch((cause: unknown) => {
       if (controller.signal.aborted && controller.signal.reason !== "timeout") return;
       setDeviceError(controller.signal.aborted
@@ -216,16 +236,39 @@ function DeviceSession({
         signal: controller.signal,
         method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "revoke" }),
       });
-      const payload = await response.json().catch(() => ({})) as { revoked?: boolean; error?: string };
+      const payload = await response.json().catch(() => ({})) as {
+        revoked?: boolean;
+        resetPending?: boolean;
+        resetState?: "pending" | "completed" | "recovery_required";
+        resetId?: string | null;
+        error?: string;
+      };
       if (controller.signal.aborted || actionRequest.current !== controller) return;
       if (!response.ok || !payload.revoked) throw new Error(payload.error || "Quipus could not be revoked.");
       setConfirmingRevoke(false);
-      setWasRevoked(true);
+      const resetState = payload.resetState || "recovery_required";
+      setWasRevoked(resetState === "completed");
       setManualSetupOpen(false);
-      setDevices(current => current.filter(device => device.id !== deviceId));
+      if (resetState === "completed") {
+        setDevices(current => current.filter(device => device.id !== deviceId));
+      } else {
+        resetDeviceIds.current.add(deviceId);
+        setDevices(current => current.map(device => device.id !== deviceId ? device : {
+          ...device,
+          revoked_at: new Date().toISOString(),
+          reset: {
+            id: payload.resetId || null,
+            state: resetState,
+            requestedAt: new Date().toISOString(),
+            completedAt: null,
+          },
+        }));
+      }
       setPairing(null);
       setStep(0);
-      setDeviceNotice("Access revoked. If the recorder is online, leave it powered on while it returns to setup. If it is offline, open Wi-Fi setup on the recorder to reconnect it.");
+      setDeviceNotice(resetState === "completed"
+        ? "Reset complete. Quipus is ready for a new pairing."
+        : null);
     } catch (cause) {
       if (controller.signal.aborted || actionRequest.current !== controller) return;
       setDeviceError(cause instanceof Error ? cause.message : "Quipus could not be revoked.");
@@ -234,14 +277,43 @@ function DeviceSession({
     }
   };
 
-  const primaryDevice = devices[0] || null;
+  const primaryDevice = selectActiveDevice(devices);
+  const resettingDevices = devices.filter(device => !isActiveDevice(device));
   const lastSeen = useMemo(() => relativeLastSeen(primaryDevice?.last_seen_at || null, now), [primaryDevice?.last_seen_at, now]);
   const seconds = pairing ? pairingSecondsRemaining(pairing.expiresAt, now) : 0;
   const codeExpired = Boolean(pairing && seconds === 0);
   const countdown = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
   const goToStep = (next: PairingProgress["step"]) => { setStep(next); setDeviceNotice(null); };
 
-  if (loading && !primaryDevice) return <section className={`${styles.deviceLoading}${embeddedClass}`} role="status"><p>Checking your Quipus…</p></section>;
+  if (loading && !devices.length) return <section className={`${styles.deviceLoading}${embeddedClass}`} role="status"><p>Checking your Quipus…</p></section>;
+
+  const resetCards = resettingDevices.map(device => (
+    <section className={styles.deviceDetails} key={device.id} aria-label={
+      (device.reset?.state === "pending" ? "Reset pending for " : "Reset required for ") + device.name
+    }>
+      <header>
+        <h3 className={styles.embeddedHeading}>{device.name}</h3>
+        <span className={styles.attentionBadge}>{device.reset?.state === "pending" ? "Reset pending" : "Reset required"}</span>
+      </header>
+      <p className={styles.resetMessage} role="status">{device.reset?.state === "pending"
+        ? "Access is revoked. Keep Quipus powered on and connected to its saved Wi-Fi until it clears its local data and returns to setup."
+        : "Access is revoked. This board needs a verified reset over USB and current firmware before it can be paired again. A new pairing code will not clear its old registration."}</p>
+      <p className={styles.resetHint}>Meetings already uploaded remain in this account.</p>
+      <button className={styles.secondaryAction} type="button" disabled={checkingConnection}
+        onClick={() => void loadDevices()}>{checkingConnection ? "Checking…" : "Refresh reset status"}</button>
+    </section>
+  ));
+
+  if (mode === "live" && !primaryDevice && resettingDevices.length && !manualSetupOpen) {
+    return <section className={`${styles.healthLayout}${embeddedClass}`} aria-label="Device reset">
+      {deviceError && <p className={styles.deviceError} role="alert">{deviceError}</p>}
+      {resetCards}
+      <button className={styles.pairingPrimary} type="button" disabled={working} onClick={() => {
+        setManualSetupOpen(true);
+        if (!pairing || codeExpired) void createPairing();
+      }}>Connect another Quipus</button>
+    </section>;
+  }
 
   if (mode === "sample" || !primaryDevice) {
     if (mode === "sample") return <section className={`${styles.sampleSetup}${embeddedClass}`} aria-label="Device details">
@@ -252,6 +324,10 @@ function DeviceSession({
 
     return <section className={`${styles.pairingLayout}${embeddedClass}`} aria-label="Quipus pairing setup">
       <aside className={styles.pairingIntro}>
+        {resettingDevices.length > 0 && <details className={styles.help}>
+          <summary>Other device reset status</summary>
+          {resetCards}
+        </details>}
         {embedded ? <><h3 className={styles.embeddedHeading}>Device pairing</h3><p>Pair this Quipus with {accountEmail || "your account"}.</p></> : <><span className={styles.kicker}>PAIR YOUR QUIPUS</span><h2>Connect once. Keep recording.</h2>
         <p>The pairing code links your recorder to {accountEmail || "this workspace"}. Saved 2.4 GHz Wi-Fi connects it to the internet.</p></>}
         {embedded && deviceNotice && <p className={styles.deviceNotice} role="status">{deviceNotice}</p>}
@@ -345,6 +421,7 @@ function DeviceSession({
       </details>
       {primaryDevice.last_error && <div className={styles.lastError}><strong>Last reported error</strong><p>{primaryDevice.last_error}</p></div>}
     </section>
+    {resetCards}
     <Dialog open={wifiSetupOpen} onClose={() => setWifiSetupOpen(false)} className={styles.revokeDialog} aria-labelledby="device-wifi-title">
       <h2 id="device-wifi-title">Change your Wi-Fi</h2>
       <ol className={styles.wifiSteps}>
@@ -359,14 +436,16 @@ function DeviceSession({
         <a className={styles.pairingPrimary} href={setupAddress} target="_blank" rel="noreferrer">Open 192.168.4.1</a>
       </div>
     </Dialog>
-    <footer className={styles.deviceDangerZone}><div><strong>Remove this Quipus</strong><p>Stops this recorder uploading to your account. Recordings already in your workspace stay here.</p></div><button type="button" disabled={working} onClick={() => setConfirmingRevoke(true)}>Revoke device</button></footer>
+    <footer className={styles.deviceDangerZone}><div><strong>Reset this Quipus</strong><p>Clear this board for a new setup. Uploaded meetings stay in your account.</p></div><button type="button" disabled={working} onClick={() => setConfirmingRevoke(true)}>Revoke and reset</button></footer>
     {mode === "live" && (embedded ? <details className={styles.help}><summary>Transfer to another account</summary><DeviceTransfer deviceId={primaryDevice.id} embedded /></details> : <DeviceTransfer deviceId={primaryDevice.id} />)}
     <Dialog open={confirmingRevoke} onClose={() => setConfirmingRevoke(false)} dismissDisabled={working}
       className={styles.revokeDialog} aria-labelledby="revoke-device-title">
-      <h2 id="revoke-device-title">Remove {primaryDevice.name}?</h2><p>It will no longer upload to this account. To use it again, you will need a new pairing code. Recordings already uploaded remain in your workspace.</p>
-      <p>If the recorder is offline, it learns about revocation when it next contacts Quipus.</p>
+      <h2 id="revoke-device-title">Reset {primaryDevice.name}?</h2><p>This deletes recordings and reports still on Quipus, removes its account and saved Wi-Fi, and makes it ready for a new pairing. Meetings already uploaded stay in your account.</p>
+      <p>{primaryDevice.resetSupported === false
+        ? "Access stops immediately. This firmware needs an update or a verified USB reset to finish clearing the board."
+        : "Access stops immediately. If Quipus is offline, its reset waits until it reconnects."}</p>
       {deviceError && <p className={styles.deviceError} role="alert">{deviceError}</p>}
-      <div className={styles.dialogActions}><button className={styles.secondaryAction} type="button" disabled={working} onClick={() => setConfirmingRevoke(false)}>Keep device</button><button className={styles.dangerAction} type="button" disabled={working} onClick={() => void revokeDevice(primaryDevice.id)}>{working ? "Removing…" : "Confirm revoke"}</button></div>
+      <div className={styles.dialogActions}><button className={styles.secondaryAction} type="button" disabled={working} onClick={() => setConfirmingRevoke(false)}>Keep device</button><button className={styles.dangerAction} type="button" disabled={working} onClick={() => void revokeDevice(primaryDevice.id)}>{working ? "Requesting reset…" : "Revoke and reset"}</button></div>
     </Dialog>
   </section>;
 }

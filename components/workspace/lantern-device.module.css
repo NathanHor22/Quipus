@@ -861,3 +861,16 @@
 .embedded.sampleSetup::before {
   display: none;
 }
+
+.resetMessage {
+  margin: 14px 0 8px;
+  color: var(--q-text);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.resetHint {
+  margin: 0 0 14px;
+  color: var(--q-muted-strong);
+  font-size: 13px;
+  line-height: 1.6;
+}

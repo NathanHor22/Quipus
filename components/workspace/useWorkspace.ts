@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { normalizeMeetingTitle } from "@/lib/meeting-title";
+import { selectActiveDevice, type DeviceAvailability } from "@/lib/device-status";
 import { canHideRecording, updateCalendarVisibility } from "@/lib/workspace/calendar-visibility";
 import type { Contact, Meeting, ScheduleDetails } from "@/lib/types";
 import { useBrowserStorageSnapshot } from "@/components/hooks/useBrowserStorageSnapshot";
@@ -20,7 +21,7 @@ import {
   SAMPLE_STORAGE_KEY,
 } from "@/lib/workspace/sample";
 
-export type WorkspaceDeviceSummary = {
+export type WorkspaceDeviceSummary = DeviceAvailability & {
   id: string;
   name: string;
   status: string;
@@ -169,9 +170,10 @@ export function useWorkspace(initialMode: WorkspaceMode, accountIdentity: string
               devices?: WorkspaceDeviceSummary[];
             };
             if (current !== generation.current || requestOwner !== owner.current) return;
-            setDevice(devicePayload?.devices?.[0] || null);
+            const activeDevice = selectActiveDevice(devicePayload?.devices || []);
+            setDevice(activeDevice);
             setDeviceStatusLoaded(true);
-            devicePaired.current = Boolean(devicePayload?.devices?.length);
+            devicePaired.current = Boolean(activeDevice);
             metadataRefreshedAt.current = Date.now();
           }
         }

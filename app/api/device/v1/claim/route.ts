@@ -97,6 +97,12 @@ async function claimWithQualifiedQueries(
       .eq("hardware_id", input.hardwareId)
       .maybeSingle();
     if (existingError) throw new Error(existingError.message);
+    if (existing) {
+      const reset = await client.from("device_reset_requests").select("id")
+        .eq("device_id", existing.id).eq("state", "pending").maybeSingle();
+      if (reset.error) throw new Error(reset.error.message);
+      if (reset.data) throw new Error("Quipus device reset is pending");
+    }
     if (existing && existing.user_id !== pairing.user_id) {
       throw new Error("Quipus hardware is already paired to another owner.");
     }

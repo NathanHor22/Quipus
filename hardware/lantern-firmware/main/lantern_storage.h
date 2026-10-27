@@ -54,3 +54,22 @@ esp_err_t lantern_storage_clear_archive_identity(void);
 esp_err_t lantern_storage_ensure_setup_password(
     const uint8_t entropy[QUIPUS_SETUP_PASSWORD_ENTROPY_BYTES],
     char out[QUIPUS_SETUP_PASSWORD_BUFFER]);
+
+// An explicit owner-requested reset is journaled outside account settings and
+// archive keys so interruption cannot reopen pairing with private material.
+typedef enum {
+  LANTERN_RESET_REQUESTED = 1,
+  LANTERN_RESET_ERASED,
+  LANTERN_RESET_ACKNOWLEDGED,
+} lantern_reset_stage_t;
+typedef struct {
+  char request_id[37];
+  char device_id[37];
+  char device_secret[81];
+  uint8_t stage;
+} lantern_factory_reset_t;
+esp_err_t lantern_storage_save_factory_reset(const lantern_factory_reset_t *reset);
+esp_err_t lantern_storage_load_factory_reset(lantern_factory_reset_t *reset);
+esp_err_t lantern_storage_clear_factory_reset(void);
+// Only the reset lane calls this: preserve Wi-Fi for the final reset-only ACK.
+esp_err_t lantern_storage_clear_account(lantern_config_t *config);

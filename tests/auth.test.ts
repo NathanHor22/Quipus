@@ -66,6 +66,8 @@ test("only explicit Lantern routes bypass browser cookies for device authenticat
   assert.equal(isLanternDevicePath("/api/device/v1/reports"), true);
   assert.equal(isLanternDevicePath("/api/device/v1/heartbeat"), true);
   assert.equal(isLanternDevicePath("/api/device/v1/restart"), true);
+  assert.equal(isLanternDevicePath("/api/device/v1/reset"), true);
+  assert.equal(isLanternDevicePath("/api/device/v1/reset/extra"), false);
   assert.equal(isLanternDevicePath("/api/device/v1/speak"), true);
   assert.equal(isLanternDevicePath("/api/device/v1/sessions"), true);
   assert.equal(

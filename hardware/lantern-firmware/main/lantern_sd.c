@@ -27,6 +27,9 @@
 #include <unistd.h>
 
 #if LANTERN_HAS_SD_CARD
+#if CONFIG_FATFS_LFN_NONE
+#error "Quipus SD report-cache paths require FATFS_LFN_HEAP (see this board sdkconfig defaults)."
+#endif
 #define SD_MOUNT_POINT "/sdcard"
 #define SD_RECORDING_DIRECTORY SD_MOUNT_POINT "/lantern"
 #define SD_WRITE_BUFFER_BYTES (128 * 1024)
@@ -50,6 +53,9 @@ static uint64_t s_sequence;
 static int64_t s_first_verified_at, s_delete_after, s_retention_last_seen;
 static bool s_retention_cleanup_started;
 static DIR *s_retention_directory;
+static DIR *s_factory_reset_directory;
+static unsigned s_factory_reset_phase;
+static bool s_factory_reset_blocked;
 static _Atomic uint32_t s_upload_count_generation, s_upload_count_revision;
 static _Atomic size_t s_upload_count_value;
 static _Atomic TickType_t s_upload_count_checked_at;
@@ -114,6 +120,10 @@ static void close_active_file(void) {
 }
 static void unmount_card(void) {
   quipus_report_cache_detach();
+  if (s_factory_reset_directory) closedir(s_factory_reset_directory);
+  s_factory_reset_directory = NULL;
+  s_factory_reset_phase = 0;
+  s_factory_reset_blocked = false;
   invalidate_upload_count();
   if (s_retention_directory) {
     closedir(s_retention_directory);
@@ -1526,5 +1536,110 @@ void lantern_sd_clear_identity(void) {
   s_owner_id[0] = 0;
   s_device_id[0] = 0;
   s_secure_ready = false;
+#endif
+}
+
+#if LANTERN_HAS_SD_CARD
+static bool factory_reset_card_ready(void) {
+  if (s_status.mounted && s_card && sdmmc_get_status(s_card) == ESP_OK)
+    return true;
+  if (s_factory_reset_directory) closedir(s_factory_reset_directory);
+  s_factory_reset_directory = NULL;
+  s_factory_reset_phase = 0;
+  s_factory_reset_blocked = false;
+  return false;
+}
+static bool factory_reset_private_extension(const char *name) {
+  const char *extension = strrchr(name, '.');
+  const char *extensions[] = {".qpm", ".qpc", ".qpa", ".qpb", ".qpt", ".qpx", ".wav", ".tmp"};
+  if (!extension) return false;
+  for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i)
+    if (!strcasecmp(extension, extensions[i])) return true;
+  return false;
+}
+static bool factory_reset_file_name(const char *name, bool report) {
+  if (!factory_reset_private_extension(name)) return false;
+  if (report)
+    return !strcasecmp(name, "report0.qpa") || !strcasecmp(name, "report0.qpm") ||
+           !strcasecmp(name, "report1.qpa") || !strcasecmp(name, "report1.qpm");
+  if (strlen(name) != 12 || name[8] != '.') return false;
+  for (size_t i = 0; i < 8; ++i)
+    if (!isxdigit((unsigned char)name[i])) return false;
+  return true;
+}
+#endif
+esp_err_t lantern_sd_factory_reset_step(size_t scan_limit, bool *complete) {
+  if (!complete || !scan_limit) return ESP_ERR_INVALID_ARG;
+  *complete = false;
+#if LANTERN_HAS_SD_CARD
+  if (!factory_reset_card_ready() || !lantern_sd_can_power_down())
+    return ESP_ERR_INVALID_STATE;
+  if (scan_limit > 8) scan_limit = 8;
+  if (s_retention_directory) {
+    closedir(s_retention_directory);
+    s_retention_directory = NULL;
+  }
+  // The caller has recorded destructive owner consent durably. Cache detach
+  // closes readers and clears its in-memory key; physical files are checked
+  // below, including when no cache identity could be loaded after reboot.
+  if (s_factory_reset_phase == 0 && !s_factory_reset_directory)
+    quipus_report_cache_detach();
+  static const char *directories[] = {SD_RECORDING_DIRECTORY, SD_MOUNT_POINT "/quipus-reports"};
+  for (size_t scanned = 0; scanned < scan_limit && s_factory_reset_phase < 2; ++scanned) {
+    const char *directory = directories[s_factory_reset_phase];
+    if (!s_factory_reset_directory) {
+      errno = 0;
+      s_factory_reset_directory = opendir(directory);
+      if (!s_factory_reset_directory) {
+        if (errno == ENOENT) { ++s_factory_reset_phase; continue; }
+        return ESP_FAIL;
+      }
+    }
+    errno = 0;
+    struct dirent *entry = readdir(s_factory_reset_directory);
+    if (!entry) {
+      int read_error = errno;
+      closedir(s_factory_reset_directory);
+      s_factory_reset_directory = NULL;
+      if (read_error) return ESP_FAIL;
+      ++s_factory_reset_phase;
+      continue;
+    }
+    bool recognized = factory_reset_file_name(entry->d_name, s_factory_reset_phase == 1);
+    if (!recognized) {
+      // Unknown private-looking files need manual inspection; never release
+      // identity on a false "empty" result or recursively erase user folders.
+      s_factory_reset_blocked |= factory_reset_private_extension(entry->d_name);
+      continue;
+    }
+    char path[160];
+    int length = snprintf(path, sizeof(path), "%s/%s", directory, entry->d_name);
+    struct stat info;
+    bool failed = length < 0 || (size_t)length >= sizeof(path) ||
+        stat(path, &info) || !S_ISREG(info.st_mode);
+    if (!failed && remove(path) != 0 && errno != ENOENT) failed = true;
+    if (failed) {
+      // Revisit the failed entry on the next attempt. Keeping an advanced
+      // cursor could otherwise acknowledge an incomplete erase.
+      closedir(s_factory_reset_directory);
+      s_factory_reset_directory = NULL;
+      return ESP_FAIL;
+    }
+    invalidate_upload_count();
+  }
+  if (s_factory_reset_phase == 2) {
+    if (s_factory_reset_blocked) {
+      s_factory_reset_phase = 0;
+      s_factory_reset_blocked = false;
+      return ESP_FAIL;
+    }
+    if (!factory_reset_card_ready()) return ESP_ERR_INVALID_STATE;
+    *complete = true;
+  }
+  return ESP_OK;
+#else
+  (void)scan_limit;
+  *complete = true;
+  return ESP_OK;
 #endif
 }

@@ -70,3 +70,11 @@ test("unexpected errors retain a generic response and cannot masquerade as confl
     });
   }
 });
+
+
+test("pending private reset is actionable without exposing its account", () => {
+  const failure = devicePairingFailure(new Error("Quipus device reset is pending"));
+  assert.equal(failure.status, 409);
+  assert.equal(failure.code, "DEVICE_RESET_PENDING");
+  assert.match(failure.error, /Keep it powered on/u);
+});
